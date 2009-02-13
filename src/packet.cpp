@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "util.hpp"
+
 PacketProcessor::PacketProcessor()
 {
 	this->firstdec = true;

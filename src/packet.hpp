@@ -3,15 +3,7 @@
 
 #include <string>
 
-struct pairchar
-{
-	unsigned char byte[2];
-};
-
-struct quadchar
-{
-	unsigned char byte[4];
-};
+#include "util.hpp"
 
 class PacketProcessor;
 class PacketReader;

@@ -2,6 +2,7 @@
 #include "config.hpp"
 
 #include <cstdio>
+#include <stdexcept>
 
 #include "util.hpp"
 #include "variant.hpp"
@@ -18,6 +19,11 @@ Config::Config(std::string filename)
 	this->filename = filename;
 
 	fh = fopen(filename.c_str(), "rt");
+	if (!fh)
+	{
+		throw std::runtime_error("Configuration file not found.");
+	}
+
 	while (!feof(fh))
 	{
 		if (fgets(buf, Config::MaxLineLength, fh))

@@ -3,11 +3,12 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="eoserv" />
-		<Option pch_mode="2" />
+		<Option platforms="Windows;" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="..\eoserv.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="..\eoserv-debug.exe" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
 				<Option object_output="..\obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -21,6 +22,7 @@
 			</Target>
 			<Target title="Release">
 				<Option output="..\eoserv.exe" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
 				<Option object_output="..\obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -38,6 +40,7 @@
 			<Add option="-Wall" />
 			<Add option="-ansi" />
 			<Add option="-posix" />
+			<Add directory="..\src\" />
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />
