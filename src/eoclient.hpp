@@ -2,13 +2,21 @@
 #define EOCLIENT_HPP_INCLUDED
 
 #include <cstdio>
+#include <cstddef>
+#include <stdint.h>
 
 #include "socket.hpp"
 #include "packet.hpp"
 
 #define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(int action, PacketReader &reader)
 
+class EOServer;
 class EOClient;
+
+class EOServer : public Server<EOClient>
+{
+
+};
 
 class EOClient : public Client
 {
@@ -24,8 +32,8 @@ class EOClient : public Client
 		};
 
 		int state;
-		unsigned char raw_length[2];
-		int length;
+		uint8_t raw_length[2];
+		uint32_t length;
 		std::string data;
 
 		PacketProcessor processor;

@@ -3,9 +3,9 @@
 
 #include <string>
 #include <cstring>
+#include <stdint.h>
 #include <cstddef>
 #include <cstdarg>
-#include <iterator>
 #include <stdexcept>
 
 template <typename T, std::size_t size> class array
@@ -17,6 +17,14 @@ template <typename T, std::size_t size> class array
 		array()
 		{
 			memset((void *)this->data, 0, sizeof(T) * size);
+		}
+
+		array(T init)
+		{
+			for (std::size_t i = 0; i < size; ++i)
+			{
+				data[i] = init;
+			}
 		}
 
 		array(T init[size])
@@ -35,8 +43,8 @@ template <typename T, std::size_t size> class array
 		}
 };
 
-typedef array<unsigned char, 2> pairchar;
-typedef array<unsigned char, 4> quadchar;
+typedef array<uint8_t, 2> pairchar;
+typedef array<uint8_t, 4> quadchar;
 
 std::string ltrim(const std::string &);
 std::string rtrim(const std::string &);

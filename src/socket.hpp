@@ -4,6 +4,7 @@
 #include <string>
 #include <list>
 #include <stdint.h>
+#include <cstddef>
 #include <stdexcept>
 
 #ifdef __WIN32__
@@ -61,8 +62,8 @@ template <class T = Client> class Server
 		fd_set read_fds;
 		fd_set write_fds;
 		fd_set except_fds;
-		unsigned int recv_buffer_max;
-		unsigned int send_buffer_max;
+		std::size_t recv_buffer_max;
+		std::size_t send_buffer_max;
 		unsigned int maxconn;
 
 	private:
@@ -177,6 +178,7 @@ template <class T = Client> class Server
 
 			newclient = new T(newsock, sin);
 			newclient->send_buffer_max = this->send_buffer_max;
+			newclient->server = (void *)this;
 
 			this->clients.push_back(newclient);
 
@@ -315,12 +317,13 @@ class Client
 		sockaddr_in sin;
 		std::string send_buffer;
 		std::string recv_buffer;
-		unsigned int send_buffer_max;
+		std::size_t send_buffer_max;
+		void *server;
 
 	public:
 		Client();
 		Client(SOCKET, sockaddr_in);
-		std::string Recv(int length);
+		std::string Recv(std::size_t length);
 		void Send(const std::string &data);
 		bool Connected();
 		IPAddress GetRemoteAddr();

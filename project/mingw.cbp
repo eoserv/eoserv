@@ -35,11 +35,7 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-pedantic-errors" />
-			<Add option="-pedantic" />
 			<Add option="-Wall" />
-			<Add option="-ansi" />
-			<Add option="-posix" />
 			<Add directory="..\src\" />
 		</Compiler>
 		<Linker>

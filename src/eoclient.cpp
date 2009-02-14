@@ -27,7 +27,6 @@ void EOClient::Execute(std::string data)
 	action = data[0];
 
 	printf("%s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
-	Sleep(400);
 
 	PacketReader reader(data.substr(2));
 

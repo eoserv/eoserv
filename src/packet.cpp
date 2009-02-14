@@ -10,7 +10,7 @@ PacketProcessor::PacketProcessor()
 	this->firstdec = true;
 }
 
-std::string PacketProcessor::GetFamilyName(unsigned char family)
+std::string PacketProcessor::GetFamilyName(uint8_t family)
 {
 	switch (family)
 	{
@@ -54,7 +54,7 @@ std::string PacketProcessor::GetFamilyName(unsigned char family)
 	}
 }
 
-std::string PacketProcessor::GetActionName(unsigned char action)
+std::string PacketProcessor::GetActionName(uint8_t action)
 {
 	switch (action)
 	{
@@ -89,9 +89,9 @@ std::string PacketProcessor::GetActionName(unsigned char action)
 std::string PacketProcessor::Decode(const std::string &str)
 {
 	std::string newstr;
-	int length = str.length();
-	int i = 0;
-	int ii = 0;
+	std::size_t length = str.length();
+	std::size_t i = 0;
+	std::size_t ii = 0;
 
 	if (this->firstdec)
 	{
@@ -127,9 +127,9 @@ std::string PacketProcessor::Encode(const std::string &rawstr)
 {
 	std::string str = this->DickWinderE(rawstr);
 	std::string newstr;
-	int length = str.length();
-	int i = 2;
-	int ii = 2;
+	std::size_t length = str.length();
+	std::size_t i = 2;
+	std::size_t ii = 2;
 
 	newstr.resize(length);
 
@@ -161,7 +161,7 @@ std::string PacketProcessor::Encode(const std::string &rawstr)
 std::string PacketProcessor::DickWinder(const std::string &str, unsigned char emulti)
 {
 	std::string newstr;
-	int length = str.length();
+	std::size_t length = str.length();
 	std::string buffer;
 	unsigned char c;
 
@@ -170,7 +170,7 @@ std::string PacketProcessor::DickWinder(const std::string &str, unsigned char em
 		return str;
 	}
 
-	for (int i = 0; i < length; ++i)
+	for (std::size_t i = 0; i < length; ++i)
 	{
 		c = str[i];
 
@@ -209,13 +209,13 @@ std::string PacketProcessor::DickWinderD(const std::string &str)
 	return this->DickWinder(str, this->emulti_d);
 }
 
-void PacketProcessor::SetEMulti(unsigned char emulti_e, unsigned char emulti_d)
+void PacketProcessor::SetEMulti(uint8_t emulti_e, uint8_t emulti_d)
 {
 	this->emulti_e = emulti_e;
 	this->emulti_d = emulti_d;
 }
 
-int PacketProcessor::Number(unsigned char b1, unsigned char b2, unsigned char b3, unsigned char b4)
+uint32_t PacketProcessor::Number(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4)
 {
 	if (b1 == 0 || b1 == 254) b1 = 1;
 	if (b2 == 0 || b2 == 254) b2 = 1;
@@ -230,16 +230,16 @@ int PacketProcessor::Number(unsigned char b1, unsigned char b2, unsigned char b3
 	return (b4*PacketProcessor::MAX3 + b3*PacketProcessor::MAX2 + b2*PacketProcessor::MAX1 + b1);
 }
 
-quadchar PacketProcessor::ENumber(unsigned int number)
+quadchar PacketProcessor::ENumber(uint32_t number)
 {
-	int throwaway;
+	std::size_t throwaway;
 
 	return PacketProcessor::ENumber(number, throwaway);
 }
 
-quadchar PacketProcessor::ENumber(unsigned int number, int &size)
+quadchar PacketProcessor::ENumber(uint32_t number, std::size_t &size)
 {
-	quadchar bytes({254,254,254,254});
+	quadchar bytes(254);
 	unsigned int onumber = number;
 
 	if (onumber >= PacketProcessor::MAX3)
@@ -291,12 +291,12 @@ quadchar PacketProcessor::ENumber(unsigned int number, int &size)
 	return bytes;
 }
 
-unsigned short PacketProcessor::PID(unsigned char b1, unsigned char b2)
+uint16_t PacketProcessor::PID(uint8_t b1, uint8_t b2)
 {
 	return b1 + b2*256;
 }
 
-pairchar PacketProcessor::EPID(unsigned short pid)
+pairchar PacketProcessor::EPID(uint16_t pid)
 {
 	pairchar bytes;
 
@@ -312,19 +312,19 @@ PacketReader::PacketReader(const std::string &data)
 	this->length = data.length();
 }
 
-size_t PacketReader::Length()
+std::size_t PacketReader::Length()
 {
 	return this->length;
 }
 
-size_t PacketReader::Remaining()
+std::size_t PacketReader::Remaining()
 {
 	return this->data.length();
 }
 
-unsigned char PacketReader::GetByte()
+uint8_t PacketReader::GetByte()
 {
-	unsigned char ret;
+	uint8_t ret;
 
 	if (this->data.length() < 1)
 	{
@@ -337,9 +337,9 @@ unsigned char PacketReader::GetByte()
 	return ret;
 }
 
-unsigned char PacketReader::GetChar()
+uint8_t PacketReader::GetChar()
 {
-	unsigned char ret;
+	uint8_t ret;
 
 	if (this->data.length() < 1)
 	{
@@ -352,9 +352,9 @@ unsigned char PacketReader::GetChar()
 	return ret;
 }
 
-unsigned short PacketReader::GetShort()
+uint16_t PacketReader::GetShort()
 {
-	unsigned short ret;
+	uint16_t ret;
 
 	if (this->data.length() < 2)
 	{
@@ -367,9 +367,9 @@ unsigned short PacketReader::GetShort()
 	return ret;
 }
 
-unsigned int PacketReader::GetThree()
+uint32_t PacketReader::GetThree()
 {
-	unsigned int ret;
+	uint32_t ret;
 
 	if (this->data.length() < 3)
 	{
@@ -382,9 +382,9 @@ unsigned int PacketReader::GetThree()
 	return ret;
 }
 
-unsigned int PacketReader::GetInt()
+uint32_t PacketReader::GetInt()
 {
-	unsigned int ret;
+	uint32_t ret;
 
 	if (this->data.length() < 4)
 	{
@@ -415,7 +415,7 @@ std::string PacketReader::GetFixedString(size_t length)
 std::string PacketReader::GetBreakString(unsigned char breakchar)
 {
 	std::string ret;
-	size_t length;
+	std::size_t length;
 
 	length = this->data.find_first_of(breakchar);
 
@@ -446,19 +446,19 @@ PacketBuilder::PacketBuilder()
 	this->id = 0;
 }
 
-PacketBuilder::PacketBuilder(unsigned short id)
+PacketBuilder::PacketBuilder(uint16_t id)
 {
 	this->length = 0;
 	this->SetID(id);
 }
 
-PacketBuilder::PacketBuilder(unsigned char family, unsigned char action)
+PacketBuilder::PacketBuilder(uint8_t family, uint8_t action)
 {
 	this->length = 0;
 	this->SetID(family, action);
 }
 
-unsigned short PacketBuilder::SetID(unsigned short id)
+uint16_t PacketBuilder::SetID(uint16_t id)
 {
 	if (id == 0)
 	{
@@ -470,19 +470,19 @@ unsigned short PacketBuilder::SetID(unsigned short id)
 	return this->id;
 }
 
-unsigned short PacketBuilder::SetID(unsigned char family, unsigned char action)
+uint16_t PacketBuilder::SetID(uint8_t family, uint8_t action)
 {
 	return this->SetID(PacketProcessor::PID(family,action));
 }
 
-unsigned char PacketBuilder::AddByte(unsigned char byte)
+uint8_t PacketBuilder::AddByte(uint8_t byte)
 {
 	++this->length;
 	this->data += byte;
 	return byte;
 }
 
-unsigned char PacketBuilder::AddChar(unsigned char num)
+uint8_t PacketBuilder::AddChar(uint8_t num)
 {
 	quadchar bytes;
 	++this->length;

@@ -112,7 +112,7 @@ Client::Client(SOCKET sock, sockaddr_in sin)
 	this->sin = sin;
 }
 
-std::string Client::Recv(int length)
+std::string Client::Recv(std::size_t length)
 {
 	if (length <= 0)
 	{

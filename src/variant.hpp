@@ -37,17 +37,14 @@ class Variant
 	public:
 		Variant();
 		Variant(int);
-		Variant(float);
 		Variant(double);
 		Variant(const std::string &);
 
 		Variant &operator =(int);
-		Variant &operator =(float);
 		Variant &operator =(double);
 		Variant &operator =(const std::string &);
 
 		operator int();
-		operator float();
 		operator double();
 		operator std::string();
 };

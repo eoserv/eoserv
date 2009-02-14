@@ -19,11 +19,6 @@ Variant::Variant(double d)
 	this->SetFloat(d);
 }
 
-Variant::Variant(float f)
-{
-	this->SetFloat(f);
-}
-
 Variant::Variant(const std::string &s)
 {
 	this->SetString(s);
@@ -129,11 +124,6 @@ Variant &Variant::operator =(double d)
 	return this->SetFloat(d);
 }
 
-Variant &Variant::operator =(float f)
-{
-	return this->SetFloat(f);
-}
-
 Variant &Variant::operator =(const std::string &s)
 {
 	return this->SetString(s);
@@ -145,11 +135,6 @@ Variant::operator int()
 }
 
 Variant::operator double()
-{
-	return this->GetFloat();
-}
-
-Variant::operator float()
 {
 	return this->GetFloat();
 }
