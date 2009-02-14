@@ -4,16 +4,6 @@
 #include <cstdio>
 #include <string>
 
-unsigned char &pairchar::operator[](int index)
-{
-		return this->byte[index];
-}
-
-unsigned char &quadchar::operator[](int index)
-{
-		return this->byte[index];
-}
-
 std::string ltrim(const std::string &str)
 {
 	std::size_t si = str.find_first_not_of(" \t\n\r");

@@ -239,28 +239,28 @@ quadchar PacketProcessor::ENumber(unsigned int number)
 
 quadchar PacketProcessor::ENumber(unsigned int number, int &size)
 {
-	quadchar bytes = {254,254,254,254};
+	quadchar bytes({254,254,254,254});
 	unsigned int onumber = number;
 
 	if (onumber >= PacketProcessor::MAX3)
 	{
-		bytes.byte[3] = number / PacketProcessor::MAX3 + 1;
+		bytes[3] = number / PacketProcessor::MAX3 + 1;
 		number = number % PacketProcessor::MAX3;
 	}
 
 	if (onumber >= PacketProcessor::MAX2)
 	{
-		bytes.byte[2] = number / PacketProcessor::MAX2 + 1;
+		bytes[2] = number / PacketProcessor::MAX2 + 1;
 		number = number % PacketProcessor::MAX2;
 	}
 
 	if (onumber >= PacketProcessor::MAX1)
 	{
-		bytes.byte[1] = number / PacketProcessor::MAX1 + 1;
+		bytes[1] = number / PacketProcessor::MAX1 + 1;
 		number = number % PacketProcessor::MAX1;
 	}
 
-	bytes.byte[0] = number + 1;
+	bytes[0] = number + 1;
 
 	for (int i = 3; i >= 0; ++i)
 	{
@@ -269,7 +269,7 @@ quadchar PacketProcessor::ENumber(unsigned int number, int &size)
 			size = 1;
 			break;
 		}
-		else if (bytes.byte[i] > 0)
+		else if (bytes[i] > 0)
 		{
 			size = i + 1;
 			break;
@@ -278,13 +278,13 @@ quadchar PacketProcessor::ENumber(unsigned int number, int &size)
 
 	for (int i = 0; i < 4; ++i)
 	{
-		if (bytes.byte[i] == 128)
+		if (bytes[i] == 128)
 		{
-			bytes.byte[i] = 0;
+			bytes[i] = 0;
 		}
-		else if (bytes.byte[i] == 0)
+		else if (bytes[i] == 0)
 		{
-			bytes.byte[i] = 128;
+			bytes[i] = 128;
 		}
 	}
 
@@ -300,8 +300,8 @@ pairchar PacketProcessor::EPID(unsigned short pid)
 {
 	pairchar bytes;
 
-	bytes.byte[1] = pid % 256;
-	bytes.byte[0] = pid / 256;
+	bytes[1] = pid % 256;
+	bytes[0] = pid / 256;
 
 	return bytes;
 }
@@ -487,7 +487,7 @@ unsigned char PacketBuilder::AddChar(unsigned char num)
 	quadchar bytes;
 	++this->length;
 	bytes = PacketProcessor::ENumber(num);
-	this->data += bytes.byte[0];
+	this->data += bytes[0];
 	return num;
 }
 
@@ -496,8 +496,8 @@ unsigned short PacketBuilder::AddShort(unsigned short num)
 	quadchar bytes;
 	this->length += 2;
 	bytes = PacketProcessor::ENumber(num);
-	this->data += bytes.byte[0];
-	this->data += bytes.byte[1];
+	this->data += bytes[0];
+	this->data += bytes[1];
 	return num;
 }
 
@@ -506,9 +506,9 @@ unsigned int PacketBuilder::AddThree(unsigned int num)
 	quadchar bytes;
 	this->length += 3;
 	bytes = PacketProcessor::ENumber(num);
-	this->data += bytes.byte[0];
-	this->data += bytes.byte[1];
-	this->data += bytes.byte[2];
+	this->data += bytes[0];
+	this->data += bytes[1];
+	this->data += bytes[2];
 	return num;
 }
 
@@ -517,10 +517,10 @@ unsigned int PacketBuilder::AddInt(unsigned int num)
 	quadchar bytes;
 	this->length += 4;
 	bytes = PacketProcessor::ENumber(num);
-	this->data += bytes.byte[0];
-	this->data += bytes.byte[1];
-	this->data += bytes.byte[2];
-	this->data += bytes.byte[3];
+	this->data += bytes[0];
+	this->data += bytes[1];
+	this->data += bytes[2];
+	this->data += bytes[3];
 	return num;
 }
 
@@ -548,12 +548,12 @@ std::string PacketBuilder::Get()
 	quadchar length = PacketProcessor::ENumber(this->length + 2);
 
 	printf("Generated packet length: %i\n", this->length+2);
-	printf("quadchar: [%i] [%i] [%i] [%i]", (unsigned char)length.byte[0], (unsigned char)length.byte[1], (unsigned char)length.byte[2], (unsigned char)length.byte[3]);
+	printf("quadchar: [%i] [%i] [%i] [%i]", length[0], length[1], length[2], length[3]);
 
-	retdata += length.byte[0];
-	retdata += length.byte[1];
-	retdata += id.byte[0];
-	retdata += id.byte[1];
+	retdata += length[0];
+	retdata += length[1];
+	retdata += id[0];
+	retdata += id[1];
 	retdata += this->data;
 
 	return retdata;
