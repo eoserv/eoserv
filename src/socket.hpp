@@ -7,18 +7,22 @@
 #include <cstddef>
 #include <stdexcept>
 
-#ifdef __WIN32__
+#ifdef WIN32
 #include <winsock2.h>
+extern bool ws_init;
+extern WSADATA wsadata;
+typedef int socklen_t;
 #else // WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#define SOCKET int
+#include <fcntl.h>
+typedef int SOCKET;
+const SOCKET INVALID_SOCKET = 0;
+const int SOCKET_ERROR = -1;
 #endif // WIN32
-
-extern bool ws_init;
-extern WSADATA wsadata;
 
 class IPAddress;
 class Client;
@@ -150,9 +154,11 @@ template <class T = Client> class Server
 		{
 			SOCKET newsock;
 			sockaddr_in sin;
-			int addrsize = sizeof(sockaddr_in);
+			socklen_t addrsize = sizeof(sockaddr_in);
 			T* newclient;
+#ifdef WIN32
 			unsigned long nonblocking;
+#endif // WIN32
 
 			if (this->clients.size() >= this->maxconn)
 			{
@@ -167,14 +173,22 @@ template <class T = Client> class Server
 				}
 			}
 
+#ifdef WIN32
 			nonblocking = 1;
 			ioctlsocket(this->server, FIONBIO, &nonblocking);
+#else // WIN32
+			fcntl(this->server, F_SETFL, FNONBLOCK|FASYNC);
+#endif // WIN32
 			if ((newsock = accept(this->server, (sockaddr *)&sin, &addrsize)) == INVALID_SOCKET)
 			{
 				return NULL;
 			}
+#ifdef WIN32
 			nonblocking = 0;
 			ioctlsocket(this->server, FIONBIO, &nonblocking);
+#else // WIN32
+			fcntl(this->server, F_SETFL, 0);
+#endif // WIN32
 
 			newclient = new T(newsock, sin);
 			newclient->send_buffer_max = this->send_buffer_max;
@@ -187,9 +201,11 @@ template <class T = Client> class Server
 
 		std::list<T *> Select(int timeout)
 		{
-			timeval timeout_val = {timeout/1000000, (timeout%1000000)};
+			timeval timeout_val = {timeout/1000000, timeout%1000000};
 			std::list<T *> selected;
 			class std::list<T *>::iterator it;
+			int nfds = this->server + 1;
+			int result;
 
 			FD_ZERO(&this->read_fds);
 			FD_ZERO(&this->write_fds);
@@ -210,12 +226,24 @@ template <class T = Client> class Server
 					}
 
 					FD_SET((*it)->sock, &this->except_fds);
+
+					if ((*it)->sock + 1 > nfds)
+					{
+						nfds = (*it)->sock + 1;
+					}
 				}
 			}
 
 			FD_SET(this->server, &this->except_fds);
 
-			if (select(0, &this->read_fds, &this->write_fds, &this->except_fds, &timeout_val) > 0)
+			result = select(0, &this->read_fds, &this->write_fds, &this->except_fds, &timeout_val);
+
+			if (result == -1)
+			{
+				throw std::runtime_error("There was an error calling select().");
+			}
+
+			if (result > 0)
 			{
 				if (FD_ISSET(this->server, &this->except_fds))
 				{

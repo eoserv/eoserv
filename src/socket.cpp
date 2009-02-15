@@ -1,12 +1,9 @@
 
 #include "socket.hpp"
 
-#ifdef __WIN32__
-
-#include <winsock2.h>
+#ifdef WIN32
 bool ws_init = false;
 WSADATA wsadata;
-
 #endif // WIN32
 
 IPAddress::IPAddress()
@@ -37,7 +34,7 @@ IPAddress::IPAddress(uint32_t addr)
 
 IPAddress::IPAddress(in_addr addr)
 {
-	this->address = ntohl(addr.S_un.S_addr);
+	this->address = ntohl(addr.s_addr);
 }
 
 IPAddress::IPAddress(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4)
@@ -77,7 +74,7 @@ IPAddress::operator uint32_t()
 IPAddress::operator in_addr()
 {
 	in_addr addr;
-	addr.S_un.S_addr = htonl(this->address);
+	addr.s_addr = htonl(this->address);
 	return addr;
 }
 

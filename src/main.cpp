@@ -15,6 +15,7 @@ int main(void)
 	{
 		bool running = true;
 		Config config("config.ini");
+
 		Server<EOClient> server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]));
 		if (server.State() == Server<EOClient>::Invalid)
 		{
@@ -48,6 +49,7 @@ int main(void)
 				EOClient *cl = *ci;
 				std::string data;
 				int done = false;
+				int oldlength;
 
 				data = cl->Recv((cl->state == EOClient::ReadData)?cl->length:1);
 
@@ -72,7 +74,7 @@ int main(void)
 
 						case EOClient::ReadData:
 							printf("Recieving message...\n");
-							int oldlength = cl->data.length();
+							oldlength = cl->data.length();
 							cl->data += data.substr(0, cl->length);
 							cl->length -= cl->data.length() - oldlength;
 							if (cl->length == 0)

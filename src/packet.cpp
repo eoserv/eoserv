@@ -114,11 +114,11 @@ std::string PacketProcessor::Decode(const std::string &str)
 		i -= 2;
 	}
 
-	while (i >= 0)
+	do
 	{
 		newstr[ii++] = (unsigned char)str[i] ^ 0x80;
 		i -= 2;
-	}
+	} while (i >= 2);
 
 	return this->DickWinderD(newstr);
 }
@@ -546,9 +546,6 @@ std::string PacketBuilder::Get()
 	std::string retdata;
 	pairchar id = PacketProcessor::EPID(this->id);
 	quadchar length = PacketProcessor::ENumber(this->length + 2);
-
-	printf("Generated packet length: %i\n", this->length+2);
-	printf("quadchar: [%i] [%i] [%i] [%i]", length[0], length[1], length[2], length[3]);
 
 	retdata += length[0];
 	retdata += length[1];
