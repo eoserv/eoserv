@@ -11,6 +11,8 @@ CLIENT_F_FUNC(Login)
 			std::string username = reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
+			this->player->name = username;
+
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
 
 			reply.AddShort(3); // Reply code

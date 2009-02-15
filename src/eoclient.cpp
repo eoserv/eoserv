@@ -3,7 +3,9 @@
 
 #include <string>
 
+#include "socket.hpp"
 #include "packet.hpp"
+#include "eoclient.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
@@ -14,6 +16,10 @@ void EOClient::Initialize()
 {
 	this->length = 0;
 	this->state = 0;
+	this->player = new Player;
+	this->player->client = this;
+	//this->player->world = (static_cast<EOServer<EOClient> *>(this->server))->world;
+	//this->player->world->players.push_back(this->player);
 }
 
 void EOClient::Execute(std::string data)
@@ -77,4 +83,10 @@ void EOClient::Execute(std::string data)
 	{
 		puts("Action handler failed");
 	}
+}
+
+void EOClient::SendBuilder(PacketBuilder &builder)
+{
+	std::string packet = static_cast<std::string>(builder);
+	this->Send(packet);
 }

@@ -5,17 +5,25 @@
 #include <cstddef>
 #include <stdint.h>
 
+template <class T> class EOServer;
+class EOClient;
+
 #include "socket.hpp"
 #include "packet.hpp"
+#include "eoserv.hpp"
 
 #define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(int action, PacketReader &reader)
 
-class EOServer;
-class EOClient;
-
-class EOServer : public Server<EOClient>
+template <class T> class EOServer : public Server<T>
 {
+	private:
+		void Initialize() { this->world = new World; }
 
+	public:
+		World *world;
+
+		EOServer() : Server<T>() { this->Initialize(); };
+		EOServer(IPAddress addr, uint16_t port) : Server<T>(addr, port) { this->Initialize(); };
 };
 
 class EOClient : public Client
@@ -24,6 +32,8 @@ class EOClient : public Client
 		void Initialize();
 
 	public:
+		Player *player;
+
 		enum State
 		{
 			ReadLen1,
@@ -42,6 +52,8 @@ class EOClient : public Client
 		EOClient(SOCKET s, sockaddr_in sa) : Client(s, sa) { this->Initialize(); };
 
 		void Execute(std::string data);
+
+		void SendBuilder(PacketBuilder &packet);
 
 		CLIENT_F_FUNC(Init);
 		CLIENT_F_FUNC(Connection);

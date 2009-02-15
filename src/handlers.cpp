@@ -2,6 +2,7 @@
 #include <string>
 
 #include "eoclient.hpp"
+#include "eoserv.hpp"
 #include "packet.hpp"
 
 #ifdef CLIENT_F_FUNC

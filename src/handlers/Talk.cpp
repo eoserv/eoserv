@@ -21,9 +21,7 @@ CLIENT_F_FUNC(Talk)
 			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
 
-			printf("global %s\n", message.c_str());
-
-			//this->world->GlobalMsg(static_cast<std::string>(this->GetRemoteAddr).c_str(), message);
+			this->player->world->Msg(this->player, message);
 
 			break;
 

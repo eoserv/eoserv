@@ -192,7 +192,7 @@ template <class T = Client> class Server
 
 			newclient = new T(newsock, sin);
 			newclient->send_buffer_max = this->send_buffer_max;
-			newclient->server = (void *)this;
+			newclient->server = static_cast<void *>(this);
 
 			this->clients.push_back(newclient);
 
@@ -204,7 +204,7 @@ template <class T = Client> class Server
 			timeval timeout_val = {timeout/1000000, timeout%1000000};
 			std::list<T *> selected;
 			class std::list<T *>::iterator it;
-			int nfds = this->server + 1;
+			SOCKET nfds = this->server + 1;
 			int result;
 
 			FD_ZERO(&this->read_fds);
@@ -236,7 +236,7 @@ template <class T = Client> class Server
 
 			FD_SET(this->server, &this->except_fds);
 
-			result = select(0, &this->read_fds, &this->write_fds, &this->except_fds, &timeout_val);
+			result = select(nfds, &this->read_fds, &this->write_fds, &this->except_fds, &timeout_val);
 
 			if (result == -1)
 			{

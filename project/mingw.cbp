@@ -45,6 +45,8 @@
 		<Unit filename="..\src\config.hpp" />
 		<Unit filename="..\src\eoclient.cpp" />
 		<Unit filename="..\src\eoclient.hpp" />
+		<Unit filename="..\src\eoserv.cpp" />
+		<Unit filename="..\src\eoserv.hpp" />
 		<Unit filename="..\src\handlers.cpp" />
 		<Unit filename="..\src\handlers\Account.cpp">
 			<Option compile="0" />

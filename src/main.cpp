@@ -16,7 +16,7 @@ int main(void)
 		bool running = true;
 		Config config("config.ini");
 
-		Server<EOClient> server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]));
+		EOServer<EOClient> server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]));
 		if (server.State() == Server<EOClient>::Invalid)
 		{
 			puts("There was a problem initializing the server.");
