@@ -20,7 +20,7 @@ typedef int socklen_t;
 #include <arpa/inet.h>
 #include <fcntl.h>
 typedef int SOCKET;
-const SOCKET INVALID_SOCKET = 0;
+const SOCKET INVALID_SOCKET = -1;
 const int SOCKET_ERROR = -1;
 #endif // WIN32
 
