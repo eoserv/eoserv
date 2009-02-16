@@ -434,6 +434,8 @@ std::string PacketReader::GetEndString()
 {
 	std::string ret = this->data;
 
+	printf("Debug: %s (%i)",this->data.c_str(),this->data.length());
+
 	this->data.erase();
 
 	return ret;

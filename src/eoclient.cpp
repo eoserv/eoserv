@@ -88,5 +88,5 @@ void EOClient::Execute(std::string data)
 void EOClient::SendBuilder(PacketBuilder &builder)
 {
 	std::string packet = static_cast<std::string>(builder);
-	this->Send(packet);
+	this->Send(this->processor.Encode(packet));
 }
