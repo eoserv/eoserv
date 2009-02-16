@@ -190,9 +190,8 @@ template <class T = Client> class Server
 			fcntl(this->server, F_SETFL, 0);
 #endif // WIN32
 
-			newclient = new T(newsock, sin);
+			newclient = new T(newsock, sin, static_cast<void *>(this));
 			newclient->send_buffer_max = this->send_buffer_max;
-			newclient->server = static_cast<void *>(this);
 
 			this->clients.push_back(newclient);
 
@@ -339,6 +338,9 @@ template <class T = Client> class Server
 
 class Client
 {
+	private:
+		Client();
+
 	protected:
 		bool connected;
 		SOCKET sock;
@@ -349,8 +351,8 @@ class Client
 		void *server;
 
 	public:
-		Client();
-		Client(SOCKET, sockaddr_in);
+		Client(void *);
+		Client(SOCKET, sockaddr_in, void *);
 		std::string Recv(std::size_t length);
 		void Send(const std::string &data);
 		bool Connected();

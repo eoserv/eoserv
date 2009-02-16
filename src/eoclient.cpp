@@ -18,8 +18,8 @@ void EOClient::Initialize()
 	this->state = 0;
 	this->player = new Player;
 	this->player->client = this;
-	//this->player->world = (static_cast<EOServer<EOClient> *>(this->server))->world;
-	//this->player->world->players.push_back(this->player);
+	this->player->world = static_cast<EOServer<EOClient> *>(this->server)->world;
+	this->player->world->players.push_back(this->player);
 }
 
 void EOClient::Execute(std::string data)

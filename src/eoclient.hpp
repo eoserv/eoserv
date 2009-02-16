@@ -30,6 +30,7 @@ class EOClient : public Client
 {
 	private:
 		void Initialize();
+		EOClient();
 
 	public:
 		Player *player;
@@ -47,9 +48,8 @@ class EOClient : public Client
 		std::string data;
 
 		PacketProcessor processor;
-
-		EOClient() { this->Initialize(); };
-		EOClient(SOCKET s, sockaddr_in sa) : Client(s, sa) { this->Initialize(); };
+		EOClient(void *server) : Client(server) { this->Initialize(); };
+		EOClient(SOCKET s, sockaddr_in sa, void *server) : Client(s, sa, server) { this->Initialize(); };
 
 		void Execute(std::string data);
 

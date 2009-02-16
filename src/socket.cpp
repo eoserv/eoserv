@@ -90,7 +90,7 @@ IPAddress::operator std::string()
 	return std::string(buf);
 }
 
-Client::Client()
+Client::Client(void *server)
 {
 #ifdef WIN32
 	if (!ws_init)
@@ -100,13 +100,15 @@ Client::Client()
 	}
 #endif // WIN32
 	this->connected = false;
+	this->server = server;
 }
 
-Client::Client(SOCKET sock, sockaddr_in sin)
+Client::Client(SOCKET sock, sockaddr_in sin, void *server)
 {
 	this->connected = true;
 	this->sock = sock;
 	this->sin = sin;
+	this->server = server;
 }
 
 std::string Client::Recv(std::size_t length)

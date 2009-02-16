@@ -1,7 +1,6 @@
 
 BIN = eoserv
 OBJ = obj/config.o obj/eoclient.o obj/handlers.o obj/main.o obj/packet.o obj/socket.o obj/util.o obj/variant.o
-LIBS = 
 CXXFLAGS = -O2
 LDFLAGS = -s
 
