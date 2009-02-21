@@ -72,22 +72,18 @@ double Variant::GetFloat()
 
 std::string Variant::GetString()
 {
-	char *buf;
+	char buf[1024];
 
 	switch (this->type)
 	{
 		case type_int:
-			buf = new char[Variant::int_length(this->val_int)+2];
-			sprintf(buf, "%i", this->val_int);
+			snprintf(buf, 1024, "%i", this->val_int);
 			this->val_string = buf;
-			delete buf;
 			break;
 
 		case type_float:
-			buf = new char[Variant::int_length(this->val_int)+2];
-			sprintf(buf, "%f", this->val_float);
+			snprintf(buf, 1024, "%f", this->val_float);
 			this->val_string = buf;
-			delete buf;
 			break;
 	}
 

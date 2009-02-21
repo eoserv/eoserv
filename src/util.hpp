@@ -8,6 +8,9 @@
 #include <cstdarg>
 #include <stdexcept>
 
+/**
+ * Generic and simple array class.
+ */
 template <typename T, std::size_t size> class array
 {
 	private:
@@ -43,11 +46,32 @@ template <typename T, std::size_t size> class array
 		}
 };
 
+/**
+ * Commonly used array type in EOSERV.
+ */
 typedef array<uint8_t, 2> pairchar;
+
+/**
+ * Commonly used array type in EOSERV.
+ */
 typedef array<uint8_t, 4> quadchar;
 
+/**
+ * Trims whitespace from the left of a string.
+ * Whitespace is defined as space, tab, CR and LF.
+ */
 std::string ltrim(const std::string &);
+
+/**
+ * Trims whitespace from the right of a string.
+ * Whitespace is defined as space, tab, CR and LF.
+ */
 std::string rtrim(const std::string &);
+
+/**
+ * Trims whitespace from both sides of a string.
+ * Whitespace is defined as space, tab, CR and LF.
+ */
 std::string trim(const std::string &);
 
 #endif // UTIL_HPP_INCLUDED

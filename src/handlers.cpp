@@ -14,6 +14,9 @@
 #define CLIENT_SENDRAW(REPLY) this->Send(REPLY)
 #define CLIENT_SEND(REPLY) this->Send(this->processor.Encode(REPLY))
 
+// Stop doxygen generating a gigantic include graph
+#ifndef DOXYGEN
+
 #include "handlers/Account.cpp"
 #include "handlers/AdminInteract.cpp"
 #include "handlers/Attack.cpp"
@@ -48,3 +51,5 @@
 #include "handlers/Walk.cpp"
 #include "handlers/Warp.cpp"
 #include "handlers/Welcome.cpp"
+
+#endif // DOXYGEN

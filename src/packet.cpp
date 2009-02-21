@@ -158,7 +158,7 @@ std::string PacketProcessor::Encode(const std::string &rawstr)
 	return newstr;
 }
 
-std::string PacketProcessor::DickWinder(const std::string &str, unsigned char emulti)
+std::string PacketProcessor::DickWinder(const std::string &str, uint8_t emulti)
 {
 	std::string newstr;
 	std::size_t length = str.length();
@@ -397,7 +397,7 @@ uint32_t PacketReader::GetInt()
 	return ret;
 }
 
-std::string PacketReader::GetFixedString(size_t length)
+std::string PacketReader::GetFixedString(std::size_t length)
 {
 	std::string ret;
 
@@ -493,7 +493,7 @@ uint8_t PacketBuilder::AddChar(uint8_t num)
 	return num;
 }
 
-unsigned short PacketBuilder::AddShort(unsigned short num)
+unsigned short PacketBuilder::AddShort(uint16_t num)
 {
 	quadchar bytes;
 	this->length += 2;
@@ -503,7 +503,7 @@ unsigned short PacketBuilder::AddShort(unsigned short num)
 	return num;
 }
 
-unsigned int PacketBuilder::AddThree(unsigned int num)
+unsigned int PacketBuilder::AddThree(uint32_t num)
 {
 	quadchar bytes;
 	this->length += 3;
@@ -514,7 +514,7 @@ unsigned int PacketBuilder::AddThree(unsigned int num)
 	return num;
 }
 
-unsigned int PacketBuilder::AddInt(unsigned int num)
+unsigned int PacketBuilder::AddInt(uint32_t num)
 {
 	quadchar bytes;
 	this->length += 4;

@@ -74,21 +74,54 @@ const uint8_t PACKET_JUNK = 25;
 const uint8_t PACKET_GET = 27;
 const uint8_t PACKET_NET = 240;
 
+/**
+ * Encodes and Decodes packets for a Client.
+ * Each Client needs an instance of this because it holds connection-specific data required to function correctly.
+ */
 class PacketProcessor
 {
 	protected:
+		/**
+		 * "EMulti" variable for Encoding.
+		 */
 		uint32_t emulti_e;
+
+		/**
+		 * "EMulti" variable for Decoding.
+		 */
 		uint32_t emulti_d;
+
+		/**
+		 * Flag marking the first Decode call (which shouldn't be Decoded).
+		 */
 		bool firstdec;
 
 	public:
+		/**
+		 * Highest number EO can represent with 1 byte.
+		 */
 		static const uint32_t MAX1 = 253;
+
+		/**
+		 * Highest number EO can represent with 2 bytes.
+		 */
 		static const uint32_t MAX2 = 64009;
+
+		/**
+		 * Highest number EO can represent with 3 bytes.
+		 */
 		static const uint32_t MAX3 = 16194277;
 
 		PacketProcessor();
 
+		/**
+		 * Return a string describing a packet's family ID.
+		 */
 		static std::string GetFamilyName(uint8_t family);
+
+		/**
+		 * Return a string describing a packet's action ID.
+		 */
 		static std::string GetActionName(uint8_t action);
 
 		std::string Decode(const std::string &);

@@ -9,18 +9,46 @@
 
 #ifdef WIN32
 #include <winsock2.h>
+/**
+ * Stores the initialization state of WinSock.
+ */
 extern bool ws_init;
+
+/**
+ * Stores internal WinSock information.
+ */
 extern WSADATA wsadata;
+
+/**
+ * Type for storing the size of a POSIX sockaddr_in struct.
+ * Defined here because it does not exist in MinGW's winsock headers.
+ */
 typedef int socklen_t;
 #else // WIN32
+// Stop doxygen generating a gigantic include graph
+#ifndef DOXYGEN
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#endif // DOXYGEN
+
+/**
+ * Type for storing a socket handle.
+ * Defined here because it does not exist in linux headers.
+ */
 typedef int SOCKET;
+
+/**
+ * Socket handle representing an invalid socket.
+ */
 const SOCKET INVALID_SOCKET = -1;
+
+/**
+ * Return code representing a socket error.
+ */
 const int SOCKET_ERROR = -1;
 #endif // WIN32
 
@@ -28,49 +56,153 @@ class IPAddress;
 class Client;
 template <class> class Server;
 
+/**
+ * Stores an IP address and converts between string and numeric formats.
+ */
 class IPAddress
 {
 	protected:
+		/**
+		 * Integer version of the IP address.
+		 */
 		uint32_t address;
 
+		/**
+		 * Return the IP address as a string (eg 255.255.255.255).
+		 */
 		std::string GetString();
 
 	public:
+		/**
+		 * Initialize the address as 0.0.0.0.
+		 */
 		IPAddress();
+
+		/**
+		 * Initialize the address to the integer value.
+		 */
 		IPAddress(uint32_t);
+
+		/**
+		 * Initialize the address using 4 octets.
+		 */
 		IPAddress(uint8_t, uint8_t, uint8_t, uint8_t);
+
+		/**
+		 * Initialize the address using a string (eg 255.255.255.255).
+		 */
 		IPAddress(const char *);
+
+		/**
+		 * Initialize the address using a POSIX in_addr struct.
+		 */
 		IPAddress(in_addr);
+
+		/**
+		 * Initialize the address using a string (eg 255.255.255.255).
+		 */
 		IPAddress(std::string);
 
+		/**
+		 * Set the address to an integer value
+		 */
 		IPAddress &operator =(uint32_t);
+
+		/**
+		 * Set the address using a string (eg 255.255.255.255).
+		 */
 		IPAddress &operator =(const char *);
+
+		/**
+		 * Set the address using a POSIX in_addr struct.
+		 */
 		IPAddress &operator =(in_addr);
+
+		/**
+		 * Set the address using a string (eg 255.255.255.255).
+		 */
 		IPAddress &operator =(std::string);
 
+		/**
+		 * Return the IP address as an integer.
+		 */
 		operator uint32_t();
+
+		/**
+		 * Return the IP address as a POSIX in_addr struct.
+		 */
 		operator in_addr();
+
+		/**
+		 * Return the IP address as a string (eg 255.255.255.255).
+		 */
 		operator std::string();
 };
 
+/**
+ * Generic TCP server class.
+ */
 template <class T = Client> class Server
 {
 	public:
 		enum State
 		{
+			/**
+			 * There was an error preparing the server.
+			 */
 			Invalid,
+			
+			/**
+			 * Newly created server, not listening yet.
+			 */
 			Created,
+			
+			/**
+			 * Server has been bound to a port but is not yet listening.
+			 */
 			Bound,
+			
+			/**
+			 * Server is listening and is ready to accept clients.
+			 */
 			Listening
 		};
+		
+		/**
+		 * Stores file descriptors for Select().
+		 */
 		fd_set read_fds;
+		
+		/**
+		 * Stores file descriptors for Select().
+		 */
 		fd_set write_fds;
+		
+		/**
+		 * Stores file descriptors for Select().
+		 */
 		fd_set except_fds;
+		
+		/**
+		 * Maximum amount of data that will be buffered for recieving per client.
+		 */
 		std::size_t recv_buffer_max;
+		
+		/**
+		 * Maximum amount of data that will be buffered for sending per client.
+		 */
 		std::size_t send_buffer_max;
+		
+		/**
+		 * Maximum number of connections the server will hold at one time.
+		 */
 		unsigned int maxconn;
 
 	private:
+		/**
+		 * Initializes all data and WinSock if required.
+		 * This is called by every Socket constructor.
+		 */
 		void Initialize()
 		{
 #ifdef WIN32
@@ -92,25 +224,64 @@ template <class T = Client> class Server
 		}
 
 	protected:
+		/**
+		 * The address the server will listen on.
+		 */
 		IPAddress address;
+
+		/**
+		 * The port the server will listen on in host order.
+		 */
 		uint16_t port;
+
+		/**
+		 * The port the server will listen on in network order.
+		 */
 		uint16_t portn;
+
+		/**
+		 * List of connected clients.
+		 */
 		std::list<T *> clients;
+
+		/**
+		 * Socket handle of the listener.
+		 */
 		SOCKET server;
+
+		/**
+		 * Current server state.
+		 * @sa State
+		 */
 		State state;
 
 	public:
+		/**
+		 * Initializes the Server.
+		 */
 		Server()
 		{
 			this->Initialize();
 		}
 
+		/**
+		 * Initializes the Server and binds to the specified address and port.
+		 * @param addr Address to bind to
+		 * @param port Port number to bind to
+		 */
 		Server(IPAddress addr, uint16_t port)
 		{
 			this->Initialize();
 			this->Bind(addr, port);
 		}
 
+		/**
+		 * Bind the Server to the specified address and port.
+		 * Once this succeeds you should call Listen().
+		 * @param addr Address to bind to.
+		 * @param port Port number to bind to.
+		 * @return True if bind() was successful, false otherwise.
+		 */
 		bool Bind(IPAddress addr, uint16_t port)
 		{
 			sockaddr_in sin;
@@ -133,6 +304,12 @@ template <class T = Client> class Server
 			return true;
 		}
 
+		/**
+		 * Bind the Server to the specified address and port.
+		 * @param maxconn Maximum number of clients to have at one time.
+		 * @param backlog Number of connections to keep in the queue.
+		 * @return True if listen() was successful, false otherwise.
+		 */
 		bool Listen(int maxconn, int backlog = 10)
 		{
 			this->maxconn = maxconn;
@@ -150,6 +327,10 @@ template <class T = Client> class Server
 			return false;
 		}
 
+		/**
+		 * Check for new connection requests.
+		 * @return NULL if there are no pending connections, a pointer to the Client otherwise.
+		 */
 		T *Poll()
 		{
 			SOCKET newsock;
@@ -198,6 +379,11 @@ template <class T = Client> class Server
 			return newclient;
 		}
 
+		/**
+		 * Check clients for incoming data and errors, and sends data in their send_buffer.
+		 * If data is recieved, it is added to their recv_buffer.
+		 * @return Returns a list of clients that have data in their recv_buffer.
+		 */
 		std::list<T *> Select(int timeout)
 		{
 			timeval timeout_val = {timeout/1000000, timeout%1000000};
@@ -303,9 +489,10 @@ template <class T = Client> class Server
 			return selected;
 		}
 
-		// Destroys any dead clients, should be called periodically
-		// WARNING: All pointers to Client objects from this server
-		// should be considered invalid after execution.
+		/**
+		 * Destroys any dead clients, should be called periodically.
+		 * All pointers to Client objects from this Server should be considered invalid after execution.
+		 */
 		void BuryTheDead()
 		{
 			class std::list<T *>::iterator it;
@@ -336,6 +523,9 @@ template <class T = Client> class Server
 		}
 };
 
+/**
+ * Generic TCP client class.
+ */
 class Client
 {
 	private:
