@@ -6,8 +6,10 @@ CLIENT_F_FUNC(Players)
 	switch (action)
 	{
 		case PACKET_REQUEST: // Requested a list of online players
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

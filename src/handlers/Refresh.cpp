@@ -6,8 +6,10 @@ CLIENT_F_FUNC(Refresh)
 	switch (action)
 	{
 		case PACKET_REQUEST: // User requesting data of all objects in their location
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

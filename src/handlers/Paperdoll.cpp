@@ -6,16 +6,22 @@ CLIENT_F_FUNC(Paperdoll)
 	switch (action)
 	{
 		case PACKET_REQUEST: // Request for currently equipped items
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_REMOVE: // Unequipping an item
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_ADD: // Equipping an item
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

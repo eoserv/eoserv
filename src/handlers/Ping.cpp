@@ -6,8 +6,10 @@ CLIENT_F_FUNC(Ping)
 	switch (action)
 	{
 		case PACKET_NET: // User sending a ping request (#ping)
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

@@ -6,18 +6,22 @@ CLIENT_F_FUNC(Chest)
 	switch (action)
 	{
 		case PACKET_ADD: // Placing an item in a chest
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_TAKE: // Taking an item from a chest
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_OPEN: // Opening a chest
-		// In order to prevent going out of sync with walking, requests will be stored
-		// in the same queue.
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

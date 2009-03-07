@@ -6,28 +6,40 @@ CLIENT_F_FUNC(Trade)
 	switch (action)
 	{
 		case PACKET_REQUEST: // Requesting a trade with another player
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_ACCEPT: // Accepting a trade request
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_REMOVE: // Remove an item from the trade screen
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_AGREE: // Mark your agreeance with the current trade
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_ADD: // Add an item to the trade screen
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_CLOSE: // Cancel the trade
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

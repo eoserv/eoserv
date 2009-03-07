@@ -1,4 +1,6 @@
 
+#include <cstdio>
+
 #include "socket.hpp"
 
 #ifdef WIN32
@@ -14,20 +16,20 @@ IPAddress::IPAddress()
 IPAddress::IPAddress(std::string str_addr)
 {
 	unsigned int io1, io2, io3, io4;
-	sscanf(str_addr.c_str(), "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
-	uint8_t o1 = io1, o2 = io2, o3 = io3, o4 = io4;
+	std::sscanf(str_addr.c_str(), "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
+	unsigned char o1 = io1, o2 = io2, o3 = io3, o4 = io4;
 	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
 }
 
 IPAddress::IPAddress(const char *str_addr)
 {
 	unsigned int io1, io2, io3, io4;
-	sscanf(str_addr, "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
-	uint8_t o1 = io1, o2 = io2, o3 = io3, o4 = io4;
+	std::sscanf(str_addr, "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
+	unsigned char o1 = io1, o2 = io2, o3 = io3, o4 = io4;
 	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
 }
 
-IPAddress::IPAddress(uint32_t addr)
+IPAddress::IPAddress(unsigned int addr)
 {
 	this->address = addr;
 }
@@ -37,7 +39,7 @@ IPAddress::IPAddress(in_addr addr)
 	this->address = ntohl(addr.s_addr);
 }
 
-IPAddress::IPAddress(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4)
+IPAddress::IPAddress(unsigned char o1, unsigned char o2, unsigned char o3, unsigned char o4)
 {
 	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
 }
@@ -45,8 +47,8 @@ IPAddress::IPAddress(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4)
 IPAddress &IPAddress::operator =(std::string str_addr)
 {
 	unsigned int io1, io2, io3, io4;
-	sscanf(str_addr.c_str(), "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
-	uint8_t o1 = io1, o2 = io2, o3 = io3, o4 = io4;
+	std::sscanf(str_addr.c_str(), "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
+	unsigned char o1 = io1, o2 = io2, o3 = io3, o4 = io4;
 	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
 	return *this;
 }
@@ -54,19 +56,19 @@ IPAddress &IPAddress::operator =(std::string str_addr)
 IPAddress &IPAddress::operator =(const char *str_addr)
 {
 	unsigned int io1, io2, io3, io4;
-	sscanf(str_addr, "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
-	uint8_t o1 = io1, o2 = io2, o3 = io3, o4 = io4;
+	std::sscanf(str_addr, "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
+	unsigned char o1 = io1, o2 = io2, o3 = io3, o4 = io4;
 	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
 	return *this;
 }
 
-IPAddress &IPAddress::operator =(uint32_t addr)
+IPAddress &IPAddress::operator =(unsigned int addr)
 {
 	this->address = addr;
 	return *this;
 }
 
-IPAddress::operator uint32_t()
+IPAddress::operator unsigned int()
 {
 	return this->address;
 }
@@ -81,12 +83,12 @@ IPAddress::operator in_addr()
 IPAddress::operator std::string()
 {
 	char buf[16];
-	uint8_t o1, o2, o3, o4;
+	unsigned char o1, o2, o3, o4;
 	o1 = (this->address & 0xFF000000) >> 24;
 	o2 = (this->address & 0x00FF0000) >> 16;
 	o3 = (this->address & 0x0000FF00) >> 8;
 	o4 = this->address & 0x000000FF;
-	sprintf(buf, "%u.%u.%u.%u", o1, o2, o3, o4);
+	std::sprintf(buf, "%u.%u.%u.%u", o1, o2, o3, o4);
 	return std::string(buf);
 }
 
@@ -141,6 +143,7 @@ bool Client::Close()
 {
 	if (this->connected)
 	{
+		this->connected = false;
 #ifdef WIN32
 		return closesocket(this->sock) == 0;
 #else // WIN32

@@ -5,6 +5,9 @@
 #include "eoserv.hpp"
 #include "packet.hpp"
 
+extern Database eoserv_db;
+extern World *the_world;
+
 #ifdef CLIENT_F_FUNC
 #undef CLIENT_F_FUNC
 #endif // CLIENT_F_FUNC

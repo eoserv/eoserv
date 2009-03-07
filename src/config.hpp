@@ -5,15 +5,15 @@
 #include <map>
 #include <cstddef>
 
-#include "variant.hpp"
-
 class Config;
+
+#include "util.hpp"
 
 /**
  * Reads configuration data from a file.
  * Does not support sections in files (they're usually ignored).
  */
-class Config : public std::map<std::string, variant>
+class Config : public std::map<std::string, util::variant>
 {
 	protected:
 		/**
@@ -27,7 +27,7 @@ class Config : public std::map<std::string, variant>
 		 * Maximum length of a line in the configuration file.
 		 */
 		static const std::size_t MaxLineLength = 4096;
-		
+
 		/**
 		 * Reads all configuration data from the file to memory.
 		 * @param filename File to read from.

@@ -5,30 +5,29 @@
 #include <stdexcept>
 
 #include "util.hpp"
-#include "variant.hpp"
 
 Config::Config(std::string filename)
 {
-	FILE *fh;
+	std::FILE *fh;
 	char buf[Config::MaxLineLength];
 	std::string line;
 	std::string key;
 	std::string val;
-	size_t eqloc;
+	std::size_t eqloc;
 
 	this->filename = filename;
 
-	fh = fopen(filename.c_str(), "rt");
+	fh = std::fopen(filename.c_str(), "rt");
 	if (!fh)
 	{
 		throw std::runtime_error("Configuration file not found.");
 	}
 
-	while (!feof(fh))
+	while (!std::feof(fh))
 	{
-		if (fgets(buf, Config::MaxLineLength, fh))
+		if (std::fgets(buf, Config::MaxLineLength, fh))
 		{
-			line = trim(buf);
+			line = util::trim(buf);
 		}
 		else
 		{
@@ -52,9 +51,9 @@ Config::Config(std::string filename)
 			continue;
 		}
 
-		key = rtrim(line.substr(0, eqloc));
-		val = ltrim(line.substr(eqloc+1));
+		key = util::rtrim(line.substr(0, eqloc));
+		val = util::ltrim(line.substr(eqloc+1));
 
-		this->insert(std::pair<std::string, variant>(key, static_cast<variant>(val)));
+		this->insert(std::pair<std::string, util::variant>(key, static_cast<util::variant>(val)));
 	}
 }

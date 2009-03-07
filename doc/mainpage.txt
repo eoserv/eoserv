@@ -7,7 +7,7 @@ digraph global {
 	node	[shape=rect,fontname=FreeSans,fontsize=10,color=black]
 	
 
-	array	[shape=box3d,URL="\ref array",color=grey75]
+	array	[shape=box3d,URL="\ref util::array",color=grey75]
 	Client	[shape=invhouse,URL="\ref Client"]
 	Config	[shape=box3d,URL="\ref Config",color=grey75]
 	EOClient	[shape=folder,URL="\ref EOClient"]
@@ -22,7 +22,7 @@ digraph global {
 	Party	[shape=box3d,URL="\ref Party"]
 	Player	[URL="\ref Player"]
 	Server	[shape=invhouse,URL="\ref Server"]
-	Variant	[URL="\ref Variant",color=grey50]
+	variant	[URL="\ref util::variant",color=grey50]
 	World	[shape=box3d,URL="\ref World"]
 
 	Client -> EOClient	[arrowhead=diamond,arrowtail=inv,color=blue]

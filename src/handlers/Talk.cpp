@@ -8,30 +8,38 @@ CLIENT_F_FUNC(Talk)
 	switch (action)
 	{
 		case PACKET_REQUEST: // Guild chat message
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_OPEN: // Party chat messagea
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_REPORT:
 		case PACKET_MSG: // Global chat message
-
+		{
 			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
 
-			this->player->world->Msg(this->player, message);
-
-			break;
+			the_world->Msg(this->player->character, message);
+		}
+		break;
 
 		case PACKET_TELL: // Private chat message
+		{
 
-			break;
+		}
+		break;
 
 		//case PACKET_REPORT: // Public chat message
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

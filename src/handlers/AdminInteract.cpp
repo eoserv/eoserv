@@ -6,12 +6,16 @@ CLIENT_F_FUNC(AdminInteract)
 	switch (action)
 	{
 		case PACKET_TELL: // "Talk to admin" message
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_REPORT: // User report
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

@@ -151,48 +151,48 @@ template <class T = Client> class Server
 			 * There was an error preparing the server.
 			 */
 			Invalid,
-			
+
 			/**
 			 * Newly created server, not listening yet.
 			 */
 			Created,
-			
+
 			/**
 			 * Server has been bound to a port but is not yet listening.
 			 */
 			Bound,
-			
+
 			/**
 			 * Server is listening and is ready to accept clients.
 			 */
 			Listening
 		};
-		
+
 		/**
 		 * Stores file descriptors for Select().
 		 */
 		fd_set read_fds;
-		
+
 		/**
 		 * Stores file descriptors for Select().
 		 */
 		fd_set write_fds;
-		
+
 		/**
 		 * Stores file descriptors for Select().
 		 */
 		fd_set except_fds;
-		
+
 		/**
 		 * Maximum amount of data that will be buffered for recieving per client.
 		 */
 		std::size_t recv_buffer_max;
-		
+
 		/**
 		 * Maximum amount of data that will be buffered for sending per client.
 		 */
 		std::size_t send_buffer_max;
-		
+
 		/**
 		 * Maximum number of connections the server will hold at one time.
 		 */
@@ -350,7 +350,7 @@ template <class T = Client> class Server
 #else // WIN32
 					close(newsock);
 #endif // WIN32
-					return NULL;
+					return 0;
 				}
 			}
 
@@ -362,7 +362,7 @@ template <class T = Client> class Server
 #endif // WIN32
 			if ((newsock = accept(this->server, (sockaddr *)&sin, &addrsize)) == INVALID_SOCKET)
 			{
-				return NULL;
+				return 0;
 			}
 #ifdef WIN32
 			nonblocking = 0;

@@ -6,18 +6,22 @@ CLIENT_F_FUNC(Board)
 	switch (action)
 	{
 		case PACKET_CREATE: // Posting to a message board
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_TAKE: // Opening town board
-		// In order to prevent going out of sync with walking, requests will be stored
-		// in the same queue.
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_OPEN: // Reading a post on a town board
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

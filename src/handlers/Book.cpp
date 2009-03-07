@@ -6,8 +6,10 @@ CLIENT_F_FUNC(Book)
 	switch (action)
 	{
 		case PACKET_LIST: // User requests another's Book (Quest history)
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

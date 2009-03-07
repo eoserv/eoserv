@@ -6,18 +6,22 @@ CLIENT_F_FUNC(Bank)
 	switch (action)
 	{
 		case PACKET_OPEN: // Talked to a banker NPC
-		// In order to prevent going out of sync with walking, requests will be stored
-		// in the same queue.
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_ADD: // Depositing gold
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_TAKE: // Withdrawing gold
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

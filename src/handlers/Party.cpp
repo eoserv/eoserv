@@ -6,20 +6,28 @@ CLIENT_F_FUNC(Party)
 	switch (action)
 	{
 		case PACKET_REQUEST: // (unsure) Invite/Join request
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_ACCEPT: // (unsure) Accept invite/join request
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_REMOVE: // (unsure) Remove a player from a party
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_TAKE: // Requested list of party members
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

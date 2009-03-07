@@ -7,21 +7,18 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="..\eoserv-debug.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
 				<Option working_dir=".." />
 				<Option object_output="..\obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-pg" />
 					<Add option="-g" />
+					<Add option="-DDEBUG" />
 				</Compiler>
-				<Linker>
-					<Add option="-pg -lgmon" />
-				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="..\eoserv.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
 				<Option working_dir=".." />
 				<Option object_output="..\obj\Release\" />
 				<Option type="1" />
@@ -36,15 +33,24 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-DEOSERV_PROJECT" />
+			<Add option="-DEOSERV_PROJECT_CBP" />
+			<Add option="-DDATABASE_MYSQL" />
+			<Add option="-DDATABASE_SQLITE" />
 			<Add directory="..\src\" />
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />
+			<Add library="sqlite3" />
+			<Add library="mysql" />
 		</Linker>
 		<Unit filename="..\src\config.cpp" />
 		<Unit filename="..\src\config.hpp" />
+		<Unit filename="..\src\database.cpp" />
+		<Unit filename="..\src\database.hpp" />
 		<Unit filename="..\src\eoclient.cpp" />
 		<Unit filename="..\src\eoclient.hpp" />
+		<Unit filename="..\src\eodata.hpp" />
 		<Unit filename="..\src\eoserv.cpp" />
 		<Unit filename="..\src\eoserv.hpp" />
 		<Unit filename="..\src\handlers.cpp" />
@@ -191,10 +197,10 @@
 		<Unit filename="..\src\socket.hpp" />
 		<Unit filename="..\src\util.cpp" />
 		<Unit filename="..\src\util.hpp" />
-		<Unit filename="..\src\variant.cpp" />
-		<Unit filename="..\src\variant.hpp" />
 		<Extensions>
 			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

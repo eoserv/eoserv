@@ -7,8 +7,10 @@ CLIENT_F_FUNC(Warp)
 	{
 		case PACKET_ACCEPT: // Player accepting a warp request from the server
 		// This is generally ignored, and warping is performed automatically
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;

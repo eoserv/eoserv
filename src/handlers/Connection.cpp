@@ -6,12 +6,16 @@ CLIENT_F_FUNC(Connection)
 	switch (action)
 	{
 		case PACKET_ACCEPT: // Reply after PACKET_INIT transfer is complete
+		{
 
-			break;
+		}
+		break;
 
 		case PACKET_NET: // Response to a PACKET_PING from the server
+		{
 
-			break;
+		}
+		break;
 
 		default:
 			return false;
