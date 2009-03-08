@@ -78,15 +78,13 @@ void EOClient::Execute(std::string data)
 			this->Close();
 	}
 
-	if (!result)
-	{
-		this->Close();
-	}
-	else
-	{
 #ifdef DEBUG
 	std::printf("Packet %s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
 #endif
+
+	if (!result)
+	{
+		this->Close();
 	}
 }
 

@@ -136,6 +136,21 @@ void Map::Enter(Character *character)
 
 void Map::Leave(Character *character)
 {
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
+	builder.AddShort(character->player->id);
+
+	UTIL_FOREACH(characters, checkcharacter)
+	{
+		if (checkcharacter == character)
+		{
+			continue;
+		}
+
+		checkcharacter->player->client->SendBuilder(builder);
+	}
+
 	UTIL_FOREACH(characters, checkcharacter)
 	{
 		if (checkcharacter == character)
@@ -150,6 +165,8 @@ void Map::Leave(Character *character)
 void Map::Msg(Character *from, std::string message)
 {
 	PacketBuilder builder;
+
+	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
 
 	builder.SetID(PACKET_TALK, PACKET_PLAYER);
 	builder.AddShort(from->player->id);
@@ -204,6 +221,85 @@ void Map::Walk(Character *from, int direction)
 		character->player->client->SendBuilder(builder);
 	}
 }
+
+void Map::Face(Character *from, int direction)
+{
+	PacketBuilder builder;
+
+	from->direction = direction;
+
+	builder.SetID(PACKET_FACE, PACKET_PLAYER);
+	builder.AddShort(from->player->id);
+	builder.AddChar(direction);
+
+	UTIL_FOREACH(characters, character)
+	{
+		if (character == from)
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+}
+
+void Map::Sit(Character *from)
+{
+	PacketBuilder builder;
+
+	from->sitting = true;
+
+	builder.SetID(PACKET_SIT, PACKET_PLAYER);
+	builder.AddShort(from->player->id);
+	builder.AddChar(13); // ?
+	builder.AddChar(29); // ?
+	builder.AddChar(2); // direction?
+	builder.AddChar(0); // ?
+
+	UTIL_FOREACH(characters, character)
+	{
+		character->player->client->SendBuilder(builder);
+	}
+}
+
+void Map::Stand(Character *from)
+{
+	PacketBuilder builder;
+
+	from->sitting = false;
+
+	builder.SetID(PACKET_SIT, PACKET_REMOVE);
+	builder.AddShort(from->player->id);
+	builder.AddChar(13); // ?
+	builder.AddChar(29); // ?
+
+	UTIL_FOREACH(characters, character)
+	{
+		character->player->client->SendBuilder(builder);
+	}
+}
+
+void Map::Emote(Character *from, int direction)
+{
+	PacketBuilder builder;
+
+	from->direction = direction;
+
+	builder.SetID(PACKET_EMOTE, PACKET_PLAYER);
+	builder.AddShort(from->player->id);
+	builder.AddChar(direction);
+
+	UTIL_FOREACH(characters, character)
+	{
+		if (character == from)
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+}
+
 
 Player::Player(std::string username)
 {
@@ -435,6 +531,21 @@ Character::Character(std::string name)
 	this->guild = 0;
 	this->party = 0;
 	this->map = 0;
+}
+
+void Character::Sit()
+{
+	this->map->Sit(this);
+}
+
+void Character::Stand()
+{
+	this->map->Stand(this);
+}
+
+void Character::Emote(int emote)
+{
+	this->map->Emote(this, emote);
 }
 
 Character::~Character()

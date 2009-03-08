@@ -240,6 +240,59 @@ CLIENT_F_FUNC(Welcome)
 		}
 		break;
 
+		case PACKET_AGREE: // Client wants a file
+		{
+			if (!this->player && !this->player->character) return false;
+
+			std::string content;
+			char mapbuf[6] = {0};
+			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
+			std::string filename = "./data/maps/";
+			FILE *fh;
+			int replycode = 4;
+			int subreplycode = 0;
+
+			filename += mapbuf;
+			filename += ".emf";
+
+			reader.GetByte(); // Ordering byte
+			int file = reader.GetChar();
+
+			switch (file)
+			{
+				case FILE_MAP: break; // Map file is pre-loaded in to the variable
+				case FILE_ITEM: filename = "./data/pub/dat001.eif"; replycode = 5; subreplycode = 1; break;
+				case FILE_NPC: filename = "./data/pub/dtn001.enf"; replycode = 6; subreplycode = 1; break;
+				case FILE_SPELL: filename = "./data/pub/dsl001.esf"; replycode = 7; subreplycode = 1; break;
+				case FILE_CLASS: filename = "./data/pub/dat001.ecf"; replycode = 11; subreplycode = 1; break;
+				default: return false;
+			}
+
+			fh = std::fopen(filename.c_str(),"rb");
+
+			if (!fh)
+			{
+				std::printf("Could not load file: %s", filename.c_str());
+				return false;
+			}
+
+			do {
+				char buf[4096];
+				int len = std::fread(buf, sizeof(char), 4096, fh);
+				content.append(buf, len);
+			} while (!std::feof(fh));
+			std::fclose(fh);
+			reply.SetID(0);
+			reply.AddChar(replycode);
+			if (subreplycode != 0)
+			{
+				reply.AddChar(1);
+			}
+			reply.AddString(content);
+			CLIENT_SENDRAW(reply);
+		}
+		break;
+
 		default:
 			return false;
 	}

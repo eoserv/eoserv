@@ -59,6 +59,10 @@ class Map
 
 		void Msg(Character *from, std::string message);
 		void Walk(Character *from, int direction);
+		void Face(Character *from, int direction);
+		void Sit(Character *from);
+		void Stand(Character *from);
+		void Emote(Character *from, int emote);
 };
 
 class Player
@@ -134,6 +138,9 @@ class Character
 		static Character *Create(Player *, std::string name, int gender, int hairstyle, int haircolor, int race);
 
 		void Msg(Character *from, std::string message);
+		void Sit();
+		void Stand();
+		void Emote(int emote);
 
 		~Character();
 

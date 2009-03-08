@@ -18,8 +18,6 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_CREATE: // Create a character
 		{
-			bool valid = true;
-
 			reader.GetByte(); // Ordering byte
 
 			reader.GetShort(); // CreateID?
@@ -32,10 +30,10 @@ CLIENT_F_FUNC(Character)
 			std::string name = reader.GetBreakString();
 			std::transform(name.begin(), name.end(), name.begin(), std::tolower);
 
-			if (gender < 0 || gender > 1) valid = false;
-			if (hairstyle < 1 || hairstyle > 20) valid = false;
-			if (haircolor < 0 || haircolor > 9) valid = false;
-			if (race < 0 || race > 3) valid = false;
+			if (gender < 0 || gender > 1) return false;
+			if (hairstyle < 1 || hairstyle > 20) return false;
+			if (haircolor < 0 || haircolor > 9) return false;
+			if (race < 0 || race > 3) return false;
 
 			if (!Character::ValidName(name))
 			{
