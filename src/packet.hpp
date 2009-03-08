@@ -69,6 +69,7 @@ const unsigned char PACKET_MOVEADMIN = 17;
 const unsigned char PACKET_LIST = 18;
 const unsigned char PACKET_TELL = 20;
 const unsigned char PACKET_REPORT = 21;
+const unsigned char PACKET_ANNOUNCE = 22;
 const unsigned char PACKET_DROP = 24;
 const unsigned char PACKET_JUNK = 25;
 const unsigned char PACKET_GET = 27;

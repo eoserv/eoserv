@@ -74,18 +74,22 @@ void EOClient::Execute(std::string data)
 		CLIENT_F_HANDLE(PACKET_CITIZEN,Citizen);
 		//CLIENT_F_HANDLE(PACKET_QUEST,Quest);
 		CLIENT_F_HANDLE(PACKET_BOOK,Book);
+#ifndef DEBUG
 		default:
 			this->Close();
+#endif // DEBUG
 	}
 
 #ifdef DEBUG
 	std::printf("Packet %s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
 #endif
 
+#ifndef DEBUG
 	if (!result)
 	{
 		this->Close();
 	}
+#endif // DEBUG
 }
 
 void EOClient::SendBuilder(PacketBuilder &builder)

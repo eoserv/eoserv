@@ -5,7 +5,9 @@ CLIENT_F_FUNC(Walk)
 
 	switch (action)
 	{
-		case PACKET_PLAYER: // Player walking
+		case PACKET_PLAYER: // Player walking (normal)
+		case PACKET_MOVESPEC: // Player walking (ghost)
+		case PACKET_MOVEADMIN: // Player walking (admin)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
@@ -17,19 +19,13 @@ CLIENT_F_FUNC(Walk)
 
 			if (direction >= 0 && direction <= 3)
 			{
-				this->player->character->map->Walk(this->player->character, direction);
+				this->player->character->Walk(direction);
 			}
 
 			if (this->player->character->x != x || this->player->character->y != y)
 			{
 				// TODO: refresh out-of-sync players
 			}
-		}
-		break;
-
-		case PACKET_MOVESPEC: // Player walking (ghost)
-		{
-
 		}
 		break;
 

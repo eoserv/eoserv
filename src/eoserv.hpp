@@ -37,6 +37,8 @@ class World
 		void Logout(Character *);
 
 		void Msg(Character *from, std::string message);
+		void AdminMsg(Character *from, std::string message);
+		void AnnounceMsg(Character *from, std::string message);
 
 		void Reboot();
 		void Reboot(int seconds, std::string reason);
@@ -46,6 +48,7 @@ class Map
 {
 	public:
 		int id;
+		char rid[4];
 		int width;
 		int height;
 		std::string filename;
@@ -59,6 +62,7 @@ class Map
 
 		void Msg(Character *from, std::string message);
 		void Walk(Character *from, int direction);
+		void Attack(Character *from, int direction);
 		void Face(Character *from, int direction);
 		void Sit(Character *from);
 		void Stand(Character *from);
@@ -138,6 +142,8 @@ class Character
 		static Character *Create(Player *, std::string name, int gender, int hairstyle, int haircolor, int race);
 
 		void Msg(Character *from, std::string message);
+		void Walk(int direction);
+		void Attack(int direction);
 		void Sit();
 		void Stand();
 		void Emote(int emote);

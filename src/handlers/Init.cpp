@@ -75,6 +75,9 @@ CLIENT_F_FUNC(Init)
 		// insert "wrong version code" here
 		return false;
 	}*/
+#ifdef DEBUG
+	std::printf("Client version: v%i\n", this->version);
+#endif // DEBUG
 
 	response = stupid_hash(challenge);
 

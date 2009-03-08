@@ -39,59 +39,61 @@ CLIENT_F_FUNC(Welcome)
 
 			reply.AddShort(1); // REPLY_WELCOME sub-id
 			reply.AddShort(this->player->id);
-			reply.AddInt(this->player->character->id); // Character ID
-			reply.AddShort(84); // Map ID
-			reply.AddChar(55); // ??
-			reply.AddChar(165); // ??
-			reply.AddChar(217); // ??
-			reply.AddChar(55); // ??
-			reply.AddChar(30); // ??
-			reply.AddShort(7); // ??
-			reply.AddChar(56); // ?? **
-			reply.AddChar(65); // ?? **
-			reply.AddChar(2); // ?? **
-			reply.AddChar(200); // ?? **
-			reply.AddChar(231); // ?? **
-			reply.AddChar(1); // ?? **
-			reply.AddChar(103); // ?? **
-			reply.AddChar(219); // ?? **
-			reply.AddChar(25); // ?? **
-			reply.AddChar(122); // ?? **
-			reply.AddChar(3); // ?? **
-			reply.AddChar(1); // ?? **
-			reply.AddChar(47); // ?? **
-			reply.AddChar(177); // ?? **
-			reply.AddChar(183); // ?? **
-			reply.AddChar(45); // ?? **
-			reply.AddShort(32); // ?? **
-			reply.AddChar(154); // ?? **
-			reply.AddChar(77); // ?? **
-			reply.AddChar(177); // ?? **
-			reply.AddChar(221); // ?? **
-			reply.AddShort(8); // ?? **
-			reply.AddBreakString(this->player->character->name); // Name
-			reply.AddBreakString(this->player->character->title); // Title
+			reply.AddInt(this->player->character->id);
+			reply.AddShort(this->player->character->mapid); // Map ID
+			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[0]);
+			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[1]);
+			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[2]);
+			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[3]);
+			reply.AddChar(215); // ???
+			reply.AddShort(8); // ???
+			reply.AddByte(eoserv_items->rid[0]);
+			reply.AddByte(eoserv_items->rid[1]);
+			reply.AddByte(eoserv_items->rid[2]);
+			reply.AddByte(eoserv_items->rid[3]);
+			reply.AddByte(eoserv_items->rid[4]);
+			reply.AddByte(eoserv_items->rid[5]);
+			reply.AddByte(eoserv_npcs->rid[0]);
+			reply.AddByte(eoserv_npcs->rid[1]);
+			reply.AddByte(eoserv_npcs->rid[2]);
+			reply.AddByte(eoserv_npcs->rid[3]);
+			reply.AddByte(eoserv_npcs->rid[4]);
+			reply.AddByte(eoserv_npcs->rid[5]);
+			reply.AddByte(eoserv_spells->rid[0]);
+			reply.AddByte(eoserv_spells->rid[1]);
+			reply.AddByte(eoserv_spells->rid[2]);
+			reply.AddByte(eoserv_spells->rid[3]);
+			reply.AddByte(eoserv_spells->rid[4]);
+			reply.AddByte(eoserv_spells->rid[5]);
+			reply.AddByte(eoserv_classes->rid[0]);
+			reply.AddByte(eoserv_classes->rid[1]);
+			reply.AddByte(eoserv_classes->rid[2]);
+			reply.AddByte(eoserv_classes->rid[3]);
+			reply.AddByte(eoserv_classes->rid[4]);
+			reply.AddByte(eoserv_classes->rid[5]);
+			reply.AddBreakString(this->player->character->name);
+			reply.AddBreakString(this->player->character->title);
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Name
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Rank
 			reply.AddChar(1); // ??
 			reply.AddString("SEX"); // Guild Tag
-			reply.AddChar(0); // ?? **
-			reply.AddChar(this->player->character->level); // Level
-			reply.AddInt(this->player->character->exp); // Experience
-			reply.AddInt(this->player->character->usage); // Usage
-			reply.AddShort(this->player->character->hp); // Max HP
-			reply.AddShort(this->player->character->maxhp); // HP
-			reply.AddShort(this->player->character->tp); // Max TP
-			reply.AddShort(this->player->character->maxtp); // TP
-			reply.AddShort(this->player->character->maxsp); // Max SP
-			reply.AddShort(this->player->character->statpoints); // Stat Points
-			reply.AddShort(this->player->character->skillpoints); // Skill Points
-			reply.AddShort(this->player->character->karma); // Karma (0-2000)
-			reply.AddShort(this->player->character->mindam); // Min Damage
-			reply.AddShort(this->player->character->maxdam); // Max Damage
-			reply.AddShort(this->player->character->accuracy); // Accuracy
-			reply.AddShort(this->player->character->evade); // Evade
-			reply.AddShort(this->player->character->armor); // Armor
+			reply.AddChar(this->player->character->admin);
+			reply.AddChar(this->player->character->level);
+			reply.AddInt(this->player->character->exp);
+			reply.AddInt(this->player->character->usage);
+			reply.AddShort(this->player->character->hp);
+			reply.AddShort(this->player->character->maxhp);
+			reply.AddShort(this->player->character->tp);
+			reply.AddShort(this->player->character->maxtp);
+			reply.AddShort(this->player->character->maxsp);
+			reply.AddShort(this->player->character->statpoints);
+			reply.AddShort(this->player->character->skillpoints);
+			reply.AddShort(this->player->character->karma);
+			reply.AddShort(this->player->character->mindam);
+			reply.AddShort(this->player->character->maxdam);
+			reply.AddShort(this->player->character->accuracy);
+			reply.AddShort(this->player->character->evade);
+			reply.AddShort(this->player->character->armor);
 			if (this->version < 28)
 			{
 				reply.AddChar(100); // STR
@@ -248,7 +250,7 @@ CLIENT_F_FUNC(Welcome)
 			char mapbuf[6] = {0};
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
 			std::string filename = "./data/maps/";
-			FILE *fh;
+			std::FILE *fh;
 			int replycode = 4;
 			int subreplycode = 0;
 

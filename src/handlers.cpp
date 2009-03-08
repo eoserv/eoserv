@@ -1,13 +1,20 @@
 
 #include <string>
+#include <cstdio>
 
 #include "eoclient.hpp"
 #include "eoserv.hpp"
 #include "packet.hpp"
 #include "eoconst.hpp"
+#include "eodata.hpp"
 
 extern Database eoserv_db;
 extern World *the_world;
+extern EIF *eoserv_items;
+extern ENF *eoserv_npcs;
+extern ESF *eoserv_spells;
+extern ECF *eoserv_classes;
+
 
 #ifdef CLIENT_F_FUNC
 #undef CLIENT_F_FUNC

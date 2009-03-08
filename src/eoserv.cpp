@@ -9,10 +9,15 @@
 #include "packet.hpp"
 #include "util.hpp"
 #include "eoconst.hpp"
+#include "eodata.hpp"
 
 Database eoserv_db;
 // TODO: switch this back to a non-global object
 World *the_world;
+EIF *eoserv_items;
+ENF *eoserv_npcs;
+ESF *eoserv_spells;
+ECF *eoserv_classes;
 
 World::World(util::array<std::string, 5> dbinfo)
 {
@@ -33,8 +38,14 @@ World::World(util::array<std::string, 5> dbinfo)
 	{
 		this->maps[i] = new Map(i);
 	}
+	std::printf("%i maps loaded.\n", this->maps.size());
 
 	the_world = this;
+
+	eoserv_items = new EIF("./data/pub/dat001.eif");
+	eoserv_npcs = new ENF("./data/pub/dtn001.enf");
+	eoserv_spells = new ESF("./data/pub/dsl001.esf");
+	eoserv_classes = new ECF("./data/pub/dat001.ecf");
 }
 
 void World::Login(Character *character)
@@ -75,11 +86,65 @@ void World::Msg(Character *from, std::string message)
 	}
 }
 
+void World::AdminMsg(Character *from, std::string message)
+{
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_TALK, PACKET_MOVEADMIN);
+	builder.AddBreakString(from->name);
+	builder.AddBreakString(message);
+
+	UTIL_FOREACH(this->characters, character)
+	{
+		if (character == from || character->admin == ADMIN_PLAYER)
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+}
+
+void World::AnnounceMsg(Character *from, std::string message)
+{
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_TALK, PACKET_ANNOUNCE);
+	builder.AddBreakString(from->name);
+	builder.AddBreakString(message);
+
+	UTIL_FOREACH(this->characters, character)
+	{
+		if (character == from)
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+}
+
 Map::Map(int id)
 {
-	char filename[6];
-	std::sprintf(filename, "%05i", std::abs(id));
+	char namebuf[6];
+	std::string filename = "./data/maps/";
+	std::sprintf(namebuf, "%05i", std::abs(id));
 	this->filename = filename;
+	filename.append(namebuf);
+	filename.append(".emf");
+
+	std::FILE *fh = std::fopen(filename.c_str(), "rb");
+
+	if (!fh)
+	{
+		std::printf("Could not load file: %s\n", filename.c_str());
+		return;
+	}
+
+	std::fseek(fh, 3, SEEK_SET);
+	std::fread(this->rid, sizeof(char), 4, fh);
+
+	std::fclose(fh);
 }
 
 void Map::Enter(Character *character)
@@ -210,6 +275,27 @@ void Map::Walk(Character *from, int direction)
 	builder.AddChar(direction);
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
+
+	UTIL_FOREACH(characters, character)
+	{
+		if (character == from)
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+}
+
+void Map::Attack(Character *from, int direction)
+{
+	PacketBuilder builder;
+
+	from->direction = direction;
+
+	builder.SetID(PACKET_ATTACK, PACKET_PLAYER);
+	builder.AddShort(from->player->id);
+	builder.AddChar(direction);
 
 	UTIL_FOREACH(characters, character)
 	{
@@ -520,6 +606,17 @@ Character::Character(std::string name)
 	this->weight = 0;
 	this->maxweight = 250;
 
+	this->maxhp = 100;
+	this->maxtp = 100;
+	this->maxsp = 100;
+
+	this->mindam = 100;
+	this->maxdam = 100;
+
+	this->accuracy = 100;
+	this->evade = 100;
+	this->armor = 100;
+
 	this->sitting = static_cast<int>(row["sitting"]);
 
 	this->bankmax = static_cast<int>(row["bankmax"]);
@@ -531,6 +628,16 @@ Character::Character(std::string name)
 	this->guild = 0;
 	this->party = 0;
 	this->map = 0;
+}
+
+void Character::Walk(int direction)
+{
+	this->map->Walk(this, direction);
+}
+
+void Character::Attack(int direction)
+{
+	this->map->Attack(this, direction);
 }
 
 void Character::Sit()
