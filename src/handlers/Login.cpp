@@ -7,11 +7,20 @@ CLIENT_F_FUNC(Login)
 	{
 		case PACKET_REQUEST: // Logging in to an account
 		{
+			if (this->player) return false;
+
 			reader.GetByte(); // Ordering byte
 			std::string username =  reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
+
+			if (Player::Online(username))
+			{
+				reply.AddShort(5);
+				CLIENT_SEND(reply);
+				return true;
+			}
 
 			if ((this->player = Player::Login(username, password)) == 0)
 			{

@@ -60,6 +60,8 @@ CLIENT_F_FUNC(Init)
 	unsigned int challenge;
 	unsigned int response;
 
+	if (this->version) return false;
+
 	reply.SetID(0); // 0 is a special case which sends the connection data
 
 	challenge = reader.GetThree();
@@ -67,6 +69,12 @@ CLIENT_F_FUNC(Init)
 	reader.GetChar(); // ?
 	reader.GetChar(); // ?
 	this->version = reader.GetChar();
+
+	/*if (this->version < 27 || this->version > 28)
+	{
+		// insert "wrong version code" here
+		return false;
+	}*/
 
 	response = stupid_hash(challenge);
 

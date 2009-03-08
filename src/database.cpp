@@ -108,6 +108,10 @@ Database_Result Database::Query(const char *format, ...)
 	}
 	va_end(ap);
 
+#ifdef DATABASE_DEBUG
+	std::puts(finalquery.c_str());
+#endif // DATABASE_DEBUG
+
 	switch (this->engine)
 	{
 #ifdef DATABASE_MYSQL

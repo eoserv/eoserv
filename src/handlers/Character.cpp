@@ -30,6 +30,7 @@ CLIENT_F_FUNC(Character)
 			int race = reader.GetShort();
 			reader.GetByte();
 			std::string name = reader.GetBreakString();
+			std::transform(name.begin(), name.end(), name.begin(), std::tolower);
 
 			if (gender < 0 || gender > 1) valid = false;
 			if (hairstyle < 1 || hairstyle > 20) valid = false;

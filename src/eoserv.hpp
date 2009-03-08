@@ -2,7 +2,7 @@
 #define EOSERV_HPP_INCLUDED
 
 #include <list>
-#include <map>
+#include <vector>
 #include <ctime>
 #include <string>
 
@@ -19,12 +19,6 @@ class ActionQueue;
 #include "database.hpp"
 #include "util.hpp"
 
-const int ADMIN_PLAYER = 0;
-const int ADMIN_GUIDE = 1;
-const int ADMIN_GUARDIAN = 2;
-const int ADMIN_GM = 3;
-const int ADMIN_HGM = 4;
-
 class World
 {
 	private:
@@ -35,7 +29,7 @@ class World
 		std::list<Guild *> guilds;
 		std::list<Party *> partys;
 		std::list<NPC *> npcs;
-		std::map<int, Map *> maps;
+		std::vector<Map *> maps;
 
 		World(util::array<std::string, 5> dbinfo);
 
@@ -54,10 +48,17 @@ class Map
 		int id;
 		int width;
 		int height;
-		std::list<Player *> players;
+		std::string filename;
+		std::list<Character *> characters;
 		std::list<NPC *> npcs;
 
+		Map(int id);
+
+		void Enter(Character *);
+		void Leave(Character *);
+
 		void Msg(Character *from, std::string message);
+		void Walk(Character *from, int direction);
 };
 
 class Player
@@ -78,6 +79,7 @@ class Player
 		static bool Create(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid);
 		static bool Exists(std::string username);
 		bool AddCharacter(std::string name, int gender, int hairstyle, int haircolor, int race);
+		static bool Online(std::string username);
 
 		EOClient *client;
 
@@ -92,16 +94,16 @@ class Character
 		int admin;
 		std::string name;
 		std::string title;
+		std::string home;
+		std::string partner;
 		int clas;
 		int gender;
 		int race;
 		int hairstyle, haircolor;
-		std::string home;
-		std::string partner;
-		int map, x, y;
+		int mapid, x, y, direction;
 		int spawnmap, spawnx, spawny;
 		int level, exp;
-		int hp, tp, maxhp, maxtp;
+		int hp, tp;
 		int str, intl, wis, agi, con, cha;
 		int statpoints, skillpoints;
 		int weight, maxweight;
@@ -110,6 +112,11 @@ class Character
 		int bankmax;
 		int goldbank;
 		int usage;
+
+		int maxsp;
+		int maxhp, maxtp;
+		int accuracy, evade, armor;
+		int mindam, maxdam;
 
 		enum EquipLocation
 		{
@@ -134,6 +141,7 @@ class Character
 		Guild *guild;
 		char guild_rank;
 		Party *party;
+		Map *map;
 };
 
 class NPC

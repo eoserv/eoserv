@@ -15,6 +15,7 @@
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -50,6 +51,7 @@
 		<Unit filename="..\src\database.hpp" />
 		<Unit filename="..\src\eoclient.cpp" />
 		<Unit filename="..\src\eoclient.hpp" />
+		<Unit filename="..\src\eoconst.hpp" />
 		<Unit filename="..\src\eodata.hpp" />
 		<Unit filename="..\src\eoserv.cpp" />
 		<Unit filename="..\src\eoserv.hpp" />

@@ -19,6 +19,7 @@ static unsigned int eoserv_player_id = 1;
 	this->length = 0;
 	this->state = 0;
 	this->player = 0;
+	this->version = 0;
 }
 
 void EOClient::Execute(std::string data)
@@ -30,10 +31,6 @@ void EOClient::Execute(std::string data)
 
 	family = data[1];
 	action = data[0];
-
-#ifdef DEBUG
-	std::printf("Packet %s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
-#endif
 
 	PacketReader reader(data.substr(2));
 
@@ -84,6 +81,12 @@ void EOClient::Execute(std::string data)
 	if (!result)
 	{
 		this->Close();
+	}
+	else
+	{
+#ifdef DEBUG
+	std::printf("Packet %s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
+#endif
 	}
 }
 

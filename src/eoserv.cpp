@@ -2,11 +2,13 @@
 #include "eoserv.hpp"
 
 #include <list>
-#include <map>
+#include <vector>
 #include <ctime>
+#include <cmath>
 
 #include "packet.hpp"
 #include "util.hpp"
+#include "eoconst.hpp"
 
 Database eoserv_db;
 // TODO: switch this back to a non-global object
@@ -24,21 +26,31 @@ World::World(util::array<std::string, 5> dbinfo)
 		engine = Database::MySQL;
 	}
 	eoserv_db.Connect(engine, dbinfo[1], dbinfo[2], dbinfo[3], dbinfo[4]);
+
+	this->maps.resize(279);
+	this->maps[0] = new Map(1); // Just in case
+	for (int i = 1; i <= 278; ++i)
+	{
+		this->maps[i] = new Map(i);
+	}
+
 	the_world = this;
 }
 
 void World::Login(Character *character)
 {
 	this->characters.push_back(character);
+	this->maps[character->mapid]->Enter(character);
 }
 
 void World::Logout(Character *character)
 {
-	for (std::list<Character *>::iterator it = this->characters.begin(); it != this->characters.end(); ++it)
+	this->maps[character->mapid]->Leave(character);
+	UTIL_FOREACH(characters, checkcharacter)
 	{
-		if (*it == character)
+		if (checkcharacter == character)
 		{
-			this->characters.erase(it);
+			this->characters.erase(util_it);
 			break;
 		}
 	}
@@ -53,6 +65,136 @@ void World::Msg(Character *from, std::string message)
 	builder.AddBreakString(message);
 
 	UTIL_FOREACH(this->characters, character)
+	{
+		if (character == from)
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+}
+
+Map::Map(int id)
+{
+	char filename[6];
+	std::sprintf(filename, "%05i", std::abs(id));
+	this->filename = filename;
+}
+
+void Map::Enter(Character *character)
+{
+	PacketBuilder builder;
+	this->characters.push_back(character);
+	character->map = this;
+
+	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
+
+	builder.AddByte(255);
+	builder.AddBreakString(character->name);
+	builder.AddShort(character->player->id);
+	builder.AddShort(character->mapid); // Map ID
+	builder.AddShort(character->x); // Map X
+	builder.AddShort(character->y); // Map Y
+	builder.AddChar(character->direction); // Direction
+	builder.AddChar(6); // ?
+	builder.AddString("SEX"); // guild tag
+	builder.AddChar(character->level); // Level
+	builder.AddChar(character->gender); // sex (0 = female, 1 = male)
+	builder.AddChar(character->hairstyle); // hair style
+	builder.AddChar(character->haircolor); // hair color
+	builder.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
+	builder.AddShort(character->maxhp); // Max HP (?)
+	builder.AddShort(character->hp); // HP (?)
+	builder.AddShort(character->maxtp); // Max TP (?)
+	builder.AddShort(character->tp); // TP (?)
+	// equipment
+	builder.AddShort(0); // ??
+	builder.AddShort(0); // ??
+	builder.AddShort(0); // ??
+	builder.AddShort(0); // shoes
+	builder.AddShort(0); // armor
+	builder.AddShort(0); // ??
+	builder.AddShort(0); // hat
+	builder.AddShort(0); // shield
+	builder.AddShort(0); // weapon
+	builder.AddChar(character->sitting); // standing
+	builder.AddChar(0); // visible
+	builder.AddByte(255);
+	builder.AddChar(1); // 0 = NPC, 1 = player
+
+	UTIL_FOREACH(characters, checkcharacter)
+	{
+		if (checkcharacter == character)
+		{
+			continue;
+		}
+
+		checkcharacter->player->client->SendBuilder(builder);
+	}
+}
+
+void Map::Leave(Character *character)
+{
+	UTIL_FOREACH(characters, checkcharacter)
+	{
+		if (checkcharacter == character)
+		{
+			this->characters.erase(util_it);
+			break;
+		}
+	}
+	character->map = 0;
+}
+
+void Map::Msg(Character *from, std::string message)
+{
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_TALK, PACKET_PLAYER);
+	builder.AddShort(from->player->id);
+	builder.AddString(message);
+
+	UTIL_FOREACH(characters, character)
+	{
+		if (character == from)
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+}
+
+void Map::Walk(Character *from, int direction)
+{
+	PacketBuilder builder;
+
+	switch (direction)
+	{
+		case DIRECTION_UP:
+			--from->y;
+			break;
+		case DIRECTION_RIGHT:
+			++from->x;
+			break;
+		case DIRECTION_DOWN:
+			++from->y;
+			break;
+		case DIRECTION_LEFT:
+			--from->x;
+			break;
+	}
+
+	from->direction = direction;
+
+	builder.SetID(PACKET_WALK, PACKET_PLAYER);
+	builder.AddShort(from->player->id);
+	builder.AddChar(direction);
+	builder.AddChar(from->x);
+	builder.AddChar(from->y);
+
+	UTIL_FOREACH(characters, character)
 	{
 		if (character == from)
 		{
@@ -173,6 +315,19 @@ bool Player::AddCharacter(std::string name, int gender, int hairstyle, int hairc
 	return true;
 }
 
+bool Player::Online(std::string username)
+{
+	// TODO: implement this
+	return false;
+
+	if (!Player::ValidName(username))
+	{
+		return false;
+	}
+	Database_Result res = eoserv_db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$' AND `online` = 1", username.c_str());
+	return !res.empty();
+}
+
 Player::~Player()
 {
 	if (this->client)
@@ -184,7 +339,7 @@ Player::~Player()
 
 	if (this->character)
 	{
-		the_world->Logout(this->character);
+		delete this->character;
 	}
 }
 
@@ -228,7 +383,7 @@ Character::Character(std::string name)
 	{
 		return;
 	}
-	Database_Result res = eoserv_db.Query("SELECT * FROM characters WHERE name = '$'", name.c_str());
+	Database_Result res = eoserv_db.Query("SELECT * FROM `characters` WHERE `name` = '$'", name.c_str());
 	std::map<std::string, util::variant> row = res.front();
 
 	this->online = true;
@@ -237,6 +392,8 @@ Character::Character(std::string name)
 	this->admin = static_cast<int>(row["admin"]);
 	this->name = static_cast<std::string>(row["name"]);
 	this->title = static_cast<std::string>(row["title"]);
+	this->home = static_cast<std::string>(row["home"]);
+	this->partner = static_cast<std::string>(row["partner"]);
 
 	this->clas = row["class"];
 	this->gender = row["gender"];
@@ -244,9 +401,10 @@ Character::Character(std::string name)
 	this->hairstyle = row["hairstyle"];
 	this->haircolor = row["haircolor"];
 
-	this->map = row["map"];
+	this->mapid = row["map"];
 	this->x = row["x"];
 	this->y = row["y"];
+	this->direction = row["direction"];
 
 	this->level = row["level"];
 	this->exp = row["exp"];
@@ -267,11 +425,16 @@ Character::Character(std::string name)
 	this->maxweight = 250;
 
 	this->sitting = static_cast<int>(row["sitting"]);
-	this->visible = static_cast<int>(row["visible"]);
+
+	this->bankmax = static_cast<int>(row["bankmax"]);
+	this->goldbank = static_cast<int>(row["goldbank"]);
+
+	this->usage = static_cast<int>(row["usage"]);
 
 	this->player = 0;
 	this->guild = 0;
 	this->party = 0;
+	this->map = 0;
 }
 
 Character::~Character()
@@ -280,4 +443,16 @@ Character::~Character()
 	{
 		the_world->Logout(this);
 	}
+
+#ifdef DEBUG
+	std::printf("Saving character '%s'\n", this->name.c_str());
+#endif // DEBUG
+	eoserv_db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
+	                "`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
+	                "`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `sitting` = #, "
+	                "`bankmax` = #, `goldbank` = #, `usage` = # WHERE `name` = '$'",
+                    this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
+	                this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
+	                this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->sitting,
+	                this->bankmax, this->goldbank, this->usage, this->name.c_str());
 }

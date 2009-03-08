@@ -9,6 +9,8 @@ CLIENT_F_FUNC(Welcome)
 	{
 		case PACKET_REQUEST: // Selected a character
 		{
+			if (!this->player) return false;
+
 			reader.GetByte(); // Ordering byte
 
 			reader.GetByte(); // ??
@@ -20,7 +22,6 @@ CLIENT_F_FUNC(Welcome)
 
 			UTIL_FOREACH(this->player->characters, character)
 			{
-				std::printf("\nCHECK %i == %i\n",character->id,id);
 				if (character->id == id)
 				{
 					this->player->character = character;
@@ -73,24 +74,24 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Name
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Rank
 			reply.AddChar(1); // ??
-			reply.AddString("   "); // Guild Tag
+			reply.AddString("SEX"); // Guild Tag
 			reply.AddChar(0); // ?? **
-			reply.AddChar(100); // Level
-			reply.AddInt(123); // Experience
-			reply.AddInt(0); // Usage
-			reply.AddShort(1000); // Max HP
-			reply.AddShort(1000); // HP
-			reply.AddShort(1001); // Max TP
-			reply.AddShort(1001); // TP
-			reply.AddShort(1002); // Max SP
-			reply.AddShort(123); // Stat Points
-			reply.AddShort(321); // Skill Points
-			reply.AddShort(2000); // Karma (0-2000)
-			reply.AddShort(400); // Min Damage
-			reply.AddShort(500); // Max Damage
-			reply.AddShort(200); // Accuracy
-			reply.AddShort(201); // Evade
-			reply.AddShort(202); // Armor
+			reply.AddChar(this->player->character->level); // Level
+			reply.AddInt(this->player->character->exp); // Experience
+			reply.AddInt(this->player->character->usage); // Usage
+			reply.AddShort(this->player->character->hp); // Max HP
+			reply.AddShort(this->player->character->maxhp); // HP
+			reply.AddShort(this->player->character->tp); // Max TP
+			reply.AddShort(this->player->character->maxtp); // TP
+			reply.AddShort(this->player->character->maxsp); // Max SP
+			reply.AddShort(this->player->character->statpoints); // Stat Points
+			reply.AddShort(this->player->character->skillpoints); // Skill Points
+			reply.AddShort(this->player->character->karma); // Karma (0-2000)
+			reply.AddShort(this->player->character->mindam); // Min Damage
+			reply.AddShort(this->player->character->maxdam); // Max Damage
+			reply.AddShort(this->player->character->accuracy); // Accuracy
+			reply.AddShort(this->player->character->evade); // Evade
+			reply.AddShort(this->player->character->armor); // Armor
 			if (this->version < 28)
 			{
 				reply.AddChar(100); // STR
@@ -117,14 +118,14 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(0);
 			reply.AddShort(0);
 			reply.AddShort(0);
-			reply.AddShort(0);
-			reply.AddShort(0);
-			reply.AddShort(0);
-			reply.AddShort(0);
-			reply.AddShort(0);
-			reply.AddShort(0);
-			reply.AddShort(0);
-			reply.AddShort(0);
+			//reply.AddShort(0);
+			//reply.AddShort(0);
+			//reply.AddShort(0);
+			//reply.AddShort(0);
+			//reply.AddShort(0);
+			//reply.AddShort(0);
+			//reply.AddShort(0);
+			//reply.AddShort(0);
 			reply.AddChar(0); // ?? **
 			reply.AddShort(76); // ?? **
 			reply.AddShort(4); // ?? **
@@ -143,6 +144,8 @@ CLIENT_F_FUNC(Welcome)
 
 		case PACKET_MSG: // Welcome message after you login.
 		{
+			if (!this->player && !this->player->character) return false;
+
 			reader.GetByte(); // Ordering byte
 
 			reader.GetThree(); // ??
@@ -183,40 +186,41 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(100); // Spell Level
 			// }
 			reply.AddByte(255);
-			reply.AddChar(1); // Number of players
+			reply.AddChar(this->player->character->map->characters.size()); // Number of players
 			reply.AddByte(255);
-			// foreach player {
-			reply.AddBreakString(this->player->character->name);
-			reply.AddShort(this->player->character->id);
-			reply.AddShort(84); // Map ID
-			reply.AddShort(7); // Map X
-			reply.AddShort(7); // Map Y
-			reply.AddChar(1); // Direction
-			reply.AddChar(6); // ?
-			reply.AddString("SEX"); // guild tag
-			reply.AddChar(100); // Level
-			reply.AddChar(0); // sex (0 = female, 1 = male)
-			reply.AddChar(11); // hair style
-			reply.AddChar(8); // hair color
-			reply.AddChar(5); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
-			reply.AddShort(100); // Max HP (?)
-			reply.AddShort(100); // HP (?)
-			reply.AddShort(100); // Max TP (?)
-			reply.AddShort(100); // TP (?)
-			// equipment
-			reply.AddShort(0); // ??
-			reply.AddShort(0); // ??
-			reply.AddShort(0); // ??
-			reply.AddShort(0); // shoes
-			reply.AddShort(0); // armor
-			reply.AddShort(0); // ??
-			reply.AddShort(0); // hat
-			reply.AddShort(0); // shield
-			reply.AddShort(0); // weapon
-			reply.AddChar(0); // standing
-			reply.AddChar(0); // visible
-			reply.AddByte(255);
-			// }
+			UTIL_FOREACH(this->player->character->map->characters, character)
+			{
+				reply.AddBreakString(character->name);
+				reply.AddShort(character->player->id);
+				reply.AddShort(character->mapid); // Map ID
+				reply.AddShort(character->x); // Map X
+				reply.AddShort(character->y); // Map Y
+				reply.AddChar(character->direction); // Direction
+				reply.AddChar(6); // ?
+				reply.AddString("SEX"); // guild tag
+				reply.AddChar(character->level); // Level
+				reply.AddChar(character->gender); // sex (0 = female, 1 = male)
+				reply.AddChar(character->hairstyle); // hair style
+				reply.AddChar(character->haircolor); // hair color
+				reply.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
+				reply.AddShort(character->maxhp); // Max HP (?)
+				reply.AddShort(character->hp); // HP (?)
+				reply.AddShort(character->maxtp); // Max TP (?)
+				reply.AddShort(character->tp); // TP (?)
+				// equipment
+				reply.AddShort(0); // ??
+				reply.AddShort(0); // ??
+				reply.AddShort(0); // ??
+				reply.AddShort(0); // shoes
+				reply.AddShort(0); // armor
+				reply.AddShort(0); // ??
+				reply.AddShort(0); // hat
+				reply.AddShort(0); // shield
+				reply.AddShort(0); // weapon
+				reply.AddChar(character->sitting); // standing
+				reply.AddChar(0); // visible
+				reply.AddByte(255);
+			}
 			// foreach npc {
 			reply.AddChar(1); // NPC ID
 			reply.AddShort(1); // Graphic ID
@@ -230,7 +234,7 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(200); // Item ID
 			reply.AddChar(7); // Map X
 			reply.AddChar(7); // Map Y
-			reply.AddThree(10000); // Amount
+			reply.AddInt(INT_MAX); // Amount
 			// }
 			CLIENT_SEND(reply);
 		}

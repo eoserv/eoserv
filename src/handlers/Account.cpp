@@ -12,6 +12,8 @@ CLIENT_F_FUNC(Account)
 
 	switch (action)
 	{
+		if (this->player) return false;
+
 		case PACKET_REQUEST: // Check if a character exists
 		{
 			reader.GetByte(); // Ordering byte
@@ -42,6 +44,8 @@ CLIENT_F_FUNC(Account)
 
 		case PACKET_CREATE: // Account creation
 		{
+			if (this->player) return false;
+
 			reader.GetByte(); // Ordering byte
 			reader.GetShort(); // Account creation "session ID"
 			reader.GetByte(); // ?
@@ -64,6 +68,8 @@ CLIENT_F_FUNC(Account)
 
 		case PACKET_AGREE: // Change password
 		{
+			if (!this->player || this->player && this->player->character) return false;
+
 			reader.GetByte(); // Ordering byte
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);

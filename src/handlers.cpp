@@ -4,6 +4,7 @@
 #include "eoclient.hpp"
 #include "eoserv.hpp"
 #include "packet.hpp"
+#include "eoconst.hpp"
 
 extern Database eoserv_db;
 extern World *the_world;

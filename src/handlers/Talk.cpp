@@ -19,9 +19,10 @@ CLIENT_F_FUNC(Talk)
 		}
 		break;
 
-		case PACKET_REPORT:
 		case PACKET_MSG: // Global chat message
 		{
+			if (!this->player || !this->player->character) return false;
+
 			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
 
@@ -35,9 +36,14 @@ CLIENT_F_FUNC(Talk)
 		}
 		break;
 
-		//case PACKET_REPORT: // Public chat message
+		case PACKET_REPORT: // Public chat message
 		{
+			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
+			reader.GetByte(); // Ordering byte
+			message = reader.GetEndString(); // message
+
+			this->player->character->map->Msg(this->player->character, message);
 		}
 		break;
 
