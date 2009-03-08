@@ -78,6 +78,7 @@ std::string PacketProcessor::GetActionName(unsigned char action)
 		case PACKET_LIST: return "List";
 		case PACKET_TELL: return "Tell";
 		case PACKET_REPORT: return "Report";
+		case PACKET_ANNOUNCE: return "Announce";
 		case PACKET_DROP: return "Drop";
 		case PACKET_JUNK: return "Junk";
 		case PACKET_GET: return "Get";
