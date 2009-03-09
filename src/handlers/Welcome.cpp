@@ -13,8 +13,7 @@ CLIENT_F_FUNC(Welcome)
 
 			reader.GetByte(); // Ordering byte
 
-			reader.GetByte(); // ??
-			id = reader.GetThree(); // Character ID
+			id = reader.GetInt(); // Character ID
 
 			reply.SetID(PACKET_WELCOME, PACKET_REPLY);
 

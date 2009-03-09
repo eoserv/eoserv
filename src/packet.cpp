@@ -358,9 +358,16 @@ unsigned short PacketReader::GetShort()
 {
 	unsigned short ret;
 
-	if (this->data.length() < 2)
+	if (this->data.length() < 1)
 	{
 		return 0;
+	}
+
+	if (this->data.length() < 2)
+	{
+		ret = PacketProcessor::Number(this->data[0]);
+		this->data.erase(0, 1);
+		return ret;
 	}
 
 	ret = PacketProcessor::Number(this->data[0], this->data[1]);
@@ -373,9 +380,23 @@ unsigned int PacketReader::GetThree()
 {
 	unsigned int ret;
 
-	if (this->data.length() < 3)
+	if (this->data.length() < 1)
 	{
 		return 0;
+	}
+
+	if (this->data.length() < 2)
+	{
+		ret = PacketProcessor::Number(this->data[0]);
+		this->data.erase(0, 1);
+		return ret;
+	}
+
+	if (this->data.length() < 3)
+	{
+		ret = PacketProcessor::Number(this->data[0], this->data[1]);
+		this->data.erase(0, 2);
+		return ret;
 	}
 
 	ret = PacketProcessor::Number(this->data[0], this->data[1], this->data[2]);
@@ -388,9 +409,30 @@ unsigned int PacketReader::GetInt()
 {
 	unsigned int ret;
 
-	if (this->data.length() < 4)
+	if (this->data.length() < 1)
 	{
 		return 0;
+	}
+
+	if (this->data.length() < 2)
+	{
+		ret = PacketProcessor::Number(this->data[0]);
+		this->data.erase(0, 1);
+		return ret;
+	}
+
+	if (this->data.length() < 3)
+	{
+		ret = PacketProcessor::Number(this->data[0], this->data[1]);
+		this->data.erase(0, 2);
+		return ret;
+	}
+
+	if (this->data.length() < 4)
+	{
+		ret = PacketProcessor::Number(this->data[0], this->data[1], this->data[2]);
+		this->data.erase(0, 3);
+		return ret;
 	}
 
 	ret = PacketProcessor::Number(this->data[0], this->data[1], this->data[2], this->data[3]);

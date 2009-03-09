@@ -96,7 +96,7 @@ void World::AdminMsg(Character *from, std::string message)
 
 	UTIL_FOREACH(this->characters, character)
 	{
-		if (character == from || character->admin == ADMIN_PLAYER)
+		if (character == from || character->admin < ADMIN_GUARDIAN)
 		{
 			continue;
 		}
@@ -497,6 +497,12 @@ bool Player::AddCharacter(std::string name, int gender, int hairstyle, int hairc
 	return true;
 }
 
+void Player::ChangePass(std::string password)
+{
+	this->password = password;
+	Database_Result res = eoserv_db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.c_str(), this->username.c_str());
+}
+
 bool Player::Online(std::string username)
 {
 	// TODO: implement this
@@ -556,6 +562,15 @@ Character *Character::Create(Player *player, std::string name, int gender, int h
 	}
 	eoserv_db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`) VALUES ('$','$',#,#,#,#,'','','','')", name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race);
 	return new Character(name);
+}
+
+void Character::Delete(std::string name)
+{
+	if (!Character::ValidName(name))
+	{
+		return;
+	}
+	eoserv_db.Query("DELETE FROM `characters` WHERE name = '$'", name.c_str());
 }
 
 Character::Character(std::string name)

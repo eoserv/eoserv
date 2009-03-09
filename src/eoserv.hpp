@@ -87,6 +87,7 @@ class Player
 		static bool Create(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid);
 		static bool Exists(std::string username);
 		bool AddCharacter(std::string name, int gender, int hairstyle, int haircolor, int race);
+		void ChangePass(std::string password);
 		static bool Online(std::string username);
 
 		EOClient *client;
@@ -140,6 +141,7 @@ class Character
 
 		static bool ValidName(std::string name);
 		static Character *Create(Player *, std::string name, int gender, int hairstyle, int haircolor, int race);
+		static void Delete(std::string name);
 
 		void Msg(Character *from, std::string message);
 		void Walk(int direction);

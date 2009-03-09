@@ -1,11 +1,4 @@
 
-const int PACKET_ACCOUNT_EXISTS = 1;
-const int PACKET_ACCOUNT_NOT_APPROVED = 2;
-const int PACKET_ACCOUNT_CREATED = 3;
-const int PACKET_ACCOUNT_CHANGE_FAILED = 5;
-const int PACKET_ACCOUNT_CHANGED = 6;
-
-
 CLIENT_F_FUNC(Account)
 {
 	PacketBuilder reply;
@@ -75,11 +68,29 @@ CLIENT_F_FUNC(Account)
 			if (!this->player || this->player && this->player->character) return false;
 
 			reader.GetByte(); // Ordering byte
+			std::string username = reader.GetBreakString();
+			std::string oldpassword = reader.GetBreakString();
+			std::string newpassword = reader.GetBreakString();
+
+			Player *changepass = Player::Login(username, oldpassword);
+
+			if (!changepass)
+			{
+				reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
+				reply.AddShort(PACKET_ACCOUNT_CHANGE_FAILED); // Reply code
+				reply.AddString("NO");
+				CLIENT_SEND(reply);
+				return true;
+			}
+
+			changepass->ChangePass(newpassword);
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			reply.AddShort(PACKET_ACCOUNT_CHANGED); // Reply code
 			reply.AddString("OK");
 			CLIENT_SEND(reply);
+
+			delete changepass;
 		}
 		break;
 

@@ -36,9 +36,9 @@ int main(void)
 
 	std::puts("\
                           ___ ___  ___ ___ _____   __\n\
-   EOSERV Version 0.2.0  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
+   EOSERV Version 0.3.0  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
-       06 Mar 2009       |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
+       09 Mar 2009       |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
 \n\
 EO Version Support: .27 .28\n\
 \n");

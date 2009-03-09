@@ -13,6 +13,8 @@ CLIENT_F_FUNC(Login)
 			std::string username =  reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
+			std::transform(username.begin(), username.end(), username.begin(), std::tolower);
+
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
 
 			if (Player::Online(username))
@@ -37,14 +39,14 @@ CLIENT_F_FUNC(Login)
 			// 3 = OK (character list follows)
 			// 4 = ??
 			// 5 = Already logged in
+			// 6 = Character deleted / refresh?
 			reply.AddChar(this->player->characters.size()); // Number of characters
 			reply.AddByte(1); // ??
-			reply.AddByte(255); // ??
+			reply.AddByte(255);
 			UTIL_FOREACH(this->player->characters, character)
 			{
 				reply.AddBreakString(character->name); // Character name
-				reply.AddChar(250); // ??
-				reply.AddThree(character->id); // character id
+				reply.AddInt(character->id); // character id
 				reply.AddChar(character->level); // level
 				reply.AddChar(character->gender); // sex (0 = female, 1 = male)
 				reply.AddChar(character->hairstyle); // hair style

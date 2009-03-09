@@ -51,6 +51,8 @@ CLIENT_F_FUNC(Talk)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
+			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
+
 			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
 
@@ -61,6 +63,8 @@ CLIENT_F_FUNC(Talk)
 		case PACKET_ANNOUNCE: // Announcement message
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
+
+			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 
 			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message

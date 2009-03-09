@@ -11,7 +11,7 @@ CLIENT_F_FUNC(Attack)
 
 			reader.GetByte(); // Ordering byte
 			int direction = reader.GetChar();
-			int timestamp = reader.GetThree();
+			/*int timestamp = */reader.GetThree();
 
 			if (direction >= 0 && direction <= 3)
 			{

@@ -53,12 +53,11 @@ CLIENT_F_FUNC(Character)
 			// 5 = OK (character list follows)
 			reply.AddChar(this->player->characters.size()); // Number of characters
 			reply.AddByte(1); // ??
-			reply.AddByte(255); // ??
+			reply.AddByte(255);
 			UTIL_FOREACH(this->player->characters, character)
 			{
 				reply.AddBreakString(character->name); // Character name
-				reply.AddChar(250); // ??
-				reply.AddThree(character->id); // character id
+				reply.AddInt(character->id); // character id
 				reply.AddChar(character->level); // level
 				reply.AddChar(character->gender); // sex (0 = female, 1 = male)
 				reply.AddChar(character->hairstyle); // hair style
@@ -79,16 +78,43 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_REMOVE: // Delete a character from an account
 		{
+
+			reader.GetByte(); // Ordering byte
+
+			/*int deleteid = */reader.GetShort();
+			unsigned int charid = reader.GetInt();
+
+			bool yourchar = false;
+			typeof(this->player->characters.begin()) char_it;
+
+			UTIL_FOREACH(this->player->characters, character)
+			{
+				if (character->id == charid)
+				{
+					Character::Delete(character->name);
+					char_it = util_it;
+					yourchar = true;
+					break;
+				}
+			}
+
+			if (!yourchar)
+			{
+				return false;
+			}
+
+			this->player->characters.erase(char_it);
+
 			reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
-			reply.AddShort(3); // Reply code (see Login.cpp)
+			reply.AddShort(6); // Reply code
+			// 6 = OK (character list follows)
 			reply.AddChar(this->player->characters.size()); // Number of characters
 			reply.AddByte(1); // ??
-			reply.AddByte(255); // ??
+			reply.AddByte(255);
 			UTIL_FOREACH(this->player->characters, character)
 			{
 				reply.AddBreakString(character->name); // Character name
-				reply.AddChar(250); // ??
-				reply.AddThree(character->id); // character id
+				reply.AddInt(character->id); // character id
 				reply.AddChar(character->level); // level
 				reply.AddChar(character->gender); // sex (0 = female, 1 = male)
 				reply.AddChar(character->hairstyle); // hair style
@@ -108,7 +134,30 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_TAKE: // Request to delete a character from an account
 		{
+			reader.GetByte(); // Ordering byte
 
+			unsigned int charid = reader.GetInt();
+
+			bool yourchar = false;
+
+			UTIL_FOREACH(this->player->characters, character)
+			{
+				if (character->id == charid)
+				{
+					yourchar = true;
+					break;
+				}
+			}
+
+			if (!yourchar)
+			{
+				return false;
+			}
+
+			reply.SetID(PACKET_CHARACTER, PACKET_PLAYER);
+			reply.AddShort(1000); // Delete req ID
+			reply.AddInt(charid);
+			CLIENT_SEND(reply);
 		}
 		break;
 

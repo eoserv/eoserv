@@ -47,5 +47,12 @@ const int SKIN_SKELETON = 4;
 const int SKIN_FISH = 5;
 
 
+const int PACKET_ACCOUNT_EXISTS = 1;
+const int PACKET_ACCOUNT_NOT_APPROVED = 2;
+const int PACKET_ACCOUNT_CREATED = 3;
+const int PACKET_ACCOUNT_CHANGE_FAILED = 5;
+const int PACKET_ACCOUNT_CHANGED = 6;
+
+
 
 #endif // EOCONST_HPP_INCLUDED

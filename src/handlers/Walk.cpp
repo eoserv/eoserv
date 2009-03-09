@@ -13,7 +13,7 @@ CLIENT_F_FUNC(Walk)
 
 			reader.GetByte(); // Ordering byte
 			int direction = reader.GetChar();
-			int timestamp = reader.GetThree();
+			/*int timestamp = */reader.GetThree();
 			int x = reader.GetChar();
 			int y = reader.GetChar();
 
