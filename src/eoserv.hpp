@@ -19,6 +19,9 @@ class ActionQueue;
 #include "database.hpp"
 #include "util.hpp"
 
+std::string ItemSerialize(std::list<std::pair<int,int> > list);
+std::list<std::pair<int,int> > ItemUnserialize(std::string serialized);
+
 class World
 {
 	private:
@@ -129,7 +132,21 @@ class Character
 
 		enum EquipLocation
 		{
-
+			Boots,
+			Misc,
+			Gloves,
+			Belt,
+			Armor,
+			Necklace,
+			Hat,
+			Shield,
+			Weapon,
+			Ring1,
+			Ring2,
+			Bracelet1,
+			Bracelet2,
+			Bracer1,
+			Bracer2
 		};
 
 		std::list<std::pair<int,int> > inventory;

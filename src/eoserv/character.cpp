@@ -107,6 +107,14 @@ Character::Character(std::string name)
 
 	this->usage = static_cast<int>(row["usage"]);
 
+	this->inventory = ItemUnserialize(row["inventory"]);
+	std::puts(static_cast<std::string>(row["inventory"]).c_str());
+	std::puts(ItemSerialize(this->inventory).c_str());
+
+	this->paperdoll = DollUnserialize(row["paperdoll"]);
+	std::puts(static_cast<std::string>(row["paperdoll"]).c_str());
+	std::puts(DollSerialize(this->paperdoll).c_str());
+
 	this->player = 0;
 	this->guild = 0;
 	this->party = 0;
@@ -151,9 +159,9 @@ Character::~Character()
 	eoserv_db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
 	                "`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
 	                "`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `sitting` = #, "
-	                "`bankmax` = #, `goldbank` = #, `usage` = # WHERE `name` = '$'",
+	                "`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `paperdoll` = '$' WHERE `name` = '$'",
                     this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
 	                this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
 	                this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->sitting,
-	                this->bankmax, this->goldbank, this->usage, this->name.c_str());
+	                this->bankmax, this->goldbank, this->usage, ItemSerialize(this->inventory).c_str(), DollSerialize(this->paperdoll).c_str(), this->name.c_str());
 }

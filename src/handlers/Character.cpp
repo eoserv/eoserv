@@ -64,11 +64,11 @@ CLIENT_F_FUNC(Character)
 				reply.AddChar(character->haircolor); // hair color
 				reply.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
 				reply.AddChar(character->admin); // admin level
-				reply.AddShort(0); // shoes
-				reply.AddShort(0); // armor
-				reply.AddShort(0); // hat
-				reply.AddShort(0); // shield
-				reply.AddShort(0); // weapon
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Boots]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Armor]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Hat]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Shield]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Weapon]));
 				reply.AddByte(255); // end of character marker
 			}
 			CLIENT_SEND(reply);
@@ -121,11 +121,11 @@ CLIENT_F_FUNC(Character)
 				reply.AddChar(character->haircolor); // hair color
 				reply.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
 				reply.AddChar(character->admin); // admin level
-				reply.AddShort(0); // shoes
-				reply.AddShort(0); // armor
-				reply.AddShort(0); // hat
-				reply.AddShort(0); // shield
-				reply.AddShort(0); // weapon
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Boots]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Armor]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Hat]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Shield]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Weapon]));
 				reply.AddByte(255); // end of character marker
 			}
 			CLIENT_SEND(reply);

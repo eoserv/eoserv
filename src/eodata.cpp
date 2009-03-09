@@ -28,6 +28,31 @@ EIF::EIF(std::string filename)
 	char buf[EIF::DATA_SIZE] = {0};
 	EIF_Data newdata;
 
+	newdata.id = 0;
+	newdata.graphic = 0;
+	newdata.classreq = 0;
+
+	newdata.hp = 0;
+	newdata.tp = 0;
+	newdata.mindam = 0;
+	newdata.maxdam = 0;
+	newdata.accuracy = 0;
+	newdata.evade = 0;
+	newdata.armor = 0;
+
+	newdata.str = 0;
+	newdata.intl = 0;
+	newdata.wis = 0;
+	newdata.agi = 0;
+	newdata.con = 0;
+	newdata.cha = 0;
+
+	newdata.scrollx = 0;
+	newdata.scrolly = 0;
+
+	nulldata = new EIF_Data;
+	*nulldata = newdata;
+
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	while (!std::feof(fh))
 	{
@@ -72,6 +97,9 @@ EIF::EIF(std::string filename)
 
 	std::fclose(fh);
 }
+
+int EIF::Graphic(unsigned int id){ if (id > 0 && id < this->data.size()-1){ return this->data[id-1].graphic; } else { return this->nulldata->graphic; } }
+int EIF::DollGraphic(unsigned int id){ if (id > 0 && id < this->data.size()-1){ return this->data[id-1].dollgraphic; } else { return this->nulldata->dollgraphic; } }
 
 ENF::ENF(std::string filename)
 {

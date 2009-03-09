@@ -70,7 +70,11 @@ class EIF
 		static const int DATA_SIZE = 58;
 		char rid[6];
 		std::vector<EIF_Data> data;
+		EIF_Data *nulldata;
 		EIF(std::string filename);
+
+		int Graphic(unsigned int id);
+		int DollGraphic(unsigned int id);
 };
 
 
@@ -98,7 +102,11 @@ struct EIF_Data
 	int cha;
 
 	int scrollx;
-	int scrolly;
+	union
+	{
+		int dollgraphic;
+		int scrolly;
+	};
 };
 
 class ENF

@@ -171,12 +171,11 @@ CLIENT_F_FUNC(Welcome)
 			// ??
 			reply.AddChar(10); // Weight
 			reply.AddChar(100); // Max Weight
-			// foreach item {
-			reply.AddShort(1); // Item ID
-			reply.AddInt(2000000); // Item Amount
-			reply.AddShort(201); // Item ID
-			reply.AddInt(1); // Item Amount
-			// }
+			UTIL_FOREACH(this->player->character->inventory, item)
+			{
+				reply.AddShort(item.first); // Item ID
+				reply.AddInt(item.second); // Item Amount
+			}
 			reply.AddByte(255);
 			// foreach spell {
 			reply.AddShort(1); // Spell ID
@@ -209,15 +208,15 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(character->maxtp); // Max TP (?)
 				reply.AddShort(character->tp); // TP (?)
 				// equipment
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Boots]));
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
-				reply.AddShort(0); // shoes
-				reply.AddShort(0); // armor
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Armor]));
 				reply.AddShort(0); // ??
-				reply.AddShort(0); // hat
-				reply.AddShort(0); // shield
-				reply.AddShort(0); // weapon
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Hat]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Shield]));
+				reply.AddShort(eoserv_items->DollGraphic(character->paperdoll[Character::Weapon]));
 				reply.AddChar(character->sitting); // standing
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
