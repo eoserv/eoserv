@@ -56,6 +56,34 @@
 		<Unit filename="..\src\eodata.hpp" />
 		<Unit filename="..\src\eoserv.cpp" />
 		<Unit filename="..\src\eoserv.hpp" />
+		<Unit filename="..\src\eoserv\character.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="..\src\eoserv\guild.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="..\src\eoserv\map.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="..\src\eoserv\npc.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="..\src\eoserv\party.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="..\src\eoserv\player.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="..\src\eoserv\world.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
 		<Unit filename="..\src\handlers.cpp" />
 		<Unit filename="..\src\handlers\Account.cpp">
 			<Option compile="0" />
