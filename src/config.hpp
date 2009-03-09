@@ -28,6 +28,8 @@ class Config : public std::map<std::string, util::variant>
 		 */
 		static const std::size_t MaxLineLength = 4096;
 
+		Config();
+
 		/**
 		 * Reads all configuration data from the file to memory.
 		 * @param filename File to read from.

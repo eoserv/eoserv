@@ -1,5 +1,5 @@
 
-World::World(util::array<std::string, 5> dbinfo)
+World::World(util::array<std::string, 5> dbinfo, Config config)
 {
 	Database::Engine engine;
 	if (dbinfo[0].compare("sqlite") == 0)
@@ -26,6 +26,8 @@ World::World(util::array<std::string, 5> dbinfo)
 	eoserv_npcs = new ENF("./data/pub/dtn001.enf");
 	eoserv_spells = new ESF("./data/pub/dsl001.esf");
 	eoserv_classes = new ECF("./data/pub/dat001.ecf");
+
+	eoserv_config = config;
 }
 
 void World::Login(Character *character)

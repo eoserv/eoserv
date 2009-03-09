@@ -11,19 +11,20 @@ class EOClient;
 #include "packet.hpp"
 #include "eoserv.hpp"
 #include "util.hpp"
+#include "config.hpp"
 
 #define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(int action, PacketReader &reader)
 
 template <class T> class EOServer : public Server<T>
 {
 	private:
-		void Initialize(util::array<std::string, 5> dbinfo) { this->world = new World(dbinfo); }
+		void Initialize(util::array<std::string, 5> dbinfo, Config config) { this->world = new World(dbinfo, config); }
 		EOServer(){};
 
 	public:
 		World *world;
 
-		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo) : Server<T>(addr, port) { this->Initialize(dbinfo); };
+		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, Config config) : Server<T>(addr, port) { this->Initialize(dbinfo, config); };
 };
 
 class EOClient : public Client

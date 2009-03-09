@@ -18,6 +18,7 @@ class ActionQueue;
 #include "eoclient.hpp"
 #include "database.hpp"
 #include "util.hpp"
+#include "config.hpp"
 
 std::string ItemSerialize(std::list<std::pair<int,int> > list);
 std::list<std::pair<int,int> > ItemUnserialize(std::string serialized);
@@ -34,7 +35,7 @@ class World
 		std::list<NPC *> npcs;
 		std::vector<Map *> maps;
 
-		World(util::array<std::string, 5> dbinfo);
+		World(util::array<std::string, 5> dbinfo, Config);
 
 		void Login(Character *);
 		void Logout(Character *);

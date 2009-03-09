@@ -63,7 +63,7 @@ EO Version Support: .27 .28\n\
 		dbinfo[3] = static_cast<std::string>(config["DBPass"]);
 		dbinfo[4] = static_cast<std::string>(config["DBName"]);
 
-		EOServer<EOClient> server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo);
+		EOServer<EOClient> server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config);
 
 		if (server.State() == Server<EOClient>::Invalid)
 		{

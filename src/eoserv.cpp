@@ -12,6 +12,7 @@
 #include "eoconst.hpp"
 #include "eodata.hpp"
 #include "database.hpp"
+#include "hash.hpp"
 
 Database eoserv_db;
 World *the_world;
@@ -19,6 +20,7 @@ EIF *eoserv_items;
 ENF *eoserv_npcs;
 ESF *eoserv_spells;
 ECF *eoserv_classes;
+Config eoserv_config;
 
 // TODO: Clean up these functions
 std::string ItemSerialize(std::list<std::pair<int,int> > list)

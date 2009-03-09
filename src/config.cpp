@@ -6,6 +6,11 @@
 
 #include "util.hpp"
 
+Config::Config()
+{
+
+}
+
 Config::Config(std::string filename)
 {
 	std::FILE *fh;

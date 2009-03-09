@@ -221,9 +221,15 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="..\src\hash.cpp" />
+		<Unit filename="..\src\hash.hpp" />
 		<Unit filename="..\src\main.cpp" />
 		<Unit filename="..\src\packet.cpp" />
 		<Unit filename="..\src\packet.hpp" />
+		<Unit filename="..\src\sha256.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\sha256.h" />
 		<Unit filename="..\src\socket.cpp" />
 		<Unit filename="..\src\socket.hpp" />
 		<Unit filename="..\src\util.cpp" />

@@ -59,6 +59,8 @@ Player *Player::Login(std::string username, std::string password)
 	{
 		return 0;
 	}
+	password = static_cast<std::string>(eoserv_config["PasswordSalt"]) + username + password;
+	sha256(password);
 	Database_Result res = eoserv_db.Query("SELECT * FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.c_str());
 	if (res.empty())
 	{
@@ -75,6 +77,8 @@ bool Player::Create(std::string username, std::string password, std::string full
 	{
 		return false;
 	}
+	password = static_cast<std::string>(eoserv_config["PasswordSalt"]) + username + password;
+	sha256(password);
 	Database_Result result = eoserv_db.Query("INSERT INTO `accounts` (`username`, `password`, `fullname`, `location`, `email`, `computer`, `hdid`) VALUES ('$','$','$','$','$','$','$')", username.c_str(), password.c_str(), fullname.c_str(), location.c_str(), email.c_str(), computer.c_str(), hdid.c_str());
 	return !result.Error();
 }
@@ -111,6 +115,8 @@ bool Player::AddCharacter(std::string name, int gender, int hairstyle, int hairc
 
 void Player::ChangePass(std::string password)
 {
+	password = static_cast<std::string>(eoserv_config["PasswordSalt"]) + username + password;
+	sha256(password);
 	this->password = password;
 	Database_Result res = eoserv_db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.c_str(), this->username.c_str());
 }
