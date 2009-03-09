@@ -316,7 +316,7 @@ template <class T = Client> class Server
 
 			if (this->state == Bound)
 			{
-				if (listen(this->server, maxconn) != SOCKET_ERROR)
+				if (listen(this->server, backlog) != SOCKET_ERROR)
 				{
 					this->state = Listening;
 					return true;
