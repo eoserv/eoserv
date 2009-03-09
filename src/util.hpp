@@ -42,7 +42,7 @@ template <typename T, std::size_t size> class array
 
 		T& assign(std::size_t index, T value)
 		{
-			if (index < 0 || index >= size)
+			if (index >= size)
 			{
 				throw std::out_of_range("Out of range accessing array.");
 			}
@@ -52,7 +52,7 @@ template <typename T, std::size_t size> class array
 
 		T &operator[](std::size_t index)
 		{
-			if (index < 0 || index >= size)
+			if (index >= size)
 			{
 				throw std::out_of_range("Out of range accessing array.");
 			}
