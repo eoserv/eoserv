@@ -1,6 +1,6 @@
 
 BIN = eoserv
-OBJ = obj/config.o obj/eoclient.o obj/handlers.o obj/main.o obj/packet.o obj/socket.o obj/util.o obj/variant.o
+OBJ = obj/config.o obj/database.o obj/eoclient.o obj/eodata.o obj/eoserv.o obj/handlers.o obj/main.o obj/packet.o obj/socket.o obj/util.o
 CXXFLAGS = -O2
 LDFLAGS = -s
 LIBS = -lmysql
