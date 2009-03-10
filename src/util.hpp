@@ -13,6 +13,7 @@ namespace util
 
 // A large pile of hack and fail
 #define UTIL_FOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (typeof(*(container.begin())) as; util_i < 1; ++util_i) for (typeof(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = *(util_it)):(as = *container.begin())), util_it != container.end(); as = *(util_it++))
+#define UTIL_IFOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (typeof(container.begin()) as; util_i < 1; ++util_i) for (typeof(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = util_it):(as = container.begin())), util_it != container.end(); as = util_it++)
 
 template <typename T, std::size_t size> class array;
 class variant;

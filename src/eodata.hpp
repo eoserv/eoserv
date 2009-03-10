@@ -22,9 +22,8 @@ class EIF
 	public:
 		enum Type
 		{
-			UnknownType1,
 			Static,
-			StaticVal,
+			UnknownType1,
 			Money,
 			Potion,
 			Teleport,
@@ -73,8 +72,9 @@ class EIF
 		EIF_Data *nulldata;
 		EIF(std::string filename);
 
-		int Graphic(unsigned int id);
-		int DollGraphic(unsigned int id);
+		int GetType(unsigned int id);
+		int GetGraphic(unsigned int id);
+		int GetDollGraphic(unsigned int id);
 };
 
 

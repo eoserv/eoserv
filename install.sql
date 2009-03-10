@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS `accounts`
 	`hdid`       CHAR(10),
 	`regip`      VARCHAR(15),
 	`lastip`     VARCHAR(15),
+	`created`    INTEGER     NOT NULL,
+	`lastused`   INTEGER,
 
 	PRIMARY KEY (`username`)
 );

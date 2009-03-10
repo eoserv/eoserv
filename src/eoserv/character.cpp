@@ -146,6 +146,220 @@ void Character::Emote(int emote)
 	this->map->Emote(this, emote);
 }
 
+int Character::HasItem(int item)
+{
+	UTIL_FOREACH(this->inventory, it)
+	{
+		if (it.first == item)
+		{
+			return it.second;
+		}
+	}
+
+	return 0;
+}
+
+void Character::AddItem(int item, int amount)
+{
+	if (amount < 0)
+	{
+		return;
+	}
+
+	UTIL_IFOREACH(this->inventory, it)
+	{
+		if (it->first == item)
+		{
+			if (it->second + amount < 0)
+			{
+				return;
+			}
+			it->second += amount;
+			return;
+		}
+	}
+
+	this->inventory.push_back(std::make_pair(item, amount));
+}
+
+void Character::DelItem(int item, int amount)
+{
+	if (amount < 0)
+	{
+		return;
+	}
+
+	UTIL_IFOREACH(this->inventory, it)
+	{
+		if (it->first == item)
+		{
+			if (it->second - amount < 0)
+			{
+				it->second = amount;
+			}
+			it->second -= amount;
+			return;
+		}
+	}
+
+	this->inventory.push_back(std::make_pair(item, amount));
+}
+
+bool Character::Unequip(int item)
+{
+	for (int i = 0; i < 15; ++i)
+	{
+		if (this->paperdoll[i] == item)
+		{
+			this->paperdoll[i] = 0;
+			this->AddItem(item, 1);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Character::Equip(int item)
+{
+	if (!this->HasItem(item))
+	{
+		return false;
+	}
+
+	switch (eoserv_items->GetType(item))
+	{
+		case EIF::Weapon:
+			if (this->paperdoll[Character::Weapon] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Weapon] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Shield:
+			if (this->paperdoll[Character::Shield] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Shield] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Armor:
+			if (this->paperdoll[Character::Armor] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Armor] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Hat:
+			if (this->paperdoll[Character::Hat] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Hat] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Boots:
+			if (this->paperdoll[Character::Boots] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Boots] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Gloves:
+			if (this->paperdoll[Character::Gloves] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Gloves] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Accessory:
+			if (this->paperdoll[Character::Accessory] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Accessory] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Belt:
+			if (this->paperdoll[Character::Belt] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Belt] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Necklace:
+			if (this->paperdoll[Character::Necklace] != 0)
+			{
+				return false;
+			}
+			this->paperdoll[Character::Necklace] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Ring:
+			if (this->paperdoll[Character::Ring1] != 0)
+			{
+				if (this->paperdoll[Character::Ring2] != 0)
+				{
+					return false;
+				}
+				this->paperdoll[Character::Ring2] = item;
+				this->DelItem(item, 1);
+				return false;
+			}
+			this->paperdoll[Character::Ring1] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Armlet:
+			if (this->paperdoll[Character::Armlet1] != 0)
+			{
+				if (this->paperdoll[Character::Armlet2] != 0)
+				{
+					return false;
+				}
+				this->paperdoll[Character::Armlet2] = item;
+				this->DelItem(item, 1);
+			}
+			this->paperdoll[Character::Armlet1] = item;
+			this->DelItem(item, 1);
+			break;
+
+		case EIF::Bracer:
+			if (this->paperdoll[Character::Bracer1] != 0)
+			{
+				if (this->paperdoll[Character::Bracer2] != 0)
+				{
+					return false;
+				}
+				this->paperdoll[Character::Bracer2] = item;
+				this->DelItem(item, 1);
+			}
+			this->paperdoll[Character::Bracer1] = item;
+			this->DelItem(item, 1);
+			break;
+
+		default:
+			return false;
+	}
+
+	return true;
+}
+
 Character::~Character()
 {
 	if (this->player)

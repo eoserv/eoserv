@@ -134,7 +134,7 @@ class Character
 		enum EquipLocation
 		{
 			Boots,
-			Misc,
+			Accessory,
 			Gloves,
 			Belt,
 			Armor,
@@ -144,8 +144,8 @@ class Character
 			Weapon,
 			Ring1,
 			Ring2,
-			Bracelet1,
-			Bracelet2,
+			Armlet1,
+			Armlet2,
 			Bracer1,
 			Bracer2
 		};
@@ -167,6 +167,11 @@ class Character
 		void Sit();
 		void Stand();
 		void Emote(int emote);
+		int HasItem(int item);
+		void AddItem(int item, int amount);
+		void DelItem(int item, int amount);
+		bool Unequip(int item);
+		bool Equip(int item);
 
 		~Character();
 
