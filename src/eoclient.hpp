@@ -36,7 +36,6 @@ class EOClient : public Client
 	public:
 		int version;
 		Player *player;
-		World *world;
 		unsigned int id;
 
 		enum State

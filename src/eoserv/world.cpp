@@ -105,3 +105,24 @@ void World::AnnounceMsg(Character *from, std::string message)
 		character->player->client->SendBuilder(builder);
 	}
 }
+
+Character *World::GetCharacter(std::string name)
+{
+	Character *selected = 0;
+
+	UTIL_FOREACH(this->characters, character)
+	{
+		if (character->name.compare(name) == 0)
+		{
+			selected = character;
+			break;
+		}
+	}
+
+	return selected;
+}
+
+void World::Kick(Character *from, Character *victim)
+{
+	victim->player->client->Close();
+}

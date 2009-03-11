@@ -1,6 +1,7 @@
 
 #include "util.hpp"
 
+#include <list>
 #include <cstdio>
 #include <string>
 
@@ -199,6 +200,23 @@ std::string trim(const std::string &str)
 	++ei;
 
 	return str.substr(si, ei);
+}
+
+std::list<std::string> explode(char delimiter, std::string str)
+{
+	std::size_t lastpos = 0;
+	std::size_t pos = 0;
+	std::list<std::string> pieces;
+
+	for (pos = str.find_first_of(delimiter); pos != std::string::npos; )
+	{
+		pieces.push_back(str.substr(lastpos, pos - lastpos));
+		lastpos = pos+1;
+		pos = str.find_first_of(delimiter, pos+1);
+	}
+	pieces.push_back(str.substr(lastpos));
+
+	return pieces;
 }
 
 }

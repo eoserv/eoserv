@@ -2,6 +2,7 @@
 #define UTIL_HPP_INCLUDED
 
 #include <string>
+#include <list>
 #include <map>
 #include <cstring>
 #include <cstddef>
@@ -217,6 +218,8 @@ std::string rtrim(const std::string &);
  * Whitespace is defined as space, tab, CR and LF.
  */
 std::string trim(const std::string &);
+
+std::list<std::string> explode(char delimiter, std::string);
 
 /**
  * Alternate name for variant.

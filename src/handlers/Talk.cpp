@@ -43,6 +43,27 @@ CLIENT_F_FUNC(Talk)
 			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
 
+			if (message.empty())
+			{
+				return false;
+			}
+
+			if (this->player->character->admin && message[0] == '$')
+			{
+				std::string command;
+				std::list<std::string> arguments = util::explode(' ', message);
+				command = arguments.front().substr(1);
+				arguments.pop_front();
+				if (command.compare("kick") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["kick"]))
+				{
+					Character *victim = the_world->GetCharacter(arguments.front());
+					if (victim)
+					{
+						the_world->Kick(this->player->character, victim);
+					}
+				}
+			}
+
 			this->player->character->map->Msg(this->player->character, message);
 		}
 		break;

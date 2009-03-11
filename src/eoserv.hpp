@@ -23,6 +23,8 @@ class ActionQueue;
 std::string ItemSerialize(std::list<std::pair<int,int> > list);
 std::list<std::pair<int,int> > ItemUnserialize(std::string serialized);
 
+extern Config admin_config;
+
 class World
 {
 	private:
@@ -46,6 +48,10 @@ class World
 
 		void Reboot();
 		void Reboot(int seconds, std::string reason);
+
+		void Kick(Character *from, Character *victim);
+
+		Character *GetCharacter(std::string name);
 };
 
 class Map
