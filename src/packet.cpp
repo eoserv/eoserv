@@ -2,6 +2,7 @@
 #include "packet.hpp"
 
 #include <string>
+#include <algorithm>
 
 #include "util.hpp"
 

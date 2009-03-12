@@ -15,7 +15,6 @@ class NPC;
 class Map;
 class ActionQueue;
 
-#include "eoclient.hpp"
 #include "database.hpp"
 #include "util.hpp"
 #include "config.hpp"
@@ -53,6 +52,8 @@ class World
 
 		Character *GetCharacter(std::string name);
 };
+
+#include "eoclient.hpp"
 
 class Map
 {

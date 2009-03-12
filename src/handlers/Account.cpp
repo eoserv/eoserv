@@ -12,7 +12,7 @@ CLIENT_F_FUNC(Account)
 			reader.GetByte(); // Ordering byte
 			std::string username = reader.GetEndString();
 
-			std::transform(username.begin(), username.end(), username.begin(), std::tolower);
+			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
@@ -53,7 +53,7 @@ CLIENT_F_FUNC(Account)
 			std::string computer = reader.GetBreakString();
 			std::string hdid = reader.GetBreakString();
 
-			std::transform(username.begin(), username.end(), username.begin(), std::tolower);
+			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
 
 			Player::Create(username, password, fullname, location, email, computer, hdid);
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
@@ -65,7 +65,7 @@ CLIENT_F_FUNC(Account)
 
 		case PACKET_AGREE: // Change password
 		{
-			if (!this->player || this->player && this->player->character) return false;
+			if (!this->player || (this->player && this->player->character)) return false;
 
 			reader.GetByte(); // Ordering byte
 			std::string username = reader.GetBreakString();

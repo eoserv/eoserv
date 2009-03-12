@@ -2,8 +2,12 @@
 Map::Map(int id)
 {
 	char namebuf[6];
+	if (id < 0)
+	{
+		return;
+	}
 	std::string filename = "./data/maps/";
-	std::sprintf(namebuf, "%05i", std::abs(id));
+	std::sprintf(namebuf, "%05i", id);
 	this->filename = filename;
 	filename.append(namebuf);
 	filename.append(".emf");

@@ -234,7 +234,7 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(200); // Item ID
 			reply.AddChar(7); // Map X
 			reply.AddChar(7); // Map Y
-			reply.AddInt(INT_MAX); // Amount
+			reply.AddInt(1000000); // Amount
 			// }
 			CLIENT_SEND(reply);
 		}

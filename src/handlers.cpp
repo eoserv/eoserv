@@ -1,6 +1,8 @@
 
+#include <algorithm>
 #include <string>
 #include <cstdio>
+#include <cmath>
 
 #include "eoclient.hpp"
 #include "eoserv.hpp"

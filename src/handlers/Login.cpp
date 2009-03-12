@@ -13,7 +13,7 @@ CLIENT_F_FUNC(Login)
 			std::string username =  reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
-			std::transform(username.begin(), username.end(), username.begin(), std::tolower);
+			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
 
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
 
