@@ -59,6 +59,8 @@ class Database
 			SQLite
 		};
 
+	private:
+
 	protected:
 		union handle
 		{
@@ -79,6 +81,8 @@ class Database
 		void Connect(Database::Engine type, std::string host, std::string user, std::string pass, std::string db);
 
 		Database_Result Query(const char *format, ...);
+
+		Database_Result callbackdata;
 };
 
 #endif // DATABASE_HPP_INCLUDED

@@ -110,6 +110,8 @@ Character *World::GetCharacter(std::string name)
 {
 	Character *selected = 0;
 
+	std::transform(name.begin(), name.end(), name.begin(), static_cast<int(*)(int)>(std::tolower));
+
 	UTIL_FOREACH(this->characters, character)
 	{
 		if (character->name.compare(name) == 0)

@@ -11,7 +11,7 @@
 
 extern Database eoserv_db;
 
-void syspause(){ std::puts("Server terminated."); std::system("PAUSE"); }
+void syspause(){ std::puts("Server terminated.\nPress enter to continue . . ."); std::getc(stdin); }
 
 int main()
 {

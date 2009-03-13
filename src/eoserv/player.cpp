@@ -79,7 +79,7 @@ bool Player::Create(std::string username, std::string password, std::string full
 	}
 	password = static_cast<std::string>(eoserv_config["PasswordSalt"]) + username + password;
 	sha256(password);
-	Database_Result result = eoserv_db.Query("INSERT INTO `accounts` (`username`, `password`, `fullname`, `location`, `email`, `computer`, `hdid`) VALUES ('$','$','$','$','$','$','$')", username.c_str(), password.c_str(), fullname.c_str(), location.c_str(), email.c_str(), computer.c_str(), hdid.c_str());
+	Database_Result result = eoserv_db.Query("INSERT INTO `accounts` (`username`, `password`, `fullname`, `location`, `email`, `computer`, `hdid`, `created`) VALUES ('$','$','$','$','$','$','$',#)", username.c_str(), password.c_str(), fullname.c_str(), location.c_str(), email.c_str(), computer.c_str(), hdid.c_str(), std::time(0));
 	return !result.Error();
 }
 

@@ -7,6 +7,7 @@
 #include <ctime>
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 #include "util.hpp"
 #include "eoconst.hpp"

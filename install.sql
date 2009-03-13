@@ -59,9 +59,7 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`spells`      TEXT        NOT NULL,
 	`guild`       CHAR(3)              DEFAULT NULL,
 	
-	PRIMARY KEY (`name`),
-	INDEX       (`account`),
-	INDEX       (`guild`)
+	PRIMARY KEY (`name`)
 );
 
 CREATE TABLE IF NOT EXISTS `guilds`
@@ -73,3 +71,6 @@ CREATE TABLE IF NOT EXISTS `guilds`
 	PRIMARY KEY (`tag`),
 	UNIQUE      (`name`)
 );
+
+CREATE INDEX character_account_index ON characters (account);
+CREATE INDEX character_guild_index ON characters (guild);

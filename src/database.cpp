@@ -7,6 +7,40 @@
 
 #include "util.hpp"
 
+int sqlite_callback(void *data, int num, char *fields[], char *columns[])
+{
+	std::map<std::string, util::variant> result;
+	std::string column;
+	util::variant field;
+	int i;
+
+	for (i = 0; i < num; ++i)
+	{
+		if (columns[i] == NULL)
+		{
+			column = "";
+		}
+		else
+		{
+			column = columns[i];
+		}
+
+		if (fields[i] == NULL)
+		{
+			field = "";
+		}
+		else
+		{
+			field = fields[i];
+		}
+
+		result.insert(result.begin(), make_pair(column, field));
+	}
+
+	((Database *)data)->callbackdata.push_back(result);
+	return 0;
+}
+
 int Database_Result::AffectedRows()
 {
 	return this->affected_rows;
@@ -25,13 +59,13 @@ Database::Database()
 
 Database::Database(Database::Engine type, std::string host, std::string user, std::string pass, std::string db)
 {
-	this->engine = (Engine)0;
 	this->connected = false;
 	this->Connect(type, host, user, pass, db);
 }
 
 void Database::Connect(Database::Engine type, std::string host, std::string user, std::string pass, std::string db)
 {
+	this->engine = type;
 	switch (type)
 	{
 #ifdef DATABASE_MYSQL
@@ -183,9 +217,16 @@ Database_Result Database::Query(const char *format, ...)
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
+			if (sqlite3_exec(this->handle.sqlite_handle, finalquery.c_str(), sqlite_callback, (void *)this, 0) != SQLITE_OK)
+			{
+				throw Database_QueryFailed(sqlite3_errmsg(this->handle.sqlite_handle));
+			}
+			result = this->callbackdata;
+			this->callbackdata.clear();
 			break;
 #endif // DATABASE_SQLITE
 	}
 
 	return result;
 }
+

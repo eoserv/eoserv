@@ -17,13 +17,13 @@ CLIENT_F_FUNC(Account)
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
 			{
-				reply.AddShort(PACKET_ACCOUNT_EXISTS);
+				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
 				reply.AddChar(0); // ??
 				reply.AddString("NO");
 			}
 			if (Player::Exists(username))
 			{
-				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
+				reply.AddShort(PACKET_ACCOUNT_EXISTS);
 				reply.AddChar(0); // ??
 				reply.AddString("NO");
 			}
