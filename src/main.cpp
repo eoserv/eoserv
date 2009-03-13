@@ -11,30 +11,41 @@
 
 extern Database eoserv_db;
 
-int main(void)
+void syspause(){ std::puts("Server terminated."); std::system("PAUSE"); }
+
+int main()
 {
-	// Type checks
-	if (std::numeric_limits<unsigned char>::digits < 8){ std::fputs("You cannot run this program (uchar is less than 8 bits)\n", stderr); std::exit(1); }
-	if (std::numeric_limits<unsigned short>::digits < 16){ std::fputs("You cannot run this program (ushort is less than 16 bits)\n", stderr); std::exit(1); }
-	if (std::numeric_limits<unsigned int>::digits < 32){ std::fputs("You cannot run this program (uint is less than 32 bits)\n", stderr); std::exit(1); }
+#ifdef DEBUG
+	std::atexit(syspause);
+#endif
 
-	if (std::numeric_limits<char>::digits < 7){ std::fputs("You cannot run this program (char is less than 8 bits)\n", stderr); std::exit(1); }
-	if (std::numeric_limits<short>::digits < 15){ std::fputs("You cannot run this program (short is less than 16 bits)\n", stderr); std::exit(1); }
-	if (std::numeric_limits<int>::digits < 31){ std::fputs("You cannot run this program (int is less than 32 bits)\n", stderr); std::exit(1); }
+	try
+	{
+		bool running = true;
+		Config config("config.ini");
 
-	if (std::numeric_limits<unsigned char>::digits != 8) std::fputs("WARNING: uchar is over 8 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-	if (std::numeric_limits<unsigned short>::digits != 16) std::fputs("WARNING: ushort is over 16 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-	if (std::numeric_limits<unsigned int>::digits != 32) std::fputs("WARNING: uint is over 32 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
+		// Type checks
+		if (std::numeric_limits<unsigned char>::digits < 8){ std::fputs("You cannot run this program (uchar is less than 8 bits)\n", stderr); std::exit(1); }
+		if (std::numeric_limits<unsigned short>::digits < 16){ std::fputs("You cannot run this program (ushort is less than 16 bits)\n", stderr); std::exit(1); }
+		if (std::numeric_limits<unsigned int>::digits < 32){ std::fputs("You cannot run this program (uint is less than 32 bits)\n", stderr); std::exit(1); }
 
-	if (std::numeric_limits<char>::digits > 8) std::fputs("WARNING: char is over 8 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-	if (std::numeric_limits<short>::digits > 15) std::fputs("WARNING: short is over 16 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-	if (std::numeric_limits<int>::digits > 31) std::fputs("WARNING: int is over 32 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
+		if (std::numeric_limits<char>::digits < 7){ std::fputs("You cannot run this program (char is less than 8 bits)\n", stderr); std::exit(1); }
+		if (std::numeric_limits<short>::digits < 15){ std::fputs("You cannot run this program (short is less than 16 bits)\n", stderr); std::exit(1); }
+		if (std::numeric_limits<int>::digits < 31){ std::fputs("You cannot run this program (int is less than 32 bits)\n", stderr); std::exit(1); }
 
-	if (!std::numeric_limits<char>::is_signed) std::fputs("WARNING: char is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
-	if (!std::numeric_limits<short>::is_signed) std::fputs("WARNING: short is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
-	if (!std::numeric_limits<int>::is_signed) std::fputs("WARNING: int is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
+		if (std::numeric_limits<unsigned char>::digits != 8) std::fputs("WARNING: uchar is over 8 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
+		if (std::numeric_limits<unsigned short>::digits != 16) std::fputs("WARNING: ushort is over 16 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
+		if (std::numeric_limits<unsigned int>::digits != 32) std::fputs("WARNING: uint is over 32 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
 
-	std::puts("\
+		if (std::numeric_limits<char>::digits > 8) std::fputs("WARNING: char is over 8 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
+		if (std::numeric_limits<short>::digits > 15) std::fputs("WARNING: short is over 16 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
+		if (std::numeric_limits<int>::digits > 31) std::fputs("WARNING: int is over 32 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
+
+		if (!std::numeric_limits<char>::is_signed) std::fputs("WARNING: char is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
+		if (!std::numeric_limits<short>::is_signed) std::fputs("WARNING: short is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
+		if (!std::numeric_limits<int>::is_signed) std::fputs("WARNING: int is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
+
+		std::puts("\
                           ___ ___  ___ ___ _____   __\n\
    EOSERV Version 0.3.0  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
@@ -45,16 +56,30 @@ EO Version Support: .27 .28\n\
 #ifdef DEBUG
 
 #ifdef __GNUC__
-	std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
+		std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
+#endif
+		std::puts("WARNING: This is a debug build and shouldn't be used for live servers.");
 #endif
 
-	std::puts("WARNING: This is a debug build and shouldn't be used for live servers.");
-#endif
+		std::string logout = static_cast<std::string>(config["LogOut"]);
+		if (!logout.empty() && logout.compare("-") != 0)
+		{
+			std::printf("Redirecting output to '%s'...\n", logout.c_str());
+			if (!std::freopen(logout.c_str(), "a", stdout))
+			{
+				std::fprintf(stderr, "Failed to redirect output.\n");
+			}
+		}
 
-	try
-	{
-		bool running = true;
-		Config config("config.ini");
+		std::string logerr = static_cast<std::string>(config["LogErr"]);
+		if (!logerr.empty() && logerr.compare("-") != 0)
+		{
+			std::printf("Redirecting errors to '%s'...\n", logerr.c_str());
+			if (!std::freopen(logerr.c_str(), "a", stderr))
+			{
+				std::fprintf(stderr, "Failed to redirect output.\n");
+			}
+		}
 
 		util::array<std::string, 5> dbinfo;
 		dbinfo[0] = static_cast<std::string>(config["DBType"]);
