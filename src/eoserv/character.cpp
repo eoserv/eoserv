@@ -22,6 +22,16 @@ bool Character::ValidName(std::string name)
 	return true;
 }
 
+bool Character::Exists(std::string name)
+{
+	if (!Character::ValidName(username))
+	{
+		return false;
+	}
+	Database_Result res = eoserv_db.Query("SELECT 1 FROM `characters` WHERE `name` = '$'", name.c_str());
+	return !res.empty();
+}
+
 Character *Character::Create(Player *player, std::string name, int gender, int hairstyle, int haircolor, int race)
 {
 	if (!Character::ValidName(name))
@@ -99,6 +109,8 @@ Character::Character(std::string name)
 	this->accuracy = 100;
 	this->evade = 100;
 	this->armor = 100;
+
+	this->warp_temp = false;
 
 	this->sitting = static_cast<int>(row["sitting"]);
 
@@ -363,6 +375,44 @@ bool Character::InRange(Character *other)
 	int xdistance = std::abs(this->x - other->x);
 	int ydistance = std::abs(this->y - other->y);
 	return (xdistance + ydistance) <= 11;
+}
+
+void Character::Warp(int map, int x, int y)
+{
+	PacketBuilder builder;
+	builder.SetID(PACKET_WARP, PACKET_REQUEST);
+
+	if (this->player->character->mapid == map)
+	{
+		builder.AddChar(PACKET_WARP_LOCAL);
+		builder.AddShort(map);
+		builder.AddChar(x);
+		builder.AddChar(y);
+	}
+	else
+	{
+		builder.AddChar(PACKET_WARP_SWITCH);
+		builder.AddShort(map);
+		builder.AddChar(the_world->maps[map]->rid[0]);
+		builder.AddChar(the_world->maps[map]->rid[1]);
+		builder.AddChar(the_world->maps[map]->rid[2]);
+		builder.AddChar(the_world->maps[map]->rid[3]);
+		builder.AddChar(0); // ?
+		builder.AddShort(0); // ?
+		builder.AddChar(0); // ?
+		builder.AddChar(0); // ?
+	}
+
+	this->map->Leave(this);
+	this->map = the_world->maps[map];
+	this->mapid = map;
+	this->x = x;
+	this->y = y;
+	this->map->Enter(this);
+
+	this->warp_temp = true;
+
+	this->player->client->SendBuilder(builder);
 }
 
 Character::~Character()

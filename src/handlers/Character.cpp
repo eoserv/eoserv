@@ -36,7 +36,15 @@ CLIENT_F_FUNC(Character)
 			if (!Character::ValidName(name))
 			{
 				reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
-				reply.AddShort(5); // Reply code
+				reply.AddShort(4); // Reply code
+				CLIENT_SEND(reply);
+				return true;
+			}
+
+			if (Character::Exists(name))
+			{
+				reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
+				reply.AddShort(1); // Reply code
 				CLIENT_SEND(reply);
 				return true;
 			}

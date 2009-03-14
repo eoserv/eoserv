@@ -241,24 +241,6 @@ void Map::Walk(Character *from, int direction)
 
 	from->direction = direction;
 
-	builder.SetID(PACKET_WALK, PACKET_PLAYER);
-	builder.AddShort(from->player->id);
-	builder.AddChar(direction);
-	builder.AddChar(from->x);
-	builder.AddChar(from->y);
-
-	UTIL_FOREACH(characters, character)
-	{
-		if (character == from || !from->InRange(character))
-		{
-			continue;
-		}
-
-		character->player->client->SendBuilder(builder);
-	}
-
-	builder.Reset();
-
 	builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
 	builder.AddShort(from->player->id);
 
@@ -271,6 +253,8 @@ void Map::Walk(Character *from, int direction)
 		character->player->client->SendBuilder(builder);
 		from->player->client->SendBuilder(rbuilder);
 	}
+
+	builder.Reset();
 
 	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
 	builder.AddByte(255);
@@ -345,6 +329,24 @@ void Map::Walk(Character *from, int direction)
 
 		character->player->client->SendBuilder(builder);
 		from->player->client->SendBuilder(rbuilder);
+	}
+
+	builder.Reset();
+
+	builder.SetID(PACKET_WALK, PACKET_PLAYER);
+	builder.AddShort(from->player->id);
+	builder.AddChar(direction);
+	builder.AddChar(from->x);
+	builder.AddChar(from->y);
+
+	UTIL_FOREACH(characters, character)
+	{
+		if (character == from || !from->InRange(character))
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
 	}
 }
 

@@ -271,7 +271,7 @@ CLIENT_F_FUNC(Welcome)
 				default: return false;
 			}
 
-			fh = std::fopen(filename.c_str(),"rb");
+			fh = std::fopen(filename.c_str(), "rb");
 
 			if (!fh)
 			{
@@ -284,7 +284,9 @@ CLIENT_F_FUNC(Welcome)
 				int len = std::fread(buf, sizeof(char), 4096, fh);
 				content.append(buf, len);
 			} while (!std::feof(fh));
+
 			std::fclose(fh);
+
 			reply.SetID(0);
 			reply.AddChar(replycode);
 			if (subreplycode != 0)

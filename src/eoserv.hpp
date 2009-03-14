@@ -138,6 +138,8 @@ class Character
 		int accuracy, evade, armor;
 		int mindam, maxdam;
 
+		bool warp_temp;
+
 		enum EquipLocation
 		{
 			Boots,
@@ -165,6 +167,7 @@ class Character
 		Character(std::string name);
 
 		static bool ValidName(std::string name);
+		static bool Exists(std::string name);
 		static Character *Create(Player *, std::string name, int gender, int hairstyle, int haircolor, int race);
 		static void Delete(std::string name);
 
@@ -180,6 +183,7 @@ class Character
 		bool Unequip(int item);
 		bool Equip(int item);
 		bool InRange(Character *);
+		void Warp(int map, int x, int y);
 
 		~Character();
 

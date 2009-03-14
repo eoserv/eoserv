@@ -57,12 +57,13 @@ CLIENT_F_FUNC(Talk)
 				return false;
 			}
 
-			if (this->player->character->admin && message[0] == '$')
+			if (this->player->character->admin && message[0] == '$' && this->player->character->admin > ADMIN_PLAYER)
 			{
 				std::string command;
 				std::vector<std::string> arguments = util::explode(' ', message);
 				command = arguments.front().substr(1);
 				arguments.erase(arguments.begin());
+
 				if (command.length() >= 1 && command.compare(0,1,"k") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["kick"]))
 				{
 					Character *victim = the_world->GetCharacter(arguments[0]);
@@ -71,24 +72,61 @@ CLIENT_F_FUNC(Talk)
 						the_world->Kick(this->player->character, victim);
 					}
 				}
-
-				if (command.length() >= 2 && command.compare(0,2,"si") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["sitem"]))
+				else if (command.length() >= 2 && command.compare(0,2,"si") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["sitem"]))
 				{
-					PacketBuilder builder;
 					int id = static_cast<int>(util::variant(arguments[0]));
 					int amount = (arguments.size() >= 2)?static_cast<int>(util::variant(arguments[1])):1;
 					this->player->character->AddItem(id, amount);
-					builder.SetID(PACKET_ITEM, PACKET_GET);
-					builder.AddShort(236); // ?
-					builder.AddShort(id);
-					builder.AddThree(amount);
-					builder.AddChar(9); // ?
-					builder.AddChar(76); // ?
-					CLIENT_SEND(builder);
+					reply.SetID(PACKET_ITEM, PACKET_GET);
+					reply.AddShort(236); // ?
+					reply.AddShort(id);
+					reply.AddThree(amount);
+					reply.AddChar(9); // ?
+					reply.AddChar(76); // ?
+					CLIENT_SEND(reply);
+				}
+				else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["warpmeto"]))
+				{
+					std::transform(arguments[0].begin(), arguments[0].end(), arguments[0].begin(), static_cast<int(*)(int)>(std::tolower));
+					UTIL_FOREACH(the_world->characters, character)
+					{
+						if (character->name.compare(arguments[0]) == 0)
+						{
+							this->player->character->Warp(character->mapid, character->x, character->y);
+							break;
+						}
+					}
+				}
+				else if (command.length() >= 5 && command.compare(0,5,"warpt") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["warptome"]))
+				{
+					std::transform(arguments[0].begin(), arguments[0].end(), arguments[0].begin(), static_cast<int(*)(int)>(std::tolower));
+					UTIL_FOREACH(the_world->characters, character)
+					{
+						if (character->name.compare(arguments[0]) == 0)
+						{
+							character->Warp(this->player->character->mapid, this->player->character->x, this->player->character->y);
+							break;
+						}
+					}
+				}
+				else if (command.length() >= 1 && command.compare(0,1,"w") == 0 && arguments.size() >= 3 && this->player->character->admin >= static_cast<int>(admin_config["warp"]))
+				{
+					int map = static_cast<int>(util::variant(arguments[0]));
+					int x = static_cast<int>(util::variant(arguments[1]));
+					int y = static_cast<int>(util::variant(arguments[2]));
+
+					if (map < 0 || map >= static_cast<int>(the_world->maps.size()))
+					{
+						break;
+					}
+
+					this->player->character->Warp(map, x, y);
 				}
 			}
-
-			this->player->character->map->Msg(this->player->character, message);
+			else
+			{
+				this->player->character->map->Msg(this->player->character, message);
+			}
 		}
 		break;
 
