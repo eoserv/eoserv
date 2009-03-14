@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `guilds`
 	`tag`         CHAR(3)     NOT NULL,
 	`name`        VARCHAR(32) NOT NULL,
 	`description` TEXT        NOT NULL,
+	`created`     INTEGER     NOT NULL,
 	
 	PRIMARY KEY (`tag`),
 	UNIQUE      (`name`)

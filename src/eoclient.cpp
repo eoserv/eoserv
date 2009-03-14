@@ -36,6 +36,11 @@ void EOClient::Execute(std::string data)
 
 	bool result = false;
 
+	if (family != PACKET_INIT)
+	{
+		reader.GetChar(); // Ordering Byte
+	}
+
 	switch (family)
 	{
 		CLIENT_F_HANDLE(PACKET_INIT,Init);

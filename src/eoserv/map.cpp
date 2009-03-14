@@ -16,7 +16,7 @@ Map::Map(int id)
 
 	if (!fh)
 	{
-		std::printf("Could not load file: %s\n", filename.c_str());
+		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
 		return;
 	}
 
@@ -53,23 +53,23 @@ void Map::Enter(Character *character)
 	builder.AddShort(character->maxtp); // Max TP (?)
 	builder.AddShort(character->tp); // TP (?)
 	// equipment
+	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
-	builder.AddShort(0); // shoes
-	builder.AddShort(0); // armor
+	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
 	builder.AddShort(0); // ??
-	builder.AddShort(0); // hat
-	builder.AddShort(0); // shield
-	builder.AddShort(0); // weapon
-	builder.AddChar(character->sitting); // standing
+	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
+	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
+	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
+	builder.AddChar(character->sitting);
 	builder.AddChar(0); // visible
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
-	UTIL_FOREACH(characters, checkcharacter)
+	UTIL_FOREACH(this->characters, checkcharacter)
 	{
-		if (checkcharacter == character)
+		if (checkcharacter == character || !character->InRange(checkcharacter))
 		{
 			continue;
 		}
@@ -85,9 +85,9 @@ void Map::Leave(Character *character)
 	builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
 	builder.AddShort(character->player->id);
 
-	UTIL_FOREACH(characters, checkcharacter)
+	UTIL_FOREACH(this->characters, checkcharacter)
 	{
-		if (checkcharacter == character)
+		if (checkcharacter == character || !character->InRange(checkcharacter))
 		{
 			continue;
 		}
@@ -95,7 +95,7 @@ void Map::Leave(Character *character)
 		checkcharacter->player->client->SendBuilder(builder);
 	}
 
-	UTIL_FOREACH(characters, checkcharacter)
+	UTIL_FOREACH(this->characters, checkcharacter)
 	{
 		if (checkcharacter == character)
 		{
@@ -110,15 +110,13 @@ void Map::Msg(Character *from, std::string message)
 {
 	PacketBuilder builder;
 
-	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
-
 	builder.SetID(PACKET_TALK, PACKET_PLAYER);
 	builder.AddShort(from->player->id);
 	builder.AddString(message);
 
 	UTIL_FOREACH(characters, character)
 	{
-		if (character == from)
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -147,6 +145,100 @@ void Map::Walk(Character *from, int direction)
 			break;
 	}
 
+	int newx;
+	int newy;
+	int oldx;
+	int oldy;
+	std::list<Character *> newchars;
+	std::list<Character *> oldchars;
+
+	UTIL_FOREACH(this->characters, checkchar)
+	{
+		if (checkchar == from)
+		{
+			continue;
+		}
+		switch (direction)
+		{
+			case DIRECTION_UP:
+				for (int i = -11; i <= 11; ++i)
+				{
+					newy = from->y - 11 + std::abs(i);
+					newx = from->x + i;
+					oldy = from->y + 12 - std::abs(i);
+					oldx = from->x + i;
+
+					if (checkchar->x == oldx && checkchar->y == oldy)
+					{
+						oldchars.push_back(checkchar);
+					}
+					else if (checkchar->x == newx && checkchar->y == newy)
+					{
+						newchars.push_back(checkchar);
+					}
+				}
+				break;
+
+			case DIRECTION_RIGHT:
+				for (int i = -11; i <= 11; ++i)
+				{
+					newx = from->x + 11 - std::abs(i);
+					newy = from->y + i;
+					oldx = from->x - 12 + std::abs(i);
+					oldy = from->y + i;
+
+					if (checkchar->x == oldx && checkchar->y == oldy)
+					{
+						oldchars.push_back(checkchar);
+					}
+					else if (checkchar->x == newx && checkchar->y == newy)
+					{
+						newchars.push_back(checkchar);
+					}
+				}
+				break;
+
+			case DIRECTION_DOWN:
+				for (int i = -11; i <= 11; ++i)
+				{
+					newy = from->y + 11 - std::abs(i);
+					newx = from->x + i;
+					oldy = from->y - 12 + std::abs(i);
+					oldx = from->x + i;
+
+					if (checkchar->x == oldx && checkchar->y == oldy)
+					{
+						oldchars.push_back(checkchar);
+					}
+					else if (checkchar->x == newx && checkchar->y == newy)
+					{
+						newchars.push_back(checkchar);
+					}
+				}
+				break;
+
+			case DIRECTION_LEFT:
+				for (int i = -11; i <= 11; ++i)
+				{
+					newx = from->x - 11 + std::abs(i);
+					newy = from->y + i;
+					oldx = from->x + 12 - std::abs(i);
+					oldy = from->y + i;
+
+					if (checkchar->x == oldx && checkchar->y == oldy)
+					{
+						oldchars.push_back(checkchar);
+					}
+					else if (checkchar->x == newx && checkchar->y == newy)
+					{
+						newchars.push_back(checkchar);
+					}
+				}
+				break;
+
+		}
+	}
+
 	from->direction = direction;
 
 	builder.SetID(PACKET_WALK, PACKET_PLAYER);
@@ -157,12 +249,94 @@ void Map::Walk(Character *from, int direction)
 
 	UTIL_FOREACH(characters, character)
 	{
-		if (character == from)
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
 
 		character->player->client->SendBuilder(builder);
+	}
+
+	UTIL_FOREACH(oldchars, character)
+	{
+		character->player->client->SendBuilder(builder);
+	}
+
+
+	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
+	builder.AddByte(255);
+	builder.AddBreakString(from->name);
+	builder.AddShort(from->player->id);
+	builder.AddShort(from->mapid);
+	builder.AddShort(from->x);
+	builder.AddShort(from->y);
+	builder.AddChar(from->direction);
+	builder.AddChar(6); // ?
+	builder.AddString("SEX"); // guild tag
+	builder.AddChar(from->level);
+	builder.AddChar(from->gender);
+	builder.AddChar(from->hairstyle);
+	builder.AddChar(from->haircolor);
+	builder.AddChar(from->race);
+	builder.AddShort(from->maxhp);
+	builder.AddShort(from->hp);
+	builder.AddShort(from->maxtp);
+	builder.AddShort(from->tp);
+	// equipment
+	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Boots]));
+	builder.AddShort(0); // ??
+	builder.AddShort(0); // ??
+	builder.AddShort(0); // ??
+	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Armor]));
+	builder.AddShort(0); // ??
+	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Hat]));
+	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Shield]));
+	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Weapon]));
+	builder.AddChar(from->sitting);
+	builder.AddChar(0); // visible
+	builder.AddByte(255);
+	builder.AddChar(1); // 0 = NPC, 1 = player
+	// equipment
+
+	UTIL_FOREACH(newchars, character)
+	{
+		PacketBuilder rbuilder;
+		rbuilder.SetID(PACKET_PLAYERS, PACKET_AGREE);
+		rbuilder.AddByte(255);
+		rbuilder.AddBreakString(character->name);
+		rbuilder.AddShort(character->player->id);
+		rbuilder.AddShort(character->mapid);
+		rbuilder.AddShort(character->x);
+		rbuilder.AddShort(character->y);
+		rbuilder.AddChar(character->direction);
+		rbuilder.AddChar(6); // ?
+		rbuilder.AddString("SEX"); // guild tag
+		rbuilder.AddChar(character->level);
+		rbuilder.AddChar(character->gender);
+		rbuilder.AddChar(character->hairstyle);
+		rbuilder.AddChar(character->haircolor);
+		rbuilder.AddChar(character->race);
+		rbuilder.AddShort(character->maxhp);
+		rbuilder.AddShort(character->hp);
+		rbuilder.AddShort(character->maxtp);
+		rbuilder.AddShort(character->tp);
+		// equipment
+		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
+		rbuilder.AddShort(0); // ??
+		rbuilder.AddShort(0); // ??
+		rbuilder.AddShort(0); // ??
+		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
+		rbuilder.AddShort(0); // ??
+		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
+		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
+		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
+		rbuilder.AddChar(character->sitting);
+		rbuilder.AddChar(0); // visible
+		rbuilder.AddByte(255);
+		rbuilder.AddChar(1); // 0 = NPC, 1 = player
+
+		character->player->client->SendBuilder(builder);
+		from->player->client->SendBuilder(rbuilder);
 	}
 }
 
@@ -178,7 +352,7 @@ void Map::Attack(Character *from, int direction)
 
 	UTIL_FOREACH(characters, character)
 	{
-		if (character == from)
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -199,7 +373,7 @@ void Map::Face(Character *from, int direction)
 
 	UTIL_FOREACH(characters, character)
 	{
-		if (character == from)
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -223,6 +397,11 @@ void Map::Sit(Character *from)
 
 	UTIL_FOREACH(characters, character)
 	{
+		if (!from->InRange(character))
+		{
+			continue;
+		}
+
 		character->player->client->SendBuilder(builder);
 	}
 }
@@ -240,6 +419,11 @@ void Map::Stand(Character *from)
 
 	UTIL_FOREACH(characters, character)
 	{
+		if (!from->InRange(character))
+		{
+			continue;
+		}
+
 		character->player->client->SendBuilder(builder);
 	}
 }
@@ -256,7 +440,7 @@ void Map::Emote(Character *from, int direction)
 
 	UTIL_FOREACH(characters, character)
 	{
-		if (character == from)
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}

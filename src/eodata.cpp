@@ -5,15 +5,13 @@
 
 #include "packet.hpp"
 
-#include <windows.h>
-
 EIF::EIF(std::string filename)
 {
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 
 	if (!fh)
 	{
-		std::printf("Could not load file: %s\n", filename.c_str());
+		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
 		return;
 	}
 
@@ -108,7 +106,7 @@ ENF::ENF(std::string filename)
 
 	if (!fh)
 	{
-		std::printf("Could not load file: %s\n", filename.c_str());
+		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
 		return;
 	}
 
@@ -161,7 +159,7 @@ ESF::ESF(std::string filename)
 
 	if (!fh)
 	{
-		std::printf("Could not load file: %s\n", filename.c_str());
+		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
 		return;
 	}
 
@@ -209,7 +207,7 @@ ECF::ECF(std::string filename)
 
 	if (!fh)
 	{
-		std::printf("Could not load file: %s\n", filename.c_str());
+		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
 		return;
 	}
 

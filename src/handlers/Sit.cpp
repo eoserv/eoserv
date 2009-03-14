@@ -11,7 +11,6 @@ CLIENT_F_FUNC(Sit)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
-			reader.GetByte(); // Ordering byte
 			int action = reader.GetChar();
 
 			if (action == SIT_SITTING)

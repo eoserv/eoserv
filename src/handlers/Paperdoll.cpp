@@ -34,7 +34,6 @@ CLIENT_F_FUNC(Paperdoll)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
-			reader.GetByte(); // Ordering byte
 			int itemid = reader.GetShort();
 			reader.GetChar(); // Unknown
 
@@ -74,7 +73,6 @@ CLIENT_F_FUNC(Paperdoll)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
-			reader.GetByte(); // Ordering byte
 			int itemid = reader.GetShort();
 			reader.GetChar(); // Unknown
 

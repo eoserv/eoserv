@@ -11,8 +11,6 @@ CLIENT_F_FUNC(Welcome)
 		{
 			if (!this->player) return false;
 
-			reader.GetByte(); // Ordering byte
-
 			id = reader.GetInt(); // Character ID
 
 			reply.SetID(PACKET_WELCOME, PACKET_REPLY);
@@ -147,8 +145,6 @@ CLIENT_F_FUNC(Welcome)
 		{
 			if (!this->player && !this->player->character) return false;
 
-			reader.GetByte(); // Ordering byte
-
 			reader.GetThree(); // ??
 			id = reader.GetInt(); // Character ID
 
@@ -186,27 +182,35 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(100); // Spell Level
 			// }
 			reply.AddByte(255);
-			reply.AddChar(this->player->character->map->characters.size()); // Number of players
-			reply.AddByte(255);
+			std::list<Character *> updatecharacters;
 			UTIL_FOREACH(this->player->character->map->characters, character)
+			{
+				if (this->player->character->InRange(character))
+				{
+					updatecharacters.push_back(character);
+				}
+			}
+			reply.AddChar(updatecharacters.size()); // Number of players
+			reply.AddByte(255);
+			UTIL_FOREACH(updatecharacters, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddShort(character->player->id);
-				reply.AddShort(character->mapid); // Map ID
-				reply.AddShort(character->x); // Map X
-				reply.AddShort(character->y); // Map Y
-				reply.AddChar(character->direction); // Direction
+				reply.AddShort(character->mapid);
+				reply.AddShort(character->x);
+				reply.AddShort(character->y);
+				reply.AddChar(character->direction);
 				reply.AddChar(6); // ?
 				reply.AddString("SEX"); // guild tag
-				reply.AddChar(character->level); // Level
-				reply.AddChar(character->gender); // sex (0 = female, 1 = male)
-				reply.AddChar(character->hairstyle); // hair style
-				reply.AddChar(character->haircolor); // hair color
-				reply.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
-				reply.AddShort(character->maxhp); // Max HP (?)
-				reply.AddShort(character->hp); // HP (?)
-				reply.AddShort(character->maxtp); // Max TP (?)
-				reply.AddShort(character->tp); // TP (?)
+				reply.AddChar(character->level);
+				reply.AddChar(character->gender);
+				reply.AddChar(character->hairstyle);
+				reply.AddChar(character->haircolor);
+				reply.AddChar(character->race);
+				reply.AddShort(character->maxhp);
+				reply.AddShort(character->hp);
+				reply.AddShort(character->maxtp);
+				reply.AddShort(character->tp);
 				// equipment
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
 				reply.AddShort(0); // ??
@@ -217,24 +221,24 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
-				reply.AddChar(character->sitting); // standing
+				reply.AddChar(character->sitting);
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
 			}
 			// foreach npc {
-			reply.AddChar(1); // NPC ID
-			reply.AddShort(1); // Graphic ID
-			reply.AddChar(5); // Map X
-			reply.AddChar(5); // Map Y
-			reply.AddChar(3); // Direction
+			//reply.AddChar(1); // NPC ID
+			//reply.AddShort(1); // Graphic ID
+			//reply.AddChar(5); // Map X
+			//reply.AddChar(5); // Map Y
+			//reply.AddChar(3); // Direction
 			// }
 			reply.AddByte(255);
 			// foreach item {
-			reply.AddShort(20); // Display ID
-			reply.AddShort(200); // Item ID
-			reply.AddChar(7); // Map X
-			reply.AddChar(7); // Map Y
-			reply.AddInt(1000000); // Amount
+			//reply.AddShort(20); // Display ID
+			//reply.AddShort(200); // Item ID
+			//reply.AddChar(7); // Map X
+			//reply.AddChar(7); // Map Y
+			//reply.AddInt(1000000); // Amount
 			// }
 			CLIENT_SEND(reply);
 		}
@@ -255,7 +259,6 @@ CLIENT_F_FUNC(Welcome)
 			filename += mapbuf;
 			filename += ".emf";
 
-			reader.GetByte(); // Ordering byte
 			int file = reader.GetChar();
 
 			switch (file)
@@ -272,7 +275,7 @@ CLIENT_F_FUNC(Welcome)
 
 			if (!fh)
 			{
-				std::printf("Could not load file: %s", filename.c_str());
+				std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
 				return false;
 			}
 

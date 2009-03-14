@@ -18,8 +18,6 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_CREATE: // Create a character
 		{
-			reader.GetByte(); // Ordering byte
-
 			reader.GetShort(); // CreateID?
 
 			int gender = reader.GetShort();
@@ -78,9 +76,6 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_REMOVE: // Delete a character from an account
 		{
-
-			reader.GetByte(); // Ordering byte
-
 			/*int deleteid = */reader.GetShort();
 			unsigned int charid = reader.GetInt();
 
@@ -134,8 +129,6 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_TAKE: // Request to delete a character from an account
 		{
-			reader.GetByte(); // Ordering byte
-
 			unsigned int charid = reader.GetInt();
 
 			bool yourchar = false;

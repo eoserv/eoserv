@@ -9,7 +9,6 @@ CLIENT_F_FUNC(Account)
 
 		case PACKET_REQUEST: // Check if a character exists
 		{
-			reader.GetByte(); // Ordering byte
 			std::string username = reader.GetEndString();
 
 			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
@@ -41,7 +40,6 @@ CLIENT_F_FUNC(Account)
 		{
 			if (this->player) return false;
 
-			reader.GetByte(); // Ordering byte
 			reader.GetShort(); // Account creation "session ID"
 			reader.GetByte(); // ?
 
@@ -67,7 +65,6 @@ CLIENT_F_FUNC(Account)
 		{
 			if (!this->player || (this->player && this->player->character)) return false;
 
-			reader.GetByte(); // Ordering byte
 			std::string username = reader.GetBreakString();
 			std::string oldpassword = reader.GetBreakString();
 			std::string newpassword = reader.GetBreakString();

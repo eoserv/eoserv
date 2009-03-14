@@ -9,7 +9,6 @@ CLIENT_F_FUNC(Emote)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
-			reader.GetByte(); // Ordering byte
 			int emote = reader.GetChar();
 
 			if ((emote >= 0 && emote <= 10) || emote == 14)

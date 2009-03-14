@@ -108,12 +108,7 @@ Character::Character(std::string name)
 	this->usage = static_cast<int>(row["usage"]);
 
 	this->inventory = ItemUnserialize(row["inventory"]);
-	std::puts(static_cast<std::string>(row["inventory"]).c_str());
-	std::puts(ItemSerialize(this->inventory).c_str());
-
 	this->paperdoll = DollUnserialize(row["paperdoll"]);
-	std::puts(static_cast<std::string>(row["paperdoll"]).c_str());
-	std::puts(DollSerialize(this->paperdoll).c_str());
 
 	this->player = 0;
 	this->guild = 0;
@@ -175,6 +170,7 @@ void Character::AddItem(int item, int amount)
 				return;
 			}
 			it->second += amount;
+
 			return;
 		}
 	}
@@ -193,16 +189,18 @@ void Character::DelItem(int item, int amount)
 	{
 		if (it->first == item)
 		{
-			if (it->second - amount < 0)
+			if (it->second - amount > it->second || it->second - amount <= 0)
 			{
-				it->second = amount;
+				this->inventory.erase(it);
 			}
-			it->second -= amount;
+			else
+			{
+				it->second -= amount;
+			}
+
 			return;
 		}
 	}
-
-	this->inventory.push_back(std::make_pair(item, amount));
 }
 
 bool Character::Unequip(int item)
@@ -358,6 +356,14 @@ bool Character::Equip(int item)
 	}
 
 	return true;
+}
+
+bool Character::InRange(Character *other)
+{
+	int xdistance = std::abs(this->x - other->x);
+	int ydistance = std::abs(this->y - other->y);
+	printf("distance: %i\n", xdistance+ydistance);
+	return (xdistance + ydistance) <= 11;
 }
 
 Character::~Character()

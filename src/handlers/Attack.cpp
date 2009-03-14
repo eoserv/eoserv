@@ -9,7 +9,6 @@ CLIENT_F_FUNC(Attack)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
-			reader.GetByte(); // Ordering byte
 			int direction = reader.GetChar();
 			/*int timestamp = */reader.GetThree();
 

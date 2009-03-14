@@ -9,7 +9,6 @@ CLIENT_F_FUNC(Login)
 		{
 			if (this->player) return false;
 
-			reader.GetByte(); // Ordering byte
 			std::string username =  reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
@@ -45,14 +44,14 @@ CLIENT_F_FUNC(Login)
 			reply.AddByte(255);
 			UTIL_FOREACH(this->player->characters, character)
 			{
-				reply.AddBreakString(character->name); // Character name
-				reply.AddInt(character->id); // character id
-				reply.AddChar(character->level); // level
-				reply.AddChar(character->gender); // sex (0 = female, 1 = male)
-				reply.AddChar(character->hairstyle); // hair style
-				reply.AddChar(character->haircolor); // hair color
-				reply.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
-				reply.AddChar(character->admin); // admin level
+				reply.AddBreakString(character->name);
+				reply.AddInt(character->id);
+				reply.AddChar(character->level);
+				reply.AddChar(character->gender);
+				reply.AddChar(character->hairstyle);
+				reply.AddChar(character->haircolor);
+				reply.AddChar(character->race);
+				reply.AddChar(character->admin);
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));

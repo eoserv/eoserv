@@ -35,6 +35,8 @@ std::string PacketProcessor::GetFamilyName(unsigned char family)
 		case PACKET_PLAYERS: return "Players";
 		case PACKET_PARTY: return "Party";
 		case PACKET_REFRESH: return "Refresh";
+		case PACKET_AUTOREFRESH: return "AutoRefresh";
+		case PACKET_APPEAR: return "Appear";
 		case PACKET_PAPERDOLL: return "Paperdoll";
 		case PACKET_TRADE: return "Trade";
 		case PACKET_CHEST: return "Chest";

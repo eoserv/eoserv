@@ -179,6 +179,7 @@ class Character
 		void DelItem(int item, int amount);
 		bool Unequip(int item);
 		bool Equip(int item);
+		bool InRange(Character *);
 
 		~Character();
 

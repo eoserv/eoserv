@@ -1,4 +1,19 @@
 
+// Prevents exploitation of a buffer overflow in the EO client
+void limit_message(std::string &message)
+{
+	if (message.length() > 128)
+	{
+		message = message.substr(0, 122) + " [...]";
+	}
+
+	// This is the noticeably annoying part of it
+	if (message.length() > 96)
+	{
+		std::transform(message.begin()+64, message.end(), message.begin()+64, static_cast<int(*)(int)>(std::tolower));
+	}
+}
+
 CLIENT_F_FUNC(Talk)
 {
 	PacketBuilder reply;
@@ -23,8 +38,8 @@ CLIENT_F_FUNC(Talk)
 		{
 			if (!this->player || !this->player->character) return false;
 
-			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
+			limit_message(message);
 
 			the_world->Msg(this->player->character, message);
 		}
@@ -40,8 +55,8 @@ CLIENT_F_FUNC(Talk)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
-			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
+			limit_message(message);
 
 			if (message.empty())
 			{
@@ -54,7 +69,7 @@ CLIENT_F_FUNC(Talk)
 				std::list<std::string> arguments = util::explode(' ', message);
 				command = arguments.front().substr(1);
 				arguments.pop_front();
-				if (command.compare("kick") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["kick"]))
+				if (command.length() >= 1 && command.compare(0,1,"k") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["kick"]))
 				{
 					Character *victim = the_world->GetCharacter(arguments.front());
 					if (victim)
@@ -74,8 +89,8 @@ CLIENT_F_FUNC(Talk)
 
 			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 
-			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
+			limit_message(message);
 
 			the_world->AdminMsg(this->player->character, message);
 		}
@@ -87,8 +102,8 @@ CLIENT_F_FUNC(Talk)
 
 			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 
-			reader.GetByte(); // Ordering byte
 			message = reader.GetEndString(); // message
+			limit_message(message);
 
 			the_world->AnnounceMsg(this->player->character, message);
 		}

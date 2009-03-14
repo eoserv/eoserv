@@ -61,21 +61,21 @@ EO Version Support: .27 .28\n\
 		std::puts("WARNING: This is a debug build and shouldn't be used for live servers.");
 #endif
 
-		std::string logout = static_cast<std::string>(config["LogOut"]);
-		if (!logout.empty() && logout.compare("-") != 0)
-		{
-			std::printf("Redirecting output to '%s'...\n", logout.c_str());
-			if (!std::freopen(logout.c_str(), "a", stdout))
-			{
-				std::fprintf(stderr, "Failed to redirect output.\n");
-			}
-		}
-
 		std::string logerr = static_cast<std::string>(config["LogErr"]);
 		if (!logerr.empty() && logerr.compare("-") != 0)
 		{
 			std::printf("Redirecting errors to '%s'...\n", logerr.c_str());
 			if (!std::freopen(logerr.c_str(), "a", stderr))
+			{
+				std::fprintf(stderr, "Failed to redirect output.\n");
+			}
+		}
+
+		std::string logout = static_cast<std::string>(config["LogOut"]);
+		if (!logout.empty() && logout.compare("-") != 0)
+		{
+			std::printf("Redirecting output to '%s'...\n", logout.c_str());
+			if (!std::freopen(logout.c_str(), "a", stdout))
 			{
 				std::fprintf(stderr, "Failed to redirect output.\n");
 			}
@@ -92,10 +92,7 @@ EO Version Support: .27 .28\n\
 
 		if (server.State() == Server<EOClient>::Invalid)
 		{
-			std::puts("There was a problem initializing the server.");
-#ifdef WIN32
-			std::puts("Is Winsock available and up-to-date? (EOSERV requires Winsock 2.0 or higher)");
-#endif // WIN32
+			std::puts("There was a problem initializing the server. (Is port 8078 already in use?)");
 			std::exit(1);
 		}
 

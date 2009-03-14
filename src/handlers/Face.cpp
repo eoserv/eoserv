@@ -9,7 +9,6 @@ CLIENT_F_FUNC(Face)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
-			reader.GetByte(); // Ordering byte
 			int direction = reader.GetChar();
 
 			if (direction >= 0 && direction <= 3)
