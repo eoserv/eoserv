@@ -6,12 +6,6 @@ void limit_message(std::string &message)
 	{
 		message = message.substr(0, 122) + " [...]";
 	}
-
-	// This is the noticeably annoying part of it
-	if (message.length() > 96)
-	{
-		std::transform(message.begin()+64, message.end(), message.begin()+64, static_cast<int(*)(int)>(std::tolower));
-	}
 }
 
 CLIENT_F_FUNC(Talk)

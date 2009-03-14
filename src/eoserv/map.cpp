@@ -257,11 +257,20 @@ void Map::Walk(Character *from, int direction)
 		character->player->client->SendBuilder(builder);
 	}
 
+	builder.Reset();
+
+	builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
+	builder.AddShort(from->player->id);
+
 	UTIL_FOREACH(oldchars, character)
 	{
-		character->player->client->SendBuilder(builder);
-	}
+		PacketBuilder rbuilder;
+		rbuilder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
+		rbuilder.AddShort(character->player->id);
 
+		character->player->client->SendBuilder(builder);
+		from->player->client->SendBuilder(rbuilder);
+	}
 
 	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
 	builder.AddByte(255);
@@ -296,7 +305,6 @@ void Map::Walk(Character *from, int direction)
 	builder.AddChar(0); // visible
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
-	// equipment
 
 	UTIL_FOREACH(newchars, character)
 	{

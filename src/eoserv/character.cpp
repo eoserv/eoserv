@@ -362,7 +362,6 @@ bool Character::InRange(Character *other)
 {
 	int xdistance = std::abs(this->x - other->x);
 	int ydistance = std::abs(this->y - other->y);
-	printf("distance: %i\n", xdistance+ydistance);
 	return (xdistance + ydistance) <= 11;
 }
 

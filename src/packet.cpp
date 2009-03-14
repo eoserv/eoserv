@@ -587,6 +587,12 @@ const std::string &PacketBuilder::AddBreakString(const std::string &str, unsigne
 	return str;
 }
 
+void PacketBuilder::Reset()
+{
+	this->length = 0;
+	this->data.erase();
+}
+
 std::string PacketBuilder::Get()
 {
 	std::string retdata;

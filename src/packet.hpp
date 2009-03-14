@@ -192,6 +192,8 @@ class PacketBuilder
 		const std::string &AddString(const std::string &);
 		const std::string &AddBreakString(const std::string &, unsigned char breakchar = 0xFF);
 
+		void Reset();
+
 		std::string Get();
 
 		operator std::string();

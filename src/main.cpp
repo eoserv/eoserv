@@ -92,7 +92,7 @@ EO Version Support: .27 .28\n\
 
 		if (server.State() == Server<EOClient>::Invalid)
 		{
-			std::puts("There was a problem initializing the server. (Is port 8078 already in use?)");
+			std::fputs("There was a problem initializing the server. (Is port 8078 already in use?)", stderr);
 			std::exit(1);
 		}
 
