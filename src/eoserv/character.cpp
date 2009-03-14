@@ -24,7 +24,7 @@ bool Character::ValidName(std::string name)
 
 bool Character::Exists(std::string name)
 {
-	if (!Character::ValidName(username))
+	if (!Character::ValidName(name))
 	{
 		return false;
 	}
