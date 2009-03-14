@@ -2,6 +2,7 @@
 #include "util.hpp"
 
 #include <list>
+#include <vector>
 #include <cstdio>
 #include <string>
 
@@ -202,11 +203,11 @@ std::string trim(const std::string &str)
 	return str.substr(si, ei);
 }
 
-std::list<std::string> explode(char delimiter, std::string str)
+std::vector<std::string> explode(char delimiter, std::string str)
 {
 	std::size_t lastpos = 0;
 	std::size_t pos = 0;
-	std::list<std::string> pieces;
+	std::vector<std::string> pieces;
 
 	for (pos = str.find_first_of(delimiter); pos != std::string::npos; )
 	{

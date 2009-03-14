@@ -3,6 +3,8 @@
 #include <string>
 #include <cstdio>
 #include <cmath>
+#include <list>
+#include <vector>
 
 #include "eoclient.hpp"
 #include "eoserv.hpp"

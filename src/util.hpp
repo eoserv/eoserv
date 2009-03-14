@@ -3,6 +3,7 @@
 
 #include <string>
 #include <list>
+#include <vector>
 #include <map>
 #include <cstring>
 #include <cstddef>
@@ -219,7 +220,7 @@ std::string rtrim(const std::string &);
  */
 std::string trim(const std::string &);
 
-std::list<std::string> explode(char delimiter, std::string);
+std::vector<std::string> explode(char delimiter, std::string);
 
 /**
  * Alternate name for variant.
