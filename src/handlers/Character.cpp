@@ -9,6 +9,8 @@ CLIENT_F_FUNC(Character)
 	{
 		case PACKET_REQUEST: // Request to create a new character
 		{
+			if (!this->player) return false;
+
 			reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
 			reply.AddShort(1000); // CreateID?
 			reply.AddString("OK");
@@ -18,6 +20,8 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_CREATE: // Create a character
 		{
+			if (!this->player) return false;
+
 			reader.GetShort(); // CreateID?
 
 			int gender = reader.GetShort();
@@ -41,13 +45,13 @@ CLIENT_F_FUNC(Character)
 				return true;
 			}
 
-			if (Character::Exists(name))
+			/*if (Character::Exists(name))
 			{
 				reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
 				reply.AddShort(1); // Reply code
 				CLIENT_SEND(reply);
 				return true;
-			}
+			}*/
 
 			this->player->AddCharacter(name, gender, hairstyle, haircolor, race);
 
@@ -84,6 +88,8 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_REMOVE: // Delete a character from an account
 		{
+			if (!this->player) return false;
+
 			/*int deleteid = */reader.GetShort();
 			unsigned int charid = reader.GetInt();
 

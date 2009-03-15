@@ -42,9 +42,9 @@ bool Player::ValidName(std::string username)
 		return false;
 	}
 
-	for (const char *p = username.c_str(); *p != '\0'; ++p)
+	for (std::size_t i = 0; i < username.length(); ++i)
 	{
-		if (!((*p >= 'a' && *p <= 'z') || *p == ' ' || (*p >= '0' && *p < '9')))
+		if (!((username[i] >= 'a' && username[i] <= 'z') || username[i] == ' ' || (username[i] >= '0' && username[i] < '9')))
 		{
 			return false;
 		}

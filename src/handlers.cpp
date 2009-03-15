@@ -18,7 +18,7 @@ extern EIF *eoserv_items;
 extern ENF *eoserv_npcs;
 extern ESF *eoserv_spells;
 extern ECF *eoserv_classes;
-
+extern Config eoserv_config;
 
 #ifdef CLIENT_F_FUNC
 #undef CLIENT_F_FUNC

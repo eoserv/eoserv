@@ -9,7 +9,17 @@ CLIENT_F_FUNC(Paperdoll)
 		{
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
+			unsigned int id = reader.GetShort();
 			Character *character = this->player->character;
+
+			UTIL_FOREACH(this->player->character->map->characters, checkcharacter)
+			{
+				if (checkcharacter->player->id == id)
+				{
+					character = checkcharacter;
+					break;
+				}
+			}
 
 			reply.SetID(PACKET_PAPERDOLL, PACKET_REPLY);
 			reply.AddBreakString(character->name);
@@ -35,35 +45,35 @@ CLIENT_F_FUNC(Paperdoll)
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
 			int itemid = reader.GetShort();
-			reader.GetChar(); // Unknown
+			int subloc = reader.GetChar(); // Used for double slot items (rings etc)
 
-			if (this->player->character->Unequip(itemid))
+			if (this->player->character->Unequip(itemid, subloc))
 			{
 				reply.SetID(PACKET_PAPERDOLL, PACKET_REMOVE);
-				reply.AddChar(27); // ?
-				reply.AddChar(13); // ?
-				reply.AddChar(1); // ?
-				reply.AddChar(0); // ?
-				reply.AddShort(0); // ?
-				reply.AddShort(25); // ?
-				reply.AddShort(48); // ?
-				reply.AddShort(11); // ?
-				reply.AddShort(0); // ?
+				reply.AddChar(101); // ?
+				reply.AddChar(102); // ?
+				reply.AddChar(103); // ?
+				reply.AddChar(104); // ?
+				reply.AddShort(105); // ?
+				reply.AddShort(106); // ?
+				reply.AddShort(107); // ?
+				reply.AddShort(108); // ?
+				reply.AddShort(109); // ?
 				reply.AddShort(itemid);
-				reply.AddChar(0); // ?
-				reply.AddShort(69); // ?
-				reply.AddShort(35); // ?
-				reply.AddShort(1); // ?
-				reply.AddShort(3); // ?
-				reply.AddShort(4); // ?
-				reply.AddShort(2); // ?
-				reply.AddShort(2); // ?
-				reply.AddShort(0); // ?
-				reply.AddShort(2); // ?
-				reply.AddShort(3); // ?
-				reply.AddShort(2); // ?
-				reply.AddShort(5); // ?
-				reply.AddShort(6); // ?
+				reply.AddChar(110); // ?
+				reply.AddShort(this->player->character->maxhp);
+				reply.AddShort(this->player->character->maxtp);
+				reply.AddShort(this->player->character->str);
+				reply.AddShort(this->player->character->intl);
+				reply.AddShort(this->player->character->wis);
+				reply.AddShort(this->player->character->agi);
+				reply.AddShort(this->player->character->con);
+				reply.AddShort(this->player->character->cha);
+				reply.AddShort(this->player->character->mindam);
+				reply.AddShort(this->player->character->maxdam);
+				reply.AddShort(this->player->character->accuracy);
+				reply.AddShort(this->player->character->evade);
+				reply.AddShort(this->player->character->armor);
 				CLIENT_SEND(reply);
 			}
 		}
@@ -74,36 +84,36 @@ CLIENT_F_FUNC(Paperdoll)
 			if (!this->player || !this->player->character || !this->player->character->map) return false;
 
 			int itemid = reader.GetShort();
-			reader.GetChar(); // Unknown
+			int subloc = reader.GetChar(); // Used for double slot items (rings etc)
 
-			if (this->player->character->Equip(itemid))
+			if (this->player->character->Equip(itemid, subloc))
 			{
 				reply.SetID(PACKET_PAPERDOLL, PACKET_AGREE);
-				reply.AddChar(27); // ?
-				reply.AddChar(13); // ?
-				reply.AddChar(1); // ?
-				reply.AddChar(0); // ?
-				reply.AddShort(45); // ?
-				reply.AddShort(25); // ?
-				reply.AddShort(48); // ?
-				reply.AddShort(11); // ?
-				reply.AddShort(0); // ?
+				reply.AddChar(120); // ?
+				reply.AddChar(121); // ?
+				reply.AddChar(122); // ?
+				reply.AddChar(subloc); // ?
+				reply.AddShort(124); // ?
+				reply.AddShort(125); // ?
+				reply.AddShort(126); // ?
+				reply.AddShort(127); // ?
+				reply.AddShort(128); // ?
 				reply.AddShort(itemid);
-				reply.AddShort(0); // ?
-				reply.AddChar(0); // ?
-				reply.AddShort(69); // ?
-				reply.AddShort(35); // ?
-				reply.AddShort(1); // ?
-				reply.AddShort(3); // ?
-				reply.AddShort(4); // ?
-				reply.AddShort(2); // ?
-				reply.AddShort(2); // ?
-				reply.AddShort(0); // ?
-				reply.AddShort(2); // ?
-				reply.AddShort(3); // ?
-				reply.AddShort(2); // ?
-				reply.AddShort(5); // ?
-				reply.AddShort(6); // ?
+				reply.AddShort(this->player->character->HasItem(itemid));
+				reply.AddChar(130); // ?
+				reply.AddShort(this->player->character->maxhp);
+				reply.AddShort(this->player->character->maxtp);
+				reply.AddShort(this->player->character->str);
+				reply.AddShort(this->player->character->intl);
+				reply.AddShort(this->player->character->wis);
+				reply.AddShort(this->player->character->agi);
+				reply.AddShort(this->player->character->con);
+				reply.AddShort(this->player->character->cha);
+				reply.AddShort(this->player->character->mindam);
+				reply.AddShort(this->player->character->maxdam);
+				reply.AddShort(this->player->character->accuracy);
+				reply.AddShort(this->player->character->evade);
+				reply.AddShort(this->player->character->armor);
 				CLIENT_SEND(reply);
 			}
 		}

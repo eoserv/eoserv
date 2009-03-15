@@ -46,6 +46,12 @@ const int SKIN_PANDA = 3;
 const int SKIN_SKELETON = 4;
 const int SKIN_FISH = 5;
 
+const int ICON_NORMAL = 0;
+const int ICON_GM = 4;
+const int ICON_HGM = 5;
+const int ICON_PARTY = 6;
+const int ICON_GM_PARTY = 9;
+const int ICON_HGM_PARTY = 10;
 
 const int PACKET_ACCOUNT_EXISTS = 1;
 const int PACKET_ACCOUNT_NOT_APPROVED = 2;

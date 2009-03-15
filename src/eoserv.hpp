@@ -22,6 +22,7 @@ class ActionQueue;
 std::string ItemSerialize(std::list<std::pair<int,int> > list);
 std::list<std::pair<int,int> > ItemUnserialize(std::string serialized);
 
+extern Config eoserv_config;
 extern Config admin_config;
 
 class World
@@ -180,8 +181,8 @@ class Character
 		int HasItem(int item);
 		void AddItem(int item, int amount);
 		void DelItem(int item, int amount);
-		bool Unequip(int item);
-		bool Equip(int item);
+		bool Unequip(int item, int subloc);
+		bool Equip(int item, int subloc);
 		bool InRange(Character *);
 		void Warp(int map, int x, int y);
 

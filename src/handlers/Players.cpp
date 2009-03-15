@@ -18,7 +18,39 @@ CLIENT_F_FUNC(Players)
 				reply.AddBreakString(character->name);
 				reply.AddBreakString(character->title);
 				reply.AddChar(0); // ?
-				reply.AddChar(0); // ?
+				if (character->admin >= ADMIN_HGM)
+				{
+					if (character->party)
+					{
+						reply.AddChar(ICON_HGM_PARTY);
+					}
+					else
+					{
+						reply.AddChar(ICON_HGM);
+					}
+				}
+				else if (character->admin >= ADMIN_GUIDE)
+				{
+					if (character->party)
+					{
+						reply.AddChar(ICON_GM_PARTY);
+					}
+					else
+					{
+						reply.AddChar(ICON_GM);
+					}
+				}
+				else
+				{
+					if (character->party)
+					{
+						reply.AddChar(ICON_PARTY);
+					}
+					else
+					{
+						reply.AddChar(ICON_NORMAL);
+					}
+				}
 				reply.AddChar(character->clas);
 				reply.AddString("SEX");
 				reply.AddByte(255);

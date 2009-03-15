@@ -11,9 +11,9 @@ bool Character::ValidName(std::string name)
 		return false;
 	}
 
-	for (const char *p = name.c_str(); *p != '\0'; ++p)
+	for (std::size_t i = 0; i < name.length(); ++i)
 	{
-		if (*p < 'a' && *p > 'z')
+		if (name[i] < 'a' && name[i] > 'z')
 		{
 			return false;
 		}
@@ -215,22 +215,31 @@ void Character::DelItem(int item, int amount)
 	}
 }
 
-bool Character::Unequip(int item)
+bool Character::Unequip(int item, int subloc)
 {
+	int ii = 0;
+
 	for (int i = 0; i < 15; ++i)
 	{
 		if (this->paperdoll[i] == item)
 		{
-			this->paperdoll[i] = 0;
-			this->AddItem(item, 1);
-			return true;
+			if (ii == subloc)
+			{
+				this->paperdoll[i] = 0;
+				this->AddItem(item, 1);
+				return true;
+			}
+			else
+			{
+				++ii;
+			}
 		}
 	}
 
 	return false;
 }
 
-bool Character::Equip(int item)
+bool Character::Equip(int item, int subloc)
 {
 	if (!this->HasItem(item))
 	{
@@ -321,7 +330,17 @@ bool Character::Equip(int item)
 			break;
 
 		case EIF::Ring:
-			if (this->paperdoll[Character::Ring1] != 0)
+			if (subloc == 0)
+			{
+				if (this->paperdoll[Character::Ring1] != 0)
+				{
+					return false;
+				}
+				this->paperdoll[Character::Ring1] = item;
+				this->DelItem(item, 1);
+				break;
+			}
+			else
 			{
 				if (this->paperdoll[Character::Ring2] != 0)
 				{
@@ -329,14 +348,21 @@ bool Character::Equip(int item)
 				}
 				this->paperdoll[Character::Ring2] = item;
 				this->DelItem(item, 1);
-				return false;
+				break;
 			}
-			this->paperdoll[Character::Ring1] = item;
-			this->DelItem(item, 1);
-			break;
 
 		case EIF::Armlet:
-			if (this->paperdoll[Character::Armlet1] != 0)
+			if (subloc == 0)
+			{
+				if (this->paperdoll[Character::Armlet1] != 0)
+				{
+					return false;
+				}
+				this->paperdoll[Character::Armlet1] = item;
+				this->DelItem(item, 1);
+				break;
+			}
+			else
 			{
 				if (this->paperdoll[Character::Armlet2] != 0)
 				{
@@ -344,13 +370,21 @@ bool Character::Equip(int item)
 				}
 				this->paperdoll[Character::Armlet2] = item;
 				this->DelItem(item, 1);
+				break;
 			}
-			this->paperdoll[Character::Armlet1] = item;
-			this->DelItem(item, 1);
-			break;
 
 		case EIF::Bracer:
-			if (this->paperdoll[Character::Bracer1] != 0)
+			if (subloc == 0)
+			{
+				if (this->paperdoll[Character::Bracer1] != 0)
+				{
+					return false;
+				}
+				this->paperdoll[Character::Bracer1] = item;
+				this->DelItem(item, 1);
+				break;
+			}
+			else
 			{
 				if (this->paperdoll[Character::Bracer2] != 0)
 				{
@@ -358,10 +392,8 @@ bool Character::Equip(int item)
 				}
 				this->paperdoll[Character::Bracer2] = item;
 				this->DelItem(item, 1);
+				break;
 			}
-			this->paperdoll[Character::Bracer1] = item;
-			this->DelItem(item, 1);
-			break;
 
 		default:
 			return false;
