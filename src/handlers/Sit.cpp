@@ -3,22 +3,26 @@ CLIENT_F_FUNC(Sit)
 {
 	PacketBuilder reply;
 
-	return true; // TODO: Fix sitting
-
 	switch (action)
 	{
 		case PACKET_REQUEST: // Player sitting down
 		{
-			if (!this->player || !this->player->character || !this->player->character->map) return false;
+			if (!this->player || !this->player->character) return false;
 
 			int action = reader.GetChar();
 
 			if (action == SIT_SITTING)
 			{
-				puts("SIT");
 				int x = reader.GetChar();
 				int y = reader.GetChar();
 
+				reply.SetID(PACKET_SIT, PACKET_PLAYER);
+				reply.AddShort(this->player->id);
+				reply.AddChar(this->player->character->x);
+				reply.AddChar(this->player->character->y);
+				reply.AddChar(this->player->character->direction);
+				reply.AddChar(0); // ?
+				CLIENT_SEND(reply);
 				this->player->character->Sit();
 
 				if (this->player->character->x != x || this->player->character->y != y)
@@ -28,7 +32,11 @@ CLIENT_F_FUNC(Sit)
 			}
 			else
 			{
-				puts("STAND");
+				reply.SetID(PACKET_SIT, PACKET_PLAYER);
+				reply.AddShort(this->player->id);
+				reply.AddChar(this->player->character->x);
+				reply.AddChar(this->player->character->y);
+				CLIENT_SEND(reply);
 				this->player->character->Stand();
 			}
 		}

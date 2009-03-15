@@ -25,26 +25,28 @@ Config eoserv_config; // assigned to later
 Config admin_config("admin.ini");
 
 // TODO: Clean up these functions
-std::string ItemSerialize(std::list<std::pair<int,int> > list)
+std::string ItemSerialize(std::list<Character_Item> list)
 {
 	std::string serialized;
 	serialized.reserve(list.size()*10); // Reserve some space to stop some mass-reallocations
 	UTIL_FOREACH(list, item)
 	{
-		serialized.append(static_cast<std::string>(util::variant(item.first)));
+		serialized.append(static_cast<std::string>(util::variant(item.id)));
 		serialized.append(",");
-		serialized.append(static_cast<std::string>(util::variant(item.second)));
+		serialized.append(static_cast<std::string>(util::variant(item.amount)));
 		serialized.append(";");
 	}
 	serialized.reserve(0); // Clean up the reserve to save memory
 	return serialized;
 }
 
-std::list<std::pair<int,int> > ItemUnserialize(std::string serialized)
+std::list<Character_Item> ItemUnserialize(std::string serialized)
 {
-	std::list<std::pair<int,int> > list;
+	std::list<Character_Item> list;
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
+	Character_Item newitem;
+
 	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
 	{
 		std::string part = serialized.substr(lastp+1, p-lastp-1);
@@ -54,24 +56,30 @@ std::list<std::pair<int,int> > ItemUnserialize(std::string serialized)
 		{
 			continue;
 		}
-		int one = static_cast<int>(util::variant(part.substr(0, pp)));
-		int two = static_cast<int>(util::variant(part.substr(pp+1)));
+		newitem.id = static_cast<int>(util::variant(part.substr(0, pp)));
+		newitem.amount = static_cast<int>(util::variant(part.substr(pp+1)));
 
-		list.push_back(std::make_pair(one,two));
+		list.push_back(newitem);
+
 		lastp = p;
 	}
+
 	return list;
 }
 std::string DollSerialize(util::array<int, 15> list)
 {
 	std::string serialized;
+
 	serialized.reserve(15*5); // Reserve some space to stop some mass-reallocations
+
 	for (int i = 0; i < 15; ++i)
 	{
 		serialized.append(static_cast<std::string>(util::variant(list[i])));
 		serialized.append(",");
 	}
+
 	serialized.reserve(0); // Clean up the reserve to save memory
+
 	return serialized;
 }
 

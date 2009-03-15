@@ -20,6 +20,9 @@ Map::Map(int id)
 		return;
 	}
 
+	std::fseek(fh, 0, SEEK_END);
+	this->filesize = std::ftell(fh);
+
 	std::fseek(fh, 3, SEEK_SET);
 	std::fread(this->rid, sizeof(char), 4, fh);
 
@@ -151,14 +154,6 @@ void Map::Walk(Character *from, int direction)
 	int oldy;
 	std::list<Character *> newchars;
 	std::list<Character *> oldchars;
-/*
-1237068321 [RACTION ] Unknown (17_18) - Report iipandal reports wwwwwwwwewww for
- Spamming and disconnecting.
-1237068321 [RECV >>E] 71 17 18 82 101 112 111 114 116 255 105 105 112 97 110 100
- 97 108 32 114 101 112 111 114 116 115 32 119 119 119 119 119 119 119 119 101 11
-9 119 119 32 102 111 114 32 83 112 97 109 109 105 110 103 32 97 110 100 32 100 1
-05 115 99 111 110 110 101 99 116 105 110 103 46 126
-*/
 	UTIL_FOREACH(this->characters, checkchar)
 	{
 		if (checkchar == from)
@@ -403,18 +398,18 @@ void Map::Sit(Character *from)
 {
 	PacketBuilder builder;
 
-	from->sitting = true;
+	from->sitting = SIT_FLOOR;
 
 	builder.SetID(PACKET_SIT, PACKET_PLAYER);
 	builder.AddShort(from->player->id);
-	builder.AddChar(13); // ?
-	builder.AddChar(29); // ?
-	builder.AddChar(2); // direction?
+	builder.AddChar(from->x);
+	builder.AddChar(from->y);
+	builder.AddChar(from->direction);
 	builder.AddChar(0); // ?
 
 	UTIL_FOREACH(characters, character)
 	{
-		if (!from->InRange(character))
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -427,16 +422,16 @@ void Map::Stand(Character *from)
 {
 	PacketBuilder builder;
 
-	from->sitting = false;
+	from->sitting = SIT_STAND;
 
 	builder.SetID(PACKET_SIT, PACKET_REMOVE);
 	builder.AddShort(from->player->id);
-	builder.AddChar(13); // ?
-	builder.AddChar(29); // ?
+	builder.AddChar(from->x);
+	builder.AddChar(from->y);
 
 	UTIL_FOREACH(characters, character)
 	{
-		if (!from->InRange(character))
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}

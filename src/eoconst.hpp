@@ -62,5 +62,9 @@ const int PACKET_ACCOUNT_CHANGED = 6;
 const int PACKET_WARP_LOCAL = 1;
 const int PACKET_WARP_SWITCH = 2;
 
+const int SIT_STAND = 0;
+const int SIT_CHAIR = 1;
+const int SIT_FLOOR = 2;
+
 
 #endif // EOCONST_HPP_INCLUDED

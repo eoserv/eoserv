@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Emote)
 	{
 		case PACKET_REPORT: // Player sending an emote
 		{
-			if (!this->player || !this->player->character || !this->player->character->map) return false;
+			if (!this->player || !this->player->character) return false;
 
 			int emote = reader.GetChar();
 

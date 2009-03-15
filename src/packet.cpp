@@ -570,6 +570,39 @@ unsigned int PacketBuilder::AddInt(unsigned int num)
 	return num;
 }
 
+unsigned int PacketBuilder::AddVar(int min, int max, unsigned int num)
+{
+	if (min <= 1)
+	{
+		if (max <= 1 || num < PacketProcessor::MAX1)
+		{
+			this->AddChar(num);
+			return num;
+		}
+	}
+
+	if (min <= 2)
+	{
+		if (max <= 2 || num < PacketProcessor::MAX2)
+		{
+			this->AddShort(num);
+			return num;
+		}
+	}
+
+	if (min <= 3)
+	{
+		if (max <= 3 || num < PacketProcessor::MAX3)
+		{
+			this->AddThree(num);
+			return num;
+		}
+	}
+
+	this->AddInt(num);
+	return num;
+}
+
 const std::string &PacketBuilder::AddString(const std::string &str)
 {
 	this->length += str.length();

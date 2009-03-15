@@ -3,15 +3,15 @@ CREATE TABLE IF NOT EXISTS `accounts`
 (
 	`username`   VARCHAR(16) NOT NULL,
 	`password`   CHAR(64)    NOT NULL,
-	`fullname`   VARCHAR(64),
-	`location`   VARCHAR(64),
-	`email`      VARCHAR(64),
-	`computer`   VARCHAR(64),
-	`hdid`       CHAR(10),
-	`regip`      VARCHAR(15),
-	`lastip`     VARCHAR(15),
+	`fullname`   VARCHAR(64) NOT NULL,
+	`location`   VARCHAR(64) NOT NULL,
+	`email`      VARCHAR(64) NOT NULL,
+	`computer`   VARCHAR(64) NOT NULL,
+	`hdid`       CHAR(10)    NOT NULL,
+	`regip`      VARCHAR(15) NOT NULL,
+	`lastip`     VARCHAR(15)          DEFAULT NULL,
 	`created`    INTEGER     NOT NULL,
-	`lastused`   INTEGER,
+	`lastused`   INTEGER              DEFAULT NULL,
 
 	PRIMARY KEY (`username`)
 );
@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS `characters`
 (
 	`name`        VARCHAR(12) NOT NULL,
 	`account`     VARCHAR(16)          DEFAULT NULL,
-	`title`       VARCHAR(32),
-	`home`        VARCHAR(32),
+	`title`       VARCHAR(32)          DEFAULT NULL,
+	`home`        VARCHAR(32)          DEFAULT NULL,
 	`partner`     VARCHAR(16)          DEFAULT NULL,
 	`admin`       INTEGER     NOT NULL DEFAULT 0,
 	`class`       INTEGER     NOT NULL DEFAULT 0,
@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`paperdoll`   TEXT        NOT NULL,
 	`spells`      TEXT        NOT NULL,
 	`guild`       CHAR(3)              DEFAULT NULL,
+	`guild_rank`  INTEGER              DEFAULT NULL,
 	
 	PRIMARY KEY (`name`)
 );
@@ -68,10 +69,12 @@ CREATE TABLE IF NOT EXISTS `guilds`
 	`name`        VARCHAR(32) NOT NULL,
 	`description` TEXT        NOT NULL,
 	`created`     INTEGER     NOT NULL,
-	
+	`ranks`       TEXT        NOT NULL,
+	`bank`        INTEGER     NOT NULL DEFAULT 0,
+
 	PRIMARY KEY (`tag`),
 	UNIQUE      (`name`)
 );
 
-CREATE INDEX character_account_index ON characters (account);
-CREATE INDEX character_guild_index ON characters (guild);
+CREATE INDEX `character_account_index` ON `characters` (`account`);
+CREATE INDEX `character_guild_index` ON `characters` (`guild`);

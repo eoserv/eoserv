@@ -42,8 +42,7 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[1]);
 			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[2]);
 			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[3]);
-			reply.AddChar(215); // ???
-			reply.AddShort(8); // ???
+			reply.AddThree(the_world->maps[this->player->character->mapid]->filesize);
 			reply.AddByte(eoserv_items->rid[0]);
 			reply.AddByte(eoserv_items->rid[1]);
 			reply.AddByte(eoserv_items->rid[2]);
@@ -169,8 +168,8 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddChar(100); // Max Weight
 			UTIL_FOREACH(this->player->character->inventory, item)
 			{
-				reply.AddShort(item.first); // Item ID
-				reply.AddInt(item.second); // Item Amount
+				reply.AddShort(item.id);
+				reply.AddInt(item.amount);
 			}
 			reply.AddByte(255);
 			// foreach spell {

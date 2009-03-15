@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Warp)
 	{
 		case PACKET_ACCEPT: // Player accepting a warp request from the server
 		{
-			if (!this->player || !this->player->character || !this->player->character->map) return false;
+			if (!this->player || !this->player->character) return false;
 
 			int map = reader.GetShort();
 

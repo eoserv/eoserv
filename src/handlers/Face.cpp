@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Face)
 	{
 		case PACKET_PLAYER: // Player changing direction
 		{
-			if (!this->player || !this->player->character || !this->player->character->map) return false;
+			if (!this->player || !this->player->character) return false;
 
 			int direction = reader.GetChar();
 

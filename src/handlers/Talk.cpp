@@ -47,7 +47,7 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_REPORT: // Public chat message
 		{
-			if (!this->player || !this->player->character || !this->player->character->map) return false;
+			if (!this->player || !this->player->character) return false;
 
 			message = reader.GetEndString(); // message
 			limit_message(message);
@@ -132,7 +132,7 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_MOVEADMIN: // Admin chat message
 		{
-			if (!this->player || !this->player->character || !this->player->character->map) return false;
+			if (!this->player || !this->player->character) return false;
 
 			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 
@@ -145,7 +145,7 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_ANNOUNCE: // Announcement message
 		{
-			if (!this->player || !this->player->character || !this->player->character->map) return false;
+			if (!this->player || !this->player->character) return false;
 
 			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 

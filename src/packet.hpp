@@ -188,6 +188,7 @@ class PacketBuilder
 		unsigned short AddShort(unsigned short);
 		unsigned int AddThree(unsigned int);
 		unsigned int AddInt(unsigned int);
+		unsigned int AddVar(int min, int max, unsigned int);
 
 		const std::string &AddString(const std::string &);
 		const std::string &AddBreakString(const std::string &, unsigned char breakchar = 0xFF);

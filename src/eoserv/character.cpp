@@ -125,7 +125,7 @@ Character::Character(std::string name)
 	this->player = 0;
 	this->guild = 0;
 	this->party = 0;
-	this->map = 0;
+	this->map = the_world->maps[0];
 }
 
 void Character::Walk(int direction)
@@ -157,9 +157,9 @@ int Character::HasItem(int item)
 {
 	UTIL_FOREACH(this->inventory, it)
 	{
-		if (it.first == item)
+		if (it.id == item)
 		{
-			return it.second;
+			return it.amount;
 		}
 	}
 
@@ -168,6 +168,8 @@ int Character::HasItem(int item)
 
 void Character::AddItem(int item, int amount)
 {
+	Character_Item newitem;
+
 	if (amount < 0)
 	{
 		return;
@@ -175,19 +177,22 @@ void Character::AddItem(int item, int amount)
 
 	UTIL_IFOREACH(this->inventory, it)
 	{
-		if (it->first == item)
+		if (it->id == item)
 		{
-			if (it->second + amount < 0)
+			if (it->amount + amount < 0)
 			{
 				return;
 			}
-			it->second += amount;
+			it->amount += amount;
 
 			return;
 		}
 	}
 
-	this->inventory.push_back(std::make_pair(item, amount));
+	newitem.id = item;
+	newitem.amount = amount;
+
+	this->inventory.push_back(newitem);
 }
 
 void Character::DelItem(int item, int amount)
@@ -199,15 +204,15 @@ void Character::DelItem(int item, int amount)
 
 	UTIL_IFOREACH(this->inventory, it)
 	{
-		if (it->first == item)
+		if (it->id == item)
 		{
-			if (it->second - amount > it->second || it->second - amount <= 0)
+			if (it->amount - amount > it->amount || it->amount - amount <= 0)
 			{
 				this->inventory.erase(it);
 			}
 			else
 			{
-				it->second -= amount;
+				it->amount -= amount;
 			}
 
 			return;
@@ -425,12 +430,11 @@ void Character::Warp(int map, int x, int y)
 	{
 		builder.AddChar(PACKET_WARP_SWITCH);
 		builder.AddShort(map);
-		builder.AddChar(the_world->maps[map]->rid[0]);
-		builder.AddChar(the_world->maps[map]->rid[1]);
-		builder.AddChar(the_world->maps[map]->rid[2]);
-		builder.AddChar(the_world->maps[map]->rid[3]);
-		builder.AddChar(0); // ?
-		builder.AddShort(0); // ?
+		builder.AddByte(the_world->maps[map]->rid[0]);
+		builder.AddByte(the_world->maps[map]->rid[1]);
+		builder.AddByte(the_world->maps[map]->rid[2]);
+		builder.AddByte(the_world->maps[map]->rid[3]);
+		builder.AddThree(the_world->maps[map]->filesize);
 		builder.AddChar(0); // ?
 		builder.AddChar(0); // ?
 	}

@@ -15,12 +15,17 @@ class NPC;
 class Map;
 class ActionQueue;
 
+struct Map_Item;
+struct Character_Item;
+struct Character_Spell;
+struct NPC_Opponent;
+
 #include "database.hpp"
 #include "util.hpp"
 #include "config.hpp"
 
-std::string ItemSerialize(std::list<std::pair<int,int> > list);
-std::list<std::pair<int,int> > ItemUnserialize(std::string serialized);
+std::string ItemSerialize(std::list<Character_Item> list);
+std::list<Character_Item> ItemUnserialize(std::string serialized);
 
 extern Config eoserv_config;
 extern Config admin_config;
@@ -56,16 +61,26 @@ class World
 
 #include "eoclient.hpp"
 
+struct Map_Item
+{
+	int x;
+	int y;
+	int id;
+	int amount;
+};
+
 class Map
 {
 	public:
 		int id;
 		char rid[4];
+		int filesize;
 		int width;
 		int height;
 		std::string filename;
 		std::list<Character *> characters;
 		std::list<NPC *> npcs;
+		std::list<Map_Item> items;
 
 		Map(int id);
 
@@ -107,6 +122,18 @@ class Player
 		~Player();
 };
 
+struct Character_Item
+{
+	int id;
+	int amount;
+};
+
+struct Character_Spell
+{
+	int id;
+	int level;
+};
+
 class Character
 {
 	public:
@@ -129,7 +156,7 @@ class Character
 		int statpoints, skillpoints;
 		int weight, maxweight;
 		int karma;
-		bool sitting, visible;
+		int sitting, visible;
 		int bankmax;
 		int goldbank;
 		int usage;
@@ -160,10 +187,11 @@ class Character
 			Bracer2
 		};
 
-		std::list<std::pair<int,int> > inventory;
-		std::list<std::pair<int,int> > bank;
+		std::list<Character_Item> inventory;
+		std::list<Character_Item> bank;
 		util::array<int, 15> paperdoll;
-		std::list<std::pair<int,int> > spells;
+		std::list<Character_Spell> spells;
+		std::list<NPC *> unregister_npc;
 
 		Character(std::string name);
 
@@ -195,6 +223,13 @@ class Character
 		Map *map;
 };
 
+struct NPC_Opponent
+{
+	Character *attacker;
+	int damage;
+	bool first;
+};
+
 class NPC
 {
 	public:
@@ -202,7 +237,7 @@ class NPC
 		int x, y;
 		bool attack;
 		int hp, maxhp;
-		std::map<Character *, int> damagelist;
+		std::list<NPC_Opponent> damagelist;
 		Player *owner;
 
 		Map *map;
@@ -214,7 +249,7 @@ class Guild
 		std::string tag;
 		std::string name;
 		std::list<Character *> members;
-		std::map<std::string, int> ranks;
+		util::array<std::string, 9> ranks;
 		std::time_t created;
 
 		void Msg(Character *from, std::string message);
