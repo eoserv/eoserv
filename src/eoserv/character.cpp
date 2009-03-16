@@ -1,68 +1,11 @@
 
-bool Character::ValidName(std::string name)
-{
-	if (name.length() < 4)
-	{
-		return false;
-	}
-
-	if (name.length() > 12)
-	{
-		return false;
-	}
-
-	for (std::size_t i = 0; i < name.length(); ++i)
-	{
-		if (name[i] < 'a' && name[i] > 'z')
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-bool Character::Exists(std::string name)
-{
-	if (!Character::ValidName(name))
-	{
-		return false;
-	}
-	Database_Result res = eoserv_db.Query("SELECT 1 FROM `characters` WHERE `name` = '$'", name.c_str());
-	return !res.empty();
-}
-
-Character *Character::Create(Player *player, std::string name, int gender, int hairstyle, int haircolor, int race)
-{
-	if (!Character::ValidName(name))
-	{
-		return 0;
-	}
-	eoserv_db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`) VALUES ('$','$',#,#,#,#,'','','','')", name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race);
-	return new Character(name);
-}
-
-void Character::Delete(std::string name)
-{
-	if (!Character::ValidName(name))
-	{
-		return;
-	}
-	eoserv_db.Query("DELETE FROM `characters` WHERE name = '$'", name.c_str());
-}
-
 Character::Character(std::string name)
 {
-	static unsigned int id = 1;
-	if (!Character::ValidName(name))
-	{
-		return;
-	}
 	Database_Result res = eoserv_db.Query("SELECT * FROM `characters` WHERE `name` = '$'", name.c_str());
 	std::map<std::string, util::variant> row = res.front();
 
 	this->online = true;
-	this->id = id++;
+	this->id = the_world->GenerateCharacterID();
 
 	this->admin = static_cast<int>(row["admin"]);
 	this->name = static_cast<std::string>(row["name"]);
@@ -126,6 +69,46 @@ Character::Character(std::string name)
 	this->guild = 0;
 	this->party = 0;
 	this->map = the_world->maps[0];
+}
+
+bool Character::ValidName(std::string name)
+{
+	if (name.length() < 4)
+	{
+		return false;
+	}
+
+	if (name.length() > 12)
+	{
+		return false;
+	}
+
+	for (std::size_t i = 0; i < name.length(); ++i)
+	{
+		if (name[i] < 'a' && name[i] > 'z')
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool Character::Exists(std::string name)
+{
+	Database_Result res = eoserv_db.Query("SELECT 1 FROM `characters` WHERE `name` = '$'", name.c_str());
+	return !res.empty();
+}
+
+Character *Character::Create(Player *player, std::string name, int gender, int hairstyle, int haircolor, int race)
+{
+	eoserv_db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`) VALUES ('$','$',#,#,#,#,'','','','')", name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race);
+	return new Character(name);
+}
+
+void Character::Delete(std::string name)
+{
+	eoserv_db.Query("DELETE FROM `characters` WHERE name = '$'", name.c_str());
 }
 
 void Character::Walk(int direction)
@@ -407,11 +390,21 @@ bool Character::Equip(int item, int subloc)
 	return true;
 }
 
+bool Character::InRange(int x, int y)
+{
+	int xdistance = std::abs(this->x - x);
+	int ydistance = std::abs(this->y - y);
+	return (xdistance + ydistance) <= 11;
+}
+
 bool Character::InRange(Character *other)
 {
-	int xdistance = std::abs(this->x - other->x);
-	int ydistance = std::abs(this->y - other->y);
-	return (xdistance + ydistance) <= 11;
+	return this->InRange(other->x, other->y);
+}
+
+bool Character::InRange(Map_Item other)
+{
+	return this->InRange(other.x, other.y);
 }
 
 void Character::Warp(int map, int x, int y)

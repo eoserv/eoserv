@@ -21,11 +21,6 @@ CLIENT_F_FUNC(Walk)
 				this->player->character->Walk(direction);
 			}
 
-			reply.SetID(PACKET_WALK, PACKET_REPLY);
-			reply.AddByte(255);
-			reply.AddByte(255);
-			CLIENT_SEND(reply);
-
 			if (this->player->character->x != x || this->player->character->y != y)
 			{
 				std::list<Character *> updatecharacters;

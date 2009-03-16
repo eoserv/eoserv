@@ -8,11 +8,19 @@ CLIENT_F_FUNC(Refresh)
 		case PACKET_REQUEST: // User requesting data of all objects in their location
 		{
 			std::list<Character *> updatecharacters;
+			std::list<Map_Item> updateitems;
 			UTIL_FOREACH(this->player->character->map->characters, character)
 			{
 				if (this->player->character->InRange(character))
 				{
 					updatecharacters.push_back(character);
+				}
+			}
+			UTIL_FOREACH(this->player->character->map->items, item)
+			{
+				if (this->player->character->InRange(item))
+				{
+					updateitems.push_back(item);
 				}
 			}
 			reply.SetID(PACKET_REFRESH, PACKET_REPLY);
@@ -50,6 +58,16 @@ CLIENT_F_FUNC(Refresh)
 				reply.AddChar(character->sitting);
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
+			}
+			CLIENT_SEND(reply);
+			reply.AddByte(255);
+			UTIL_FOREACH(updateitems, item)
+			{
+				reply.AddShort(item.uid);
+				reply.AddShort(item.id);
+				reply.AddChar(item.x);
+				reply.AddChar(item.y);
+				reply.AddThree(item.amount);
 			}
 			CLIENT_SEND(reply);
 		}

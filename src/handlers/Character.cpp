@@ -40,46 +40,42 @@ CLIENT_F_FUNC(Character)
 			if (!Character::ValidName(name))
 			{
 				reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
-				reply.AddShort(4); // Reply code
+				reply.AddShort(PACKET_CHARACTER_NOT_APPROVED); // Reply code
 				CLIENT_SEND(reply);
 				return true;
 			}
 
-			/*if (Character::Exists(name))
+			if (Character::Exists(name))
 			{
 				reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
-				reply.AddShort(1); // Reply code
+				reply.AddShort(PACKET_CHARACTER_EXISTS); // Reply code
 				CLIENT_SEND(reply);
 				return true;
-			}*/
+			}
 
 			this->player->AddCharacter(name, gender, hairstyle, haircolor, race);
 
 			reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
-			reply.AddShort(5); // Reply code
-			// 1 = Name already exists
-			// 2,3 = Can't have more than 3 characters
-			// 4 = Name not approved
-			// 5 = OK (character list follows)
-			reply.AddChar(this->player->characters.size()); // Number of characters
+			reply.AddShort(PACKET_CHARACTER_OK);
+			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
 			UTIL_FOREACH(this->player->characters, character)
 			{
-				reply.AddBreakString(character->name); // Character name
-				reply.AddInt(character->id); // character id
-				reply.AddChar(character->level); // level
-				reply.AddChar(character->gender); // sex (0 = female, 1 = male)
-				reply.AddChar(character->hairstyle); // hair style
-				reply.AddChar(character->haircolor); // hair color
-				reply.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
-				reply.AddChar(character->admin); // admin level
+				reply.AddBreakString(character->name);
+				reply.AddInt(character->id);
+				reply.AddChar(character->level);
+				reply.AddChar(character->gender);
+				reply.AddChar(character->hairstyle);
+				reply.AddChar(character->haircolor);
+				reply.AddChar(character->race);
+				reply.AddChar(character->admin);
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
-				reply.AddByte(255); // end of character marker
+				reply.AddByte(255);
 			}
 			CLIENT_SEND(reply);
 
@@ -115,27 +111,26 @@ CLIENT_F_FUNC(Character)
 			this->player->characters.erase(char_it);
 
 			reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
-			reply.AddShort(6); // Reply code
-			// 6 = OK (character list follows)
-			reply.AddChar(this->player->characters.size()); // Number of characters
+			reply.AddShort(PACKET_CHARACTER_DELETED); // Reply code
+			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
 			UTIL_FOREACH(this->player->characters, character)
 			{
-				reply.AddBreakString(character->name); // Character name
-				reply.AddInt(character->id); // character id
-				reply.AddChar(character->level); // level
-				reply.AddChar(character->gender); // sex (0 = female, 1 = male)
-				reply.AddChar(character->hairstyle); // hair style
-				reply.AddChar(character->haircolor); // hair color
-				reply.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
-				reply.AddChar(character->admin); // admin level
+				reply.AddBreakString(character->name);
+				reply.AddInt(character->id);
+				reply.AddChar(character->level);
+				reply.AddChar(character->gender);
+				reply.AddChar(character->hairstyle);
+				reply.AddChar(character->haircolor);
+				reply.AddChar(character->race);
+				reply.AddChar(character->admin);
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
-				reply.AddByte(255); // end of character marker
+				reply.AddByte(255);
 			}
 			CLIENT_SEND(reply);
 		}
@@ -158,7 +153,7 @@ CLIENT_F_FUNC(Character)
 
 			if (!yourchar)
 			{
-				return false;
+				return true;
 			}
 
 			reply.SetID(PACKET_CHARACTER, PACKET_PLAYER);

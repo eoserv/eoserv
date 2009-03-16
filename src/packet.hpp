@@ -29,6 +29,7 @@ const unsigned char PACKET_TALK = 18;
 const unsigned char PACKET_WARP = 19;
 const unsigned char PACKET_JUKEBOX = 21;
 const unsigned char PACKET_PLAYERS = 22;
+const unsigned char PACKET_CLOTHES = 23;
 const unsigned char PACKET_PARTY = 24;
 const unsigned char PACKET_REFRESH = 25;
 const unsigned char PACKET_AUTOREFRESH = 27;

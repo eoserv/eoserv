@@ -28,6 +28,14 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	eoserv_classes = new ECF("./data/pub/dat001.ecf");
 
 	eoserv_config = config;
+
+	this->last_character_id = 0;
+}
+
+// TODO: Prevent collisions
+int World::GenerateCharacterID()
+{
+	return ++this->last_character_id;
 }
 
 void World::Login(Character *character)

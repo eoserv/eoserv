@@ -50,17 +50,16 @@ CLIENT_F_FUNC(Paperdoll)
 			if (this->player->character->Unequip(itemid, subloc))
 			{
 				reply.SetID(PACKET_PAPERDOLL, PACKET_REMOVE);
-				reply.AddChar(101); // ?
-				reply.AddChar(102); // ?
-				reply.AddChar(103); // ?
-				reply.AddChar(104); // ?
-				reply.AddShort(105); // ?
-				reply.AddShort(106); // ?
-				reply.AddShort(107); // ?
-				reply.AddShort(108); // ?
-				reply.AddShort(109); // ?
+				reply.AddShort(this->player->id);
+				reply.AddChar(1); // ?
+				reply.AddChar(subloc);
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Boots]));
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Armor]));
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Hat]));
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Weapon]));
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Shield]));
 				reply.AddShort(itemid);
-				reply.AddChar(110); // ?
+				reply.AddChar(0); // ?
 				reply.AddShort(this->player->character->maxhp);
 				reply.AddShort(this->player->character->maxtp);
 				reply.AddShort(this->player->character->str);
@@ -76,6 +75,27 @@ CLIENT_F_FUNC(Paperdoll)
 				reply.AddShort(this->player->character->armor);
 				CLIENT_SEND(reply);
 			}
+			// TODO: Only send this if they change a viewable item
+
+			PacketBuilder builder;
+			builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
+			builder.AddShort(this->player->id);
+			builder.AddChar(1); // ?
+			builder.AddChar(subloc);
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Boots]));
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Armor]));
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Hat]));
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Weapon]));
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Shield]));
+
+			UTIL_FOREACH(this->player->character->map->characters, character)
+			{
+				if (character == this->player->character || !this->player->character->InRange(character))
+				{
+					continue;
+				}
+				character->player->client->SendBuilder(builder);
+			}
 		}
 		break;
 
@@ -86,21 +106,22 @@ CLIENT_F_FUNC(Paperdoll)
 			int itemid = reader.GetShort();
 			int subloc = reader.GetChar(); // Used for double slot items (rings etc)
 
+			// TODO: Find out if we can handle equipping items when we have more than 16.7m of them better
+
 			if (this->player->character->Equip(itemid, subloc))
 			{
 				reply.SetID(PACKET_PAPERDOLL, PACKET_AGREE);
-				reply.AddChar(120); // ?
-				reply.AddChar(121); // ?
-				reply.AddChar(122); // ?
-				reply.AddChar(subloc); // ?
-				reply.AddShort(124); // ?
-				reply.AddShort(125); // ?
-				reply.AddShort(126); // ?
-				reply.AddShort(127); // ?
-				reply.AddShort(128); // ?
+				reply.AddShort(this->player->id);
+				reply.AddChar(1); // ?
+				reply.AddChar(subloc);
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Boots]));
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Armor]));
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Hat]));
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Weapon]));
+				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Shield]));
 				reply.AddShort(itemid);
-				reply.AddShort(this->player->character->HasItem(itemid));
-				reply.AddChar(130); // ?
+				reply.AddThree(this->player->character->HasItem(itemid));
+				reply.AddChar(0); // ?
 				reply.AddShort(this->player->character->maxhp);
 				reply.AddShort(this->player->character->maxtp);
 				reply.AddShort(this->player->character->str);
@@ -115,6 +136,28 @@ CLIENT_F_FUNC(Paperdoll)
 				reply.AddShort(this->player->character->evade);
 				reply.AddShort(this->player->character->armor);
 				CLIENT_SEND(reply);
+			}
+
+			// TODO: Only send this if they change a viewable item
+
+			PacketBuilder builder;
+			builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
+			builder.AddShort(this->player->id);
+			builder.AddChar(1); // ?
+			builder.AddChar(subloc);
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Boots]));
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Armor]));
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Hat]));
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Weapon]));
+			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Shield]));
+
+			UTIL_FOREACH(this->player->character->map->characters, character)
+			{
+				if (character == this->player->character || !this->player->character->InRange(character))
+				{
+					continue;
+				}
+				character->player->client->SendBuilder(builder);
 			}
 		}
 		break;

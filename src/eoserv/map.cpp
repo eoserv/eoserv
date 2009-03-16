@@ -27,6 +27,14 @@ Map::Map(int id)
 	std::fread(this->rid, sizeof(char), 4, fh);
 
 	std::fclose(fh);
+
+	this->last_item_id = 0;
+}
+
+// TODO: Prevent collisions
+int Map::GenerateItemID()
+{
+	return ++this->last_item_id;
 }
 
 void Map::Enter(Character *character)
@@ -154,6 +162,7 @@ void Map::Walk(Character *from, int direction)
 	int oldy;
 	std::list<Character *> newchars;
 	std::list<Character *> oldchars;
+	std::list<Map_Item> newitems;
 	UTIL_FOREACH(this->characters, checkchar)
 	{
 		if (checkchar == from)
@@ -234,6 +243,73 @@ void Map::Walk(Character *from, int direction)
 					else if (checkchar->x == newx && checkchar->y == newy)
 					{
 						newchars.push_back(checkchar);
+					}
+				}
+				break;
+
+		}
+	}
+
+	UTIL_FOREACH(this->items, checkitem)
+	{
+		switch (direction)
+		{
+			case DIRECTION_UP:
+				for (int i = -11; i <= 11; ++i)
+				{
+					newy = from->y - 11 + std::abs(i);
+					newx = from->x + i;
+					oldy = from->y + 12 - std::abs(i);
+					oldx = from->x + i;
+
+					if (checkitem.x == newx && checkitem.y == newy)
+					{
+						newitems.push_back(checkitem);
+					}
+				}
+				break;
+
+			case DIRECTION_RIGHT:
+				for (int i = -11; i <= 11; ++i)
+				{
+					newx = from->x + 11 - std::abs(i);
+					newy = from->y + i;
+					oldx = from->x - 12 + std::abs(i);
+					oldy = from->y + i;
+
+					if (checkitem.x == newx && checkitem.y == newy)
+					{
+						newitems.push_back(checkitem);
+					}
+				}
+				break;
+
+			case DIRECTION_DOWN:
+				for (int i = -11; i <= 11; ++i)
+				{
+					newy = from->y + 11 - std::abs(i);
+					newx = from->x + i;
+					oldy = from->y - 12 + std::abs(i);
+					oldx = from->x + i;
+
+					if (checkitem.x == newx && checkitem.y == newy)
+					{
+						newitems.push_back(checkitem);
+					}
+				}
+				break;
+
+			case DIRECTION_LEFT:
+				for (int i = -11; i <= 11; ++i)
+				{
+					newx = from->x - 11 + std::abs(i);
+					newy = from->y + i;
+					oldx = from->x + 12 - std::abs(i);
+					oldy = from->y + i;
+
+					if (checkitem.x == newx && checkitem.y == newy)
+					{
+						newitems.push_back(checkitem);
 					}
 				}
 				break;
@@ -350,6 +426,21 @@ void Map::Walk(Character *from, int direction)
 
 		character->player->client->SendBuilder(builder);
 	}
+
+	builder.Reset();
+
+	builder.SetID(PACKET_WALK, PACKET_REPLY);
+	builder.AddByte(255);
+	builder.AddByte(255);
+	UTIL_FOREACH(newitems, item)
+	{
+		builder.AddShort(item.uid);
+		builder.AddShort(item.id);
+		builder.AddChar(item.x);
+		builder.AddChar(item.y);
+		builder.AddThree(item.amount);
+	}
+	from->player->client->SendBuilder(builder);
 }
 
 void Map::Attack(Character *from, int direction)
@@ -458,5 +549,53 @@ void Map::Emote(Character *from, int direction)
 		}
 
 		character->player->client->SendBuilder(builder);
+	}
+}
+
+Map_Item Map::AddItem(int id, int amount, int x, int y, Character *from)
+{
+	Map_Item newitem = {GenerateItemID(), id, amount, x, y};
+
+	PacketBuilder builder;
+	builder.SetID(PACKET_ITEM, PACKET_ADD);
+	builder.AddShort(id);
+	builder.AddShort(newitem.uid);
+	builder.AddThree(amount);
+	builder.AddChar(x);
+	builder.AddChar(y);
+
+	UTIL_FOREACH(this->characters, character)
+	{
+		if ((from && character == from) || !character->InRange(newitem))
+		{
+			continue;
+		}
+		character->player->client->SendBuilder(builder);
+	}
+
+	this->items.push_back(newitem);
+	return newitem;
+}
+
+void Map::DelItem(int uid, Character *from)
+{
+	UTIL_FOREACH(this->items, item)
+	{
+		if (item.uid == uid)
+		{
+			this->items.erase(util_it);
+			PacketBuilder builder;
+			builder.SetID(PACKET_ITEM, PACKET_REMOVE);
+			builder.AddShort(uid);
+			UTIL_FOREACH(this->characters, character)
+			{
+				if ((from && character == from) || !character->InRange(item))
+				{
+					continue;
+				}
+				character->player->client->SendBuilder(builder);
+			}
+			break;
+		}
 	}
 }

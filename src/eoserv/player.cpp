@@ -1,10 +1,6 @@
 
 Player::Player(std::string username)
 {
-	if (!Player::ValidName(username))
-	{
-		return;
-	}
 	Database_Result res = eoserv_db.Query("SELECT * FROM `accounts` WHERE `username` = '$'", username.c_str());
 	if (res.empty())
 	{
@@ -55,10 +51,6 @@ bool Player::ValidName(std::string username)
 
 Player *Player::Login(std::string username, std::string password)
 {
-	if (!Player::ValidName(username))
-	{
-		return 0;
-	}
 	password = static_cast<std::string>(eoserv_config["PasswordSalt"]) + username + password;
 	sha256(password);
 	Database_Result res = eoserv_db.Query("SELECT * FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.c_str());
@@ -73,10 +65,6 @@ Player *Player::Login(std::string username, std::string password)
 
 bool Player::Create(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid)
 {
-	if (!Player::ValidName(username))
-	{
-		return false;
-	}
 	password = static_cast<std::string>(eoserv_config["PasswordSalt"]) + username + password;
 	sha256(password);
 	Database_Result result = eoserv_db.Query("INSERT INTO `accounts` (`username`, `password`, `fullname`, `location`, `email`, `computer`, `hdid`, `created`) VALUES ('$','$','$','$','$','$','$',#)", username.c_str(), password.c_str(), fullname.c_str(), location.c_str(), email.c_str(), computer.c_str(), hdid.c_str(), std::time(0));
@@ -85,10 +73,6 @@ bool Player::Create(std::string username, std::string password, std::string full
 
 bool Player::Exists(std::string username)
 {
-	if (!Player::ValidName(username))
-	{
-		return false;
-	}
 	Database_Result res = eoserv_db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$'", username.c_str());
 	return !res.empty();
 }

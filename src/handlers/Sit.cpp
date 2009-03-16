@@ -32,7 +32,7 @@ CLIENT_F_FUNC(Sit)
 			}
 			else
 			{
-				reply.SetID(PACKET_SIT, PACKET_PLAYER);
+				reply.SetID(PACKET_SIT, PACKET_CLOSE);
 				reply.AddShort(this->player->id);
 				reply.AddChar(this->player->character->x);
 				reply.AddChar(this->player->character->y);

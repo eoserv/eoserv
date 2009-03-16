@@ -182,11 +182,19 @@ CLIENT_F_FUNC(Welcome)
 			// }
 			reply.AddByte(255);
 			std::list<Character *> updatecharacters;
+			std::list<Map_Item> updateitems;
 			UTIL_FOREACH(this->player->character->map->characters, character)
 			{
 				if (this->player->character->InRange(character))
 				{
 					updatecharacters.push_back(character);
+				}
+			}
+			UTIL_FOREACH(this->player->character->map->items, item)
+			{
+				if (this->player->character->InRange(item))
+				{
+					updateitems.push_back(item);
 				}
 			}
 			reply.AddChar(updatecharacters.size()); // Number of players
@@ -232,13 +240,14 @@ CLIENT_F_FUNC(Welcome)
 			//reply.AddChar(3); // Direction
 			// }
 			reply.AddByte(255);
-			// foreach item {
-			//reply.AddShort(20); // Display ID
-			//reply.AddShort(200); // Item ID
-			//reply.AddChar(7); // Map X
-			//reply.AddChar(7); // Map Y
-			//reply.AddInt(1000000); // Amount
-			// }
+			UTIL_FOREACH(updateitems, item)
+			{
+				reply.AddShort(item.uid);
+				reply.AddShort(item.id);
+				reply.AddChar(item.x);
+				reply.AddChar(item.y);
+				reply.AddThree(item.amount);
+			}
 			CLIENT_SEND(reply);
 		}
 		break;

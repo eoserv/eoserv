@@ -42,7 +42,11 @@ class World
 		std::list<NPC *> npcs;
 		std::vector<Map *> maps;
 
+		int last_character_id;
+
 		World(util::array<std::string, 5> dbinfo, Config);
+
+		int GenerateCharacterID();
 
 		void Login(Character *);
 		void Logout(Character *);
@@ -63,10 +67,11 @@ class World
 
 struct Map_Item
 {
-	int x;
-	int y;
+	int uid;
 	int id;
 	int amount;
+	int x;
+	int y;
 };
 
 class Map
@@ -81,8 +86,11 @@ class Map
 		std::list<Character *> characters;
 		std::list<NPC *> npcs;
 		std::list<Map_Item> items;
+		int last_item_id;
 
 		Map(int id);
+
+		int GenerateItemID();
 
 		void Enter(Character *);
 		void Leave(Character *);
@@ -94,6 +102,9 @@ class Map
 		void Sit(Character *from);
 		void Stand(Character *from);
 		void Emote(Character *from, int emote);
+
+		Map_Item AddItem(int id, int amount, int x, int y, Character *from = 0);
+		void DelItem(int uid, Character *from = 0);
 };
 
 class Player
@@ -211,7 +222,9 @@ class Character
 		void DelItem(int item, int amount);
 		bool Unequip(int item, int subloc);
 		bool Equip(int item, int subloc);
+		bool InRange(int x, int y);
 		bool InRange(Character *);
+		bool InRange(Map_Item);
 		void Warp(int map, int x, int y);
 
 		~Character();
