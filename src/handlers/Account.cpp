@@ -17,14 +17,17 @@ CLIENT_F_FUNC(Account)
 			if (!Player::ValidName(username))
 			{
 				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
+				reply.AddString("OK");
 			}
 			else if (Player::Exists(username))
 			{
 				reply.AddShort(PACKET_ACCOUNT_EXISTS);
+				reply.AddString("NO");
 			}
 			else
 			{
 				reply.AddShort(PACKET_ACCOUNT_CONTINUE);
+				reply.AddString("NO");
 			}
 			CLIENT_SEND(reply);
 		}
@@ -49,10 +52,12 @@ CLIENT_F_FUNC(Account)
 			if (!Player::ValidName(username))
 			{
 				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
+				reply.AddString("NO");
 			}
 			else if (Player::Exists(username))
 			{
 				reply.AddShort(PACKET_ACCOUNT_EXISTS);
+				reply.AddString("NO");
 			}
 			else
 			{
@@ -60,6 +65,7 @@ CLIENT_F_FUNC(Account)
 
 				Player::Create(username, password, fullname, location, email, computer, hdid);
 				reply.AddShort(PACKET_ACCOUNT_CREATED);
+				reply.AddString("OK");
 			}
 
 			CLIENT_SEND(reply);
@@ -77,7 +83,8 @@ CLIENT_F_FUNC(Account)
 			if (!Player::ValidName(username))
 			{
 				reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
-				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED); // Reply code
+				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
+				reply.AddString("NO");
 				CLIENT_SEND(reply);
 				return true;
 			}
@@ -91,7 +98,8 @@ CLIENT_F_FUNC(Account)
 			if (!changepass)
 			{
 				reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
-				reply.AddShort(PACKET_ACCOUNT_CHANGE_FAILED); // Reply code
+				reply.AddShort(PACKET_ACCOUNT_CHANGE_FAILED);
+				reply.AddString("NO");
 				CLIENT_SEND(reply);
 				return true;
 			}
@@ -99,7 +107,8 @@ CLIENT_F_FUNC(Account)
 			changepass->ChangePass(newpassword);
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
-			reply.AddShort(PACKET_ACCOUNT_CHANGED); // Reply code
+			reply.AddShort(PACKET_ACCOUNT_CHANGED);
+			reply.AddString("OK");
 			CLIENT_SEND(reply);
 
 			delete changepass;
