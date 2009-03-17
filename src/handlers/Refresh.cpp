@@ -59,7 +59,6 @@ CLIENT_F_FUNC(Refresh)
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
 			}
-			CLIENT_SEND(reply);
 			reply.AddByte(255);
 			UTIL_FOREACH(updateitems, item)
 			{

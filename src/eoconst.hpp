@@ -73,5 +73,8 @@ const int SIT_STAND = 0;
 const int SIT_CHAIR = 1;
 const int SIT_FLOOR = 2;
 
+const int WARP_ANIMATION_NONE = 1;
+const int WARP_ANIMATION_ADMIN = 2;
+
 
 #endif // EOCONST_HPP_INCLUDED

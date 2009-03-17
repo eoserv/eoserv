@@ -53,7 +53,7 @@ Character::Character(std::string name)
 	this->evade = 100;
 	this->armor = 100;
 
-	this->warp_temp = false;
+	this->warp_anim = 0;
 
 	this->sitting = static_cast<int>(row["sitting"]);
 
@@ -407,7 +407,7 @@ bool Character::InRange(Map_Item other)
 	return this->InRange(other.x, other.y);
 }
 
-void Character::Warp(int map, int x, int y)
+void Character::Warp(int map, int x, int y, int animation)
 {
 	PacketBuilder builder;
 	builder.SetID(PACKET_WARP, PACKET_REQUEST);
@@ -432,14 +432,14 @@ void Character::Warp(int map, int x, int y)
 		builder.AddChar(0); // ?
 	}
 
-	this->map->Leave(this);
+	this->map->Leave(this, animation);
 	this->map = the_world->maps[map];
 	this->mapid = map;
 	this->x = x;
 	this->y = y;
 	this->map->Enter(this);
 
-	this->warp_temp = true;
+	this->warp_anim = animation;
 
 	this->player->client->SendBuilder(builder);
 }

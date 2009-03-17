@@ -37,7 +37,7 @@ int Map::GenerateItemID()
 	return ++this->last_item_id;
 }
 
-void Map::Enter(Character *character)
+void Map::Enter(Character *character, int animation)
 {
 	PacketBuilder builder;
 	this->characters.push_back(character);
@@ -76,7 +76,7 @@ void Map::Enter(Character *character)
 	builder.AddChar(character->sitting);
 	builder.AddChar(0); // visible
 	builder.AddByte(255);
-	builder.AddChar(1); // 0 = NPC, 1 = player
+	builder.AddChar(2); // 0 = NPC, 1 = player
 
 	UTIL_FOREACH(this->characters, checkcharacter)
 	{
@@ -89,12 +89,23 @@ void Map::Enter(Character *character)
 	}
 }
 
-void Map::Leave(Character *character)
+void Map::Leave(Character *character, int animation)
 {
 	PacketBuilder builder;
 
-	builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
+	if (animation == WARP_ANIMATION_NONE)
+	{
+		builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
+	}
+	else
+	{
+		builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
+	}
 	builder.AddShort(character->player->id);
+	if (animation != WARP_ANIMATION_NONE)
+	{
+		builder.AddChar(animation);
+	}
 
 	UTIL_FOREACH(this->characters, checkcharacter)
 	{

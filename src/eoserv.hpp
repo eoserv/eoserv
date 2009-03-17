@@ -23,6 +23,7 @@ struct NPC_Opponent;
 #include "database.hpp"
 #include "util.hpp"
 #include "config.hpp"
+#include "eoconst.hpp"
 
 std::string ItemSerialize(std::list<Character_Item> list);
 std::list<Character_Item> ItemUnserialize(std::string serialized);
@@ -92,8 +93,8 @@ class Map
 
 		int GenerateItemID();
 
-		void Enter(Character *);
-		void Leave(Character *);
+		void Enter(Character *, int animation = WARP_ANIMATION_NONE);
+		void Leave(Character *, int animation = WARP_ANIMATION_NONE);
 
 		void Msg(Character *from, std::string message);
 		void Walk(Character *from, int direction);
@@ -177,7 +178,7 @@ class Character
 		int accuracy, evade, armor;
 		int mindam, maxdam;
 
-		bool warp_temp;
+		int warp_anim;
 
 		enum EquipLocation
 		{
@@ -225,7 +226,7 @@ class Character
 		bool InRange(int x, int y);
 		bool InRange(Character *);
 		bool InRange(Map_Item);
-		void Warp(int map, int x, int y);
+		void Warp(int map, int x, int y, int animation = WARP_ANIMATION_NONE);
 
 		~Character();
 

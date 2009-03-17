@@ -92,7 +92,7 @@ CLIENT_F_FUNC(Talk)
 					{
 						if (character->name.compare(arguments[0]) == 0)
 						{
-							this->player->character->Warp(character->mapid, character->x, character->y);
+							this->player->character->Warp(character->mapid, character->x, character->y, WARP_ANIMATION_ADMIN);
 							break;
 						}
 					}
@@ -104,7 +104,7 @@ CLIENT_F_FUNC(Talk)
 					{
 						if (character->name.compare(arguments[0]) == 0)
 						{
-							character->Warp(this->player->character->mapid, this->player->character->x, this->player->character->y);
+							character->Warp(this->player->character->mapid, this->player->character->x, this->player->character->y, WARP_ANIMATION_ADMIN);
 							break;
 						}
 					}
@@ -120,7 +120,7 @@ CLIENT_F_FUNC(Talk)
 						break;
 					}
 
-					this->player->character->Warp(map, x, y);
+					this->player->character->Warp(map, x, y, WARP_ANIMATION_ADMIN);
 				}
 			}
 			else
