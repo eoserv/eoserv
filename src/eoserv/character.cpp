@@ -85,7 +85,7 @@ bool Character::ValidName(std::string name)
 
 	for (std::size_t i = 0; i < name.length(); ++i)
 	{
-		if (name[i] < 'a' && name[i] > 'z')
+		if (name[i] < 'a' || name[i] > 'z')
 		{
 			return false;
 		}

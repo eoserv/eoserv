@@ -40,7 +40,7 @@ bool Player::ValidName(std::string username)
 
 	for (std::size_t i = 0; i < username.length(); ++i)
 	{
-		if (!((username[i] >= 'a' && username[i] <= 'z') || username[i] == ' ' || (username[i] >= '0' && username[i] < '9')))
+		if (!((username[i] >= 'a' && username[i] <= 'z') || username[i] == ' ' || (username[i] >= '0' && username[i] <= '9')))
 		{
 			return false;
 		}
