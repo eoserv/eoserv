@@ -93,7 +93,7 @@ CLIENT_F_FUNC(Item)
 					this->player->character->AddItem(item.id, item.amount);
 					this->player->character->map->DelItem(uid, this->player->character);
 
-					reply.SetID(PACKET_ITEM, PACKET_GET);//PACKET_REMOVE 2 all
+					reply.SetID(PACKET_ITEM, PACKET_GET);
 					reply.AddShort(uid);
 					reply.AddShort(item.id);
 					reply.AddThree(item.amount);

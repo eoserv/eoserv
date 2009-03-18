@@ -47,26 +47,26 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddByte(eoserv_items->rid[1]);
 			reply.AddByte(eoserv_items->rid[2]);
 			reply.AddByte(eoserv_items->rid[3]);
-			reply.AddByte(eoserv_items->rid[4]);
-			reply.AddByte(eoserv_items->rid[5]);
+			reply.AddByte(eoserv_items->len[0]);
+			reply.AddByte(eoserv_items->len[1]);
 			reply.AddByte(eoserv_npcs->rid[0]);
 			reply.AddByte(eoserv_npcs->rid[1]);
 			reply.AddByte(eoserv_npcs->rid[2]);
 			reply.AddByte(eoserv_npcs->rid[3]);
-			reply.AddByte(eoserv_npcs->rid[4]);
-			reply.AddByte(eoserv_npcs->rid[5]);
+			reply.AddByte(eoserv_npcs->len[0]);
+			reply.AddByte(eoserv_npcs->len[1]);
 			reply.AddByte(eoserv_spells->rid[0]);
 			reply.AddByte(eoserv_spells->rid[1]);
 			reply.AddByte(eoserv_spells->rid[2]);
 			reply.AddByte(eoserv_spells->rid[3]);
-			reply.AddByte(eoserv_spells->rid[4]);
-			reply.AddByte(eoserv_spells->rid[5]);
+			reply.AddByte(eoserv_spells->len[0]);
+			reply.AddByte(eoserv_spells->len[1]);
 			reply.AddByte(eoserv_classes->rid[0]);
 			reply.AddByte(eoserv_classes->rid[1]);
 			reply.AddByte(eoserv_classes->rid[2]);
 			reply.AddByte(eoserv_classes->rid[3]);
-			reply.AddByte(eoserv_classes->rid[4]);
-			reply.AddByte(eoserv_classes->rid[5]);
+			reply.AddByte(eoserv_classes->len[0]);
+			reply.AddByte(eoserv_classes->len[1]);
 			reply.AddBreakString(this->player->character->name);
 			reply.AddBreakString(this->player->character->title);
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Name
@@ -257,7 +257,7 @@ CLIENT_F_FUNC(Welcome)
 			if (!this->player && !this->player->character) return false;
 
 			std::string content;
-			char mapbuf[6] = {0};
+			char mapbuf[6] = {0,};
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
 			std::string filename = "./data/maps/";
 			std::FILE *fh;

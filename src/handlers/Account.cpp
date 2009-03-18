@@ -48,6 +48,8 @@ CLIENT_F_FUNC(Account)
 			std::string computer = reader.GetBreakString();
 			std::string hdid = reader.GetBreakString();
 
+			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
+
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
 			{

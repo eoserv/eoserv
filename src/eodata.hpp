@@ -67,7 +67,8 @@ class EIF
 		};
 
 		static const int DATA_SIZE = 58;
-		char rid[6];
+		unsigned char rid[4];
+		unsigned char len[2];
 		std::vector<EIF_Data> data;
 		EIF_Data *nulldata;
 		EIF(std::string filename);
@@ -132,8 +133,10 @@ class ENF
 			Quest
 		};
 		static const int DATA_SIZE = 39;
-		char rid[6];
+		unsigned char rid[4];
+		unsigned char len[2];
 		std::vector<ENF_Data> data;
+		ENF_Data *nulldata;
 		ENF(std::string filename);
 
 };
@@ -155,8 +158,10 @@ class ESF
 {
 	public:
 		static const int DATA_SIZE = 51;
-		char rid[6];
+		unsigned char rid[4];
+		unsigned char len[2];
 		std::vector<ESF_Data> data;
+		ESF_Data *nulldata;
 		ESF(std::string filename);
 
 };
@@ -171,8 +176,10 @@ class ECF
 {
 	public:
 		static const int DATA_SIZE = 14;
-		char rid[6];
+		unsigned char rid[4];
+		unsigned char len[2];
 		std::vector<ECF_Data> data;
+		ECF_Data *nulldata;
 		ECF(std::string filename);
 
 };

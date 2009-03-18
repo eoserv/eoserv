@@ -91,6 +91,7 @@ class Map
 		std::list<NPC *> npcs;
 		std::list<Map_Item> items;
 		int last_item_id;
+		bool exists;
 
 		Map(int id);
 
@@ -222,7 +223,7 @@ class Character
 		void Stand();
 		void Emote(int emote);
 		int HasItem(int item);
-		void AddItem(int item, int amount);
+		bool AddItem(int item, int amount);
 		void DelItem(int item, int amount);
 		bool Unequip(int item, int subloc);
 		bool Equip(int item, int subloc);

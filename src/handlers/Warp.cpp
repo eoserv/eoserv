@@ -95,7 +95,7 @@ CLIENT_F_FUNC(Warp)
 		{
 			if (!this->player || !this->player->character) return false;
 
-			char mapbuf[6] = {0};
+			char mapbuf[6] = {0,};
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
 			std::string filename = "./data/maps/";
 			std::string content;

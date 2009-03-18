@@ -76,14 +76,16 @@ CLIENT_F_FUNC(Talk)
 				{
 					int id = static_cast<int>(util::variant(arguments[0]));
 					int amount = (arguments.size() >= 2)?static_cast<int>(util::variant(arguments[1])):1;
-					this->player->character->AddItem(id, amount);
-					reply.SetID(PACKET_ITEM, PACKET_GET);
-					reply.AddShort(236); // ?
-					reply.AddShort(id);
-					reply.AddThree(amount);
-					reply.AddChar(9); // ?
-					reply.AddChar(76); // ?
-					CLIENT_SEND(reply);
+					if (this->player->character->AddItem(id, amount))
+					{
+						reply.SetID(PACKET_ITEM, PACKET_GET);
+						reply.AddShort(0); // UID
+						reply.AddShort(id);
+						reply.AddThree(amount);
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
+						CLIENT_SEND(reply);
+					}
 				}
 				else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["warpmeto"]))
 				{

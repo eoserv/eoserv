@@ -149,13 +149,18 @@ int Character::HasItem(int item)
 	return 0;
 }
 
-void Character::AddItem(int item, int amount)
+bool Character::AddItem(int item, int amount)
 {
 	Character_Item newitem;
 
 	if (amount < 0)
 	{
-		return;
+		return false;
+	}
+
+	if (item <= 0 || static_cast<std::size_t>(item) > eoserv_items->data.size())
+	{
+		return false;
 	}
 
 	UTIL_IFOREACH(this->inventory, it)
@@ -164,11 +169,11 @@ void Character::AddItem(int item, int amount)
 		{
 			if (it->amount + amount < 0)
 			{
-				return;
+				return false;
 			}
 			it->amount += amount;
 
-			return;
+			return true;
 		}
 	}
 
@@ -176,6 +181,7 @@ void Character::AddItem(int item, int amount)
 	newitem.amount = amount;
 
 	this->inventory.push_back(newitem);
+	return true;
 }
 
 void Character::DelItem(int item, int amount)
@@ -206,6 +212,11 @@ void Character::DelItem(int item, int amount)
 bool Character::Unequip(int item, int subloc)
 {
 	int ii = 0;
+
+	if (item == 0)
+	{
+		return false;
+	}
 
 	for (int i = 0; i < 15; ++i)
 	{
@@ -409,6 +420,11 @@ bool Character::InRange(Map_Item other)
 
 void Character::Warp(int map, int x, int y, int animation)
 {
+	if (map <= 0 || static_cast<std::size_t>(map) > the_world->maps.size() || !the_world->maps[map]->exists)
+	{
+		return;
+	}
+
 	PacketBuilder builder;
 	builder.SetID(PACKET_WARP, PACKET_REQUEST);
 

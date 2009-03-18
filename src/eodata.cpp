@@ -16,14 +16,15 @@ EIF::EIF(std::string filename)
 	}
 
 	std::fseek(fh, 3, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 6, fh);
+	std::fread(this->rid, sizeof(char), 4, fh);
+	std::fread(this->len, sizeof(char), 2, fh);
+	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	std::fseek(fh, 1, SEEK_CUR);
 
-	int i = 0;
 	unsigned char namesize;
 	char *namebuf;
 	std::string name;
-	char buf[EIF::DATA_SIZE] = {0};
+	char buf[EIF::DATA_SIZE] = {0,};
 	EIF_Data newdata;
 
 	newdata.id = 0;
@@ -48,11 +49,13 @@ EIF::EIF(std::string filename)
 	newdata.scrollx = 0;
 	newdata.scrolly = 0;
 
-	nulldata = new EIF_Data;
-	*nulldata = newdata;
+	this->nulldata = new EIF_Data;
+	*this->nulldata = newdata;
+
+	this->data.resize(numobj+1, *this->nulldata);
 
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
-	while (!std::feof(fh))
+	for (int i = 1; i <= numobj; ++i)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
@@ -61,7 +64,7 @@ EIF::EIF(std::string filename)
 		delete namebuf;
 		std::fread(buf, sizeof(char), EIF::DATA_SIZE, fh);
 
-		newdata.id = i++;
+		newdata.id = i;
 		newdata.name = name;
 
 		newdata.graphic = PacketProcessor::Number(buf[0], buf[1]);
@@ -84,12 +87,15 @@ EIF::EIF(std::string filename)
 		newdata.scrollx = PacketProcessor::Number(buf[31]);
 		newdata.scrolly = PacketProcessor::Number(buf[32]);
 
-		this->data.push_back(newdata);
+		this->data.assign(i, newdata);
 
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	}
 
-	//this->data.pop_back(); // drop the EOF record
+	if (newdata.name.compare("eof") == 0)
+	{
+		this->data.pop_back();
+	}
 
 	std::printf("%i items loaded.\n", this->data.size());
 
@@ -111,18 +117,32 @@ ENF::ENF(std::string filename)
 	}
 
 	std::fseek(fh, 3, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 6, fh);
+	std::fread(this->rid, sizeof(char), 4, fh);
+	std::fread(this->len, sizeof(char), 2, fh);
+	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	std::fseek(fh, 1, SEEK_CUR);
 
-	int i = 0;
 	unsigned char namesize;
 	char *namebuf;
 	std::string name;
-	char buf[ENF::DATA_SIZE] = {0};
+	char buf[ENF::DATA_SIZE] = {0,};
 	ENF_Data newdata;
 
+	newdata.id = 0;
+	newdata.graphic = 0;
+	newdata.boss = 0;
+	newdata.child = 0;
+	newdata.type = static_cast<ENF::Type>(0);
+
+	this->nulldata = new ENF_Data;
+	*this->nulldata = newdata;
+
+	this->data.resize(numobj+1, *this->nulldata);
+
+	this->data[0] = *this->nulldata;
+
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
-	while (!std::feof(fh))
+	for (int i = 1; i <= numobj; ++i)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
@@ -131,7 +151,7 @@ ENF::ENF(std::string filename)
 		delete namebuf;
 		std::fread(buf, sizeof(char), ENF::DATA_SIZE, fh);
 
-		newdata.id = i++;
+		newdata.id = i;
 		newdata.name = name;
 
 		newdata.graphic = PacketProcessor::Number(buf[0], buf[1]);
@@ -141,12 +161,15 @@ ENF::ENF(std::string filename)
 		newdata.type = static_cast<ENF::Type>(PacketProcessor::Number(buf[7], buf[8]));
 		newdata.exp = PacketProcessor::Number(buf[36], buf[37]);
 
-		this->data.push_back(newdata);
+		this->data.assign(i, newdata);
 
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	}
 
-	//this->data.pop_back(); // drop the EOF record
+	if (newdata.name.compare("eof") == 0)
+	{
+		this->data.pop_back();
+	}
 
 	std::printf("%i npcs loaded.\n", this->data.size());
 
@@ -164,18 +187,28 @@ ESF::ESF(std::string filename)
 	}
 
 	std::fseek(fh, 3, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 6, fh);
+	std::fread(this->rid, sizeof(char), 4, fh);
+	std::fread(this->len, sizeof(char), 2, fh);
+	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	std::fseek(fh, 1, SEEK_CUR);
 
-	int i = 0;
 	unsigned char namesize;
 	char *namebuf;
 	std::string name;
-	char buf[ESF::DATA_SIZE] = {0};
+	char buf[ESF::DATA_SIZE] = {0,};
 	ESF_Data newdata;
 
+	newdata.id = 0;
+
+	this->nulldata = new ESF_Data;
+	*this->nulldata = newdata;
+
+	this->data.resize(numobj+1, *this->nulldata);
+
+	this->data[0] = *this->nulldata;
+
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
-	while (!std::feof(fh))
+	for (int i = 1; i <= numobj; ++i)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
@@ -184,17 +217,18 @@ ESF::ESF(std::string filename)
 		delete namebuf;
 		std::fread(buf, sizeof(char), ESF::DATA_SIZE, fh);
 
-		newdata.id = i++;
+		newdata.id = i;
 		newdata.name = name;
 
-
-
-		this->data.push_back(newdata);
+		this->data.assign(i, newdata);
 
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	}
 
-	//this->data.pop_back(); // drop the EOF record
+	if (newdata.name.compare("eof") == 0)
+	{
+		this->data.pop_back();
+	}
 
 	std::printf("%i spells loaded.\n", this->data.size());
 
@@ -212,18 +246,28 @@ ECF::ECF(std::string filename)
 	}
 
 	std::fseek(fh, 3, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 6, fh);
+	std::fread(this->rid, sizeof(char), 4, fh);
+	std::fread(this->len, sizeof(char), 2, fh);
+	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	std::fseek(fh, 1, SEEK_CUR);
 
-	int i = 0;
 	unsigned char namesize;
 	char *namebuf;
 	std::string name;
-	char buf[ECF::DATA_SIZE] = {0};
+	char buf[ECF::DATA_SIZE] = {0,};
 	ECF_Data newdata;
 
+	newdata.id = 0;
+
+	this->nulldata = new ECF_Data;
+	*this->nulldata = newdata;
+
+	this->data.resize(numobj+1, *this->nulldata);
+
+	this->data[0] = *this->nulldata;
+
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
-	while (!std::feof(fh))
+	for (int i = 1; i <= numobj; ++i)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
@@ -232,14 +276,17 @@ ECF::ECF(std::string filename)
 		delete namebuf;
 		std::fread(buf, sizeof(char), ECF::DATA_SIZE, fh);
 
-		newdata.id = i++;
+		newdata.id = i;
 		newdata.name = name;
 
-
-
-		this->data.push_back(newdata);
+		this->data.assign(i, newdata);
 
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+	}
+
+	if (newdata.name.compare("eof") == 0)
+	{
+		this->data.pop_back();
 	}
 
 	std::printf("%i classes loaded.\n", this->data.size());

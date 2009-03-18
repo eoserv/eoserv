@@ -67,7 +67,7 @@ EO Version Support: .27 .28\n\
 			std::printf("Redirecting errors to '%s'...\n", logerr.c_str());
 			if (!std::freopen(logerr.c_str(), "a", stderr))
 			{
-				std::fprintf(stderr, "Failed to redirect output.\n");
+				std::fputs("Failed to redirect output.\n", stderr);
 			}
 		}
 
@@ -77,7 +77,7 @@ EO Version Support: .27 .28\n\
 			std::printf("Redirecting output to '%s'...\n", logout.c_str());
 			if (!std::freopen(logout.c_str(), "a", stdout))
 			{
-				std::fprintf(stderr, "Failed to redirect output.\n");
+				std::fputs("Failed to redirect output.\n", stderr);
 			}
 		}
 
@@ -92,7 +92,7 @@ EO Version Support: .27 .28\n\
 
 		if (server.State() == Server<EOClient>::Invalid)
 		{
-			std::fputs("There was a problem initializing the server. (Is port 8078 already in use?)", stderr);
+			std::fputs("There was a problem initializing the server. (Is port 8078 already in use?)\n", stderr);
 			std::exit(1);
 		}
 
@@ -100,7 +100,7 @@ EO Version Support: .27 .28\n\
 
 		if (!server.Listen(static_cast<int>(config["MaxConnections"]), static_cast<int>(config["ListenBacklog"])))
 		{
-			std::puts("Failed to bind, make sure the above port is not already in use.");
+			std::fputs("Failed to bind, make sure the above port is not already in use.\n", stderr);
 			std::exit(1);
 		}
 

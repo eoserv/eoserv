@@ -14,8 +14,10 @@ Map::Map(int id)
 
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 
+	this->exists = true;
 	if (!fh)
 	{
+		this->exists = false;
 		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
 		return;
 	}
