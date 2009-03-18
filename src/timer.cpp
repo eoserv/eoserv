@@ -21,7 +21,7 @@ double Timer::GetTime()
 #else // WIN32
 	timeval gettime;
 	gettimeofday(&gettime, 0);
-	return static_cast<double>(gettime.tv_sec) + static_cast<double>(gettime.tv_usec)*1000.0;
+	return static_cast<double>(gettime.tv_sec) + static_cast<double>(gettime.tv_usec)/1000000.0;
 #endif // WIN32
 }
 

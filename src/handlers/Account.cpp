@@ -17,7 +17,7 @@ CLIENT_F_FUNC(Account)
 			if (!Player::ValidName(username))
 			{
 				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
-				reply.AddString("OK");
+				reply.AddString("NO");
 			}
 			else if (Player::Exists(username))
 			{
@@ -27,7 +27,7 @@ CLIENT_F_FUNC(Account)
 			else
 			{
 				reply.AddShort(PACKET_ACCOUNT_CONTINUE);
-				reply.AddString("NO");
+				reply.AddString("OK");
 			}
 			CLIENT_SEND(reply);
 		}

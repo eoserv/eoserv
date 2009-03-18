@@ -30,6 +30,7 @@ void server_ping_all(void *server_void)
 		}
 		else
 		{
+			client->needpong = true;
 			client->SendBuilder(builder);
 		}
 	}
