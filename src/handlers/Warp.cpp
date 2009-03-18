@@ -41,8 +41,8 @@ CLIENT_F_FUNC(Warp)
 			reply.SetID(PACKET_WARP, PACKET_AGREE);
 			reply.AddChar(2); // ?
 			reply.AddShort(map);
-			reply.AddChar(anim); // animation
-			reply.AddChar(updatecharacters.size()); // ?
+			reply.AddChar(anim);
+			reply.AddChar(updatecharacters.size());
 			reply.AddByte(255);
 			UTIL_FOREACH(updatecharacters, character)
 			{
@@ -76,7 +76,6 @@ CLIENT_F_FUNC(Warp)
 				reply.AddChar(character->sitting);
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
-
 			}
 			reply.AddByte(255);
 			UTIL_FOREACH(updateitems, item)

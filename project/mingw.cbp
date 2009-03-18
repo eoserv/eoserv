@@ -232,6 +232,8 @@
 		<Unit filename="..\src\sha256.h" />
 		<Unit filename="..\src\socket.cpp" />
 		<Unit filename="..\src\socket.hpp" />
+		<Unit filename="..\src\timer.cpp" />
+		<Unit filename="..\src\timer.hpp" />
 		<Unit filename="..\src\util.cpp" />
 		<Unit filename="..\src\util.hpp" />
 		<Extensions>

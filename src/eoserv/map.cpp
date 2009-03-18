@@ -43,6 +43,8 @@ void Map::Enter(Character *character, int animation)
 	this->characters.push_back(character);
 	character->map = this;
 
+	// TODO: How do I set the animation here?
+
 	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
 
 	builder.AddByte(255);
@@ -76,7 +78,7 @@ void Map::Enter(Character *character, int animation)
 	builder.AddChar(character->sitting);
 	builder.AddChar(0); // visible
 	builder.AddByte(255);
-	builder.AddChar(2); // 0 = NPC, 1 = player
+	builder.AddChar(1); // 0 = NPC, 1 = player
 
 	UTIL_FOREACH(this->characters, checkcharacter)
 	{

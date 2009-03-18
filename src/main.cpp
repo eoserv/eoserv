@@ -47,9 +47,9 @@ int main()
 
 		std::puts("\
                           ___ ___  ___ ___ _____   __\n\
-   EOSERV Version 0.3.1  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
+   EOSERV Version 0.4.0  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
-       17 Mar 2009       |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
+                         |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
 \n\
 EO Version Support: .27 .28\n\
 \n");
@@ -179,6 +179,8 @@ EO Version Support: .27 .28\n\
 			}
 
 			server.BuryTheDead();
+
+			server.world->timer.Tick();
 		}
 	}
 	catch (Database_Exception &e)

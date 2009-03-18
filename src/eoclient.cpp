@@ -12,6 +12,29 @@ case ID: \
 	result = this->Handle_##FUNC(action,reader);\
 	break
 
+void server_ping_all(void *server_void)
+{
+	EOServer<EOClient> *server = (EOServer<EOClient> *)server_void;
+
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_CONNECTION, PACKET_PLAYER);
+	builder.AddShort(0);
+	builder.AddChar(0);
+
+	UTIL_FOREACH(server->clients, client)
+	{
+		if (client->needpong)
+		{
+			client->Close();
+		}
+		else
+		{
+			client->SendBuilder(builder);
+		}
+	}
+}
+
 void EOClient::Initialize()
 {
 static unsigned int eoserv_player_id = 1;
@@ -20,6 +43,7 @@ static unsigned int eoserv_player_id = 1;
 	this->state = 0;
 	this->player = 0;
 	this->version = 0;
+	this->needpong = false;
 }
 
 void EOClient::Execute(std::string data)
@@ -86,7 +110,10 @@ void EOClient::Execute(std::string data)
 	}
 
 #ifdef DEBUG
-	std::printf("Packet %s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
+	if (family != PACKET_CONNECTION || family != PACKET_NET)
+	{
+		std::printf("Packet %s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
+	}
 #endif
 
 #ifndef DEBUG

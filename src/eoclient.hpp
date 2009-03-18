@@ -15,16 +15,25 @@ class EOClient;
 
 #define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(int action, PacketReader &reader)
 
+void server_ping_all(void *server_void);
+
 template <class T> class EOServer : public Server<T>
 {
 	private:
-		void Initialize(util::array<std::string, 5> dbinfo, Config config) { this->world = new World(dbinfo, config); }
+		void Initialize(util::array<std::string, 5> dbinfo, Config config)
+		{
+			this->world = new World(dbinfo, config);
+			this->world->timer.Register(new TimeEvent(server_ping_all, (void *)this, 60.0, Timer::FOREVER));
+		}
 		EOServer(){};
 
 	public:
 		World *world;
 
-		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, Config config) : Server<T>(addr, port) { this->Initialize(dbinfo, config); };
+		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, Config config) : Server<T>(addr, port)
+		{
+			this->Initialize(dbinfo, config);
+		}
 };
 
 class EOClient : public Client
@@ -37,6 +46,7 @@ class EOClient : public Client
 		int version;
 		Player *player;
 		unsigned int id;
+		bool needpong;
 
 		enum State
 		{
@@ -51,8 +61,16 @@ class EOClient : public Client
 		std::string data;
 
 		PacketProcessor processor;
-		EOClient(void *server) : Client(server) { this->Initialize(); };
-		EOClient(SOCKET s, sockaddr_in sa, void *server) : Client(s, sa, server) { this->Initialize(); };
+
+		EOClient(void *server) : Client(server)
+		{
+			this->Initialize();
+		}
+
+		EOClient(SOCKET s, sockaddr_in sa, void *server) : Client(s, sa, server)
+		{
+			this->Initialize();
+		}
 
 		void Execute(std::string data);
 

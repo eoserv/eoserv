@@ -13,7 +13,7 @@ CLIENT_F_FUNC(Connection)
 
 		case PACKET_NET: // Response to a PACKET_PING from the server
 		{
-
+			this->needpong = false;
 		}
 		break;
 

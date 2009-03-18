@@ -240,11 +240,6 @@ template <class T = Client> class Server
 		uint16_t portn;
 
 		/**
-		 * List of connected clients.
-		 */
-		std::list<T *> clients;
-
-		/**
 		 * Socket handle of the listener.
 		 */
 		SOCKET server;
@@ -256,6 +251,11 @@ template <class T = Client> class Server
 		State state;
 
 	public:
+		/**
+		 * List of connected clients.
+		 */
+		std::list<T *> clients;
+
 		/**
 		 * Initializes the Server.
 		 */

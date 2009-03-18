@@ -24,6 +24,7 @@ struct NPC_Opponent;
 #include "util.hpp"
 #include "config.hpp"
 #include "eoconst.hpp"
+#include "timer.hpp"
 
 std::string ItemSerialize(std::list<Character_Item> list);
 std::list<Character_Item> ItemUnserialize(std::string serialized);
@@ -37,6 +38,8 @@ class World
 		World();
 
 	public:
+		Timer timer;
+
 		std::list<Character *> characters;
 		std::list<Guild *> guilds;
 		std::list<Party *> partys;
@@ -123,7 +126,7 @@ class Player
 
 		static bool ValidName(std::string username);
 		static Player *Login(std::string username, std::string password);
-		static bool Create(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid);
+		static bool Create(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid, std::string ip);
 		static bool Exists(std::string username);
 		bool AddCharacter(std::string name, int gender, int hairstyle, int haircolor, int race);
 		void ChangePass(std::string password);

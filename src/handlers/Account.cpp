@@ -63,7 +63,7 @@ CLIENT_F_FUNC(Account)
 			{
 				std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
 
-				Player::Create(username, password, fullname, location, email, computer, hdid);
+				Player::Create(username, password, fullname, location, email, computer, hdid, static_cast<std::string>(this->GetRemoteAddr()));
 				reply.AddShort(PACKET_ACCOUNT_CREATED);
 				reply.AddString("OK");
 			}
