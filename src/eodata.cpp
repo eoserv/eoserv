@@ -87,7 +87,7 @@ EIF::EIF(std::string filename)
 		newdata.scrollx = PacketProcessor::Number(buf[31]);
 		newdata.scrolly = PacketProcessor::Number(buf[32]);
 
-		this->data.assign(i, newdata);
+		this->data[i] = newdata;
 
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	}
@@ -102,9 +102,9 @@ EIF::EIF(std::string filename)
 	std::fclose(fh);
 }
 
-int EIF::GetType(unsigned int id){ if (id > 0 && id < this->data.size()-1){ return this->data[id-1].type; } else { return this->nulldata->type; } }
-int EIF::GetGraphic(unsigned int id){ if (id > 0 && id < this->data.size()-1){ return this->data[id-1].graphic; } else { return this->nulldata->graphic; } }
-int EIF::GetDollGraphic(unsigned int id){ if (id > 0 && id < this->data.size()-1){ return this->data[id-1].dollgraphic; } else { return this->nulldata->dollgraphic; } }
+int EIF::GetType(unsigned int id){ if (id > 0 && id < this->data.size()){ return this->data[id].type; } else { return this->nulldata->type; } }
+int EIF::GetGraphic(unsigned int id){ if (id > 0 && id < this->data.size()){ return this->data[id].graphic; } else { return this->nulldata->graphic; } }
+int EIF::GetDollGraphic(unsigned int id){ if (id > 0 && id < this->data.size()){ return this->data[id].dollgraphic; } else { return this->nulldata->dollgraphic; } }
 
 ENF::ENF(std::string filename)
 {
@@ -161,7 +161,7 @@ ENF::ENF(std::string filename)
 		newdata.type = static_cast<ENF::Type>(PacketProcessor::Number(buf[7], buf[8]));
 		newdata.exp = PacketProcessor::Number(buf[36], buf[37]);
 
-		this->data.assign(i, newdata);
+		this->data[i] = newdata;
 
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	}
@@ -220,7 +220,7 @@ ESF::ESF(std::string filename)
 		newdata.id = i;
 		newdata.name = name;
 
-		this->data.assign(i, newdata);
+		this->data[i] = newdata;
 
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	}
@@ -279,7 +279,7 @@ ECF::ECF(std::string filename)
 		newdata.id = i;
 		newdata.name = name;
 
-		this->data.assign(i, newdata);
+		this->data[i] = newdata;
 
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	}
