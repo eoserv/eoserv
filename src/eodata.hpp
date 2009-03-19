@@ -27,6 +27,7 @@ class EIF
 			Money,
 			Heal,
 			Teleport,
+			Spell,
 			EXPReward,
 			StatReward,
 			SkillReward,
