@@ -17,6 +17,7 @@ CLIENT_F_FUNC(Item)
 
 			int id = reader.GetShort();
 			int amount;
+
 			if (reader.Length() == 8)
 			{
 				amount = reader.GetThree();
@@ -27,6 +28,11 @@ CLIENT_F_FUNC(Item)
 			}
 			int x = reader.GetByte(); // ?
 			int y = reader.GetByte(); // ?
+
+			if (amount == 0)
+			{
+				return true;
+			}
 
 			if (x == 255 && y == 255)
 			{

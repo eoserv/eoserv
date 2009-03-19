@@ -25,9 +25,8 @@ class EIF
 			Static,
 			UnknownType1,
 			Money,
-			Potion,
+			Heal,
 			Teleport,
-			Spell,
 			EXPReward,
 			StatReward,
 			SkillReward,
@@ -48,7 +47,7 @@ class EIF
 			EffectPotion,
 			HairDye,
 			OtherPotion,
-			UnknownType2,
+			CureCurse,
 			UnknownType3,
 			UnknownType4,
 			UnknownType5,
@@ -58,10 +57,9 @@ class EIF
 		enum Special
 		{
 			Normal,
-			UnknownSpecial1,
+			Rare, // ?
 			UnknownSpecial2,
-			UnknownSpecial3,
-			UnknownSpecial4,
+			Unique, // ?
 			Lore,
 			Cursed
 		};
@@ -102,12 +100,13 @@ struct EIF_Data
 	int con;
 	int cha;
 
-	int scrollx;
 	union
 	{
+		int scrollmap;
 		int dollgraphic;
-		int scrolly;
 	};
+	int scrollx;
+	int scrolly;
 };
 
 class ENF

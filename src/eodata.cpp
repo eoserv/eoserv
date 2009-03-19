@@ -71,21 +71,22 @@ EIF::EIF(std::string filename)
 		newdata.type = static_cast<EIF::Type>(PacketProcessor::Number(buf[2]));
 		newdata.classreq = PacketProcessor::Number(buf[3]);
 		newdata.special = static_cast<EIF::Special>(PacketProcessor::Number(buf[4]));
-		newdata.hp = PacketProcessor::Number(buf[4], buf[5]);
-		newdata.tp = PacketProcessor::Number(buf[6], buf[7]);
-		newdata.mindam = PacketProcessor::Number(buf[8], buf[9]);
-		newdata.maxdam = PacketProcessor::Number(buf[10], buf[11]);
-		newdata.accuracy = PacketProcessor::Number(buf[12], buf[13]);
-		newdata.evade = PacketProcessor::Number(buf[14], buf[15]);
-		newdata.armor = PacketProcessor::Number(buf[16], buf[17]);
-		newdata.str = PacketProcessor::Number(buf[19]);
-		newdata.intl = PacketProcessor::Number(buf[20]);
-		newdata.wis = PacketProcessor::Number(buf[21]);
-		newdata.agi = PacketProcessor::Number(buf[22]);
-		newdata.con = PacketProcessor::Number(buf[23]);
-		newdata.cha = PacketProcessor::Number(buf[24]);
-		newdata.scrollx = PacketProcessor::Number(buf[31]);
-		newdata.scrolly = PacketProcessor::Number(buf[32]);
+		newdata.hp = PacketProcessor::Number(buf[5], buf[6]);
+		newdata.tp = PacketProcessor::Number(buf[7], buf[8]);
+		newdata.mindam = PacketProcessor::Number(buf[9], buf[10]);
+		newdata.maxdam = PacketProcessor::Number(buf[11], buf[12]);
+		newdata.accuracy = PacketProcessor::Number(buf[13], buf[14]);
+		newdata.evade = PacketProcessor::Number(buf[15], buf[16]);
+		newdata.armor = PacketProcessor::Number(buf[17], buf[18]);
+		newdata.str = PacketProcessor::Number(buf[20]);
+		newdata.intl = PacketProcessor::Number(buf[21]);
+		newdata.wis = PacketProcessor::Number(buf[22]);
+		newdata.agi = PacketProcessor::Number(buf[23]);
+		newdata.con = PacketProcessor::Number(buf[24]);
+		newdata.cha = PacketProcessor::Number(buf[25]);
+		newdata.scrollmap = PacketProcessor::Number(buf[32]);
+		newdata.scrollx = PacketProcessor::Number(buf[35]);
+		newdata.scrolly = PacketProcessor::Number(buf[36]);
 
 		this->data[i] = newdata;
 

@@ -153,7 +153,7 @@ bool Character::AddItem(int item, int amount)
 {
 	Character_Item newitem;
 
-	if (amount < 0)
+	if (amount <= 0)
 	{
 		return false;
 	}
@@ -186,7 +186,7 @@ bool Character::AddItem(int item, int amount)
 
 void Character::DelItem(int item, int amount)
 {
-	if (amount < 0)
+	if (amount <= 0)
 	{
 		return;
 	}
