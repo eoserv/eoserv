@@ -18,7 +18,7 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	{
 		this->maps[i] = new Map(i);
 	}
-	std::printf("%i maps loaded.\n", this->maps.size());
+	std::printf("%i maps loaded.\n", this->maps.size()-1);
 
 	the_world = this;
 

@@ -97,7 +97,7 @@ EIF::EIF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i items loaded.\n", this->data.size());
+	std::printf("%i items loaded.\n", this->data.size()-1);
 
 	std::fclose(fh);
 }
@@ -171,7 +171,7 @@ ENF::ENF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i npcs loaded.\n", this->data.size());
+	std::printf("%i npcs loaded.\n", this->data.size()-1);
 
 	std::fclose(fh);
 }
@@ -230,7 +230,7 @@ ESF::ESF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i spells loaded.\n", this->data.size());
+	std::printf("%i spells loaded.\n", this->data.size()-1);
 
 	std::fclose(fh);
 }
@@ -289,7 +289,7 @@ ECF::ECF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i classes loaded.\n", this->data.size());
+	std::printf("%i classes loaded.\n", this->data.size()-1);
 
 	std::fclose(fh);
 }

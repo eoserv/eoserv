@@ -158,7 +158,7 @@ bool Character::AddItem(int item, int amount)
 		return false;
 	}
 
-	if (item <= 0 || static_cast<std::size_t>(item) > eoserv_items->data.size())
+	if (item <= 0 || static_cast<std::size_t>(item) >= eoserv_items->data.size())
 	{
 		return false;
 	}
