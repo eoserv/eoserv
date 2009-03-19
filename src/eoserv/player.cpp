@@ -107,15 +107,23 @@ void Player::ChangePass(std::string password)
 
 bool Player::Online(std::string username)
 {
-	// TODO: implement this
-	return false;
-
 	if (!Player::ValidName(username))
 	{
 		return false;
 	}
-	Database_Result res = eoserv_db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$' AND `online` = 1", username.c_str());
-	return !res.empty();
+
+	UTIL_FOREACH(the_world->server->clients, connection)
+	{
+		if (connection->player)
+		{
+			if (connection->player->username.compare(username) == 0)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 Player::~Player()

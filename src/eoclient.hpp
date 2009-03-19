@@ -24,6 +24,7 @@ template <class T> class EOServer : public Server<T>
 		{
 			this->world = new World(dbinfo, config);
 			this->world->timer.Register(new TimeEvent(server_ping_all, (void *)this, 60.0, Timer::FOREVER));
+			this->world->server = this;
 		}
 		EOServer(){};
 

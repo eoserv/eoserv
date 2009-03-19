@@ -25,12 +25,17 @@ struct NPC_Opponent;
 #include "config.hpp"
 #include "eoconst.hpp"
 #include "timer.hpp"
+#include "socket.hpp"
 
 std::string ItemSerialize(std::list<Character_Item> list);
 std::list<Character_Item> ItemUnserialize(std::string serialized);
 
 extern Config eoserv_config;
 extern Config admin_config;
+
+// ewww
+class EOClient;
+template <class T> class EOServer;
 
 class World
 {
@@ -39,6 +44,8 @@ class World
 
 	public:
 		Timer timer;
+
+		EOServer<EOClient> *server;
 
 		std::list<Character *> characters;
 		std::list<Guild *> guilds;

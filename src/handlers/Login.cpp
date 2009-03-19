@@ -18,28 +18,22 @@ CLIENT_F_FUNC(Login)
 
 			if (Player::Online(username))
 			{
-				reply.AddShort(5);
+				reply.AddShort(PACKET_LOGIN_LOGGEDIN);
 				CLIENT_SEND(reply);
 				return true;
 			}
 
 			if ((this->player = Player::Login(username, password)) == 0)
 			{
-				reply.AddShort(2);
+				reply.AddShort(PACKET_LOGIN_WRONG_USERPASS);
 				CLIENT_SEND(reply);
 				return true;
 			}
 			this->player->id = this->id;
 			this->player->client = this;
 
-			reply.AddShort(3); // Reply code
-			// 1 = Wrong user (shouldn't be used)
-			// 2 = Wrong user or password
-			// 3 = OK (character list follows)
-			// 4 = ??
-			// 5 = Already logged in
-			// 6 = Character deleted / refresh?
-			reply.AddChar(this->player->characters.size()); // Number of characters
+			reply.AddShort(PACKET_LOGIN_OK);
+			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
 			UTIL_FOREACH(this->player->characters, character)
@@ -57,7 +51,7 @@ CLIENT_F_FUNC(Login)
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
 				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
-				reply.AddByte(255); // end of character marker
+				reply.AddByte(255);
 			}
 			CLIENT_SEND(reply);
 
