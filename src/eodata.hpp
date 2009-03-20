@@ -106,7 +106,11 @@ struct EIF_Data
 		int scrollmap;
 		int dollgraphic;
 	};
-	int scrollx;
+	union
+	{
+		int gender;
+		int scrollx;
+	};
 	int scrolly;
 };
 

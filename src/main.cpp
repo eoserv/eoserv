@@ -16,13 +16,129 @@ void syspause(){ std::puts("Server terminated.\nPress enter to continue . . .");
 int main()
 {
 #ifdef DEBUG
+#ifdef __GNUC__
+	std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
+#endif
 	std::atexit(syspause);
 #endif
 
 	try
 	{
 		bool running = true;
-		Config config("config.ini");
+		Config config;
+		try
+		{
+			Config load_config("config.ini");
+			config = load_config;
+		}
+		catch (std::runtime_error)
+		{
+			std::fputs("WARNING: Could not load config.ini - using defaults\n", stderr);
+		}
+
+#define CONFIG_DEFAULT(key, value)\
+if (config.find(key) == config.end())\
+{\
+	util::variant vv = util::variant(value);\
+	config[key] = vv;\
+	std::fprintf(stderr, "WARNING: Could not load config value '%s' - using default (%s)\n", key, static_cast<std::string>(vv).c_str());\
+}
+		CONFIG_DEFAULT("LogOut"             , "-");
+		CONFIG_DEFAULT("LogErr"             , "error.log");
+		CONFIG_DEFAULT("Host"               , "0.0.0.0");
+		CONFIG_DEFAULT("Port"               , 8078);
+		CONFIG_DEFAULT("MaxConnections"     , 300);
+		CONFIG_DEFAULT("ListenBacklog"      , 50);
+		CONFIG_DEFAULT("MaxPlayers"         , 200);
+		CONFIG_DEFAULT("MaxConnectionsPerIP", 2);
+		CONFIG_DEFAULT("PasswordSalt"       , "ChangeMe");
+		CONFIG_DEFAULT("DBType"             , "mysql");
+		CONFIG_DEFAULT("DBHost"             , "localhost");
+		CONFIG_DEFAULT("DBUser"             , "eoserv");
+		CONFIG_DEFAULT("DBPass"             , "eoserv");
+		CONFIG_DEFAULT("DBName"             , "eoserv");
+		CONFIG_DEFAULT("EIF"                , "./data/pub/dat001.eif");
+		CONFIG_DEFAULT("ENF"                , "./data/pub/dtn001.enf");
+		CONFIG_DEFAULT("ESF"                , "./data/pub/dsl001.esf");
+		CONFIG_DEFAULT("ECF"                , "./data/pub/dat001.ecf");
+		CONFIG_DEFAULT("NewsFile"           , "./data/news.txt");
+		CONFIG_DEFAULT("CensorFile"         , "./data/censor.txt");
+		CONFIG_DEFAULT("MapDir"             , "./data/maps/");
+		CONFIG_DEFAULT("Maps"               , 278);
+		CONFIG_DEFAULT("NPCDir"             , "./data/npc/");
+		CONFIG_DEFAULT("QuestDir"           , "./data/quests/");
+		CONFIG_DEFAULT("ScriptDir"          , "./data/scripts/");
+		CONFIG_DEFAULT("SLN"                , 1);
+		CONFIG_DEFAULT("SLNURL"             , "http://eoserv.net/SLN/");
+		CONFIG_DEFAULT("ServerName"         , "Untitled Server");
+		CONFIG_DEFAULT("SLNPeriod"          , 900);
+		CONFIG_DEFAULT("GuildPrice"         , 50000);
+		CONFIG_DEFAULT("RecruitCost"        , 1000);
+		CONFIG_DEFAULT("GuildMaxMembers"    , 5000);
+		CONFIG_DEFAULT("GuildBankMax"       , 10000000);
+		CONFIG_DEFAULT("IPConnectLimit"     , 3);
+		CONFIG_DEFAULT("IPReconnectLimit"   , 10);
+		CONFIG_DEFAULT("PKServer"           , 0);
+		CONFIG_DEFAULT("PKRestrict"         , 5);
+		CONFIG_DEFAULT("Deadly"             , 1);
+		CONFIG_DEFAULT("CensorNames"        , 1);
+		CONFIG_DEFAULT("WarpBubbles"        , 1);
+		CONFIG_DEFAULT("HideGlobal"         , 0);
+		CONFIG_DEFAULT("HideBuffer"         , 0);
+		CONFIG_DEFAULT("AdminPrefix"        , "$");
+		CONFIG_DEFAULT("StatPerLevel"       , 3);
+		CONFIG_DEFAULT("SkillPerLevel"      , 3);
+		CONFIG_DEFAULT("EnforceWeight"      , 2);
+		CONFIG_DEFAULT("MaxWeight"          , 250);
+		CONFIG_DEFAULT("MaxLevel"           , 250);
+		CONFIG_DEFAULT("MaxExp"             , 2000000000);
+		CONFIG_DEFAULT("MaxStat"            , 1000);
+		CONFIG_DEFAULT("MaxSkillLevel"      , 100);
+		CONFIG_DEFAULT("MaxSkills"          , 48);
+		CONFIG_DEFAULT("MaxMessageLength"   , 128);
+		CONFIG_DEFAULT("GhostTimer"         , 4);
+		CONFIG_DEFAULT("DropTimer"          , 120);
+		CONFIG_DEFAULT("DropAmount"         , 15);
+		CONFIG_DEFAULT("ProctectPlayerDrop" , 5);
+		CONFIG_DEFAULT("ProtectNPCDrop"     , 30);
+		CONFIG_DEFAULT("ShareMode"          , 2);
+		CONFIG_DEFAULT("PartyShareMode"     , 3);
+		CONFIG_DEFAULT("GhostNPC"           , 0);
+		CONFIG_DEFAULT("AllowStats"         , 1);
+		CONFIG_DEFAULT("StartMap"           , 192);
+		CONFIG_DEFAULT("StartX"             , 6);
+		CONFIG_DEFAULT("StartY"             , 6);
+		CONFIG_DEFAULT("SpawnMap"           , 192);
+		CONFIG_DEFAULT("SpawnX"             , 6);
+		CONFIG_DEFAULT("SpawnY"             , 6);
+		CONFIG_DEFAULT("JailMap"            , 76);
+		CONFIG_DEFAULT("JailX"              , 6);
+		CONFIG_DEFAULT("JailY"              , 5);
+		CONFIG_DEFAULT("StartItems"         , "");
+		CONFIG_DEFAULT("StartEquipMale"     , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+		CONFIG_DEFAULT("StartEquipFemale"   , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+		CONFIG_DEFAULT("MinHairStyle"       , 20);
+		CONFIG_DEFAULT("MaxHairColor"       , 12);
+		CONFIG_DEFAULT("MaxSkin"            , 6);
+		CONFIG_DEFAULT("CreateMinHairStyle" , 1);
+		CONFIG_DEFAULT("CreateMaxHairStyle" , 20);
+		CONFIG_DEFAULT("CreateMinHairColor" , 0);
+		CONFIG_DEFAULT("CreateMaxHairColor" , 12);
+		CONFIG_DEFAULT("CreateMinSkin"      , 0);
+		CONFIG_DEFAULT("CreateMaxSkin"      , 3);
+		CONFIG_DEFAULT("ExpRate"            , 100);
+		CONFIG_DEFAULT("DropRate"           , 100);
+		CONFIG_DEFAULT("GoldRate"           , 100);
+		CONFIG_DEFAULT("MobRate"            , 100);
+		CONFIG_DEFAULT("MaxBankGold"        , 2000000000);
+		CONFIG_DEFAULT("MaxItem"            , 10000000);
+		CONFIG_DEFAULT("MaxDrop"            , 10000000);
+		CONFIG_DEFAULT("MaxChest"           , 10000000);
+		CONFIG_DEFAULT("MaxBank"            , 200);
+		CONFIG_DEFAULT("MaxTile"            , 8);
+		CONFIG_DEFAULT("MaxMap"             , 400);
+		CONFIG_DEFAULT("MaxTrade"           , 10000000);
+#undef CONFIG_DEFAULT
 
 		// Type checks
 		if (std::numeric_limits<unsigned char>::digits < 8){ std::fputs("You cannot run this program (uchar is less than 8 bits)\n", stderr); std::exit(1); }
@@ -54,10 +170,6 @@ int main()
 EO Version Support: .27 .28\n\
 \n");
 #ifdef DEBUG
-
-#ifdef __GNUC__
-		std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
-#endif
 		std::puts("WARNING: This is a debug build and shouldn't be used for live servers.");
 #endif
 
@@ -92,7 +204,7 @@ EO Version Support: .27 .28\n\
 
 		if (server.State() == Server<EOClient>::Invalid)
 		{
-			std::fputs("There was a problem initializing the server. (Is port 8078 already in use?)\n", stderr);
+			std::fprintf(stderr, "There was a problem initializing the server. (Is port %i already in use?)\n", static_cast<int>(config["Port"]));
 			std::exit(1);
 		}
 
@@ -100,11 +212,12 @@ EO Version Support: .27 .28\n\
 
 		if (!server.Listen(static_cast<int>(config["MaxConnections"]), static_cast<int>(config["ListenBacklog"])))
 		{
-			std::fputs("Failed to bind, make sure the above port is not already in use.\n", stderr);
+			std::fprintf(stderr, "Failed to bind to address. (Is port %i already in use?)\n", static_cast<int>(config["Port"]));
 			std::exit(1);
 		}
 
 		// This also doubles as a check for table existance :P
+		try
 		{
 			Database_Result acc_count = eoserv_db.Query("SELECT COUNT(1) AS `count` FROM `accounts`");
 			Database_Result character_count = eoserv_db.Query("SELECT COUNT(1) AS `count` FROM `characters`");
@@ -116,6 +229,12 @@ EO Version Support: .27 .28\n\
   Characters: %i (%i staff)\n\
   Guilds:     %i\n\
 \n", static_cast<int>(acc_count.front()["count"]), static_cast<int>(character_count.front()["count"]), static_cast<int>(admin_character_count.front()["count"]), static_cast<int>(guild_count.front()["count"]));
+		}
+		catch (Database_Exception &e)
+		{
+			std::fputs("A required table is missing. (Have you executed install.sql?)\n", stderr);
+			std::fputs(e.error(), stderr);
+			std::exit(1);
 		}
 
 		while (running)

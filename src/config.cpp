@@ -57,8 +57,17 @@ Config::Config(std::string filename)
 		}
 
 		key = util::rtrim(line.substr(0, eqloc));
-		val = util::ltrim(line.substr(eqloc+1));
+		if (line.length() > eqloc+1)
+		{
+			val = util::ltrim(line.substr(eqloc+1));
+		}
+		else
+		{
+			val = "";
+		}
 
 		this->insert(std::pair<std::string, util::variant>(key, static_cast<util::variant>(val)));
 	}
+
+	std::fclose(fh);
 }

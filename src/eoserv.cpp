@@ -22,7 +22,7 @@ ENF *eoserv_npcs;
 ESF *eoserv_spells;
 ECF *eoserv_classes;
 Config eoserv_config; // assigned to later
-Config admin_config("admin.ini");
+Config admin_config; // assigned to later
 
 // TODO: Clean up these functions
 std::string ItemSerialize(std::list<Character_Item> list)

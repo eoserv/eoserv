@@ -27,7 +27,57 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	eoserv_spells = new ESF("./data/pub/dsl001.esf");
 	eoserv_classes = new ECF("./data/pub/dat001.ecf");
 
+	Config aconfig;
+
+	try
+	{
+		Config load_config("admin.ini");
+		aconfig = load_config;
+	}
+	catch (std::runtime_error)
+	{
+		std::fputs("WARNING: Could not load admin.ini - using defaults\n", stderr);
+	}
+
+#define CONFIG_DEFAULT(key, value)\
+if (config.find(key) == config.end())\
+{\
+	util::variant vv = util::variant(value);\
+	config[key] = vv;\
+	std::fprintf(stderr, "WARNING: Could not load admin config value '%s' - using default (%s)\n", key, static_cast<std::string>(vv).c_str());\
+}
+	CONFIG_DEFAULT("item"    , 1);
+	CONFIG_DEFAULT("npc"     , 1);
+	CONFIG_DEFAULT("spell"   , 1);
+	CONFIG_DEFAULT("class"   , 1);
+	CONFIG_DEFAULT("info"    , 1);
+	CONFIG_DEFAULT("kick"    , 1);
+	CONFIG_DEFAULT("skick"   , 3);
+	CONFIG_DEFAULT("jail"    , 1);
+	CONFIG_DEFAULT("sjail"   , 3);
+	CONFIG_DEFAULT("ban"     , 2);
+	CONFIG_DEFAULT("warp"    , 2);
+	CONFIG_DEFAULT("warptome", 2);
+	CONFIG_DEFAULT("warpmeto", 2);
+	CONFIG_DEFAULT("evacuate", 2);
+	CONFIG_DEFAULT("sitem"   , 4);
+	CONFIG_DEFAULT("learn"   , 3);
+	CONFIG_DEFAULT("setlevel", 3);
+	CONFIG_DEFAULT("setexp"  , 3);
+	CONFIG_DEFAULT("setstr"  , 3);
+	CONFIG_DEFAULT("setint"  , 3);
+	CONFIG_DEFAULT("setwis"  , 3);
+	CONFIG_DEFAULT("setagi"  , 3);
+	CONFIG_DEFAULT("setcon"  , 3);
+	CONFIG_DEFAULT("setcha"  , 3);
+	CONFIG_DEFAULT("sethp"   , 3);
+	CONFIG_DEFAULT("settp"   , 3);
+	CONFIG_DEFAULT("setmaxhp", 3);
+	CONFIG_DEFAULT("setmaxtp", 3);
+#undef CONFIG_DEFAULT
+
 	eoserv_config = config;
+	admin_config = aconfig;
 
 	this->last_character_id = 0;
 }
