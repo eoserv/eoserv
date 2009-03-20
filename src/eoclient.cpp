@@ -6,6 +6,7 @@
 #include "socket.hpp"
 #include "packet.hpp"
 #include "eoclient.hpp"
+#include "eoserv.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
@@ -38,8 +39,7 @@ void server_ping_all(void *server_void)
 
 void EOClient::Initialize()
 {
-static unsigned int eoserv_player_id = 1;
-	this->id = eoserv_player_id++;
+	this->id = the_world->GeneratePlayerID();
 	this->length = 0;
 	this->state = 0;
 	this->player = 0;

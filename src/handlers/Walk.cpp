@@ -56,15 +56,15 @@ CLIENT_F_FUNC(Walk)
 					builder.AddShort(character->maxtp);
 					builder.AddShort(character->tp);
 					// equipment
-					builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
+					builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
 					builder.AddShort(0); // ??
 					builder.AddShort(0); // ??
 					builder.AddShort(0); // ??
-					builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
+					builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
 					builder.AddShort(0); // ??
-					builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
-					builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
-					builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
+					builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
+					builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
+					builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 					builder.AddChar(character->sitting);
 					builder.AddChar(0); // visible
 					builder.AddByte(255);

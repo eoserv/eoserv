@@ -27,6 +27,8 @@ struct NPC_Opponent;
 #include "timer.hpp"
 #include "socket.hpp"
 
+extern World *the_world;
+
 std::string ItemSerialize(std::list<Character_Item> list);
 std::list<Character_Item> ItemUnserialize(std::string serialized);
 
@@ -58,6 +60,7 @@ class World
 		World(util::array<std::string, 5> dbinfo, Config);
 
 		int GenerateCharacterID();
+		int GeneratePlayerID();
 
 		void Login(Character *);
 		void Logout(Character *);
@@ -83,6 +86,8 @@ struct Map_Item
 	int amount;
 	int x;
 	int y;
+	unsigned int owner; // Player ID
+	double unprotecttime;
 };
 
 class Map
@@ -97,7 +102,6 @@ class Map
 		std::list<Character *> characters;
 		std::list<NPC *> npcs;
 		std::list<Map_Item> items;
-		int last_item_id;
 		bool exists;
 
 		Map(int id);
@@ -115,7 +119,7 @@ class Map
 		void Stand(Character *from);
 		void Emote(Character *from, int emote);
 
-		Map_Item AddItem(int id, int amount, int x, int y, Character *from = 0);
+		Map_Item *AddItem(int id, int amount, int x, int y, Character *from = 0);
 		void DelItem(int uid, Character *from = 0);
 };
 

@@ -29,14 +29,21 @@ Map::Map(int id)
 	std::fread(this->rid, sizeof(char), 4, fh);
 
 	std::fclose(fh);
-
-	this->last_item_id = 0;
 }
 
-// TODO: Prevent collisions
 int Map::GenerateItemID()
 {
-	return ++this->last_item_id;
+	int lowest_free_id = 1;
+	restart_loop:
+	UTIL_FOREACH(this->items, item)
+	{
+		if (item.uid == lowest_free_id)
+		{
+			lowest_free_id = item.uid + 1;
+			goto restart_loop;
+		}
+	}
+	return lowest_free_id;
 }
 
 void Map::Enter(Character *character, int animation)
@@ -68,15 +75,15 @@ void Map::Enter(Character *character, int animation)
 	builder.AddShort(character->maxtp); // Max TP (?)
 	builder.AddShort(character->tp); // TP (?)
 	// equipment
-	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
+	builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
-	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
+	builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
 	builder.AddShort(0); // ??
-	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
-	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
-	builder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
+	builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
+	builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
+	builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 	builder.AddChar(character->sitting);
 	builder.AddChar(0); // visible
 	builder.AddByte(255);
@@ -154,6 +161,7 @@ void Map::Msg(Character *from, std::string message)
 void Map::Walk(Character *from, int direction)
 {
 	PacketBuilder builder;
+	int seedistance = eoserv_config["SeeDistance"];
 
 	switch (direction)
 	{
@@ -187,11 +195,11 @@ void Map::Walk(Character *from, int direction)
 		switch (direction)
 		{
 			case DIRECTION_UP:
-				for (int i = -11; i <= 11; ++i)
+				for (int i = -seedistance; i <= seedistance; ++i)
 				{
-					newy = from->y - 11 + std::abs(i);
+					newy = from->y - seedistance + std::abs(i);
 					newx = from->x + i;
-					oldy = from->y + 12 - std::abs(i);
+					oldy = from->y + seedistance+1 - std::abs(i);
 					oldx = from->x + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -206,11 +214,11 @@ void Map::Walk(Character *from, int direction)
 				break;
 
 			case DIRECTION_RIGHT:
-				for (int i = -11; i <= 11; ++i)
+				for (int i = -seedistance; i <= seedistance; ++i)
 				{
-					newx = from->x + 11 - std::abs(i);
+					newx = from->x + seedistance - std::abs(i);
 					newy = from->y + i;
-					oldx = from->x - 12 + std::abs(i);
+					oldx = from->x - seedistance+1 + std::abs(i);
 					oldy = from->y + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -225,11 +233,11 @@ void Map::Walk(Character *from, int direction)
 				break;
 
 			case DIRECTION_DOWN:
-				for (int i = -11; i <= 11; ++i)
+				for (int i = -seedistance; i <= seedistance; ++i)
 				{
-					newy = from->y + 11 - std::abs(i);
+					newy = from->y + seedistance - std::abs(i);
 					newx = from->x + i;
-					oldy = from->y - 12 + std::abs(i);
+					oldy = from->y - seedistance+1 + std::abs(i);
 					oldx = from->x + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -244,11 +252,11 @@ void Map::Walk(Character *from, int direction)
 				break;
 
 			case DIRECTION_LEFT:
-				for (int i = -11; i <= 11; ++i)
+				for (int i = -seedistance; i <= seedistance; ++i)
 				{
-					newx = from->x - 11 + std::abs(i);
+					newx = from->x - seedistance + std::abs(i);
 					newy = from->y + i;
-					oldx = from->x + 12 - std::abs(i);
+					oldx = from->x + seedistance+1 - std::abs(i);
 					oldy = from->y + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -270,11 +278,11 @@ void Map::Walk(Character *from, int direction)
 		switch (direction)
 		{
 			case DIRECTION_UP:
-				for (int i = -11; i <= 11; ++i)
+				for (int i = -seedistance; i <= seedistance; ++i)
 				{
-					newy = from->y - 11 + std::abs(i);
+					newy = from->y - seedistance + std::abs(i);
 					newx = from->x + i;
-					oldy = from->y + 12 - std::abs(i);
+					oldy = from->y + seedistance+1 - std::abs(i);
 					oldx = from->x + i;
 
 					if (checkitem.x == newx && checkitem.y == newy)
@@ -285,11 +293,11 @@ void Map::Walk(Character *from, int direction)
 				break;
 
 			case DIRECTION_RIGHT:
-				for (int i = -11; i <= 11; ++i)
+				for (int i = -seedistance; i <= seedistance; ++i)
 				{
-					newx = from->x + 11 - std::abs(i);
+					newx = from->x + seedistance - std::abs(i);
 					newy = from->y + i;
-					oldx = from->x - 12 + std::abs(i);
+					oldx = from->x - seedistance+1 + std::abs(i);
 					oldy = from->y + i;
 
 					if (checkitem.x == newx && checkitem.y == newy)
@@ -300,11 +308,11 @@ void Map::Walk(Character *from, int direction)
 				break;
 
 			case DIRECTION_DOWN:
-				for (int i = -11; i <= 11; ++i)
+				for (int i = -seedistance; i <= seedistance; ++i)
 				{
-					newy = from->y + 11 - std::abs(i);
+					newy = from->y + seedistance - std::abs(i);
 					newx = from->x + i;
-					oldy = from->y - 12 + std::abs(i);
+					oldy = from->y - seedistance+1 + std::abs(i);
 					oldx = from->x + i;
 
 					if (checkitem.x == newx && checkitem.y == newy)
@@ -315,11 +323,11 @@ void Map::Walk(Character *from, int direction)
 				break;
 
 			case DIRECTION_LEFT:
-				for (int i = -11; i <= 11; ++i)
+				for (int i = -seedistance; i <= seedistance; ++i)
 				{
-					newx = from->x - 11 + std::abs(i);
+					newx = from->x - seedistance + std::abs(i);
 					newy = from->y + i;
-					oldx = from->x + 12 - std::abs(i);
+					oldx = from->x + seedistance+1 - std::abs(i);
 					oldy = from->y + i;
 
 					if (checkitem.x == newx && checkitem.y == newy)
@@ -369,15 +377,15 @@ void Map::Walk(Character *from, int direction)
 	builder.AddShort(from->maxtp);
 	builder.AddShort(from->tp);
 	// equipment
-	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Boots]));
+	builder.AddShort(eoserv_items->Get(from->paperdoll[Character::Boots])->dollgraphic);
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
-	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Armor]));
+	builder.AddShort(eoserv_items->Get(from->paperdoll[Character::Armor])->dollgraphic);
 	builder.AddShort(0); // ??
-	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Hat]));
-	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Shield]));
-	builder.AddShort(eoserv_items->GetDollGraphic(from->paperdoll[Character::Weapon]));
+	builder.AddShort(eoserv_items->Get(from->paperdoll[Character::Hat])->dollgraphic);
+	builder.AddShort(eoserv_items->Get(from->paperdoll[Character::Shield])->dollgraphic);
+	builder.AddShort(eoserv_items->Get(from->paperdoll[Character::Weapon])->dollgraphic);
 	builder.AddChar(from->sitting);
 	builder.AddChar(0); // visible
 	builder.AddByte(255);
@@ -406,15 +414,15 @@ void Map::Walk(Character *from, int direction)
 		rbuilder.AddShort(character->maxtp);
 		rbuilder.AddShort(character->tp);
 		// equipment
-		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
+		rbuilder.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
 		rbuilder.AddShort(0); // ??
 		rbuilder.AddShort(0); // ??
 		rbuilder.AddShort(0); // ??
-		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
+		rbuilder.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
 		rbuilder.AddShort(0); // ??
-		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
-		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
-		rbuilder.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
+		rbuilder.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		rbuilder.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
+		rbuilder.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 		rbuilder.AddChar(character->sitting);
 		rbuilder.AddChar(0); // visible
 		rbuilder.AddByte(255);
@@ -567,7 +575,7 @@ void Map::Emote(Character *from, int direction)
 	}
 }
 
-Map_Item Map::AddItem(int id, int amount, int x, int y, Character *from)
+Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 {
 	Map_Item newitem = {GenerateItemID(), id, amount, x, y};
 
@@ -589,7 +597,7 @@ Map_Item Map::AddItem(int id, int amount, int x, int y, Character *from)
 	}
 
 	this->items.push_back(newitem);
-	return newitem;
+	return &this->items.back();
 }
 
 void Map::DelItem(int uid, Character *from)

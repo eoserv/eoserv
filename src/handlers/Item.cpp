@@ -18,6 +18,11 @@ CLIENT_F_FUNC(Item)
 			int id = reader.GetShort();
 			int amount;
 
+			if (eoserv_items->Get(id)->special == EIF::Lore)
+			{
+				return true;
+			}
+
 			if (reader.Length() == 8)
 			{
 				amount = reader.GetThree();
@@ -45,17 +50,25 @@ CLIENT_F_FUNC(Item)
 				y = PacketProcessor::Number(y);
 			}
 
-			// TODO: Range check
+			int distance = std::abs(x + y - this->player->character->x - this->player->character->y);
+
+			if (distance > static_cast<int>(eoserv_config["DropDistance"]))
+			{
+				return true;
+			}
+
 			if (this->player->character->HasItem(id) >= amount)
 			{
-				Map_Item item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
+				Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
+				item->owner = this->player->id;
+				item->unprotecttime = Timer::GetTime() + static_cast<double>(eoserv_config["ProctectPlayerDrop"]);
 				this->player->character->DelItem(id, amount);
 
 				reply.SetID(PACKET_ITEM, PACKET_DROP);
 				reply.AddShort(id);
 				reply.AddThree(amount);
 				reply.AddInt(this->player->character->HasItem(id));
-				reply.AddShort(item.uid);
+				reply.AddShort(item->uid);
 				reply.AddChar(x);
 				reply.AddChar(y);
 				reply.AddChar(this->player->character->weight);
@@ -90,12 +103,22 @@ CLIENT_F_FUNC(Item)
 
 			int uid = reader.GetShort();
 
-			// TODO: Range check
-
 			UTIL_FOREACH(this->player->character->map->items, item)
 			{
 				if (item.uid == uid)
 				{
+					int distance = std::abs(item.x + item.y - this->player->character->x - this->player->character->y);
+
+					if (distance > static_cast<int>(eoserv_config["DropDistance"]))
+					{
+						break;
+					}
+
+					if (item.owner != this->player->id && item.unprotecttime > Timer::GetTime())
+					{
+						break;
+					}
+
 					this->player->character->AddItem(item.id, item.amount);
 					this->player->character->map->DelItem(uid, this->player->character);
 

@@ -2,9 +2,9 @@
 // Prevents exploitation of a buffer overflow in the EO client
 void limit_message(std::string &message)
 {
-	if (message.length() > 128)
+	if (message.length() > static_cast<std::size_t>(static_cast<int>(eoserv_config["ChatLength"])))
 	{
-		message = message.substr(0, 122) + " [...]";
+		message = message.substr(0, static_cast<int>(eoserv_config["ChatLength"])-6) + " [...]";
 	}
 }
 
@@ -57,7 +57,7 @@ CLIENT_F_FUNC(Talk)
 				return false;
 			}
 
-			if (this->player->character->admin && message[0] == '$' && this->player->character->admin > ADMIN_PLAYER)
+			if (this->player->character->admin && message[0] == '$')
 			{
 				std::string command;
 				std::vector<std::string> arguments = util::explode(' ', message);

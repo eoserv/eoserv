@@ -101,6 +101,9 @@ if (config.find(key) == config.end())\
 		CONFIG_DEFAULT("DropAmount"         , 15);
 		CONFIG_DEFAULT("ProctectPlayerDrop" , 5);
 		CONFIG_DEFAULT("ProtectNPCDrop"     , 30);
+		CONFIG_DEFAULT("SeeDistance"        , 11);
+		CONFIG_DEFAULT("DropDistance"       , 2);
+		CONFIG_DEFAULT("ChatLength"         , 128);
 		CONFIG_DEFAULT("ShareMode"          , 2);
 		CONFIG_DEFAULT("PartyShareMode"     , 3);
 		CONFIG_DEFAULT("GhostNPC"           , 0);

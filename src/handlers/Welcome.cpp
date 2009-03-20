@@ -219,15 +219,15 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(character->maxtp);
 				reply.AddShort(character->tp);
 				// equipment
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
 				reply.AddShort(0); // ??
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddChar(character->sitting);
 				reply.AddChar(0); // visible
 				reply.AddByte(255);

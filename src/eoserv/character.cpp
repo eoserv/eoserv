@@ -245,7 +245,7 @@ bool Character::Equip(int item, int subloc)
 		return false;
 	}
 
-	switch (eoserv_items->GetType(item))
+	switch (eoserv_items->Get(item)->type)
 	{
 		case EIF::Weapon:
 			if (this->paperdoll[Character::Weapon] != 0)

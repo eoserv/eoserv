@@ -103,9 +103,17 @@ EIF::EIF(std::string filename)
 	std::fclose(fh);
 }
 
-int EIF::GetType(unsigned int id){ if (id > 0 && id < this->data.size()){ return this->data[id].type; } else { return this->nulldata->type; } }
-int EIF::GetGraphic(unsigned int id){ if (id > 0 && id < this->data.size()){ return this->data[id].graphic; } else { return this->nulldata->graphic; } }
-int EIF::GetDollGraphic(unsigned int id){ if (id > 0 && id < this->data.size()){ return this->data[id].dollgraphic; } else { return this->nulldata->dollgraphic; } }
+EIF_Data *EIF::Get(unsigned int id)
+{
+	if (id > 0 && id < this->data.size())
+	{
+		return &this->data[id];
+	}
+	else
+	{
+		return this->nulldata;
+	}
+}
 
 ENF::ENF(std::string filename)
 {

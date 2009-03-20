@@ -46,34 +46,40 @@ if (config.find(key) == config.end())\
 	config[key] = vv;\
 	std::fprintf(stderr, "WARNING: Could not load admin config value '%s' - using default (%s)\n", key, static_cast<std::string>(vv).c_str());\
 }
-	CONFIG_DEFAULT("item"    , 1);
-	CONFIG_DEFAULT("npc"     , 1);
-	CONFIG_DEFAULT("spell"   , 1);
-	CONFIG_DEFAULT("class"   , 1);
-	CONFIG_DEFAULT("info"    , 1);
-	CONFIG_DEFAULT("kick"    , 1);
-	CONFIG_DEFAULT("skick"   , 3);
-	CONFIG_DEFAULT("jail"    , 1);
-	CONFIG_DEFAULT("sjail"   , 3);
-	CONFIG_DEFAULT("ban"     , 2);
-	CONFIG_DEFAULT("warp"    , 2);
-	CONFIG_DEFAULT("warptome", 2);
-	CONFIG_DEFAULT("warpmeto", 2);
-	CONFIG_DEFAULT("evacuate", 2);
-	CONFIG_DEFAULT("sitem"   , 4);
-	CONFIG_DEFAULT("learn"   , 3);
-	CONFIG_DEFAULT("setlevel", 3);
-	CONFIG_DEFAULT("setexp"  , 3);
-	CONFIG_DEFAULT("setstr"  , 3);
-	CONFIG_DEFAULT("setint"  , 3);
-	CONFIG_DEFAULT("setwis"  , 3);
-	CONFIG_DEFAULT("setagi"  , 3);
-	CONFIG_DEFAULT("setcon"  , 3);
-	CONFIG_DEFAULT("setcha"  , 3);
-	CONFIG_DEFAULT("sethp"   , 3);
-	CONFIG_DEFAULT("settp"   , 3);
-	CONFIG_DEFAULT("setmaxhp", 3);
-	CONFIG_DEFAULT("setmaxtp", 3);
+	CONFIG_DEFAULT("item"          , 1);
+	CONFIG_DEFAULT("npc"           , 1);
+	CONFIG_DEFAULT("spell"         , 1);
+	CONFIG_DEFAULT("class"         , 1);
+	CONFIG_DEFAULT("info"          , 1);
+	CONFIG_DEFAULT("kick"          , 1);
+	CONFIG_DEFAULT("skick"         , 3);
+	CONFIG_DEFAULT("jail"          , 1);
+	CONFIG_DEFAULT("sjail"         , 3);
+	CONFIG_DEFAULT("ban"           , 2);
+	CONFIG_DEFAULT("sban"          , 3);
+	CONFIG_DEFAULT("warp"          , 2);
+	CONFIG_DEFAULT("warptome"      , 2);
+	CONFIG_DEFAULT("warpmeto"      , 2);
+	CONFIG_DEFAULT("evacuate"      , 2);
+	CONFIG_DEFAULT("sitem"         , 4);
+	CONFIG_DEFAULT("ditem"         , 4);
+	CONFIG_DEFAULT("learn"         , 3);
+	CONFIG_DEFAULT("setlevel"      , 3);
+	CONFIG_DEFAULT("setexp"        , 3);
+	CONFIG_DEFAULT("setstr"        , 3);
+	CONFIG_DEFAULT("setint"        , 3);
+	CONFIG_DEFAULT("setwis"        , 3);
+	CONFIG_DEFAULT("setagi"        , 3);
+	CONFIG_DEFAULT("setcon"        , 3);
+	CONFIG_DEFAULT("setcha"        , 3);
+	CONFIG_DEFAULT("setstatpoints" , 3);
+	CONFIG_DEFAULT("setskillpoints", 3);
+	CONFIG_DEFAULT("settitle"      , 3);
+	CONFIG_DEFAULT("setpartner"    , 3);
+	CONFIG_DEFAULT("sethome"       , 3);
+	CONFIG_DEFAULT("sethomemap"    , 3);
+	CONFIG_DEFAULT("sethomex"      , 3);
+	CONFIG_DEFAULT("sethomey"      , 3);
 #undef CONFIG_DEFAULT
 
 	eoserv_config = config;
@@ -82,10 +88,24 @@ if (config.find(key) == config.end())\
 	this->last_character_id = 0;
 }
 
-// TODO: Prevent collisions
 int World::GenerateCharacterID()
 {
 	return ++this->last_character_id;
+}
+
+int World::GeneratePlayerID()
+{
+	unsigned int lowest_free_id = 1;
+	restart_loop:
+	UTIL_FOREACH(this->server->clients, client)
+	{
+		if (client->id == lowest_free_id)
+		{
+			lowest_free_id = client->id + 1;
+			goto restart_loop;
+		}
+	}
+	return lowest_free_id;
 }
 
 void World::Login(Character *character)

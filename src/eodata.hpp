@@ -72,9 +72,7 @@ class EIF
 		EIF_Data *nulldata;
 		EIF(std::string filename);
 
-		int GetType(unsigned int id);
-		int GetGraphic(unsigned int id);
-		int GetDollGraphic(unsigned int id);
+		EIF_Data *Get(unsigned int id);
 };
 
 

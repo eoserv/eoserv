@@ -47,17 +47,22 @@ CLIENT_F_FUNC(Paperdoll)
 			int itemid = reader.GetShort();
 			int subloc = reader.GetChar(); // Used for double slot items (rings etc)
 
+			if (eoserv_items->Get(itemid)->special == EIF::Cursed)
+			{
+				return true;
+			}
+
 			if (this->player->character->Unequip(itemid, subloc))
 			{
 				reply.SetID(PACKET_PAPERDOLL, PACKET_REMOVE);
 				reply.AddShort(this->player->id);
 				reply.AddChar(1); // ?
 				reply.AddChar(subloc);
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Boots]));
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Armor]));
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Hat]));
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Weapon]));
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Shield]));
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddShort(itemid);
 				reply.AddChar(0); // ?
 				reply.AddShort(this->player->character->maxhp);
@@ -82,11 +87,11 @@ CLIENT_F_FUNC(Paperdoll)
 			builder.AddShort(this->player->id);
 			builder.AddChar(1); // ?
 			builder.AddChar(subloc);
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Boots]));
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Armor]));
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Hat]));
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Weapon]));
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Shield]));
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
 			UTIL_FOREACH(this->player->character->map->characters, character)
 			{
@@ -114,11 +119,11 @@ CLIENT_F_FUNC(Paperdoll)
 				reply.AddShort(this->player->id);
 				reply.AddChar(1); // ?
 				reply.AddChar(subloc);
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Boots]));
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Armor]));
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Hat]));
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Weapon]));
-				reply.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Shield]));
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 				reply.AddShort(itemid);
 				reply.AddThree(this->player->character->HasItem(itemid));
 				reply.AddChar(0); // ?
@@ -145,11 +150,11 @@ CLIENT_F_FUNC(Paperdoll)
 			builder.AddShort(this->player->id);
 			builder.AddChar(1); // ?
 			builder.AddChar(subloc);
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Boots]));
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Armor]));
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Hat]));
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Weapon]));
-			builder.AddShort(eoserv_items->GetDollGraphic(this->player->character->paperdoll[Character::Shield]));
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
+			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
 			UTIL_FOREACH(this->player->character->map->characters, character)
 			{

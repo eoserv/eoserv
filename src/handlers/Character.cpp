@@ -70,11 +70,11 @@ CLIENT_F_FUNC(Character)
 				reply.AddChar(character->haircolor);
 				reply.AddChar(character->race);
 				reply.AddChar(character->admin);
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddByte(255);
 			}
 			CLIENT_SEND(reply);
@@ -125,11 +125,11 @@ CLIENT_F_FUNC(Character)
 				reply.AddChar(character->haircolor);
 				reply.AddChar(character->race);
 				reply.AddChar(character->admin);
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Boots]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Armor]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Hat]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Shield]));
-				reply.AddShort(eoserv_items->GetDollGraphic(character->paperdoll[Character::Weapon]));
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddByte(255);
 			}
 			CLIENT_SEND(reply);
