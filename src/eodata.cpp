@@ -29,7 +29,6 @@ EIF::EIF(std::string filename)
 
 	newdata.id = 0;
 	newdata.graphic = 0;
-	newdata.classreq = 0;
 
 	newdata.hp = 0;
 	newdata.tp = 0;
@@ -48,6 +47,10 @@ EIF::EIF(std::string filename)
 
 	newdata.scrollx = 0;
 	newdata.scrolly = 0;
+
+	newdata.classreq = 0;
+
+	newdata.weight = 0;
 
 	this->nulldata = new EIF_Data;
 	*this->nulldata = newdata;
@@ -69,7 +72,7 @@ EIF::EIF(std::string filename)
 
 		newdata.graphic = PacketProcessor::Number(buf[0], buf[1]);
 		newdata.type = static_cast<EIF::Type>(PacketProcessor::Number(buf[2]));
-		newdata.classreq = PacketProcessor::Number(buf[3]);
+
 		newdata.special = static_cast<EIF::Special>(PacketProcessor::Number(buf[4]));
 		newdata.hp = PacketProcessor::Number(buf[5], buf[6]);
 		newdata.tp = PacketProcessor::Number(buf[7], buf[8]);
@@ -87,6 +90,10 @@ EIF::EIF(std::string filename)
 		newdata.scrollmap = PacketProcessor::Number(buf[32]);
 		newdata.scrollx = PacketProcessor::Number(buf[35]);
 		newdata.scrolly = PacketProcessor::Number(buf[36]);
+
+		newdata.classreq = PacketProcessor::Number(buf[39]);
+
+		newdata.weight = PacketProcessor::Number(buf[55]);
 
 		this->data[i] = newdata;
 

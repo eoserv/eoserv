@@ -34,6 +34,8 @@ CLIENT_F_FUNC(Welcome)
 				return false;
 			}
 
+			this->player->character->CalculateStats();
+
 			reply.AddShort(1); // REPLY_WELCOME sub-id
 			reply.AddShort(this->player->id);
 			reply.AddInt(this->player->character->id);
@@ -72,7 +74,7 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Name
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Rank
 			reply.AddChar(1); // ??
-			reply.AddString("SEX"); // Guild Tag
+			reply.AddString(this->player->character->PaddedGuildTag());
 			reply.AddChar(this->player->character->admin);
 			reply.AddChar(this->player->character->level);
 			reply.AddInt(this->player->character->exp);
@@ -92,21 +94,21 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(this->player->character->armor);
 			if (this->version < 28)
 			{
-				reply.AddChar(100); // STR
-				reply.AddChar(101); // WIS
-				reply.AddChar(102); // INT
-				reply.AddChar(103); // AGI
-				reply.AddChar(104); // CON
-				reply.AddChar(105); // CHA
+				reply.AddChar(this->player->character->str);
+				reply.AddChar(this->player->character->wis);
+				reply.AddChar(this->player->character->intl);
+				reply.AddChar(this->player->character->agi);
+				reply.AddChar(this->player->character->con);
+				reply.AddChar(this->player->character->cha);
 			}
 			else
 			{
-				reply.AddShort(100); // STR
-				reply.AddShort(101); // WIS
-				reply.AddShort(102); // INT
-				reply.AddShort(103); // AGI
-				reply.AddShort(104); // CON
-				reply.AddShort(105); // CHA
+				reply.AddShort(this->player->character->str);
+				reply.AddShort(this->player->character->wis);
+				reply.AddShort(this->player->character->intl);
+				reply.AddShort(this->player->character->agi);
+				reply.AddShort(this->player->character->con);
+				reply.AddShort(this->player->character->cha);
 			}
 			// paperdoll?
 			reply.AddShort(0);
@@ -154,18 +156,46 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(2); // REPLY_WELCOME sub-id
 			// MotDs
 			reply.AddByte(255);
-			reply.AddBreakString("Message 1"); // shown in the scr tab
-			reply.AddBreakString("Message 2");
-			reply.AddBreakString("Message 3");
-			reply.AddBreakString("Message 4");
-			reply.AddBreakString("Message 5");
-			reply.AddBreakString("Message 6");
-			reply.AddBreakString("Message 7");
-			reply.AddBreakString("Message 8");
-			reply.AddBreakString("Message 9");
+
+			char newsbuf[4096] = "";
+			std::FILE *newsfh = std::fopen(static_cast<std::string>(eoserv_config["NewsFile"]).c_str(), "rt");
+			bool newseof = (newsfh == 0);
+
+			if (newseof)
+			{
+				std::fprintf(stderr, "WARNING: Could not load news file '%s'\n", static_cast<std::string>(eoserv_config["NewsFile"]).c_str());
+			}
+
+			for (int i = 0; i < 9; ++i)
+			{
+				if (newsfh)
+				{
+					std::fgets(newsbuf, 4096, newsfh);
+				}
+
+				if (!newseof)
+				{
+					reply.AddBreakString(util::trim(newsbuf));
+				}
+				else
+				{
+					reply.AddByte(255);
+				}
+
+				if (newsfh && std::feof(newsfh))
+				{
+					newseof = true;
+				}
+
+			}
+
+			if (newsfh)
+			{
+				std::fclose(newsfh);
+			}
 			// ??
-			reply.AddChar(10); // Weight
-			reply.AddChar(100); // Max Weight
+			reply.AddChar(this->player->character->weight); // Weight
+			reply.AddChar(this->player->character->maxweight); // Max Weight
 			UTIL_FOREACH(this->player->character->inventory, item)
 			{
 				reply.AddShort(item.id);
@@ -173,12 +203,12 @@ CLIENT_F_FUNC(Welcome)
 			}
 			reply.AddByte(255);
 			// foreach spell {
-			reply.AddShort(1); // Spell ID
-			reply.AddShort(100); // Spell Level
-			reply.AddShort(2); // Spell ID
-			reply.AddShort(100); // Spell Level
-			reply.AddShort(18); // Spell ID
-			reply.AddShort(100); // Spell Level
+			//reply.AddShort(1); // Spell ID
+			//reply.AddShort(100); // Spell Level
+			//reply.AddShort(2); // Spell ID
+			//reply.AddShort(100); // Spell Level
+			//reply.AddShort(18); // Spell ID
+			//reply.AddShort(100); // Spell Level
 			// }
 			reply.AddByte(255);
 			std::list<Character *> updatecharacters;
@@ -208,7 +238,7 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(character->y);
 				reply.AddChar(character->direction);
 				reply.AddChar(6); // ?
-				reply.AddString("SEX"); // guild tag
+				reply.AddString(character->PaddedGuildTag());
 				reply.AddChar(character->level);
 				reply.AddChar(character->gender);
 				reply.AddChar(character->hairstyle);

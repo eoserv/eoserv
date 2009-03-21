@@ -52,7 +52,7 @@ CLIENT_F_FUNC(Players)
 					}
 				}
 				reply.AddChar(character->clas);
-				reply.AddString("SEX");
+				reply.AddString(character->PaddedGuildTag());
 				reply.AddByte(255);
 			}
 			CLIENT_SENDRAW(reply);

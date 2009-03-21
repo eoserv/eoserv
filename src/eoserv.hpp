@@ -242,12 +242,15 @@ class Character
 		bool InRange(Character *);
 		bool InRange(Map_Item);
 		void Warp(int map, int x, int y, int animation = WARP_ANIMATION_NONE);
+		std::string PaddedGuildTag();
+		void CalculateStats();
 
 		~Character();
 
 		Player *player;
 		Guild *guild;
-		char guild_rank;
+		std::string guild_tag;
+		int guild_rank;
 		Party *party;
 		Map *map;
 };

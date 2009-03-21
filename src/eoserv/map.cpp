@@ -59,21 +59,21 @@ void Map::Enter(Character *character, int animation)
 	builder.AddByte(255);
 	builder.AddBreakString(character->name);
 	builder.AddShort(character->player->id);
-	builder.AddShort(character->mapid); // Map ID
-	builder.AddShort(character->x); // Map X
-	builder.AddShort(character->y); // Map Y
-	builder.AddChar(character->direction); // Direction
+	builder.AddShort(character->mapid);
+	builder.AddShort(character->x);
+	builder.AddShort(character->y);
+	builder.AddChar(character->direction);
 	builder.AddChar(6); // ?
-	builder.AddString("SEX"); // guild tag
-	builder.AddChar(character->level); // Level
-	builder.AddChar(character->gender); // sex (0 = female, 1 = male)
-	builder.AddChar(character->hairstyle); // hair style
-	builder.AddChar(character->haircolor); // hair color
-	builder.AddChar(character->race); // race (0 = white, 1 = azn, 2 = nigger, 3 = orc, 4 = skeleton, 5 = panda)
-	builder.AddShort(character->maxhp); // Max HP (?)
-	builder.AddShort(character->hp); // HP (?)
-	builder.AddShort(character->maxtp); // Max TP (?)
-	builder.AddShort(character->tp); // TP (?)
+	builder.AddString(character->PaddedGuildTag());
+	builder.AddChar(character->level);
+	builder.AddChar(character->gender);
+	builder.AddChar(character->hairstyle);
+	builder.AddChar(character->haircolor);
+	builder.AddChar(character->race);
+	builder.AddShort(character->maxhp);
+	builder.AddShort(character->hp);
+	builder.AddShort(character->maxtp);
+	builder.AddShort(character->tp);
 	// equipment
 	builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
 	builder.AddShort(0); // ??
@@ -366,7 +366,7 @@ void Map::Walk(Character *from, int direction)
 	builder.AddShort(from->y);
 	builder.AddChar(from->direction);
 	builder.AddChar(6); // ?
-	builder.AddString("SEX"); // guild tag
+	builder.AddString(from->PaddedGuildTag());
 	builder.AddChar(from->level);
 	builder.AddChar(from->gender);
 	builder.AddChar(from->hairstyle);
@@ -403,7 +403,7 @@ void Map::Walk(Character *from, int direction)
 		rbuilder.AddShort(character->y);
 		rbuilder.AddChar(character->direction);
 		rbuilder.AddChar(6); // ?
-		rbuilder.AddString("SEX"); // guild tag
+		rbuilder.AddString(character->PaddedGuildTag());
 		rbuilder.AddChar(character->level);
 		rbuilder.AddChar(character->gender);
 		rbuilder.AddChar(character->hairstyle);

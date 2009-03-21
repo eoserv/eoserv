@@ -42,9 +42,10 @@ const int FILE_CLASS = 5;
 const int SKIN_WHITE = 0;
 const int SKIN_YELLOW = 1;
 const int SKIN_TAN = 2;
-const int SKIN_PANDA = 3;
-const int SKIN_SKELETON = 4;
-const int SKIN_FISH = 5;
+const int SKIN_ORC = 3;
+const int SKIN_PANDA = 4;
+const int SKIN_SKELETON = 5;
+const int SKIN_FISH = 6;
 
 const int ICON_NORMAL = 0;
 const int ICON_GM = 4;

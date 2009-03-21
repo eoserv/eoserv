@@ -62,7 +62,6 @@ if (config.find(key) == config.end())\
 		CONFIG_DEFAULT("ESF"                , "./data/pub/dsl001.esf");
 		CONFIG_DEFAULT("ECF"                , "./data/pub/dat001.ecf");
 		CONFIG_DEFAULT("NewsFile"           , "./data/news.txt");
-		CONFIG_DEFAULT("CensorFile"         , "./data/censor.txt");
 		CONFIG_DEFAULT("MapDir"             , "./data/maps/");
 		CONFIG_DEFAULT("Maps"               , 278);
 		CONFIG_DEFAULT("NPCDir"             , "./data/npc/");
@@ -76,12 +75,11 @@ if (config.find(key) == config.end())\
 		CONFIG_DEFAULT("RecruitCost"        , 1000);
 		CONFIG_DEFAULT("GuildMaxMembers"    , 5000);
 		CONFIG_DEFAULT("GuildBankMax"       , 10000000);
+		CONFIG_DEFAULT("ShowLevel"          , 0);
 		CONFIG_DEFAULT("IPConnectLimit"     , 3);
 		CONFIG_DEFAULT("IPReconnectLimit"   , 10);
 		CONFIG_DEFAULT("PKServer"           , 0);
 		CONFIG_DEFAULT("PKRestrict"         , 5);
-		CONFIG_DEFAULT("Deadly"             , 1);
-		CONFIG_DEFAULT("CensorNames"        , 1);
 		CONFIG_DEFAULT("WarpBubbles"        , 1);
 		CONFIG_DEFAULT("HideGlobal"         , 0);
 		CONFIG_DEFAULT("HideBuffer"         , 0);
@@ -97,6 +95,7 @@ if (config.find(key) == config.end())\
 		CONFIG_DEFAULT("MaxSkills"          , 48);
 		CONFIG_DEFAULT("MaxMessageLength"   , 128);
 		CONFIG_DEFAULT("GhostTimer"         , 4);
+		CONFIG_DEFAULT("AttackLimit"        , 251);
 		CONFIG_DEFAULT("DropTimer"          , 120);
 		CONFIG_DEFAULT("DropAmount"         , 15);
 		CONFIG_DEFAULT("ProctectPlayerDrop" , 5);
@@ -118,6 +117,7 @@ if (config.find(key) == config.end())\
 		CONFIG_DEFAULT("JailX"              , 6);
 		CONFIG_DEFAULT("JailY"              , 5);
 		CONFIG_DEFAULT("StartItems"         , "");
+		CONFIG_DEFAULT("StartSpells"        , "");
 		CONFIG_DEFAULT("StartEquipMale"     , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
 		CONFIG_DEFAULT("StartEquipFemale"   , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
 		CONFIG_DEFAULT("MinHairStyle"       , 20);

@@ -53,7 +53,7 @@ CLIENT_F_FUNC(Warp)
 				reply.AddShort(character->y);
 				reply.AddChar(character->direction);
 				reply.AddChar(6); // ?
-				reply.AddString("SEX"); // guild tag
+				reply.AddString(character->PaddedGuildTag());
 				reply.AddChar(character->level);
 				reply.AddChar(character->gender);
 				reply.AddChar(character->hairstyle);

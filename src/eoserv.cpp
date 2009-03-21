@@ -72,7 +72,7 @@ std::string DollSerialize(util::array<int, 15> list)
 
 	serialized.reserve(15*5); // Reserve some space to stop some mass-reallocations
 
-	for (int i = 0; i < 15; ++i)
+	for (std::size_t i = 0; i < 15; ++i)
 	{
 		serialized.append(static_cast<std::string>(util::variant(list[i])));
 		serialized.append(",");
@@ -87,7 +87,7 @@ util::array<int, 15> DollUnserialize(std::string serialized)
 {
 	util::array<int, 15> list;
 	// Initialize all paperdoll entrys to 0 in case some are missing in the serialized value
-	for (int i = 0; i < 15; ++i)
+	for (std::size_t i = 0; i < 15; ++i)
 	{
 		list[i] = 0;
 	}

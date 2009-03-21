@@ -39,6 +39,7 @@ CLIENT_F_FUNC(Character)
 
 			if (!Character::ValidName(name))
 			{
+				printf("invalid: %s\n", name.c_str());
 				reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
 				reply.AddShort(PACKET_CHARACTER_NOT_APPROVED); // Reply code
 				CLIENT_SEND(reply);

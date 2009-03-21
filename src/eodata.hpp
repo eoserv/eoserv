@@ -82,7 +82,7 @@ struct EIF_Data
 	std::string name;
 	int graphic;
 	EIF::Type type;
-	int classreq;
+
 	EIF::Special special;
 	int hp;
 	int tp;
@@ -103,6 +103,7 @@ struct EIF_Data
 	{
 		int scrollmap;
 		int dollgraphic;
+		int expreward;
 	};
 	union
 	{
@@ -110,6 +111,10 @@ struct EIF_Data
 		int scrollx;
 	};
 	int scrolly;
+
+	int classreq;
+
+	int weight;
 };
 
 class ENF

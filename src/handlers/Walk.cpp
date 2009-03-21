@@ -45,7 +45,7 @@ CLIENT_F_FUNC(Walk)
 					builder.AddShort(character->y);
 					builder.AddChar(character->direction);
 					builder.AddChar(6); // ?
-					builder.AddString("SEX"); // guild tag
+					builder.AddString(character->PaddedGuildTag());
 					builder.AddChar(character->level);
 					builder.AddChar(character->gender);
 					builder.AddChar(character->hairstyle);

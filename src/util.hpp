@@ -17,50 +17,45 @@ namespace util
 #define UTIL_FOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (typeof(*(container.begin())) as; util_i < 1; ++util_i) for (typeof(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = *(util_it)):(as = *container.begin())), util_it != container.end(); as = *(util_it++))
 #define UTIL_IFOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (typeof(container.begin()) as; util_i < 1; ++util_i) for (typeof(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = util_it):(as = container.begin())), util_it != container.end(); as = util_it++)
 
-template <typename T, std::size_t size> class array;
+template <typename _T, std::size_t _size> class array;
 class variant;
 
 /**
  * Generic and simple array class.
  */
-template <typename T, std::size_t size> class array
+template <typename _T, std::size_t _size> class array
 {
 	private:
-		T data[size];
+		_T data[_size];
 
 	public:
 		array() {}
-		array(T init)
+		array(_T init)
 		{
-			for (std::size_t i = 0; i < size; ++i)
+			for (std::size_t i = 0; i < _size; ++i)
 			{
 				data[i] = init;
 			}
 		}
 
-		array(T init[size])
+		array(_T init[_size])
 		{
-			std::memcpy((void *)this->data, (void *)init, sizeof(T) * size);
+			std::memcpy((void *)this->data, (void *)init, sizeof(_T) * _size);
 		}
 
-		T& assign(std::size_t index, T value)
+		_T &operator[](std::size_t index)
 		{
-			if (index >= size)
-			{
-				throw std::out_of_range("Out of range accessing array.");
-			}
-			this->data[index] = value;
-			return this->data[index];
-		}
-
-		T &operator[](std::size_t index)
-		{
-			if (index >= size)
+			if (index >= _size)
 			{
 				throw std::out_of_range("Out of range accessing array.");
 			}
 
 			return this->data[index];
+		}
+
+		std::size_t size()
+		{
+			return _size;
 		}
 };
 

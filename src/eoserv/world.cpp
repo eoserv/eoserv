@@ -40,7 +40,7 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	}
 
 #define CONFIG_DEFAULT(key, value)\
-if (config.find(key) == config.end())\
+if (aconfig.find(key) == aconfig.end())\
 {\
 	util::variant vv = util::variant(value);\
 	config[key] = vv;\

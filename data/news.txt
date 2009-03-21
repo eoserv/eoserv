@@ -1,0 +1,4 @@
+Welcome to my server!
+To edit/add news posts, edit data/news.txt
+The first line is the MotD, and following lines are shown as news posts.
+Up to 8 news posts can be shown in the EO client
