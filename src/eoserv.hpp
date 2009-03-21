@@ -37,7 +37,7 @@ extern Config admin_config;
 
 // ewww
 class EOClient;
-template <class T> class EOServer;
+class EOServer;
 
 class World
 {
@@ -47,7 +47,7 @@ class World
 	public:
 		Timer timer;
 
-		EOServer<EOClient> *server;
+		EOServer *server;
 
 		std::list<Character *> characters;
 		std::list<Guild *> guilds;
@@ -72,7 +72,8 @@ class World
 		void Reboot();
 		void Reboot(int seconds, std::string reason);
 
-		void Kick(Character *from, Character *victim);
+		void Kick(Character *from, Character *victim, bool announce = true);
+		void Ban(Character *from, Character *victim, double duration, bool announce = true);
 
 		Character *GetCharacter(std::string name);
 };

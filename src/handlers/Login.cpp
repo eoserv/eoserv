@@ -32,6 +32,12 @@ CLIENT_F_FUNC(Login)
 			this->player->id = this->id;
 			this->player->client = this;
 
+			if (the_world->server->UsernameBanned(username))
+			{
+				this->Close();
+				return false;
+			}
+
 			reply.AddShort(PACKET_LOGIN_OK);
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??

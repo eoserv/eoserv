@@ -37,9 +37,16 @@ CLIENT_F_FUNC(Character)
 			if (haircolor < 0 || haircolor > 9) return false;
 			if (race < 0 || race > 3) return false;
 
+			if (this->player->characters.size() >= static_cast<std::size_t>(static_cast<int>(eoserv_config["MaxCharacters"])))
+			{
+				reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
+				reply.AddShort(PACKET_CHARACTER_FULL); // Reply code
+				CLIENT_SEND(reply);
+				return true;
+			}
+
 			if (!Character::ValidName(name))
 			{
-				printf("invalid: %s\n", name.c_str());
 				reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
 				reply.AddShort(PACKET_CHARACTER_NOT_APPROVED); // Reply code
 				CLIENT_SEND(reply);

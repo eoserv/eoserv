@@ -137,6 +137,8 @@ class IPAddress
 		 * Return the IP address as a string (eg 255.255.255.255).
 		 */
 		operator std::string();
+
+		bool operator ==(const IPAddress &);
 };
 
 /**
@@ -439,7 +441,7 @@ template <class T = Client> class Server
 				{
 					if (FD_ISSET((*it)->sock, &this->except_fds))
 					{
-						(*it)->connected = false;
+						(*it)->Close();
 						continue;
 					}
 
@@ -454,13 +456,13 @@ template <class T = Client> class Server
 						}
 						else
 						{
-							(*it)->connected = false;
+							(*it)->Close();
 							continue;
 						}
 
 						if ((*it)->recv_buffer.length() > this->recv_buffer_max)
 						{
-							(*it)->connected = false;
+							(*it)->Close();
 							continue;
 						}
 					}
@@ -470,7 +472,7 @@ template <class T = Client> class Server
 						int written = send((*it)->sock, (*it)->send_buffer.c_str(), (*it)->send_buffer.length(), 0);
 						if (written == SOCKET_ERROR)
 						{
-							(*it)->connected = false;
+							(*it)->Close();
 							continue;
 						}
 						(*it)->send_buffer.erase(0,written);

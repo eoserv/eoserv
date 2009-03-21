@@ -222,6 +222,8 @@ std::vector<std::string> explode(char delimiter, std::string);
  */
 typedef variant var;
 
+double tdparse(std::string timestr);
+
 }
 
 #endif // UTIL_HPP_INCLUDED

@@ -7,6 +7,7 @@
 #include "packet.hpp"
 #include "eoclient.hpp"
 #include "eoserv.hpp"
+#include "timer.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
@@ -15,7 +16,7 @@ case ID: \
 
 void server_ping_all(void *server_void)
 {
-	EOServer<EOClient> *server = (EOServer<EOClient> *)server_void;
+	EOServer *server = static_cast<EOServer *>(server_void);
 
 	PacketBuilder builder;
 
@@ -37,6 +38,75 @@ void server_ping_all(void *server_void)
 	}
 }
 
+void EOServer::Initialize(util::array<std::string, 5> dbinfo, Config config)
+{
+	this->world = new World(dbinfo, config);
+	this->world->timer.Register(new TimeEvent(server_ping_all, (void *)this, 60.0, Timer::FOREVER));
+	this->world->server = this;
+}
+
+void EOServer::AddBan(std::string username, IPAddress address, std::string hdid, double duration)
+{
+	double now = Timer::GetTime();
+	restart_loop:
+	UTIL_FOREACH(this->bans, ban)
+	{
+		if (ban.expires < now)
+		{
+			this->bans.erase(util_it);
+			goto restart_loop;
+		}
+	}
+	EOServer_Ban newban;
+	newban.username = username;
+	newban.address = address;
+	newban.hdid = hdid;
+	newban.expires = now + duration;
+	bans.push_back(newban);
+}
+
+bool EOServer::UsernameBanned(std::string username)
+{
+	double now = Timer::GetTime();
+	UTIL_FOREACH(this->bans, ban)
+	{
+		if (ban.expires > now && ban.username == username)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool EOServer::AddressBanned(IPAddress address)
+{
+	double now = Timer::GetTime();
+	UTIL_FOREACH(this->bans, ban)
+	{
+		if (ban.expires > now && ban.address == address)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool EOServer::HDIDBanned(std::string hdid)
+{
+	double now = Timer::GetTime();
+	UTIL_FOREACH(this->bans, ban)
+	{
+		if (ban.expires > now && ban.hdid == hdid)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void EOClient::Initialize()
 {
 	this->id = the_world->GeneratePlayerID();
@@ -45,6 +115,7 @@ void EOClient::Initialize()
 	this->player = 0;
 	this->version = 0;
 	this->needpong = false;
+	this->init = false;
 }
 
 void EOClient::Execute(std::string data)
@@ -64,6 +135,12 @@ void EOClient::Execute(std::string data)
 	if (family != PACKET_INIT)
 	{
 		reader.GetChar(); // Ordering Byte
+	}
+
+	if (!this->init && family != PACKET_INIT)
+	{
+		this->Close();
+		return;
 	}
 
 	switch (family)

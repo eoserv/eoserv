@@ -94,6 +94,7 @@ if (config.find(key) == config.end())\
 		CONFIG_DEFAULT("MaxSkillLevel"      , 100);
 		CONFIG_DEFAULT("MaxSkills"          , 48);
 		CONFIG_DEFAULT("MaxMessageLength"   , 128);
+		CONFIG_DEFAULT("MaxCharacters"      , 3);
 		CONFIG_DEFAULT("GhostTimer"         , 4);
 		CONFIG_DEFAULT("AttackLimit"        , 251);
 		CONFIG_DEFAULT("DropTimer"          , 120);
@@ -129,6 +130,7 @@ if (config.find(key) == config.end())\
 		CONFIG_DEFAULT("CreateMaxHairColor" , 12);
 		CONFIG_DEFAULT("CreateMinSkin"      , 0);
 		CONFIG_DEFAULT("CreateMaxSkin"      , 3);
+		CONFIG_DEFAULT("DefaultBanLength"   , "2h");
 		CONFIG_DEFAULT("ExpRate"            , 100);
 		CONFIG_DEFAULT("DropRate"           , 100);
 		CONFIG_DEFAULT("GoldRate"           , 100);
@@ -203,7 +205,7 @@ EO Version Support: .27 .28\n\
 		dbinfo[3] = static_cast<std::string>(config["DBPass"]);
 		dbinfo[4] = static_cast<std::string>(config["DBName"]);
 
-		EOServer<EOClient> server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config);
+		EOServer server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config);
 
 		if (server.State() == Server<EOClient>::Invalid)
 		{

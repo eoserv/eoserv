@@ -4,6 +4,7 @@
 #include <list>
 #include <vector>
 #include <cstdio>
+#include <cmath>
 #include <string>
 
 namespace util
@@ -218,6 +219,43 @@ std::vector<std::string> explode(char delimiter, std::string str)
 	pieces.push_back(str.substr(lastpos));
 
 	return pieces;
+}
+
+double tdparse(std::string timestr)
+{
+	static char period_names[] = {'s', 'm',  'h',    'd'    };
+	static double period_mul[] = {1.0, 60.0, 3600.0, 86400.0};
+	double ret = 0.0;
+	double val = 0;
+
+	for (std::size_t i = 0; i < timestr.length(); ++i)
+	{
+		char c = timestr.c_str()[i];
+		bool found = false;
+
+		if (c >= 'A' && c <= 'Z')
+		{
+			c -= 'A' - 'a';
+		}
+
+		for (int i = 0; i < sizeof(period_names)/sizeof(char); ++i)
+		{
+			if (c == period_names[i])
+			{
+				ret += val * period_mul[i];
+				found = true;
+				val = false;
+			}
+		}
+
+		if (!found)
+		{
+			val *= 10;
+			val += c - '0';
+		}
+	}
+
+	return ret;
 }
 
 }

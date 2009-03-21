@@ -613,8 +613,16 @@ const std::string &PacketBuilder::AddString(const std::string &str)
 
 const std::string &PacketBuilder::AddBreakString(const std::string &str, unsigned char breakchar)
 {
-	this->length += str.length() + 1;
-	this->data += str;
+	std::string tempstr(str);
+	std::size_t breakin = tempstr.find_first_of(breakchar);
+	while (breakin != std::string::npos)
+	{
+		tempstr[breakin] = 'y';
+		breakin = tempstr.find_first_of(breakchar, breakin+1);
+	}
+
+	this->length += tempstr.length() + 1;
+	this->data += tempstr;
 	this->data += breakchar;
 
 	return str;

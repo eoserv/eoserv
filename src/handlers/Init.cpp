@@ -69,6 +69,19 @@ CLIENT_F_FUNC(Init)
 	reader.GetChar(); // ?
 	reader.GetChar(); // ?
 	this->version = reader.GetChar();
+	reader.GetChar(); // ?
+	reader.GetChar(); // ?
+	this->hdid = reader.GetEndString();
+
+	if (the_world->server->AddressBanned(this->GetRemoteAddr()))
+	{
+		this->Close();
+	}
+
+	if (the_world->server->HDIDBanned(this->hdid))
+	{
+		this->Close();
+	}
 
 	/*if (this->version < 27 || this->version > 28)
 	{
@@ -93,5 +106,6 @@ CLIENT_F_FUNC(Init)
 
 	CLIENT_SENDRAW(reply);
 
+	this->init = true;
 	return true;
 }

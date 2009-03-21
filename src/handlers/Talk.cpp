@@ -69,7 +69,22 @@ CLIENT_F_FUNC(Talk)
 					Character *victim = the_world->GetCharacter(arguments[0]);
 					if (victim)
 					{
-						the_world->Kick(this->player->character, victim);
+						if (victim->admin < this->player->character->admin)
+						{
+							the_world->Kick(this->player->character, victim);
+						}
+					}
+				}
+				else if (command.length() >= 1 && command.compare(0,1,"b") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["ban"]))
+				{
+					Character *victim = the_world->GetCharacter(arguments[0]);
+					double duration = (arguments.size() >= 2)?util::tdparse(arguments[1]):util::tdparse(eoserv_config["DefaultBanLength"]);
+					if (victim)
+					{
+						if (victim->admin < this->player->character->admin)
+						{
+							the_world->Ban(this->player->character, victim, duration);
+						}
 					}
 				}
 				else if (command.length() >= 2 && command.compare(0,2,"si") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["sitem"]))
@@ -82,6 +97,31 @@ CLIENT_F_FUNC(Talk)
 						reply.AddShort(0); // UID
 						reply.AddShort(id);
 						reply.AddThree(amount);
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
+						CLIENT_SEND(reply);
+					}
+				}
+				else if (command.length() >= 2 && command.compare(0,2,"di") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["ditem"]))
+				{
+					int id = static_cast<int>(util::variant(arguments[0]));
+					int amount = (arguments.size() >= 2)?static_cast<int>(util::variant(arguments[1])):1;
+					int x = (arguments.size() >= 3)?static_cast<int>(util::variant(arguments[2])):this->player->character->x;
+					int y = (arguments.size() >= 4)?static_cast<int>(util::variant(arguments[3])):this->player->character->y;
+					if (this->player->character->HasItem(id) >= amount)
+					{
+						Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
+						item->owner = this->player->id;
+						item->unprotecttime = Timer::GetTime() + static_cast<double>(eoserv_config["ProctectPlayerDrop"]);
+						this->player->character->DelItem(id, amount);
+
+						reply.SetID(PACKET_ITEM, PACKET_DROP);
+						reply.AddShort(id);
+						reply.AddThree(amount);
+						reply.AddInt(this->player->character->HasItem(id));
+						reply.AddShort(item->uid);
+						reply.AddChar(x);
+						reply.AddChar(y);
 						reply.AddChar(this->player->character->weight);
 						reply.AddChar(this->player->character->maxweight);
 						CLIENT_SEND(reply);

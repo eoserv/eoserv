@@ -462,7 +462,7 @@ void Character::Warp(int map, int x, int y, int animation)
 	this->mapid = map;
 	this->x = x;
 	this->y = y;
-	this->map->Enter(this);
+	this->map->Enter(this, animation);
 
 	this->warp_anim = animation;
 

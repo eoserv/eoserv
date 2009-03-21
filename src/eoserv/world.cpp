@@ -80,6 +80,14 @@ if (aconfig.find(key) == aconfig.end())\
 	CONFIG_DEFAULT("sethomemap"    , 3);
 	CONFIG_DEFAULT("sethomex"      , 3);
 	CONFIG_DEFAULT("sethomey"      , 3);
+	CONFIG_DEFAULT("setgender"     , 3);
+	CONFIG_DEFAULT("sethairstyle"  , 3);
+	CONFIG_DEFAULT("sethaircolor"  , 3);
+	CONFIG_DEFAULT("setrace"       , 3);
+	CONFIG_DEFAULT("setguild"      , 3);
+	CONFIG_DEFAULT("setguildrank"  , 3);
+	CONFIG_DEFAULT("setkarma"      , 3);
+	CONFIG_DEFAULT("strip"         , 3);
 #undef CONFIG_DEFAULT
 
 	eoserv_config = config;
@@ -202,7 +210,13 @@ Character *World::GetCharacter(std::string name)
 	return selected;
 }
 
-void World::Kick(Character *from, Character *victim)
+void World::Kick(Character *from, Character *victim, bool announce)
 {
+	victim->player->client->Close();
+}
+
+void World::Ban(Character *from, Character *victim, double duration, bool announce)
+{
+	this->server->AddBan(victim->player->username, victim->player->client->GetRemoteAddr(), victim->player->client->hdid, duration);
 	victim->player->client->Close();
 }

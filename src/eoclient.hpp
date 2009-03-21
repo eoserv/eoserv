@@ -3,8 +3,9 @@
 
 #include <string>
 #include <cstddef>
+#include <list>
 
-template <class T> class EOServer;
+class EOServer;
 class EOClient;
 
 #include "socket.hpp"
@@ -17,24 +18,34 @@ class EOClient;
 
 void server_ping_all(void *server_void);
 
-template <class T> class EOServer : public Server<T>
+struct EOServer_Ban
+{
+	std::string username;
+	IPAddress address;
+	std::string hdid;
+	double expires;
+};
+
+class EOServer : public Server<EOClient>
 {
 	private:
-		void Initialize(util::array<std::string, 5> dbinfo, Config config)
-		{
-			this->world = new World(dbinfo, config);
-			this->world->timer.Register(new TimeEvent(server_ping_all, (void *)this, 60.0, Timer::FOREVER));
-			this->world->server = this;
-		}
+		void Initialize(util::array<std::string, 5> dbinfo, Config config);
 		EOServer(){};
+		std::list<EOServer_Ban> bans;
 
 	public:
 		World *world;
 
-		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, Config config) : Server<T>(addr, port)
+		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, Config config) : Server<EOClient>(addr, port)
 		{
 			this->Initialize(dbinfo, config);
 		}
+
+		void AddBan(std::string username, IPAddress address, std::string hdid, double duration);
+
+		bool UsernameBanned(std::string username);
+		bool AddressBanned(IPAddress address);
+		bool HDIDBanned(std::string hdid);
 };
 
 class EOClient : public Client
@@ -48,6 +59,8 @@ class EOClient : public Client
 		Player *player;
 		unsigned int id;
 		bool needpong;
+		std::string hdid;
+		bool init;
 
 		enum State
 		{

@@ -92,6 +92,11 @@ IPAddress::operator std::string()
 	return std::string(buf);
 }
 
+bool IPAddress::operator ==(const IPAddress &other)
+{
+	return (this->address == other.address);
+}
+
 Client::Client(void *server)
 {
 #ifdef WIN32

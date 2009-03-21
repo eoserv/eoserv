@@ -52,8 +52,6 @@ void Map::Enter(Character *character, int animation)
 	this->characters.push_back(character);
 	character->map = this;
 
-	// TODO: How do I set the animation here?
-
 	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
 
 	builder.AddByte(255);
@@ -86,6 +84,7 @@ void Map::Enter(Character *character, int animation)
 	builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 	builder.AddChar(character->sitting);
 	builder.AddChar(0); // visible
+	builder.AddChar(animation);
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
