@@ -123,6 +123,11 @@ void EOClient::Execute(std::string data)
 	unsigned char family;
 	unsigned char action;
 
+	if (data.length() < 2)
+	{
+		return;
+	}
+
 	data = processor.Decode(data);
 
 	family = data[1];
@@ -137,8 +142,9 @@ void EOClient::Execute(std::string data)
 		reader.GetChar(); // Ordering Byte
 	}
 
-	if (!this->init && family != PACKET_INIT)
+	if (!this->init && family != PACKET_INIT && family != PACKET_PLAYERS)
 	{
+		printf("CAN'T %i YET\n", family);
 		this->Close();
 		return;
 	}

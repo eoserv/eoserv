@@ -32,7 +32,7 @@ CLIENT_F_FUNC(Talk)
 		{
 			if (!this->player || !this->player->character) return false;
 
-			message = reader.GetEndString(); // message
+			message = reader.GetEndString();
 			limit_message(message);
 
 			the_world->Msg(this->player->character, message);
@@ -41,7 +41,33 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_TELL: // Private chat message
 		{
+			if (!this->player || !this->player->character) return false;
 
+			std::string name = reader.GetBreakString();
+			message = reader.GetEndString();
+			limit_message(message);
+			Character *to = 0;
+
+			UTIL_FOREACH(the_world->characters, character)
+			{
+				if (character->name == name)
+				{
+					to = character;
+					break;
+				}
+			}
+
+			if (to)
+			{
+				to->Msg(this->player->character, message);
+			}
+			else
+			{
+				reply.SetID(PACKET_TALK, PACKET_REPLY);
+				reply.AddShort(PACKET_TALK_NOTFOUND);
+				reply.AddString(name);
+				CLIENT_SEND(reply);
+			}
 		}
 		break;
 
@@ -49,7 +75,7 @@ CLIENT_F_FUNC(Talk)
 		{
 			if (!this->player || !this->player->character) return false;
 
-			message = reader.GetEndString(); // message
+			message = reader.GetEndString();
 			limit_message(message);
 
 			if (message.empty())

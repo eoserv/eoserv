@@ -8,6 +8,34 @@ CLIENT_F_FUNC(Item)
 		case PACKET_USE: // Player using an item
 		{
 			if (!this->player || !this->player->character) return false;
+
+			int id = reader.GetShort();
+
+			if (this->player->character->HasItem(id))
+			{
+				this->player->character->DelItem(id, 1);
+				EIF_Data *item = eoserv_items->Get(id);
+				switch (item->type)
+				{
+					case EIF::Teleport:
+						if (item->scrollmap == 0)
+						{
+							this->player->character->Warp(this->player->character->spawnmap, this->player->character->spawnx, this->player->character->spawny, WARP_ANIMATION_ADMIN);
+						}
+						else
+						{
+							this->player->character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_ADMIN);
+						}
+						break;
+				}
+				reply.SetID(PACKET_ITEM, PACKET_REPLY);
+				reply.AddShort(id);
+				reply.AddInt(this->player->character->HasItem(id));
+				this->player->character->weight -= item->weight;
+				reply.AddChar(this->player->character->weight);
+				reply.AddChar(this->player->character->maxweight);
+				CLIENT_SEND(reply);
+			}
 		}
 		break;
 
@@ -71,6 +99,7 @@ CLIENT_F_FUNC(Item)
 				reply.AddShort(item->uid);
 				reply.AddChar(x);
 				reply.AddChar(y);
+				this->player->character->weight -= eoserv_items->Get(id)->weight;
 				reply.AddChar(this->player->character->weight);
 				reply.AddChar(this->player->character->maxweight);
 				CLIENT_SEND(reply);
@@ -91,6 +120,7 @@ CLIENT_F_FUNC(Item)
 			reply.AddShort(id);
 			reply.AddThree(amount); // Overflows, does it matter?
 			reply.AddInt(this->player->character->HasItem(id));
+			this->player->character->weight -= eoserv_items->Get(id)->weight;
 			reply.AddChar(this->player->character->weight);
 			reply.AddChar(this->player->character->maxweight);
 			CLIENT_SEND(reply);
@@ -126,6 +156,7 @@ CLIENT_F_FUNC(Item)
 					reply.AddShort(uid);
 					reply.AddShort(item.id);
 					reply.AddThree(item.amount);
+					this->player->character->weight += eoserv_items->Get(id)->weight;
 					reply.AddChar(this->player->character->weight);
 					reply.AddChar(this->player->character->maxweight);
 					CLIENT_SEND(reply);

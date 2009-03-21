@@ -75,6 +75,8 @@ const int PACKET_LOGIN_LOGGEDIN = 5;
 const int PACKET_WARP_LOCAL = 1;
 const int PACKET_WARP_SWITCH = 2;
 
+const int PACKET_TALK_NOTFOUND = 1;
+
 const int SIT_STAND = 0;
 const int SIT_CHAIR = 1;
 const int SIT_FLOOR = 2;

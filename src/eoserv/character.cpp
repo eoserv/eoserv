@@ -24,6 +24,10 @@ Character::Character(std::string name)
 	this->y = row["y"];
 	this->direction = row["direction"];
 
+	this->spawnmap = row["spawnmap"];
+	this->spawnx = row["spawnx"];
+	this->spawny = row["spawny"];
+
 	this->level = row["level"];
 	this->exp = row["exp"];
 
@@ -112,6 +116,16 @@ Character *Character::Create(Player *player, std::string name, int gender, int h
 void Character::Delete(std::string name)
 {
 	eoserv_db.Query("DELETE FROM `characters` WHERE name = '$'", name.c_str());
+}
+
+void Character::Msg(Character *from, std::string message)
+{
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_TALK, PACKET_TELL);
+	builder.AddBreakString(from->name);
+	builder.AddBreakString(message);
+	this->player->client->SendBuilder(builder);
 }
 
 void Character::Walk(int direction)
@@ -273,6 +287,10 @@ bool Character::Equip(int item, int subloc)
 			break;
 
 		case EIF::Armor:
+			if (eoserv_items->Get(item)->gender != this->gender)
+			{
+				return false;
+			}
 			if (this->paperdoll[Character::Armor] != 0)
 			{
 				return false;
