@@ -114,6 +114,9 @@ Database_Result Database::Query(const char *format, ...)
 		if (*p == '#'){
 			tempi = va_arg(ap,int);
 			finalquery += static_cast<std::string>(util::variant(tempi));
+		} else if (*p == '@'){
+			tempc = va_arg(ap,char *);
+			finalquery += static_cast<std::string>(tempc);
 		} else if (*p == '$'){
 			tempc = va_arg(ap,char *);
 			switch (this->engine)

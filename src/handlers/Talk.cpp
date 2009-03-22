@@ -32,6 +32,11 @@ CLIENT_F_FUNC(Talk)
 		{
 			if (!this->player || !this->player->character) return false;
 
+			if (this->player->character->mapid == static_cast<int>(eoserv_config["JailMap"]))
+			{
+				return false;
+			}
+
 			message = reader.GetEndString();
 			limit_message(message);
 
@@ -113,6 +118,17 @@ CLIENT_F_FUNC(Talk)
 						}
 					}
 				}
+				else if (command.length() >= 1 && command.compare(0,1,"j") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["jail"]))
+				{
+					Character *victim = the_world->GetCharacter(arguments[0]);
+					if (victim)
+					{
+						if (victim->admin < this->player->character->admin)
+						{
+							victim->Warp(static_cast<int>(eoserv_config["JailMap"]), static_cast<int>(eoserv_config["JailX"]), static_cast<int>(eoserv_config["JailY"]), WARP_ANIMATION_ADMIN);
+						}
+					}
+				}
 				else if (command.length() >= 2 && command.compare(0,2,"si") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["sitem"]))
 				{
 					int id = static_cast<int>(util::variant(arguments[0]));
@@ -137,44 +153,41 @@ CLIENT_F_FUNC(Talk)
 					if (this->player->character->HasItem(id) >= amount)
 					{
 						Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
-						item->owner = this->player->id;
-						item->unprotecttime = Timer::GetTime() + static_cast<double>(eoserv_config["ProctectPlayerDrop"]);
-						this->player->character->DelItem(id, amount);
+						if (item)
+						{
+							item->owner = this->player->id;
+							item->unprotecttime = Timer::GetTime() + static_cast<double>(eoserv_config["ProctectPlayerDrop"]);
+							this->player->character->DelItem(id, amount);
 
-						reply.SetID(PACKET_ITEM, PACKET_DROP);
-						reply.AddShort(id);
-						reply.AddThree(amount);
-						reply.AddInt(this->player->character->HasItem(id));
-						reply.AddShort(item->uid);
-						reply.AddChar(x);
-						reply.AddChar(y);
-						reply.AddChar(this->player->character->weight);
-						reply.AddChar(this->player->character->maxweight);
-						CLIENT_SEND(reply);
+							reply.SetID(PACKET_ITEM, PACKET_DROP);
+							reply.AddShort(id);
+							reply.AddThree(amount);
+							reply.AddInt(this->player->character->HasItem(id));
+							reply.AddShort(item->uid);
+							reply.AddChar(x);
+							reply.AddChar(y);
+							reply.AddChar(this->player->character->weight);
+							reply.AddChar(this->player->character->maxweight);
+							CLIENT_SEND(reply);
+						}
 					}
 				}
 				else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["warpmeto"]))
 				{
-					std::transform(arguments[0].begin(), arguments[0].end(), arguments[0].begin(), static_cast<int(*)(int)>(std::tolower));
-					UTIL_FOREACH(the_world->characters, character)
+					Character *victim = the_world->GetCharacter(arguments[0]);
+					if (victim)
 					{
-						if (character->name.compare(arguments[0]) == 0)
-						{
-							this->player->character->Warp(character->mapid, character->x, character->y, WARP_ANIMATION_ADMIN);
-							break;
-						}
+						this->player->character->Warp(victim->mapid, victim->x, victim->y, WARP_ANIMATION_ADMIN);
+						break;
 					}
 				}
 				else if (command.length() >= 5 && command.compare(0,5,"warpt") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["warptome"]))
 				{
-					std::transform(arguments[0].begin(), arguments[0].end(), arguments[0].begin(), static_cast<int(*)(int)>(std::tolower));
-					UTIL_FOREACH(the_world->characters, character)
+					Character *victim = the_world->GetCharacter(arguments[0]);
+					if (victim)
 					{
-						if (character->name.compare(arguments[0]) == 0)
-						{
-							character->Warp(this->player->character->mapid, this->player->character->x, this->player->character->y, WARP_ANIMATION_ADMIN);
-							break;
-						}
+						victim->Warp(this->player->character->mapid, this->player->character->x, this->player->character->y, WARP_ANIMATION_ADMIN);
+						break;
 					}
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"w") == 0 && arguments.size() >= 3 && this->player->character->admin >= static_cast<int>(admin_config["warp"]))

@@ -13,11 +13,15 @@ CLIENT_F_FUNC(Item)
 
 			if (this->player->character->HasItem(id))
 			{
-				this->player->character->DelItem(id, 1);
 				EIF_Data *item = eoserv_items->Get(id);
 				switch (item->type)
 				{
 					case EIF::Teleport:
+						if (this->player->character->mapid == static_cast<int>(eoserv_config["JailMap"]))
+						{
+							break;
+						}
+
 						if (item->scrollmap == 0)
 						{
 							this->player->character->Warp(this->player->character->spawnmap, this->player->character->spawnx, this->player->character->spawny, WARP_ANIMATION_ADMIN);
@@ -26,6 +30,10 @@ CLIENT_F_FUNC(Item)
 						{
 							this->player->character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_ADMIN);
 						}
+						this->player->character->DelItem(id, 1);
+						break;
+
+					default:
 						break;
 				}
 				reply.SetID(PACKET_ITEM, PACKET_REPLY);
@@ -62,6 +70,8 @@ CLIENT_F_FUNC(Item)
 			int x = reader.GetByte(); // ?
 			int y = reader.GetByte(); // ?
 
+			amount = std::min<int>(amount, eoserv_config["MaxDrop"]);
+
 			if (amount == 0)
 			{
 				return true;
@@ -85,24 +95,27 @@ CLIENT_F_FUNC(Item)
 				return true;
 			}
 
-			if (this->player->character->HasItem(id) >= amount)
+			if (this->player->character->HasItem(id) >= amount && this->player->character->mapid != static_cast<int>(eoserv_config["JailMap"]))
 			{
 				Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
-				item->owner = this->player->id;
-				item->unprotecttime = Timer::GetTime() + static_cast<double>(eoserv_config["ProctectPlayerDrop"]);
-				this->player->character->DelItem(id, amount);
+				if (item)
+				{
+					item->owner = this->player->id;
+					item->unprotecttime = Timer::GetTime() + static_cast<double>(eoserv_config["ProctectPlayerDrop"]);
+					this->player->character->DelItem(id, amount);
 
-				reply.SetID(PACKET_ITEM, PACKET_DROP);
-				reply.AddShort(id);
-				reply.AddThree(amount);
-				reply.AddInt(this->player->character->HasItem(id));
-				reply.AddShort(item->uid);
-				reply.AddChar(x);
-				reply.AddChar(y);
-				this->player->character->weight -= eoserv_items->Get(id)->weight;
-				reply.AddChar(this->player->character->weight);
-				reply.AddChar(this->player->character->maxweight);
-				CLIENT_SEND(reply);
+					reply.SetID(PACKET_ITEM, PACKET_DROP);
+					reply.AddShort(id);
+					reply.AddThree(amount);
+					reply.AddInt(this->player->character->HasItem(id));
+					reply.AddShort(item->uid);
+					reply.AddChar(x);
+					reply.AddChar(y);
+					this->player->character->weight -= eoserv_items->Get(id)->weight;
+					reply.AddChar(this->player->character->weight);
+					reply.AddChar(this->player->character->maxweight);
+					CLIENT_SEND(reply);
+				}
 			}
 		}
 		break;

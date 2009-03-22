@@ -144,7 +144,6 @@ void EOClient::Execute(std::string data)
 
 	if (!this->init && family != PACKET_INIT && family != PACKET_PLAYERS)
 	{
-		printf("CAN'T %i YET\n", family);
 		this->Close();
 		return;
 	}

@@ -108,12 +108,12 @@ if (config.find(key) == config.end())\
 		CONFIG_DEFAULT("PartyShareMode"     , 3);
 		CONFIG_DEFAULT("GhostNPC"           , 0);
 		CONFIG_DEFAULT("AllowStats"         , 1);
-		CONFIG_DEFAULT("StartMap"           , 192);
-		CONFIG_DEFAULT("StartX"             , 6);
-		CONFIG_DEFAULT("StartY"             , 6);
-		CONFIG_DEFAULT("SpawnMap"           , 192);
-		CONFIG_DEFAULT("SpawnX"             , 6);
-		CONFIG_DEFAULT("SpawnY"             , 6);
+		CONFIG_DEFAULT("StartMap"           , 0);
+		CONFIG_DEFAULT("StartX"             , 0);
+		CONFIG_DEFAULT("StartY"             , 0);
+		CONFIG_DEFAULT("SpawnMap"           , 0);
+		CONFIG_DEFAULT("SpawnX"             , 0);
+		CONFIG_DEFAULT("SpawnY"             , 0);
 		CONFIG_DEFAULT("JailMap"            , 76);
 		CONFIG_DEFAULT("JailX"              , 6);
 		CONFIG_DEFAULT("JailY"              , 5);

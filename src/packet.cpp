@@ -125,6 +125,18 @@ std::string PacketProcessor::Decode(const std::string &str)
 		i -= 2;
 	} while (i >= 0);
 
+	for (int i = 0; i < length; ++i)
+	{
+		if (newstr[i] == 128)
+		{
+			newstr[i] = 0;
+		}
+		else if (newstr[i] == 0)
+		{
+			newstr[i] = 128;
+		}
+	}
+
 	return this->DickWinderD(newstr);
 }
 
@@ -158,6 +170,18 @@ std::string PacketProcessor::Encode(const std::string &rawstr)
 	{
 		newstr[i] = (unsigned char)str[ii++] ^ 0x80;
 		i -= 2;
+	}
+
+	for (int i = 0; i < length; ++i)
+	{
+		if (newstr[i] == 128)
+		{
+			newstr[i] = 0;
+		}
+		else if (newstr[i] == 0)
+		{
+			newstr[i] = 128;
+		}
 	}
 
 	return newstr;
@@ -278,18 +302,6 @@ util::quadchar PacketProcessor::ENumber(unsigned int number, std::size_t &size)
 		{
 			size = i + 1;
 			break;
-		}
-	}
-
-	for (int i = 0; i < 4; ++i)
-	{
-		if (bytes[i] == 128)
-		{
-			bytes[i] = 0;
-		}
-		else if (bytes[i] == 0)
-		{
-			bytes[i] = 128;
 		}
 	}
 

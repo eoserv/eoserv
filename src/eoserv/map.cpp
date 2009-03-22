@@ -198,7 +198,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newy = from->y - seedistance + std::abs(i);
 					newx = from->x + i;
-					oldy = from->y + seedistance+1 - std::abs(i);
+					oldy = from->y + seedistance - 1 - std::abs(i);
 					oldx = from->x + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -217,7 +217,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newx = from->x + seedistance - std::abs(i);
 					newy = from->y + i;
-					oldx = from->x - seedistance+1 + std::abs(i);
+					oldx = from->x - seedistance - 1 + std::abs(i);
 					oldy = from->y + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -236,7 +236,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newy = from->y + seedistance - std::abs(i);
 					newx = from->x + i;
-					oldy = from->y - seedistance+1 + std::abs(i);
+					oldy = from->y - seedistance - 1 + std::abs(i);
 					oldx = from->x + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -255,7 +255,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newx = from->x - seedistance + std::abs(i);
 					newy = from->y + i;
-					oldx = from->x + seedistance+1 - std::abs(i);
+					oldx = from->x + seedistance - 1 - std::abs(i);
 					oldy = from->y + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -585,6 +585,26 @@ Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 	builder.AddThree(amount);
 	builder.AddChar(x);
 	builder.AddChar(y);
+
+	if (from || from->admin <= ADMIN_GM)
+	{
+		int ontile = 0;
+		int onmap = 0;
+
+		UTIL_FOREACH(this->items, item)
+		{
+			++onmap;
+			if (item.x == x && item.y == y)
+			{
+				++ontile;
+			}
+		}
+
+		if (ontile >= static_cast<int>(eoserv_config["MaxTile"]) || onmap >= static_cast<int>(eoserv_config["MaxMap"]))
+		{
+			return 0;
+		}
+	}
 
 	UTIL_FOREACH(this->characters, character)
 	{

@@ -109,7 +109,30 @@ bool Character::Exists(std::string name)
 
 Character *Character::Create(Player *player, std::string name, int gender, int hairstyle, int haircolor, int race)
 {
-	eoserv_db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`) VALUES ('$','$',#,#,#,#,'','','','')", name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race);
+	char buffer[1024];
+	std::string startmapinfo;
+	std::string startmapval;
+	std::string spawnmapinfo;
+	std::string spawnmapval;
+
+	if (static_cast<int>(eoserv_config["StartMap"]))
+	{
+		startmapinfo = ", `map`, `x`, `y`";
+		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["StartMap"]), static_cast<int>(eoserv_config["StartX"]), static_cast<int>(eoserv_config["StartY"]));
+		startmapval = buffer;
+	}
+
+	if (static_cast<int>(eoserv_config["SpawnMap"]))
+	{
+		spawnmapinfo = ", `spawnmap`, `spawnx`, `spawny`";
+		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["SpawnMap"]), static_cast<int>(eoserv_config["SpawnX"]), static_cast<int>(eoserv_config["SpawnY"]));
+		spawnmapval = buffer;
+	}
+
+	eoserv_db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`@@) VALUES ('$','$',#,#,#,#,'$','','$','$'@@)",
+		startmapinfo.c_str(), spawnmapinfo.c_str(), name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race,
+		static_cast<std::string>(eoserv_config["StartItems"]).c_str(), static_cast<std::string>(gender?eoserv_config["StartEquipMale"]:eoserv_config["StartEquipFemale"]).c_str(),
+		static_cast<std::string>(eoserv_config["StartSpells"]).c_str(), startmapval.c_str(), spawnmapval.c_str());
 	return new Character(name);
 }
 
@@ -189,6 +212,8 @@ bool Character::AddItem(int item, int amount)
 				return false;
 			}
 			it->amount += amount;
+
+			it->amount = std::min<int>(it->amount, eoserv_config["MaxItem"]);
 
 			this->CalculateStats();
 			return true;
