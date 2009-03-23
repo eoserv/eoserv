@@ -203,7 +203,7 @@ CLIENT_F_FUNC(Talk)
 
 					this->player->character->Warp(map, x, y, WARP_ANIMATION_ADMIN);
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && arguments.size() >= 3 && this->player->character->admin >= static_cast<int>(admin_config["rehash"]))
+				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && this->player->character->admin >= static_cast<int>(admin_config["rehash"]))
 				{
 					eoserv_config.Read("config.ini");
 					admin_config.Read("admin.ini");
