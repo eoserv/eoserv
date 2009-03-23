@@ -63,7 +63,7 @@ CLIENT_F_FUNC(Item)
 			{
 				amount = reader.GetThree();
 			}
-			else if (reader.Length() == 9)
+			else
 			{
 				amount = reader.GetInt();
 			}

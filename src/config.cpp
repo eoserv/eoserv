@@ -13,6 +13,11 @@ Config::Config()
 
 Config::Config(std::string filename)
 {
+	this->Read(filename);
+}
+
+void Config::Read(std::string filename)
+{
 	std::FILE *fh;
 	char buf[Config::MaxLineLength];
 	std::string line;
@@ -63,7 +68,7 @@ Config::Config(std::string filename)
 		}
 		else
 		{
-			val = "";
+			val = std::string("");
 		}
 
 		this->insert(std::pair<std::string, util::variant>(key, static_cast<util::variant>(val)));

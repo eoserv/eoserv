@@ -1,4 +1,4 @@
-#include <vector>
+
 CLIENT_F_FUNC(Login)
 {
 	PacketBuilder reply;
@@ -9,7 +9,7 @@ CLIENT_F_FUNC(Login)
 		{
 			if (this->player) return false;
 
-			std::string username =  reader.GetBreakString();
+			std::string username = reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
 			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));

@@ -29,12 +29,14 @@ class Config : public std::map<std::string, util::variant>
 		static const std::size_t MaxLineLength = 4096;
 
 		Config();
+		
+		Config(std::string filename);
 
 		/**
 		 * Reads all configuration data from the file to memory.
 		 * @param filename File to read from.
 		 */
-		Config(std::string filename);
+		void Read(std::string filename);
 };
 
 #endif // CONFIG_HPP_INCLUDED

@@ -127,7 +127,7 @@ std::string PacketProcessor::Decode(const std::string &str)
 
 	for (int i = 0; i < length; ++i)
 	{
-		if (newstr[i] == 128)
+		if (static_cast<unsigned char>(newstr[i]) == 128)
 		{
 			newstr[i] = 0;
 		}
@@ -174,7 +174,7 @@ std::string PacketProcessor::Encode(const std::string &rawstr)
 
 	for (int i = 0; i < length; ++i)
 	{
-		if (newstr[i] == 128)
+		if (static_cast<unsigned char>(newstr[i]) == 128)
 		{
 			newstr[i] = 0;
 		}

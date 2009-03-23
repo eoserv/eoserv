@@ -25,32 +25,7 @@ EIF::EIF(std::string filename)
 	char *namebuf;
 	std::string name;
 	char buf[EIF::DATA_SIZE] = {0,};
-	EIF_Data newdata;
-
-	newdata.id = 0;
-	newdata.graphic = 0;
-
-	newdata.hp = 0;
-	newdata.tp = 0;
-	newdata.mindam = 0;
-	newdata.maxdam = 0;
-	newdata.accuracy = 0;
-	newdata.evade = 0;
-	newdata.armor = 0;
-
-	newdata.str = 0;
-	newdata.intl = 0;
-	newdata.wis = 0;
-	newdata.agi = 0;
-	newdata.con = 0;
-	newdata.cha = 0;
-
-	newdata.scrollx = 0;
-	newdata.scrolly = 0;
-
-	newdata.classreq = 0;
-
-	newdata.weight = 0;
+	EIF_Data newdata = {0,};
 
 	this->nulldata = new EIF_Data;
 	*this->nulldata = newdata;
@@ -142,13 +117,7 @@ ENF::ENF(std::string filename)
 	char *namebuf;
 	std::string name;
 	char buf[ENF::DATA_SIZE] = {0,};
-	ENF_Data newdata;
-
-	newdata.id = 0;
-	newdata.graphic = 0;
-	newdata.boss = 0;
-	newdata.child = 0;
-	newdata.type = static_cast<ENF::Type>(0);
+	ENF_Data newdata = {0,};
 
 	this->nulldata = new ENF_Data;
 	*this->nulldata = newdata;
@@ -212,9 +181,7 @@ ESF::ESF(std::string filename)
 	char *namebuf;
 	std::string name;
 	char buf[ESF::DATA_SIZE] = {0,};
-	ESF_Data newdata;
-
-	newdata.id = 0;
+	ESF_Data newdata = {0,};
 
 	this->nulldata = new ESF_Data;
 	*this->nulldata = newdata;
@@ -271,9 +238,7 @@ ECF::ECF(std::string filename)
 	char *namebuf;
 	std::string name;
 	char buf[ECF::DATA_SIZE] = {0,};
-	ECF_Data newdata;
-
-	newdata.id = 0;
+	ECF_Data newdata = {0,};
 
 	this->nulldata = new ECF_Data;
 	*this->nulldata = newdata;

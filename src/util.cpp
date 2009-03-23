@@ -54,7 +54,8 @@ int variant::GetInt()
 			break;
 
 		case type_string:
-			sscanf(this->val_string.c_str(), "%d", &this->val_int);
+			this->val_int = 0;
+			std::sscanf(this->val_string.c_str(), "%d", &this->val_int);
 			break;
 	}
 
@@ -66,11 +67,12 @@ double variant::GetFloat()
 	switch (this->type)
 	{
 		case type_int:
-			this->val_float = double(this->val_int);
+			this->val_float = static_cast<double>(this->val_int);
 			break;
 
 		case type_string:
-			sscanf(this->val_string.c_str(), "%lf", &this->val_float);
+			this->val_float = 0.0;
+			std::sscanf(this->val_string.c_str(), "%lf", &this->val_float);
 			break;
 	}
 
@@ -84,12 +86,12 @@ std::string variant::GetString()
 	switch (this->type)
 	{
 		case type_int:
-			snprintf(buf, 1024, "%i", this->val_int);
+			std::snprintf(buf, 1024, "%i", this->val_int);
 			this->val_string = buf;
 			break;
 
 		case type_float:
-			snprintf(buf, 1024, "%f", this->val_float);
+			std::snprintf(buf, 1024, "%f", this->val_float);
 			this->val_string = buf;
 			break;
 	}
@@ -238,7 +240,7 @@ double tdparse(std::string timestr)
 			c -= 'A' - 'a';
 		}
 
-		for (int i = 0; i < sizeof(period_names)/sizeof(char); ++i)
+		for (std::size_t i = 0; i < sizeof(period_names)/sizeof(char); ++i)
 		{
 			if (c == period_names[i])
 			{
