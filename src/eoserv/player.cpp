@@ -1,7 +1,7 @@
 
 Player::Player(std::string username)
 {
-	Database_Result res = eoserv_db.Query("SELECT * FROM `accounts` WHERE `username` = '$'", username.c_str());
+	Database_Result res = eoserv_db.Query("SELECT `username`, `password` FROM `accounts` WHERE `username` = '$'", username.c_str());
 	if (res.empty())
 	{
 		return;
@@ -53,7 +53,7 @@ Player *Player::Login(std::string username, std::string password)
 {
 	password = static_cast<std::string>(eoserv_config["PasswordSalt"]) + username + password;
 	sha256(password);
-	Database_Result res = eoserv_db.Query("SELECT * FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.c_str());
+	Database_Result res = eoserv_db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.c_str());
 	if (res.empty())
 	{
 		return 0;

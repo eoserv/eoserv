@@ -194,8 +194,6 @@ Character *World::GetCharacter(std::string name)
 
 	std::transform(name.begin(), name.end(), name.begin(), static_cast<int(*)(int)>(std::tolower));
 
-	std::printf("name = %s\n",name.c_str());
-
 	UTIL_FOREACH(this->characters, character)
 	{
 		if (character->name.compare(name) == 0)
