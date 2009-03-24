@@ -1,13 +1,13 @@
 
-extern "C"
-{
-#include "sha256.h"
-}
-
 #include "hash.hpp"
 
 #include <string>
 #include <cstring>
+
+extern "C"
+{
+#include "sha256.h"
+}
 
 void sha256(std::string &str)
 {

@@ -35,8 +35,6 @@ int main()
 			std::fputs("WARNING: Could not load config.ini - using defaults\n", stderr);
 		}
 
-		std::printf("StartItems = %i\n",static_cast<int>(config["test"]));
-
 #define CONFIG_DEFAULT(key, value) if (config.find(key) == config.end()){config[key] = util::variant(value); std::fprintf(stderr, "WARNING: Could not load config value '%s' - using default (%s)\n", key, static_cast<std::string>(config[key]).c_str());}
 		CONFIG_DEFAULT("LogOut"             , "-")
 		CONFIG_DEFAULT("LogErr"             , "error.log")

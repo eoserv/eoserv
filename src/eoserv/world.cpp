@@ -38,7 +38,7 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 		std::fputs("WARNING: Could not load admin.ini - using defaults\n", stderr);
 	}
 
-#define CONFIG_DEFAULT(key, value) if (config.find(key) == config.end()){config[key] = util::variant(value); std::fprintf(stderr, "WARNING: Could not load admin config value '%s' - using default (%s)\n", key, static_cast<std::string>(config[key]).c_str());}
+#define CONFIG_DEFAULT(key, value) if (aconfig.find(key) == aconfig.end()){aconfig[key] = util::variant(value); std::fprintf(stderr, "WARNING: Could not load admin config value '%s' - using default (%s)\n", key, static_cast<std::string>(aconfig[key]).c_str());}
 	CONFIG_DEFAULT("item"          , 1)
 	CONFIG_DEFAULT("npc"           , 1)
 	CONFIG_DEFAULT("spell"         , 1)
