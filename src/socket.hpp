@@ -81,12 +81,12 @@ class IPAddress
 		/**
 		 * Initialize the address to the integer value.
 		 */
-		IPAddress(uint32_t);
+		IPAddress(unsigned int);
 
 		/**
 		 * Initialize the address using 4 octets.
 		 */
-		IPAddress(uint8_t, uint8_t, uint8_t, uint8_t);
+		IPAddress(unsigned char, unsigned char, unsigned char, unsigned char);
 
 		/**
 		 * Initialize the address using a string (eg 255.255.255.255).
@@ -106,7 +106,7 @@ class IPAddress
 		/**
 		 * Set the address to an integer value
 		 */
-		IPAddress &operator =(uint32_t);
+		IPAddress &operator =(unsigned int);
 
 		/**
 		 * Set the address using a string (eg 255.255.255.255).
@@ -126,7 +126,7 @@ class IPAddress
 		/**
 		 * Return the IP address as an integer.
 		 */
-		operator uint32_t();
+		operator unsigned int();
 
 		/**
 		 * Return the IP address as a POSIX in_addr struct.

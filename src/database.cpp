@@ -70,24 +70,24 @@ void Database::Connect(Database::Engine type, std::string host, std::string user
 	{
 #ifdef DATABASE_MYSQL
 		case MySQL:
-			if ((this->handle.mysql_handle = mysql_init(0)) == 0)
+			if ((this->mysql_handle = mysql_init(0)) == 0)
 			{
-				throw Database_OpenFailed(mysql_error(this->handle.mysql_handle));
+				throw Database_OpenFailed(mysql_error(this->mysql_handle));
 			}
-			if (mysql_real_connect(this->handle.mysql_handle, host.c_str(), user.c_str(), pass.c_str(), 0, 0, 0, 0) != this->handle.mysql_handle)
+			if (mysql_real_connect(this->mysql_handle, host.c_str(), user.c_str(), pass.c_str(), 0, 0, 0, 0) != this->mysql_handle)
 			{
-				throw Database_OpenFailed(mysql_error(this->handle.mysql_handle));
+				throw Database_OpenFailed(mysql_error(this->mysql_handle));
 			}
-			if (mysql_select_db(this->handle.mysql_handle, db.c_str()) != 0)
+			if (mysql_select_db(this->mysql_handle, db.c_str()) != 0)
 			{
-				throw Database_OpenFailed(mysql_error(this->handle.mysql_handle));
+				throw Database_OpenFailed(mysql_error(this->mysql_handle));
 			}
 			break;
 #endif // DATABASE_MYSQL
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
-			if (sqlite3_open(host.c_str(), &this->handle.sqlite_handle) != SQLITE_OK)
+			if (sqlite3_open(host.c_str(), &this->sqlite_handle) != SQLITE_OK)
 			{
 				throw Database_OpenFailed("sqlite3err");
 			}
@@ -125,7 +125,7 @@ Database_Result Database::Query(const char *format, ...)
 				case MySQL:
 					tempi = strlen(tempc);
 					escret = new char[tempi*2+1];
-					mysql_real_escape_string(this->handle.mysql_handle, escret, tempc, tempi);
+					mysql_real_escape_string(this->mysql_handle, escret, tempc, tempi);
 					finalquery += escret;
 					delete escret;
 					break;
@@ -158,23 +158,23 @@ Database_Result Database::Query(const char *format, ...)
 			MYSQL_FIELD *fields;
 			int num_fields;
 
-			if (mysql_real_query(this->handle.mysql_handle, finalquery.c_str(), finalquery.length()) != 0)
+			if (mysql_real_query(this->mysql_handle, finalquery.c_str(), finalquery.length()) != 0)
 			{
-				throw Database_QueryFailed(mysql_error(this->handle.mysql_handle));
+				throw Database_QueryFailed(mysql_error(this->mysql_handle));
 			}
 
-			num_fields = mysql_field_count(this->handle.mysql_handle);
+			num_fields = mysql_field_count(this->mysql_handle);
 
-			if ((mresult = mysql_store_result(this->handle.mysql_handle)) == 0)
+			if ((mresult = mysql_store_result(this->mysql_handle)) == 0)
 			{
 				if (num_fields == 0)
 				{
-					result.affected_rows = mysql_affected_rows(this->handle.mysql_handle);
+					result.affected_rows = mysql_affected_rows(this->mysql_handle);
 					return result;
 				}
 				else
 				{
-					throw Database_QueryFailed(mysql_error(this->handle.mysql_handle));
+					throw Database_QueryFailed(mysql_error(this->mysql_handle));
 				}
 			}
 
@@ -220,9 +220,9 @@ Database_Result Database::Query(const char *format, ...)
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
-			if (sqlite3_exec(this->handle.sqlite_handle, finalquery.c_str(), sqlite_callback, (void *)this, 0) != SQLITE_OK)
+			if (sqlite3_exec(this->sqlite_handle, finalquery.c_str(), sqlite_callback, (void *)this, 0) != SQLITE_OK)
 			{
-				throw Database_QueryFailed(sqlite3_errmsg(this->handle.sqlite_handle));
+				throw Database_QueryFailed(sqlite3_errmsg(this->sqlite_handle));
 			}
 			result = this->callbackdata;
 			this->callbackdata.clear();

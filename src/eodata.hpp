@@ -17,6 +17,9 @@ class ENF;
 class ESF;
 class ECF;
 
+/**
+ * Loads and stores information on all items from an EIF file
+ */
 class EIF
 {
 	public:
@@ -75,7 +78,9 @@ class EIF
 		EIF_Data *Get(unsigned int id);
 };
 
-
+/**
+ * One item record in an EIF object
+ */
 struct EIF_Data
 {
 	int id;
@@ -117,6 +122,9 @@ struct EIF_Data
 	int weight;
 };
 
+/**
+ * Loads and stores information on all NPCs from an ENF file
+ */
 class ENF
 {
 	public:
@@ -148,6 +156,9 @@ class ENF
 
 };
 
+/**
+ * One NPC record in an ENF object
+ */
 struct ENF_Data
 {
 	int id;
@@ -161,6 +172,9 @@ struct ENF_Data
 	int exp;
 };
 
+/**
+ * Loads and stores information on all spells from an ESF file
+ */
 class ESF
 {
 	public:
@@ -173,12 +187,18 @@ class ESF
 
 };
 
+/**
+ * One spell record in an ESF object
+ */
 struct ESF_Data
 {
 	int id;
 	std::string name;
 };
 
+/**
+ * Loads and stores information on all classes from an ECF file
+ */
 class ECF
 {
 	public:
@@ -191,6 +211,9 @@ class ECF
 
 };
 
+/**
+ * One class record in an ECF object
+ */
 struct ECF_Data
 {
 	int id;

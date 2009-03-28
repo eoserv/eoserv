@@ -22,6 +22,8 @@ digraph global {
 	Party	[shape=box3d,URL="\ref Party"]
 	Player	[URL="\ref Player"]
 	Server	[shape=invhouse,URL="\ref Server"]
+	TimeEvent	[URL="\ref TimeEvent"]
+	Timer	[shape=box3d,URL="\ref Timer"]
 	variant	[URL="\ref util::variant",color=grey50]
 	World	[shape=box3d,URL="\ref World"]
 
@@ -43,6 +45,7 @@ digraph global {
 	World -> Party	[arrowhead=crow,style=dotted]
 	World -> Guild	[arrowhead=crow,style=dotted]
 	World -> Map	[arrowhead=crow,style=dotted]
+	World -> Timer
 
 	Party -> Player	[arrowhead=crow,style=dotted,color=grey70]
 
@@ -50,6 +53,8 @@ digraph global {
 
 	Map -> Player	[arrowhead=crow,style=dotted,color=grey70]
 	Map -> NPC	[arrowhead=crow,style=dotted]
+	
+	Timer -> TimeEvent	[arrowhead=crow,style=dotted]
 }
 
  * @enddot

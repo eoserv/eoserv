@@ -37,6 +37,7 @@ CLIENT_F_FUNC(Item)
 						break;
 				}
 				reply.SetID(PACKET_ITEM, PACKET_REPLY);
+				reply.AddChar(4); // ?
 				reply.AddShort(id);
 				reply.AddInt(this->player->character->HasItem(id));
 				this->player->character->weight -= item->weight;

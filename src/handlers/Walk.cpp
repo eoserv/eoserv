@@ -41,7 +41,7 @@ CLIENT_F_FUNC(Walk)
 				{
 					if (!this->player->character->Walk(direction))
 					{
-						return false;
+						return true;
 					}
 				}
 			}

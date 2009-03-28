@@ -66,6 +66,7 @@ std::list<Character_Item> ItemUnserialize(std::string serialized)
 
 	return list;
 }
+
 std::string DollSerialize(util::array<int, 15> list)
 {
 	std::string serialized;
@@ -102,6 +103,9 @@ util::array<int, 15> DollUnserialize(std::string serialized)
 	return list;
 }
 
+// Stop doxygen generating a gigantic include graph
+#ifndef DOXYGEN
+
 #include "eoserv/character.cpp"
 #include "eoserv/guild.cpp"
 #include "eoserv/map.cpp"
@@ -109,3 +113,5 @@ util::array<int, 15> DollUnserialize(std::string serialized)
 #include "eoserv/party.cpp"
 #include "eoserv/player.cpp"
 #include "eoserv/world.cpp"
+
+#endif // DOXYGEN

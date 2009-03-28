@@ -646,13 +646,13 @@ void Map::Face(Character *from, int direction)
 	}
 }
 
-void Map::Sit(Character *from)
+void Map::Sit(Character *from, int sit_type)
 {
 	PacketBuilder builder;
 
-	from->sitting = SIT_FLOOR;
+	from->sitting = sit_type;
 
-	builder.SetID(PACKET_SIT, PACKET_PLAYER);
+	builder.SetID((sit_type == SIT_CHAIR) ? PACKET_CHAIR : PACKET_SIT, PACKET_PLAYER);
 	builder.AddShort(from->player->id);
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
@@ -826,6 +826,16 @@ bool Map::Walkable(int x, int y)
 	}
 
 	return this->tiles[y][x].Walkable();
+}
+
+Map_Tile::TileSpec Map::GetSpec(int x, int y)
+{
+	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
+	{
+		return Map_Tile::None;
+	}
+
+	return this->tiles[y][x].tilespec;
 }
 
 Map_Warp *Map::GetWarp(int x, int y)

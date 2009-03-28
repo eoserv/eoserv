@@ -23,14 +23,14 @@ CLIENT_F_FUNC(Sit)
 				reply.AddChar(this->player->character->direction);
 				reply.AddChar(0); // ?
 				CLIENT_SEND(reply);
-				this->player->character->Sit();
+				this->player->character->Sit(SIT_FLOOR);
 
 				if (this->player->character->x != x || this->player->character->y != y)
 				{
 					// TODO: refresh out-of-sync players
 				}
 			}
-			else if (this->player->character->sitting != SIT_STAND)
+			else if (this->player->character->sitting == SIT_FLOOR)
 			{
 				reply.SetID(PACKET_SIT, PACKET_CLOSE);
 				reply.AddShort(this->player->id);

@@ -168,9 +168,9 @@ void Character::Attack(int direction)
 	this->map->Attack(this, direction);
 }
 
-void Character::Sit()
+void Character::Sit(int sit_type)
 {
-	this->map->Sit(this);
+	this->map->Sit(this, sit_type);
 }
 
 void Character::Stand()
@@ -512,6 +512,7 @@ void Character::Warp(int map, int x, int y, int animation)
 	this->mapid = map;
 	this->x = x;
 	this->y = y;
+	this->sitting = SIT_STAND;
 	this->map->Enter(this, animation);
 
 	this->warp_anim = animation;

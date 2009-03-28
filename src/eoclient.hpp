@@ -18,6 +18,9 @@ class EOClient;
 
 void server_ping_all(void *server_void);
 
+/**
+ * Information about a temporary in-memory ban
+ */
 struct EOServer_Ban
 {
 	std::string username;
@@ -26,6 +29,9 @@ struct EOServer_Ban
 	double expires;
 };
 
+/**
+ * A server which accepts connections and creates EOClient instances from them
+ */
 class EOServer : public Server<EOClient>
 {
 	private:
@@ -48,6 +54,9 @@ class EOServer : public Server<EOClient>
 		bool HDIDBanned(std::string hdid);
 };
 
+/**
+ * A connection between an EO Client and EOSERV
+ */
 class EOClient : public Client
 {
 	private:
@@ -90,6 +99,8 @@ class EOClient : public Client
 
 		void SendBuilder(PacketBuilder &packet);
 
+// Stop doxygen generating a gigantic list of functions
+#ifndef DOXYGEN
 		CLIENT_F_FUNC(Init);
 		CLIENT_F_FUNC(Connection);
 		CLIENT_F_FUNC(Account);
@@ -126,6 +137,7 @@ class EOClient : public Client
 		CLIENT_F_FUNC(Citizen);
 		//CLIENT_F_FUNC(Quest);
 		CLIENT_F_FUNC(Book);
+#endif // DOXYGEN
 
 		virtual ~EOClient();
 };

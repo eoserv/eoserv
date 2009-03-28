@@ -10,6 +10,9 @@
 #include <cstdarg>
 #include <stdexcept>
 
+/**
+ * Utility functions to assist with common tasks
+ */
 namespace util
 {
 
@@ -215,6 +218,9 @@ std::string rtrim(const std::string &);
  */
 std::string trim(const std::string &);
 
+/**
+ * Split a string in to a vector with a specified delimiter
+ */
 std::vector<std::string> explode(char delimiter, std::string);
 
 /**
@@ -222,6 +228,11 @@ std::vector<std::string> explode(char delimiter, std::string);
  */
 typedef variant var;
 
+/**
+ * Parse a string time period to a number
+ * @param timestr amount of time in a human readable format (eg. 2h30m)
+ * @return number of seconds
+ */
 double tdparse(std::string timestr);
 
 }
