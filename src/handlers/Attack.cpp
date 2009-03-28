@@ -12,6 +12,11 @@ CLIENT_F_FUNC(Attack)
 			int direction = reader.GetChar();
 			/*int timestamp = */reader.GetThree();
 
+			if (this->player->character->sitting != SIT_STAND)
+			{
+				return true;
+			}
+
 			if (direction >= 0 && direction <= 3)
 			{
 				this->player->character->Attack(direction);

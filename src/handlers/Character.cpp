@@ -33,9 +33,9 @@ CLIENT_F_FUNC(Character)
 			std::transform(name.begin(), name.end(), name.begin(), static_cast<int(*)(int)>(std::tolower));
 
 			if (gender < 0 || gender > 1) return false;
-			if (hairstyle < 1 || hairstyle > 20) return false;
-			if (haircolor < 0 || haircolor > 9) return false;
-			if (race < 0 || race > 3) return false;
+			if (hairstyle < static_cast<int>(eoserv_config["CreateMinHairStyle"]) || hairstyle > static_cast<int>(eoserv_config["CreateMaxHairStyle"])) return false;
+			if (haircolor < static_cast<int>(eoserv_config["CreateMinHairColor"]) || haircolor > static_cast<int>(eoserv_config["CreateMaxHairColor"])) return false;
+			if (race < static_cast<int>(eoserv_config["CreateMinSkin"]) || race > static_cast<int>(eoserv_config["CreateMaxSkin"])) return false;
 
 			if (this->player->characters.size() >= static_cast<std::size_t>(static_cast<int>(eoserv_config["MaxCharacters"])))
 			{

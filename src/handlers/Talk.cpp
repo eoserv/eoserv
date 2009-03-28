@@ -208,6 +208,15 @@ CLIENT_F_FUNC(Talk)
 					eoserv_config.Read("config.ini");
 					admin_config.Read("admin.ini");
 				}
+				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(admin_config["shutdown"]))
+				{
+					UTIL_FOREACH(the_world->characters, character)
+					{
+						the_world->Kick(0, character);
+					}
+					std::printf("Server shut down by %s\n", this->player->character->name.c_str());
+					exit(0);
+				}
 			}
 			else
 			{

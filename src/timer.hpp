@@ -22,6 +22,8 @@ class Timer
 
 		void Register(TimeEvent *);
 		void Unregister(TimeEvent *);
+
+		~Timer();
 };
 
 struct TimeEvent
@@ -32,8 +34,9 @@ struct TimeEvent
 	double speed;
 	double lasttime;
 	int lifetime;
+	bool autofree;
 
-	TimeEvent(TimerCallback callback, void *param, double speed, int lifetime = 1);
+	TimeEvent(TimerCallback callback, void *param, double speed, int lifetime = 1, bool autofree = false);
 
 	~TimeEvent();
 };

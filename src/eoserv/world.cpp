@@ -12,20 +12,6 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	}
 	eoserv_db.Connect(engine, dbinfo[1], dbinfo[2], dbinfo[3], dbinfo[4]);
 
-	this->maps.resize(279);
-	this->maps[0] = new Map(1); // Just in case
-	for (int i = 1; i <= 278; ++i)
-	{
-		this->maps[i] = new Map(i);
-	}
-	std::printf("%i maps loaded.\n", this->maps.size()-1);
-
-	the_world = this;
-
-	eoserv_items = new EIF("./data/pub/dat001.eif");
-	eoserv_npcs = new ENF("./data/pub/dtn001.enf");
-	eoserv_spells = new ESF("./data/pub/dsl001.esf");
-	eoserv_classes = new ECF("./data/pub/dat001.ecf");
 
 	Config aconfig;
 
@@ -54,7 +40,6 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	CONFIG_DEFAULT("warptome"      , 2)
 	CONFIG_DEFAULT("warpmeto"      , 2)
 	CONFIG_DEFAULT("evacuate"      , 2)
-	CONFIG_DEFAULT("restart"       , 4)
 	CONFIG_DEFAULT("shutdown"      , 4)
 	CONFIG_DEFAULT("rehash"        , 4)
 	CONFIG_DEFAULT("sitem"         , 4)
@@ -88,6 +73,26 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 
 	eoserv_config = config;
 	admin_config = aconfig;
+
+	this->maps.resize(static_cast<int>(eoserv_config["Maps"])+1);
+	this->maps[0] = new Map(1); // Just in case
+	int loaded = 0;
+	for (int i = 1; i <= static_cast<int>(eoserv_config["Maps"]); ++i)
+	{
+		this->maps[i] = new Map(i);
+		if (this->maps[i]->exists)
+		{
+			++loaded;
+		}
+	}
+	std::printf("%i/%i maps loaded.\n", loaded, this->maps.size()-1);
+
+	the_world = this;
+
+	eoserv_items = new EIF(static_cast<std::string>(eoserv_config["EIF"]));
+	eoserv_npcs = new ENF(static_cast<std::string>(eoserv_config["ENF"]));
+	eoserv_spells = new ESF(static_cast<std::string>(eoserv_config["ESF"]));
+	eoserv_classes = new ECF(static_cast<std::string>(eoserv_config["ECF"]));
 
 	this->last_character_id = 0;
 }

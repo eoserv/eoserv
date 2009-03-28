@@ -7,7 +7,12 @@ CLIENT_F_FUNC(Door)
 	{
 		case PACKET_OPEN: // User opening a door
 		{
+			if (!this->player || !this->player->character) return false;
 
+			int x = reader.GetChar();
+			int y = reader.GetChar();
+
+			this->player->character->map->OpenDoor(this->player->character, x, y);
 		}
 		break;
 

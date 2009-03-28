@@ -153,9 +153,14 @@ void Character::Msg(Character *from, std::string message)
 	this->player->client->SendBuilder(builder);
 }
 
-void Character::Walk(int direction)
+bool Character::Walk(int direction)
 {
-	this->map->Walk(this, direction);
+	return this->map->Walk(this, direction);
+}
+
+bool Character::AdminWalk(int direction)
+{
+	return this->map->Walk(this, direction, true);
 }
 
 void Character::Attack(int direction)

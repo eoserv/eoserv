@@ -5,9 +5,19 @@ CLIENT_F_FUNC(Walk)
 
 	switch (action)
 	{
+		case PACKET_MOVEADMIN: // Player walking (admin)
+		{
+			if (!this->player || !this->player->character) return false;
+
+			if (this->player->character->admin < ADMIN_GM)
+			{
+				return false;
+			}
+		}
+		// no break
+
 		case PACKET_PLAYER: // Player walking (normal)
 		case PACKET_MOVESPEC: // Player walking (ghost)
-		case PACKET_MOVEADMIN: // Player walking (admin)
 		{
 			if (!this->player || !this->player->character) return false;
 
@@ -16,9 +26,24 @@ CLIENT_F_FUNC(Walk)
 			int x = reader.GetChar();
 			int y = reader.GetChar();
 
+			if (this->player->character->sitting != SIT_STAND)
+			{
+				return true;
+			}
+
 			if (direction >= 0 && direction <= 3)
 			{
-				this->player->character->Walk(direction);
+				if (action == PACKET_MOVEADMIN)
+				{
+					this->player->character->AdminWalk(direction);
+				}
+				else
+				{
+					if (!this->player->character->Walk(direction))
+					{
+						return false;
+					}
+				}
 			}
 
 			if (this->player->character->x != x || this->player->character->y != y)

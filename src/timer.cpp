@@ -34,9 +34,19 @@ void Timer::Tick()
 		{
 			timer->callback(timer->param);
 			timer->lasttime += timer->speed;
+
 			if (timer->lifetime != Timer::FOREVER)
 			{
 				--timer->lifetime;
+			}
+
+			if (timer->lifetime == 0)
+			{
+				this->Unregister(timer);
+				if (timer->autofree)
+				{
+					delete timer;
+				}
 			}
 		}
 	}
@@ -53,18 +63,30 @@ void Timer::Unregister(TimeEvent *timer)
 	this->timers.remove(timer);
 }
 
-TimeEvent::TimeEvent(TimerCallback callback, void *param, double speed, int lifetime)
+Timer::~Timer()
+{
+	UTIL_FOREACH(this->timers, timer)
+	{
+		if (timer->autofree)
+		{
+			delete timer;
+		}
+	}
+}
+
+TimeEvent::TimeEvent(TimerCallback callback, void *param, double speed, int lifetime, bool autofree)
 {
 	this->callback = callback;
 	this->param = param;
 	this->speed = speed;
 	this->lifetime = lifetime;
 	this->manager = 0;
+	this->autofree = autofree;
 }
 
 TimeEvent::~TimeEvent()
 {
-	if (this->manager != 0)
+	if (this->manager != 0 && this->lifetime > 0)
 	{
 		this->manager->Unregister(this);
 	}

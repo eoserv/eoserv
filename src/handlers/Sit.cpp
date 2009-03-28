@@ -11,7 +11,7 @@ CLIENT_F_FUNC(Sit)
 
 			int action = reader.GetChar();
 
-			if (action == SIT_SITTING)
+			if (action == SIT_SITTING && this->player->character->sitting == SIT_STAND)
 			{
 				int x = reader.GetChar();
 				int y = reader.GetChar();
@@ -30,7 +30,7 @@ CLIENT_F_FUNC(Sit)
 					// TODO: refresh out-of-sync players
 				}
 			}
-			else
+			else if (this->player->character->sitting != SIT_STAND)
 			{
 				reply.SetID(PACKET_SIT, PACKET_CLOSE);
 				reply.AddShort(this->player->id);

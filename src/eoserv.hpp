@@ -26,6 +26,7 @@ struct NPC_Opponent;
 #include "eoconst.hpp"
 #include "timer.hpp"
 #include "socket.hpp"
+#include "packet.hpp"
 
 extern World *the_world;
 
@@ -91,11 +92,122 @@ struct Map_Item
 	double unprotecttime;
 };
 
+struct Map_Warp
+{
+	int map;
+	int x;
+	int y;
+	int levelreq;
+
+	enum WarpSpec
+	{
+		NoDoor,
+		Door,
+		LockedSilver,
+		LockedCrystal,
+		LockedWraith
+	};
+
+	WarpSpec spec;
+	bool open;
+
+	Map_Warp() : spec(Map_Warp::NoDoor), open(false) {}
+};
+
+struct Map_Tile
+{
+	enum TileSpec
+	{
+		None = -1,
+		Wall,
+		ChairDown,
+		ChairLeft,
+		ChairRight,
+		ChairUp,
+		ChairDownRight,
+		ChairUpLeft,
+		Door,
+		ChairAll,
+		Chest,
+		Unknown1,
+		Unknown2,
+		Unknown3,
+		Unknown4,
+		Unknown5,
+		Unknown6,
+		BankVault,
+		NPCBoundary,
+		MapEdge,
+		FakeWall,
+		Board1,
+		Board2,
+		Board3,
+		Board4,
+		Board5,
+		Board6,
+		Board7,
+		Jukebox,
+		Jump,
+		Water,
+		Unknown7,
+		Unknown8,
+		Arena,
+		AmbientSource,
+		Spikes1,
+		Spikes2,
+		Spikes3
+	};
+
+	TileSpec tilespec;
+
+	Map_Warp *warp;
+
+	Map_Tile() : tilespec(Map_Tile::None), warp(0) {}
+
+	bool Walkable()
+	{
+		switch (this->tilespec)
+		{
+			case Wall:
+			case ChairDown:
+			case ChairLeft:
+			case ChairRight:
+			case ChairUp:
+			case ChairDownRight:
+			case ChairUpLeft:
+			case ChairAll:
+			case Chest:
+			case BankVault:
+			case MapEdge:
+			case Board1:
+			case Board2:
+			case Board3:
+			case Board4:
+			case Board5:
+			case Board6:
+			case Board7:
+			case Jukebox:
+				return false;
+			default:
+				return true;
+		}
+	}
+
+	~Map_Tile()
+	{
+		if (this->warp)
+		{
+			delete this->warp;
+		}
+	}
+};
+
 class Map
 {
 	public:
 		int id;
 		char rid[4];
+		bool pk;
 		int filesize;
 		int width;
 		int height;
@@ -103,6 +215,7 @@ class Map
 		std::list<Character *> characters;
 		std::list<NPC *> npcs;
 		std::list<Map_Item> items;
+		std::map<int, std::map<int, Map_Tile> > tiles;
 		bool exists;
 
 		Map(int id);
@@ -113,15 +226,20 @@ class Map
 		void Leave(Character *, int animation = WARP_ANIMATION_NONE);
 
 		void Msg(Character *from, std::string message);
-		void Walk(Character *from, int direction);
+		bool Walk(Character *from, int direction, bool admin = false);
 		void Attack(Character *from, int direction);
 		void Face(Character *from, int direction);
 		void Sit(Character *from);
 		void Stand(Character *from);
 		void Emote(Character *from, int emote);
+		bool OpenDoor(Character *from, int x, int y);
 
 		Map_Item *AddItem(int id, int amount, int x, int y, Character *from = 0);
 		void DelItem(int uid, Character *from = 0);
+
+		bool InBounds(int x, int y);
+		bool Walkable(int x, int y);
+		Map_Warp *GetWarp(int x, int y);
 };
 
 class Player
@@ -229,7 +347,8 @@ class Character
 		static void Delete(std::string name);
 
 		void Msg(Character *from, std::string message);
-		void Walk(int direction);
+		bool Walk(int direction);
+		bool AdminWalk(int direction);
 		void Attack(int direction);
 		void Sit();
 		void Stand();

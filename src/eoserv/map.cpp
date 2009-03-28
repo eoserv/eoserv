@@ -6,7 +6,7 @@ Map::Map(int id)
 	{
 		return;
 	}
-	std::string filename = "./data/maps/";
+	std::string filename = eoserv_config["MapDir"];
 	std::sprintf(namebuf, "%05i", id);
 	this->filename = filename;
 	filename.append(namebuf);
@@ -22,11 +22,94 @@ Map::Map(int id)
 		return;
 	}
 
-	std::fseek(fh, 0, SEEK_END);
-	this->filesize = std::ftell(fh);
-
-	std::fseek(fh, 3, SEEK_SET);
+	std::fseek(fh, 0x03, SEEK_SET);
 	std::fread(this->rid, sizeof(char), 4, fh);
+
+	char buf[2];
+	int outersize;
+	int innersize;
+
+	std::fseek(fh, 0x1F, SEEK_SET);
+	std::fread(buf, sizeof(char), 1, fh);
+	this->pk = PacketProcessor::Number(buf[0]) == 3;
+
+	std::fseek(fh, 0x25, SEEK_SET);
+	std::fread(buf, sizeof(char), 1, fh);
+	this->width = PacketProcessor::Number(buf[0]) + 1;
+	std::fread(buf, sizeof(char), 1, fh);
+	this->height = PacketProcessor::Number(buf[0]) + 1;
+
+	std::fseek(fh, 0x2E, SEEK_SET);
+	std::fread(buf, sizeof(char), 1, fh);
+	outersize = PacketProcessor::Number(buf[0]);
+	if (outersize)
+	{
+		std::fseek(fh, 8 * outersize, SEEK_CUR);
+	}
+
+	std::fread(buf, sizeof(char), 1, fh);
+	outersize = PacketProcessor::Number(buf[0]);
+	if (outersize)
+	{
+		std::fseek(fh, 4 * outersize, SEEK_CUR);
+	}
+
+	std::fread(buf, sizeof(char), 1, fh);
+	outersize = PacketProcessor::Number(buf[0]);
+	if (outersize)
+	{
+		std::fseek(fh, 12 * outersize, SEEK_CUR);
+	}
+
+	std::fread(buf, sizeof(char), 1, fh);
+	outersize = PacketProcessor::Number(buf[0]);
+	for (int i = 0; i < outersize; ++i)
+	{
+		std::fread(buf, sizeof(char), 1, fh);
+		int yloc = PacketProcessor::Number(buf[0]);
+		std::fread(buf, sizeof(char), 1, fh);
+		innersize = PacketProcessor::Number(buf[0]);
+		for (int ii = 0; ii < innersize; ++ii)
+		{
+			Map_Tile newtile;
+			std::fread(buf, sizeof(char), 1, fh);
+			int xloc = PacketProcessor::Number(buf[0]);
+			std::fread(buf, sizeof(char), 1, fh);
+			int spec = PacketProcessor::Number(buf[0]);
+			newtile.tilespec = static_cast<Map_Tile::TileSpec>(spec);
+			this->tiles[yloc][xloc] = newtile;
+		}
+	}
+
+	std::fread(buf, sizeof(char), 1, fh);
+	outersize = PacketProcessor::Number(buf[0]);
+	for (int i = 0; i < outersize; ++i)
+	{
+		std::fread(buf, sizeof(char), 1, fh);
+		int yloc = PacketProcessor::Number(buf[0]);
+		std::fread(buf, sizeof(char), 1, fh);
+		innersize = PacketProcessor::Number(buf[0]);
+		for (int ii = 0; ii < innersize; ++ii)
+		{
+			Map_Warp *newwarp = new Map_Warp;
+			std::fread(buf, sizeof(char), 1, fh);
+			int xloc = PacketProcessor::Number(buf[0]);
+			std::fread(buf, sizeof(char), 2, fh);
+			newwarp->map = PacketProcessor::Number(buf[0], buf[1]);
+			std::fread(buf, sizeof(char), 1, fh);
+			newwarp->x = PacketProcessor::Number(buf[0]);
+			std::fread(buf, sizeof(char), 1, fh);
+			newwarp->y = PacketProcessor::Number(buf[0]);
+			std::fread(buf, sizeof(char), 1, fh);
+			newwarp->levelreq = PacketProcessor::Number(buf[0]);
+			std::fread(buf, sizeof(char), 2, fh);
+			newwarp->spec = static_cast<Map_Warp::WarpSpec>(PacketProcessor::Number(buf[0], buf[1]));
+			this->tiles[yloc][xloc].warp = newwarp;
+		}
+	}
+
+	std::fseek(fh, 0x00, SEEK_END);
+	this->filesize = std::ftell(fh);
 
 	std::fclose(fh);
 }
@@ -157,10 +240,12 @@ void Map::Msg(Character *from, std::string message)
 	}
 }
 
-void Map::Walk(Character *from, int direction)
+bool Map::Walk(Character *from, int direction, bool admin)
 {
 	PacketBuilder builder;
 	int seedistance = eoserv_config["SeeDistance"];
+
+	// TODO: Check for open/closed doors
 
 	switch (direction)
 	{
@@ -176,6 +261,58 @@ void Map::Walk(Character *from, int direction)
 		case DIRECTION_LEFT:
 			--from->x;
 			break;
+	}
+
+	if (!admin)
+	{
+		if (!this->Walkable(from->x, from->y))
+		{
+			// Reverse the walk (walking in to a wall / outside map bounds)
+			switch (direction)
+			{
+				case DIRECTION_UP:
+					++from->y;
+					break;
+				case DIRECTION_RIGHT:
+					--from->x;
+					break;
+				case DIRECTION_DOWN:
+					--from->y;
+					break;
+				case DIRECTION_LEFT:
+					++from->x;
+					break;
+			}
+			return false;
+		}
+
+		if (Map_Warp *warp = this->GetWarp(from->x, from->y))
+		{
+			if (from->level >= warp->levelreq)
+			{
+				from->Warp(warp->map, warp->x, warp->y);
+				return false;
+			}
+
+			// Reverse the walk (walking in to a level barrier)
+			switch (direction)
+			{
+				case DIRECTION_UP:
+					++from->y;
+					break;
+				case DIRECTION_RIGHT:
+					--from->x;
+					break;
+				case DIRECTION_DOWN:
+					--from->y;
+					break;
+				case DIRECTION_LEFT:
+					++from->x;
+					break;
+			}
+
+			return false;
+		}
 	}
 
 	int newx;
@@ -198,7 +335,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newy = from->y - seedistance + std::abs(i);
 					newx = from->x + i;
-					oldy = from->y + seedistance - 1 - std::abs(i);
+					oldy = from->y + seedistance + 1 - std::abs(i);
 					oldx = from->x + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -255,7 +392,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newx = from->x - seedistance + std::abs(i);
 					newy = from->y + i;
-					oldx = from->x + seedistance - 1 - std::abs(i);
+					oldx = from->x + seedistance + 1 - std::abs(i);
 					oldy = from->y + i;
 
 					if (checkchar->x == oldx && checkchar->y == oldy)
@@ -281,7 +418,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newy = from->y - seedistance + std::abs(i);
 					newx = from->x + i;
-					oldy = from->y + seedistance+1 - std::abs(i);
+					oldy = from->y + seedistance + 1 - std::abs(i);
 					oldx = from->x + i;
 
 					if (checkitem.x == newx && checkitem.y == newy)
@@ -296,7 +433,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newx = from->x + seedistance - std::abs(i);
 					newy = from->y + i;
-					oldx = from->x - seedistance+1 + std::abs(i);
+					oldx = from->x - seedistance - 1 + std::abs(i);
 					oldy = from->y + i;
 
 					if (checkitem.x == newx && checkitem.y == newy)
@@ -311,7 +448,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newy = from->y + seedistance - std::abs(i);
 					newx = from->x + i;
-					oldy = from->y - seedistance+1 + std::abs(i);
+					oldy = from->y - seedistance - 1 + std::abs(i);
 					oldx = from->x + i;
 
 					if (checkitem.x == newx && checkitem.y == newy)
@@ -326,7 +463,7 @@ void Map::Walk(Character *from, int direction)
 				{
 					newx = from->x - seedistance + std::abs(i);
 					newy = from->y + i;
-					oldx = from->x + seedistance+1 - std::abs(i);
+					oldx = from->x + seedistance + 1 - std::abs(i);
 					oldy = from->y + i;
 
 					if (checkitem.x == newx && checkitem.y == newy)
@@ -463,6 +600,8 @@ void Map::Walk(Character *from, int direction)
 		builder.AddThree(item.amount);
 	}
 	from->player->client->SendBuilder(builder);
+
+	return true;
 }
 
 void Map::Attack(Character *from, int direction)
@@ -574,6 +713,43 @@ void Map::Emote(Character *from, int direction)
 	}
 }
 
+bool Map::OpenDoor(Character *from, int x, int y)
+{
+	if (from && !from->InRange(x, y))
+	{
+		return false;
+	}
+
+	if (Map_Warp *warp = this->GetWarp(x, y))
+	{
+		if (warp->spec == Map_Warp::NoDoor/* || warp->open*/)
+		{
+			return false;
+		}
+
+		// TODO: Check for keys
+		// TODO: Check for open/closed doors
+
+		PacketBuilder builder;
+		builder.SetID(PACKET_DOOR, PACKET_OPEN);
+		builder.AddChar(x);
+		builder.AddShort(y);
+
+		UTIL_FOREACH(this->characters, character)
+		{
+			if (character->InRange(x, y))
+			{
+				character->player->client->SendBuilder(builder);
+			}
+		}
+
+		/*warp->open = true;*/
+		return true;
+	}
+
+	return false;
+}
+
 Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 {
 	Map_Item newitem = {GenerateItemID(), id, amount, x, y};
@@ -640,4 +816,24 @@ void Map::DelItem(int uid, Character *from)
 			break;
 		}
 	}
+}
+
+bool Map::Walkable(int x, int y)
+{
+	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
+	{
+		return false;
+	}
+
+	return this->tiles[y][x].Walkable();
+}
+
+Map_Warp *Map::GetWarp(int x, int y)
+{
+	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
+	{
+		return false;
+	}
+
+	return this->tiles[y][x].warp;
 }
