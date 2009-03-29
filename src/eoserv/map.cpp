@@ -692,15 +692,13 @@ void Map::Stand(Character *from)
 	}
 }
 
-void Map::Emote(Character *from, int direction)
+void Map::Emote(Character *from, int emote)
 {
 	PacketBuilder builder;
 
-	from->direction = direction;
-
 	builder.SetID(PACKET_EMOTE, PACKET_PLAYER);
 	builder.AddShort(from->player->id);
-	builder.AddChar(direction);
+	builder.AddChar(emote);
 
 	UTIL_FOREACH(characters, character)
 	{

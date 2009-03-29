@@ -7,6 +7,11 @@
 #include <cstddef>
 #include <stdexcept>
 
+/**
+ * Return the OS last error message
+ */
+const char *OSErrorString();
+
 #ifdef WIN32
 #include <winsock2.h>
 /**
@@ -24,6 +29,7 @@ extern WSADATA wsadata;
  * Defined here because it does not exist in MinGW's winsock headers.
  */
 typedef int socklen_t;
+
 #else // WIN32
 // Stop doxygen generating a gigantic include graph
 #ifndef DOXYGEN
@@ -55,6 +61,59 @@ const int SOCKET_ERROR = -1;
 class IPAddress;
 class Client;
 template <class> class Server;
+
+/**
+ * Generic Socket exception type
+ */
+class Socket_Exception : public std::exception
+{
+	protected:
+		const char *err;
+	public:
+		Socket_Exception(const char *e) : err(e) {};
+		const char *error() { return err; };
+		virtual const char *what() { return "Socket_Exception"; }
+};
+
+/**
+ * Exception thrown when intializing the socket library failed
+ */
+class Socket_InitFailed : public Socket_Exception
+{
+	public:
+		Socket_InitFailed(const char *e) : Socket_Exception(e) {}
+		const char *what() { return "Socket_InitFailed"; }
+};
+
+/**
+ * Exception thrown when a call to bind() failed
+ */
+class Socket_BindFailed : public Socket_Exception
+{
+	public:
+		Socket_BindFailed(const char *e) : Socket_Exception(e) {}
+		const char *what() { return "Socket_BindFailed"; }
+};
+
+/**
+ * Exception thrown when a call to listen() failed
+ */
+class Socket_ListenFailed : public Socket_Exception
+{
+	public:
+		Socket_ListenFailed(const char *e) : Socket_Exception(e) {}
+		const char *what() { return "Socket_ListenFailed"; }
+};
+
+/**
+ * Exception thrown when a call to select() failed
+ */
+class Socket_SelectFailed : public Socket_Exception
+{
+	public:
+		Socket_SelectFailed(const char *e) : Socket_Exception(e) {}
+		const char *what() { return "Socket_SelectFailed"; }
+};
 
 /**
  * Stores an IP address and converts between string and numeric formats.
@@ -204,6 +263,7 @@ template <class T = Client> class Server
 		/**
 		 * Initializes all data and WinSock if required.
 		 * This is called by every Socket constructor.
+		 * @throw Socket_InitFailed
 		 */
 		void Initialize()
 		{
@@ -213,7 +273,7 @@ template <class T = Client> class Server
 				if (WSAStartup(MAKEWORD(2,0), &wsadata) != 0)
 				{
 					this->state = Invalid;
-					return;
+					throw Socket_InitFailed(OSErrorString());
 				}
 				ws_init = true;
 			}
@@ -282,9 +342,9 @@ template <class T = Client> class Server
 		 * Once this succeeds you should call Listen().
 		 * @param addr Address to bind to.
 		 * @param port Port number to bind to.
-		 * @return True if bind() was successful, false otherwise.
+		 * @throw Socket_BindFailed
 		 */
-		bool Bind(IPAddress addr, uint16_t port)
+		void Bind(IPAddress addr, uint16_t port)
 		{
 			sockaddr_in sin;
 			this->address = addr;
@@ -299,34 +359,33 @@ template <class T = Client> class Server
 			if (bind(this->server, (sockaddr *)&sin, sizeof(sin)) == SOCKET_ERROR)
 			{
 				this->state = Invalid;
-				return false;
+				throw Socket_BindFailed(OSErrorString());
 			}
 
 			this->state = Bound;
-			return true;
 		}
 
 		/**
 		 * Bind the Server to the specified address and port.
 		 * @param maxconn Maximum number of clients to have at one time.
 		 * @param backlog Number of connections to keep in the queue.
-		 * @return True if listen() was successful, false otherwise.
+		 * @throw Socket_ListenFailed
 		 */
-		bool Listen(int maxconn, int backlog = 10)
+		void Listen(int maxconn, int backlog = 10)
 		{
 			this->maxconn = maxconn;
 
-			if (this->state == Bound)
-			{
+			//if (this->state == Bound)
+			//{
 				if (listen(this->server, backlog) != SOCKET_ERROR)
 				{
 					this->state = Listening;
-					return true;
+					return;
 				}
-			}
+			//}
 
 			this->state = Invalid;
-			return false;
+			throw Socket_ListenFailed(OSErrorString());
 		}
 
 		/**
@@ -384,6 +443,8 @@ template <class T = Client> class Server
 		/**
 		 * Check clients for incoming data and errors, and sends data in their send_buffer.
 		 * If data is recieved, it is added to their recv_buffer.
+		 * @throw Socket_SelectFailed
+		 * @throw Socket_Exception
 		 * @return Returns a list of clients that have data in their recv_buffer.
 		 */
 		std::list<T *> Select(int timeout)
@@ -427,14 +488,14 @@ template <class T = Client> class Server
 
 			if (result == -1)
 			{
-				throw std::runtime_error("There was an error calling select().");
+				throw Socket_SelectFailed(OSErrorString());
 			}
 
 			if (result > 0)
 			{
 				if (FD_ISSET(this->server, &this->except_fds))
 				{
-					throw std::runtime_error("There was an exception on the listening socket.");
+					throw Socket_Exception("There was an exception on the listening socket.");
 				}
 
 				for (it = this->clients.begin(); it != this->clients.end(); ++it)

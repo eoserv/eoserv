@@ -57,14 +57,14 @@ CLIENT_F_FUNC(Paperdoll)
 				reply.SetID(PACKET_PAPERDOLL, PACKET_REMOVE);
 				reply.AddShort(this->player->id);
 				reply.AddChar(1); // ?
-				reply.AddChar(subloc);
+				reply.AddChar(0); // ?
 				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
 				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 				reply.AddShort(itemid);
-				reply.AddChar(0); // ?
+				reply.AddChar(subloc);
 				reply.AddShort(this->player->character->maxhp);
 				reply.AddShort(this->player->character->maxtp);
 				reply.AddShort(this->player->character->str);
@@ -118,7 +118,7 @@ CLIENT_F_FUNC(Paperdoll)
 				reply.SetID(PACKET_PAPERDOLL, PACKET_AGREE);
 				reply.AddShort(this->player->id);
 				reply.AddChar(1); // ?
-				reply.AddChar(subloc);
+				reply.AddChar(0); // ?
 				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
 				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
@@ -126,7 +126,7 @@ CLIENT_F_FUNC(Paperdoll)
 				reply.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 				reply.AddShort(itemid);
 				reply.AddThree(this->player->character->HasItem(itemid));
-				reply.AddChar(0); // ?
+				reply.AddChar(subloc);
 				reply.AddShort(this->player->character->maxhp);
 				reply.AddShort(this->player->character->maxtp);
 				reply.AddShort(this->player->character->str);

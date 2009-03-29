@@ -18,8 +18,15 @@ CLIENT_F_FUNC(Chair)
 
 				if ((x + y - this->player->character->x - this->player->character->y) > 1)
 				{
-					puts("EOOR");
 					return false;
+				}
+
+				UTIL_FOREACH(this->player->character->map->characters, character)
+				{
+					if (character->x == x && character->y == y)
+					{
+						return false;
+					}
 				}
 
 				switch (this->player->character->map->GetSpec(x, y))

@@ -3,9 +3,36 @@
 
 #include "socket.hpp"
 
+#include "util.hpp"
+
+char ErrorBuf[1024];
+
 #ifdef WIN32
 bool ws_init = false;
 WSADATA wsadata;
+
+const char *OSErrorString()
+{
+	int error = GetLastError();
+
+	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, ErrorBuf, 1023, 0))
+	{
+		std::snprintf(ErrorBuf, 1024, "Unknown error %i", error);
+	}
+	else
+	{
+		strncpy(ErrorBuf, util::trim(ErrorBuf).c_str(), 1023);
+	}
+
+	return ErrorBuf;
+}
+#else // WIN32
+#include <cerrno>
+#include <string.h>
+const char *OSErrorString()
+{
+	return strerror_r(errno, ErrorBuf, 1024);
+}
 #endif // WIN32
 
 IPAddress::IPAddress()

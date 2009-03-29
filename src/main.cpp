@@ -199,20 +199,8 @@ EO Version Support: .27 .28\n\
 		dbinfo[4] = static_cast<std::string>(config["DBName"]);
 
 		EOServer server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config);
-
-		if (server.State() == Server<EOClient>::Invalid)
-		{
-			std::fprintf(stderr, "There was a problem initializing the server. (Is port %i already in use?)\n", static_cast<int>(config["Port"]));
-			std::exit(1);
-		}
-
+		server.Listen(static_cast<int>(config["MaxConnections"]), static_cast<int>(config["ListenBacklog"]));
 		std::printf("Listening on %s:%i (0/%i connections)\n", static_cast<std::string>(config["Host"]).c_str(), static_cast<int>(config["Port"]), static_cast<int>(config["MaxConnections"]));
-
-		if (!server.Listen(static_cast<int>(config["MaxConnections"]), static_cast<int>(config["ListenBacklog"])))
-		{
-			std::fprintf(stderr, "Failed to bind to address. (Is port %i already in use?)\n", static_cast<int>(config["Port"]));
-			std::exit(1);
-		}
 
 		// This also doubles as a check for table existance :P
 		try
@@ -277,7 +265,45 @@ EO Version Support: .27 .28\n\
 							cl->length -= cl->data.length() - oldlength;
 							if (cl->length == 0)
 							{
-								cl->Execute(cl->data);
+								try
+								{
+									cl->Execute(cl->data);
+								}
+								catch (Socket_Exception &e)
+								{
+									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									std::fprintf(stderr, "%s: %s\n", e.what(), e.error());
+									cl->Close();
+								}
+								catch (Database_Exception &e)
+								{
+									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									std::fprintf(stderr, "%s: %s\n", e.what(), e.error());
+									cl->Close();
+								}
+								catch (std::runtime_error &e)
+								{
+									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									std::fprintf(stderr, "Runtime Error: %s\n", e.what());
+									cl->Close();
+								}
+								catch (std::logic_error &e)
+								{
+									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									std::fprintf(stderr, "Logic Error: %s\n", e.what());
+									cl->Close();
+								}
+								catch (std::exception &e)
+								{
+									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									std::fprintf(stderr, "Uncaught Exception: %s\n", e.what());
+									cl->Close();
+								}
+								catch (...)
+								{
+									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									cl->Close();
+								}
 
 								cl->data.erase();
 								cl->state = EOClient::ReadLen1;
@@ -300,21 +326,35 @@ EO Version Support: .27 .28\n\
 			server.world->timer.Tick();
 		}
 	}
+	catch (Socket_Exception &e)
+	{
+		std::fprintf(stderr, "%s: %s\n", e.what(), e.error());
+		return 1;
+	}
 	catch (Database_Exception &e)
 	{
-		std::fprintf(stderr,  "Database Error: %s\n", e.error());
+		std::fprintf(stderr, "%s: %s\n", e.what(), e.error());
+		return 1;
 	}
 	catch (std::runtime_error &e)
 	{
-		std::fprintf(stderr,  "Runtime Error: %s\n", e.what());
+		std::fprintf(stderr, "Runtime Error: %s\n", e.what());
+		return 1;
 	}
 	catch (std::logic_error &e)
 	{
-		std::fprintf(stderr,  "Logic Error: %s\n", e.what());
+		std::fprintf(stderr, "Logic Error: %s\n", e.what());
+		return 1;
 	}
 	catch (std::exception &e)
 	{
-		std::fprintf(stderr,  "Uncaught Exception: %s\n", e.what());
+		std::fprintf(stderr, "Uncaught Exception: %s\n", e.what());
+		return 1;
+	}
+	catch (...)
+	{
+		std::fprintf(stderr, "Uncaught Exception\n");
+		return 1;
 	}
 
 	return 0;

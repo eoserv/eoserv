@@ -120,14 +120,14 @@ Character *Character::Create(Player *player, std::string name, int gender, int h
 	if (static_cast<int>(eoserv_config["StartMap"]))
 	{
 		startmapinfo = ", `map`, `x`, `y`";
-		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["StartMap"]), static_cast<int>(eoserv_config["StartX"]), static_cast<int>(eoserv_config["StartY"]));
+		std::snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["StartMap"]), static_cast<int>(eoserv_config["StartX"]), static_cast<int>(eoserv_config["StartY"]));
 		startmapval = buffer;
 	}
 
 	if (static_cast<int>(eoserv_config["SpawnMap"]))
 	{
 		spawnmapinfo = ", `spawnmap`, `spawnx`, `spawny`";
-		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["SpawnMap"]), static_cast<int>(eoserv_config["SpawnX"]), static_cast<int>(eoserv_config["SpawnY"]));
+		std::snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["SpawnMap"]), static_cast<int>(eoserv_config["SpawnX"]), static_cast<int>(eoserv_config["SpawnY"]));
 		spawnmapval = buffer;
 	}
 
@@ -263,8 +263,6 @@ void Character::DelItem(int item, int amount)
 
 bool Character::Unequip(int item, int subloc)
 {
-	int ii = 0;
-
 	if (item == 0)
 	{
 		return false;
@@ -274,16 +272,12 @@ bool Character::Unequip(int item, int subloc)
 	{
 		if (this->paperdoll[i] == item)
 		{
-			if (ii == subloc)
+			if (((i == Character::Ring2 || i == Character::Armlet2 || i == Character::Bracer2) ? 1 : 0) == subloc)
 			{
 				this->paperdoll[i] = 0;
 				this->AddItem(item, 1);
 				this->CalculateStats();
 				return true;
-			}
-			else
-			{
-				++ii;
 			}
 		}
 	}

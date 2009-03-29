@@ -35,22 +35,35 @@ class Database_Exception : public std::exception
 	public:
 		Database_Exception(const char *e) : err(e) {};
 		const char *error() { return err; };
+		virtual const char *what() { return "Database_Exception"; }
 };
 
 /**
  * Exception thrown when an invalid Database Engine was specified
  */
-class Database_InvalidEngine : public Database_Exception { public: Database_InvalidEngine(const char *e) : Database_Exception(e){} };
+class Database_InvalidEngine : public Database_Exception
+{
+	public: Database_InvalidEngine(const char *e) : Database_Exception(e) {}
+	const char *what() { return "Database_InvalidEngine"; }
+};
 
 /**
  * Exception thrown when opening a Database failed
  */
-class Database_OpenFailed : public Database_Exception { public: Database_OpenFailed(const char *e) : Database_Exception(e){} };
+class Database_OpenFailed : public Database_Exception
+{
+	public: Database_OpenFailed(const char *e) : Database_Exception(e) {}
+	const char *what() { return "Database_OpenFailed"; }
+};
 
 /**
  * Exception thrown when a Database Query failed
  */
-class Database_QueryFailed : public Database_Exception { public: Database_QueryFailed(const char *e) : Database_Exception(e){} };
+class Database_QueryFailed : public Database_Exception
+{
+	public: Database_QueryFailed(const char *e) : Database_Exception(e) {}
+	const char *what() { return "Database_QueryFailed"; }
+};
 
 /**
  * Result from a Database Query containing the SELECTed rows, and/or affected row counts and error information
@@ -109,21 +122,21 @@ class Database
 
 		/**
 		 * Opens a connection to a database
-		 * @throw Databse_InvalidEngine
-		 * @throw Databse_OpenFailed
+		 * @throw Database_InvalidEngine
+		 * @throw Database_OpenFailed
 		 */
 		Database(Database::Engine type, std::string host, std::string user, std::string pass, std::string db);
 
 		/**
 		 * Opens a connection to a database
-		 * @throw Databse_InvalidEngine
-		 * @throw Databse_OpenFailed
+		 * @throw Database_InvalidEngine
+		 * @throw Database_OpenFailed
 		 */
 		void Connect(Database::Engine type, std::string host, std::string user, std::string pass, std::string db);
 
 		/**
 		 * Executes a query and returns it's result
-		 * @throw Databse_QueryFailed
+		 * @throw Database_QueryFailed
 		 */
 		Database_Result Query(const char *format, ...);
 
