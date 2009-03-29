@@ -542,9 +542,22 @@ std::string Character::PaddedGuildTag()
 // TODO: calculate equipment bonuses, check formulas
 void Character::CalculateStats()
 {
-	this->maxhp = 10 + this->con*3 + this->cha/2;
-	this->maxtp = 10 + this->wis*3 + this->cha/2;
+	int calcstr = this->str;
+	int calcintl = this->intl;
+	int calcwis = this->wis;
+	int calcagi = this->agi;
+	int calccon = this->con;
+	int calccha = this->cha;
+	this->maxweight = 70 + this->str;
 	this->weight = 0;
+	this->maxhp = 0;
+	this->maxtp = 0;
+	this->mindam = 0;
+	this->maxdam = 0;
+	this->accuracy = 0;
+	this->evade = 0;
+	this->armor = 0;
+	this->maxsp = 0;
 	UTIL_FOREACH(this->inventory, item)
 	{
 		this->weight += eoserv_items->Get(item.id)->weight * item.amount;
@@ -553,24 +566,35 @@ void Character::CalculateStats()
 	{
 		if (this->paperdoll[i])
 		{
-			this->weight += eoserv_items->Get(this->paperdoll[i])->weight;
+			EIF_Data *item = eoserv_items->Get(this->paperdoll[i]);
+			this->weight += item->weight;
+			this->maxhp += item->hp;
+			this->maxtp += item->tp;
+			this->mindam += item->mindam;
+			this->maxdam += item->maxdam;
+			this->accuracy += item->accuracy;
+			this->evade += item->evade;
+			this->armor += item->armor;
+			calcstr += item->str;
+			calcintl += item->intl;
+			calcwis += item->wis;
+			calcagi += item->agi;
+			calccon += item->con;
+			calccha += item->cha;
 		}
 	}
-	this->maxweight = 70 + this->str;
-	this->mindam = 0 + this->str/2 + this->cha/6;
-	this->maxdam = 1 + this->str/2 + this->cha/6;
-	this->accuracy = 0 + this->agi/2 + this->cha/4;
-	this->evade = 0 + this->agi/2 + this->cha/4;
-	this->armor = 0 + this->con/2 + this->cha/4;
-	this->maxsp = std::min(20 + this->level*2 + this->cha/6, 100);
+	this->maxhp += 10 + calccon*3 + calccha/2;
+	this->maxtp += 10 + calcwis*3 + calccha/2;
+	this->mindam += 0 + calcstr/2 + calccha/6;
+	this->maxdam += 1 + calcstr/2 + calccha/6;
+	this->accuracy += 0 + calcagi/2 + calccha/4;
+	this->evade += 0 + calcagi/2 + calccha/4;
+	this->armor += 0 + calccon/2 + calccha/4;
+	this->maxsp += std::min(20 + this->level*2 + calccha/6, 100);
 }
 
-Character::~Character()
+void Character::Save()
 {
-	if (this->player)
-	{
-		the_world->Logout(this);
-	}
 
 #ifdef DEBUG
 	std::printf("Saving character '%s'\n", this->name.c_str());
@@ -585,4 +609,14 @@ Character::~Character()
 	                this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
 	                this->bankmax, this->goldbank, this->usage, ItemSerialize(this->inventory).c_str(), "", DollSerialize(this->paperdoll).c_str(),
 	                "", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
+}
+
+Character::~Character()
+{
+	if (this->player)
+	{
+		the_world->Logout(this);
+	}
+
+	this->Save();
 }

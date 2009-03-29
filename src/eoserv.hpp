@@ -408,6 +408,8 @@ class Character
 		std::string PaddedGuildTag();
 		void CalculateStats();
 
+		void Save();
+
 		~Character();
 
 		Player *player;

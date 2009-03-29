@@ -9,7 +9,7 @@ CLIENT_F_FUNC(Walk)
 		{
 			if (!this->player || !this->player->character) return false;
 
-			if (this->player->character->admin < ADMIN_GM)
+			if (this->player->character->admin < ADMIN_GUARDIAN)
 			{
 				return false;
 			}

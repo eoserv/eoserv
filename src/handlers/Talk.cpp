@@ -150,7 +150,7 @@ CLIENT_F_FUNC(Talk)
 					int amount = (arguments.size() >= 2)?static_cast<int>(util::variant(arguments[1])):1;
 					int x = (arguments.size() >= 3)?static_cast<int>(util::variant(arguments[2])):this->player->character->x;
 					int y = (arguments.size() >= 4)?static_cast<int>(util::variant(arguments[3])):this->player->character->y;
-					if (this->player->character->HasItem(id) >= amount)
+					if (amount > 0 && this->player->character->HasItem(id) >= amount)
 					{
 						Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
 						if (item)
@@ -212,7 +212,8 @@ CLIENT_F_FUNC(Talk)
 				{
 					UTIL_FOREACH(the_world->characters, character)
 					{
-						the_world->Kick(0, character);
+						character->Save();
+						character->player->client->Close();
 					}
 					std::printf("Server shut down by %s\n", this->player->character->name.c_str());
 					exit(0);

@@ -40,7 +40,6 @@ CLIENT_F_FUNC(Item)
 				reply.AddChar(4); // ?
 				reply.AddShort(id);
 				reply.AddInt(this->player->character->HasItem(id));
-				this->player->character->weight -= item->weight;
 				reply.AddChar(this->player->character->weight);
 				reply.AddChar(this->player->character->maxweight);
 				CLIENT_SEND(reply);
@@ -96,6 +95,11 @@ CLIENT_F_FUNC(Item)
 				return true;
 			}
 
+			if (!this->player->character->map->Walkable(x, y))
+			{
+				return true;
+			}
+
 			if (this->player->character->HasItem(id) >= amount && this->player->character->mapid != static_cast<int>(eoserv_config["JailMap"]))
 			{
 				Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
@@ -112,7 +116,6 @@ CLIENT_F_FUNC(Item)
 					reply.AddShort(item->uid);
 					reply.AddChar(x);
 					reply.AddChar(y);
-					this->player->character->weight -= eoserv_items->Get(id)->weight;
 					reply.AddChar(this->player->character->weight);
 					reply.AddChar(this->player->character->maxweight);
 					CLIENT_SEND(reply);
@@ -134,7 +137,6 @@ CLIENT_F_FUNC(Item)
 			reply.AddShort(id);
 			reply.AddThree(amount); // Overflows, does it matter?
 			reply.AddInt(this->player->character->HasItem(id));
-			this->player->character->weight -= eoserv_items->Get(id)->weight;
 			reply.AddChar(this->player->character->weight);
 			reply.AddChar(this->player->character->maxweight);
 			CLIENT_SEND(reply);
@@ -170,7 +172,6 @@ CLIENT_F_FUNC(Item)
 					reply.AddShort(uid);
 					reply.AddShort(item.id);
 					reply.AddThree(item.amount);
-					this->player->character->weight += eoserv_items->Get(id)->weight;
 					reply.AddChar(this->player->character->weight);
 					reply.AddChar(this->player->character->maxweight);
 					CLIENT_SEND(reply);

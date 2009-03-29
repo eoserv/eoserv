@@ -75,7 +75,8 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Rank
 			reply.AddChar(1); // ??
 			reply.AddString(this->player->character->PaddedGuildTag());
-			reply.AddChar(this->player->character->admin);
+			// Tell a guardian's client they're a GM so they can use #nowall
+			reply.AddChar((this->player->character->admin == ADMIN_GUARDIAN) ? ADMIN_GM : this->player->character->admin);
 			reply.AddChar(this->player->character->level);
 			reply.AddInt(this->player->character->exp);
 			reply.AddInt(this->player->character->usage);
