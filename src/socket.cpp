@@ -84,7 +84,7 @@ IPAddress IPAddress::Lookup(std::string host)
 	addrinfo *ai;
 	IPAddress ipaddr;
 
-	memset(&hints, 0, sizeof(hints));
+	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
@@ -163,7 +163,7 @@ Client::Client(IPAddress addr, uint16_t port)
 	this->send_buffer_max = static_cast<unsigned int>(-1);
 	this->recv_buffer_max = static_cast<unsigned int>(-1);
 
-	memset(&this->sin, 0, sizeof(this->sin));
+	std::memset(&this->sin, 0, sizeof(this->sin));
 	this->sin.sin_family = AF_INET;
 	this->sin.sin_addr = addr;
 	this->sin.sin_port = htons(port);

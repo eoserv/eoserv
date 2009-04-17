@@ -750,7 +750,7 @@ bool Map::OpenDoor(Character *from, int x, int y)
 
 Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 {
-	Map_Item newitem = {GenerateItemID(), id, amount, x, y};
+	Map_Item newitem = {GenerateItemID(), id, amount, x, y, 0, 0};
 
 	PacketBuilder builder;
 	builder.SetID(PACKET_ITEM, PACKET_ADD);
@@ -760,7 +760,7 @@ Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 	builder.AddChar(x);
 	builder.AddChar(y);
 
-	if (from || from->admin <= ADMIN_GM)
+	if (from || (from && from->admin <= ADMIN_GM))
 	{
 		int ontile = 0;
 		int onmap = 0;

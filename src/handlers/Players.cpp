@@ -5,6 +5,33 @@ CLIENT_F_FUNC(Players)
 
 	switch (action)
 	{
+		case PACKET_ACCEPT: // User checking if a player is near (#find)
+		{
+			if (!this->player || !this->player->character) return false;
+
+			std::string name = reader.GetEndString();
+			Character *victim = the_world->GetCharacter(name);
+
+			if (victim)
+			{
+				if (victim->mapid == this->player->character->mapid)
+				{
+					reply.SetID(PACKET_PLAYERS, PACKET_NET2);
+				}
+				else
+				{
+					reply.SetID(PACKET_PLAYERS, PACKET_NET3);
+				}
+			}
+			else
+			{
+				reply.SetID(PACKET_PLAYERS, PACKET_NET);
+			}
+
+			reply.AddString(name);
+			CLIENT_SEND(reply);
+		}
+
 		case PACKET_REQUEST: // Requested a list of online players
 		{
 			int replycode = 8;

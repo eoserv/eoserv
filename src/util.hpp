@@ -512,6 +512,10 @@ void lowercase(std::string &);
 
 void uppercase(std::string &);
 
+void ucfirst(std::string &);
+
+int rand(int min, int max);
+
 }
 
 #endif // UTIL_HPP_INCLUDED

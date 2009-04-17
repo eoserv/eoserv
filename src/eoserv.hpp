@@ -282,6 +282,7 @@ class Map
 class Player
 {
 	public:
+		int login_time;
 		bool online;
 		unsigned int id;
 		std::string username;
@@ -326,6 +327,7 @@ struct Character_Spell
 class Character
 {
 	public:
+		int login_time;
 		bool online;
 		unsigned int id;
 		int admin;
@@ -406,6 +408,7 @@ class Character
 		bool InRange(Map_Item);
 		void Warp(int map, int x, int y, int animation = WARP_ANIMATION_NONE);
 		std::string PaddedGuildTag();
+		int Usage();
 		void CalculateStats();
 
 		void Save();

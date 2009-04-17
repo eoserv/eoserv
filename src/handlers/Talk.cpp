@@ -178,7 +178,6 @@ CLIENT_F_FUNC(Talk)
 					if (victim)
 					{
 						this->player->character->Warp(victim->mapid, victim->x, victim->y, WARP_ANIMATION_ADMIN);
-						break;
 					}
 				}
 				else if (command.length() >= 5 && command.compare(0,5,"warpt") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["warptome"]))
@@ -187,7 +186,6 @@ CLIENT_F_FUNC(Talk)
 					if (victim)
 					{
 						victim->Warp(this->player->character->mapid, this->player->character->x, this->player->character->y, WARP_ANIMATION_ADMIN);
-						break;
 					}
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"w") == 0 && arguments.size() >= 3 && this->player->character->admin >= static_cast<int>(admin_config["warp"]))
@@ -203,10 +201,71 @@ CLIENT_F_FUNC(Talk)
 
 					this->player->character->Warp(map, x, y, WARP_ANIMATION_ADMIN);
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && this->player->character->admin >= static_cast<int>(admin_config["rehash"]))
+				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["rehash"]))
 				{
 					eoserv_config.Read("config.ini");
 					admin_config.Read("admin.ini");
+				}
+				else if (command.length() >= 2 && command.compare(0,2,"in") == 0 && this->player->character->admin >= static_cast<int>(admin_config["info"]))
+				{
+					Character *victim = the_world->GetCharacter(arguments[0]);
+					std::string name = victim->name;
+					util::ucfirst(name);
+					if (victim)
+					{
+						reply.SetID(PACKET_ADMININTERACT, PACKET_TELL);
+						if (victim->admin >= 4)
+						{
+							reply.AddString("High Game Master ");
+						}
+						else if (victim->admin >= 3)
+						{
+							reply.AddString("Game Master ");
+						}
+						else if (victim->admin >= 2)
+						{
+							reply.AddString("Guardian ");
+						}
+						else if (victim->admin >= 1)
+						{
+							reply.AddString("Light Guide ");
+						}
+						reply.AddString(name);
+						reply.AddString(" ");
+						reply.AddBreakString(victim->PaddedGuildTag());
+						reply.AddInt(victim->Usage());
+						reply.AddByte(255);
+						reply.AddByte(255);
+						reply.AddInt(victim->exp);
+						reply.AddChar(victim->level);
+						reply.AddShort(victim->mapid);
+						reply.AddShort(victim->x);
+						reply.AddShort(victim->y);
+						reply.AddShort(victim->hp);
+						reply.AddShort(victim->maxhp);
+						reply.AddShort(victim->tp);
+						reply.AddShort(victim->maxtp);
+						reply.AddShort(victim->str);
+						reply.AddShort(victim->intl);
+						reply.AddShort(victim->wis);
+						reply.AddShort(victim->agi);
+						reply.AddShort(victim->con);
+						reply.AddShort(victim->cha);
+						reply.AddShort(victim->maxdam);
+						reply.AddShort(victim->mindam);
+						reply.AddShort(victim->accuracy);
+						reply.AddShort(victim->evade);
+						reply.AddShort(victim->armor);
+						reply.AddShort(0); // light
+						reply.AddShort(0); // dark
+						reply.AddShort(0); // fire
+						reply.AddShort(0); // water
+						reply.AddShort(0); // earth
+						reply.AddShort(0); // wind
+						reply.AddChar(victim->weight);
+						reply.AddChar(victim->maxweight);
+						CLIENT_SEND(reply);
+					}
 				}
 				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(admin_config["shutdown"]))
 				{
@@ -216,7 +275,7 @@ CLIENT_F_FUNC(Talk)
 						character->player->client->Close();
 					}
 					std::printf("Server shut down by %s\n", this->player->character->name.c_str());
-					exit(0);
+					std::exit(0);
 				}
 			}
 			else

@@ -7,6 +7,8 @@ CLIENT_F_FUNC(Refresh)
 	{
 		case PACKET_REQUEST: // User requesting data of all objects in their location
 		{
+			if (!this->player || !this->player->character) return false;
+
 			std::list<Character *> updatecharacters;
 			std::list<Map_Item> updateitems;
 			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)

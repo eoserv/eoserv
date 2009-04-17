@@ -18,9 +18,14 @@ const char *OSErrorString();
 #if defined(WIN32) || defined(WIN64)
 #include <windows.h>
 #include <winsock2.h>
-#include <ws2tcpip.h>
 #ifdef NTDDI_WIN2K
 #include <Wspiapi.h>
+#else // NTDDI_WIN2K
+#ifdef __MINGW32__
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif //  __MINGW32__
+#include <ws2tcpip.h>
 #endif // NTDDI_WIN2K
 /**
  * Stores the initialization state of WinSock.
@@ -412,9 +417,9 @@ template <class T = Client> class Server
 			this->port = port;
 			this->portn = htons(port);
 
-			memset(&sin, 0, sizeof(sin));
+			std::memset(&sin, 0, sizeof(sin));
 			sin.sin_family = AF_INET;
-			sin.sin_addr.s_addr = this->address;
+			sin.sin_addr = this->address;
 			sin.sin_port = this->portn;
 
 			if (bind(this->server, reinterpret_cast<sockaddr *>(&sin), sizeof(sin)) == SOCKET_ERROR)

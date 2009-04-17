@@ -77,6 +77,8 @@ const unsigned char PACKET_DROP = 24;
 const unsigned char PACKET_JUNK = 25;
 const unsigned char PACKET_GET = 27;
 const unsigned char PACKET_NET = 240;
+const unsigned char PACKET_NET2 = 241;
+const unsigned char PACKET_NET3 = 242;
 
 /**
  * Encodes and Decodes packets for a Client.

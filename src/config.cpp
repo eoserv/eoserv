@@ -24,6 +24,7 @@ void Config::Read(std::string filename)
 	std::string key;
 	std::string val;
 	std::size_t eqloc;
+	util::variant vval;
 
 	this->filename = filename;
 
@@ -62,6 +63,7 @@ void Config::Read(std::string filename)
 		}
 
 		key = util::rtrim(line.substr(0, eqloc));
+
 		if (line.length() > eqloc+1)
 		{
 			val = util::ltrim(line.substr(eqloc+1));
@@ -71,7 +73,21 @@ void Config::Read(std::string filename)
 			val = std::string("");
 		}
 
-		this->insert(std::pair<std::string, util::variant>(key, static_cast<util::variant>(val)));
+		if (key == "INCLUDE")
+		{
+			try
+			{
+				this->Read(val);
+			}
+			catch (std::runtime_error)
+			{
+				fprintf(stderr, "INCLUDEd configuration file not found: %s\n", val.c_str());
+			}
+		}
+		else
+		{
+			this->operator[](key) = static_cast<util::variant>(val);
+		}
 	}
 
 	std::fclose(fh);

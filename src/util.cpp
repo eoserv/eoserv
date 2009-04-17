@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdio>
 #include <cmath>
+#include <ctime>
 #include <string>
 
 namespace util
@@ -278,6 +279,25 @@ void lowercase(std::string &subject)
 void uppercase(std::string &subject)
 {
 	std::transform(subject.begin(), subject.end(), subject.begin(), static_cast<int(*)(int)>(std::toupper));
+}
+
+void ucfirst(std::string &subject)
+{
+	if (subject[0] > 'a' && subject[0] < 'z')
+	{
+		subject[0] += 'A' - 'a';
+	}
+}
+
+int rand(int min, int max)
+{
+	static bool init = false;
+	if (!init)
+	{
+		init = true;
+		std::srand(std::time(0));
+	}
+	return double(std::rand()) / RAND_MAX * (max - min + 1) + min;
 }
 
 }

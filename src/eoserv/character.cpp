@@ -6,6 +6,8 @@ Character::Character(std::string name)
 	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank` FROM `characters` WHERE `name` = '$'", name.c_str());
 	std::map<std::string, util::variant> row = res.front();
 
+	this->login_time = std::time(0);
+
 	this->online = true;
 	this->id = the_world->GenerateCharacterID();
 
@@ -539,6 +541,11 @@ std::string Character::PaddedGuildTag()
 	return tag;
 }
 
+int Character::Usage()
+{
+	return this->usage + (std::time(0) - this->login_time) / 60;
+}
+
 // TODO: calculate equipment bonuses, check formulas
 void Character::CalculateStats()
 {
@@ -597,7 +604,7 @@ void Character::Save()
 {
 
 #ifdef DEBUG
-	std::printf("Saving character '%s'\n", this->name.c_str());
+	std::printf("Saving character '%s' (session lasted %i minutes)\n", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
 	eoserv_db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
 	                "`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
@@ -607,7 +614,7 @@ void Character::Save()
                     this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
 	                this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
 	                this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
-	                this->bankmax, this->goldbank, this->usage, ItemSerialize(this->inventory).c_str(), "", DollSerialize(this->paperdoll).c_str(),
+	                this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), "", DollSerialize(this->paperdoll).c_str(),
 	                "", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
 }
 
