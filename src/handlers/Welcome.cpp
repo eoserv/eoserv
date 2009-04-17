@@ -17,7 +17,7 @@ CLIENT_F_FUNC(Welcome)
 
 			this->player->character = 0;
 
-			UTIL_FOREACH(this->player->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
 			{
 				if (character->id == id)
 				{
@@ -197,7 +197,7 @@ CLIENT_F_FUNC(Welcome)
 			// ??
 			reply.AddChar(this->player->character->weight); // Weight
 			reply.AddChar(this->player->character->maxweight); // Max Weight
-			UTIL_FOREACH(this->player->character->inventory, item)
+			UTIL_LIST_FOREACH_ALL(this->player->character->inventory, Character_Item, item)
 			{
 				reply.AddShort(item.id);
 				reply.AddInt(item.amount);
@@ -214,14 +214,14 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddByte(255);
 			std::list<Character *> updatecharacters;
 			std::list<Map_Item> updateitems;
-			UTIL_FOREACH(this->player->character->map->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (this->player->character->InRange(character))
 				{
 					updatecharacters.push_back(character);
 				}
 			}
-			UTIL_FOREACH(this->player->character->map->items, item)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
 			{
 				if (this->player->character->InRange(item))
 				{
@@ -230,7 +230,7 @@ CLIENT_F_FUNC(Welcome)
 			}
 			reply.AddChar(updatecharacters.size()); // Number of players
 			reply.AddByte(255);
-			UTIL_FOREACH(updatecharacters, character)
+			UTIL_LIST_FOREACH_ALL(updatecharacters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddShort(character->player->id);
@@ -271,7 +271,7 @@ CLIENT_F_FUNC(Welcome)
 			//reply.AddChar(3); // Direction
 			// }
 			reply.AddByte(255);
-			UTIL_FOREACH(updateitems, item)
+			UTIL_LIST_FOREACH_ALL(updateitems, Map_Item, item)
 			{
 				reply.AddShort(item.uid);
 				reply.AddShort(item.id);
@@ -288,7 +288,7 @@ CLIENT_F_FUNC(Welcome)
 			if (!this->player && !this->player->character) return false;
 
 			std::string content;
-			char mapbuf[6] = {0,};
+			char mapbuf[6] = {0};
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
 			std::string filename = "./data/maps/";
 			std::FILE *fh;

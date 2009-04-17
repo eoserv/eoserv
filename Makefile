@@ -1,6 +1,6 @@
 
 BIN = eoserv
-OBJ = obj/config.o obj/database.o obj/eoclient.o obj/eodata.o obj/eoserv.o obj/handlers.o obj/hash.o obj/main.o obj/packet.o obj/sha256.o obj/socket.o obj/timer.o obj/util.o
+OBJ = obj/config.o obj/database.o obj/eoclient.o obj/eodata.o obj/eoserv.o obj/handlers.o obj/hash.o obj/main.o obj/nanohttp.o obj/packet.o obj/sha256.o obj/socket.o obj/timer.o obj/util.o
 CFLAGS = -O3 -DDATABASE_MYSQL -DDATABASE_SQLITE -I"/usr/include/mysql/"
 CXXFLAGS = -O3 -DDATABASE_MYSQL -DDATABASE_SQLITE -I"/usr/include/mysql/"
 LDFLAGS = -s

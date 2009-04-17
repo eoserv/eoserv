@@ -53,7 +53,7 @@ CLIENT_F_FUNC(Talk)
 			limit_message(message);
 			Character *to = 0;
 
-			UTIL_FOREACH(the_world->characters, character)
+			UTIL_LIST_FOREACH_ALL(the_world->characters, Character *, character)
 			{
 				if (character->name == name)
 				{
@@ -131,8 +131,8 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() >= 2 && command.compare(0,2,"si") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["sitem"]))
 				{
-					int id = static_cast<int>(util::variant(arguments[0]));
-					int amount = (arguments.size() >= 2)?static_cast<int>(util::variant(arguments[1])):1;
+					int id = util::to_int(arguments[0]);
+					int amount = (arguments.size() >= 2)?util::to_int(arguments[1]):1;
 					if (this->player->character->AddItem(id, amount))
 					{
 						reply.SetID(PACKET_ITEM, PACKET_GET);
@@ -146,10 +146,10 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() >= 2 && command.compare(0,2,"di") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["ditem"]))
 				{
-					int id = static_cast<int>(util::variant(arguments[0]));
-					int amount = (arguments.size() >= 2)?static_cast<int>(util::variant(arguments[1])):1;
-					int x = (arguments.size() >= 3)?static_cast<int>(util::variant(arguments[2])):this->player->character->x;
-					int y = (arguments.size() >= 4)?static_cast<int>(util::variant(arguments[3])):this->player->character->y;
+					int id = util::to_int(arguments[0]);
+					int amount = (arguments.size() >= 2)?util::to_int(arguments[1]):1;
+					int x = (arguments.size() >= 3)?util::to_int(arguments[2]):this->player->character->x;
+					int y = (arguments.size() >= 4)?util::to_int(arguments[3]):this->player->character->y;
 					if (amount > 0 && this->player->character->HasItem(id) >= amount)
 					{
 						Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
@@ -192,9 +192,9 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"w") == 0 && arguments.size() >= 3 && this->player->character->admin >= static_cast<int>(admin_config["warp"]))
 				{
-					int map = static_cast<int>(util::variant(arguments[0]));
-					int x = static_cast<int>(util::variant(arguments[1]));
-					int y = static_cast<int>(util::variant(arguments[2]));
+					int map = util::to_int(arguments[0]);
+					int x = util::to_int(arguments[1]);
+					int y = util::to_int(arguments[2]);
 
 					if (map < 0 || map >= static_cast<int>(the_world->maps.size()))
 					{
@@ -210,7 +210,7 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(admin_config["shutdown"]))
 				{
-					UTIL_FOREACH(the_world->characters, character)
+					UTIL_LIST_FOREACH_ALL(the_world->characters, Character *, character)
 					{
 						character->Save();
 						character->player->client->Close();

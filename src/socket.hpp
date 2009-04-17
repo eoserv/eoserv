@@ -1,10 +1,13 @@
-#ifndef SOCKET_H_INCLUDED
-#define SOCKET_H_INCLUDED
+#ifndef SOCKET_HPP_INCLUDED
+#define SOCKET_HPP_INCLUDED
+
+#include "util.hpp"
 
 #include <string>
 #include <list>
 #include <stdint.h>
 #include <cstddef>
+#include <cstring>
 #include <stdexcept>
 
 /**
@@ -12,8 +15,13 @@
  */
 const char *OSErrorString();
 
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN64)
+#include <windows.h>
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#ifdef NTDDI_WIN2K
+#include <Wspiapi.h>
+#endif // NTDDI_WIN2K
 /**
  * Stores the initialization state of WinSock.
  */
@@ -30,7 +38,7 @@ extern WSADATA wsadata;
  */
 typedef int socklen_t;
 
-#else // WIN32
+#else // defined(WIN32) || defined(WIN64)
 // Stop doxygen generating a gigantic include graph
 #ifndef DOXYGEN
 #include <sys/types.h>
@@ -56,7 +64,7 @@ const SOCKET INVALID_SOCKET = -1;
  * Return code representing a socket error.
  */
 const int SOCKET_ERROR = -1;
-#endif // WIN32
+#endif // defined(WIN32) || defined(WIN64)
 
 class IPAddress;
 class Client;
@@ -115,6 +123,23 @@ class Socket_SelectFailed : public Socket_Exception
 		const char *what() { return "Socket_SelectFailed"; }
 };
 
+#if defined(WIN32) || defined(WIN64)
+inline void _Socket_WSAStartup()
+{
+	if (!ws_init)
+	{
+		if (WSAStartup(MAKEWORD(2,0), &wsadata) != 0)
+		{
+			throw Socket_InitFailed(OSErrorString());
+		}
+		ws_init = true;
+	}
+}
+#define Socket_WSAStartup() _Socket_WSAStartup()
+#else // defined(WIN32) || defined(WIN64)
+#define Socket_WSAStartup()
+#endif // defined(WIN32) || defined(WIN64)
+
 /**
  * Stores an IP address and converts between string and numeric formats.
  */
@@ -163,6 +188,11 @@ class IPAddress
 		IPAddress(std::string);
 
 		/**
+		 * Lookup a hostname and use that to create an IPAddress class
+		 */
+		static IPAddress Lookup(std::string host);
+
+		/**
 		 * Set the address to an integer value
 		 */
 		IPAddress &operator =(unsigned int);
@@ -198,6 +228,37 @@ class IPAddress
 		operator std::string();
 
 		bool operator ==(const IPAddress &);
+};
+
+/**
+ * Generic TCP client class.
+ */
+class Client
+{
+	protected:
+		bool connected;
+		SOCKET sock;
+		sockaddr_in sin;
+		std::string send_buffer;
+		std::string recv_buffer;
+		void *server;
+		std::size_t recv_buffer_max;
+		std::size_t send_buffer_max;
+
+	public:
+		Client();
+		Client(IPAddress addr, uint16_t port);
+		Client(void *);
+		Client(SOCKET, sockaddr_in, void *);
+		std::string Recv(std::size_t length);
+		void Send(const std::string &data);
+		void Tick(int timeout);
+		bool Connected();
+		IPAddress GetRemoteAddr();
+		bool Close();
+		virtual ~Client();
+
+	template<class> friend class Server;
 };
 
 /**
@@ -267,7 +328,7 @@ template <class T = Client> class Server
 		 */
 		void Initialize()
 		{
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN64)
 			if (!ws_init)
 			{
 				if (WSAStartup(MAKEWORD(2,0), &wsadata) != 0)
@@ -277,7 +338,7 @@ template <class T = Client> class Server
 				}
 				ws_init = true;
 			}
-#endif // WIN32
+#endif // defined(WIN32) || defined(WIN64)
 			this->server = socket(AF_INET, SOCK_STREAM, 0);
 			this->state = Created;
 			this->recv_buffer_max = 1024*128;
@@ -356,7 +417,7 @@ template <class T = Client> class Server
 			sin.sin_addr.s_addr = this->address;
 			sin.sin_port = this->portn;
 
-			if (bind(this->server, (sockaddr *)&sin, sizeof(sin)) == SOCKET_ERROR)
+			if (bind(this->server, reinterpret_cast<sockaddr *>(&sin), sizeof(sin)) == SOCKET_ERROR)
 			{
 				this->state = Invalid;
 				throw Socket_BindFailed(OSErrorString());
@@ -398,42 +459,43 @@ template <class T = Client> class Server
 			sockaddr_in sin;
 			socklen_t addrsize = sizeof(sockaddr_in);
 			T* newclient;
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN64)
 			unsigned long nonblocking;
-#endif // WIN32
+#endif // defined(WIN32) || defined(WIN64)
 
 			if (this->clients.size() >= this->maxconn)
 			{
-				if ((newsock = accept(this->server, (sockaddr *)&sin, &addrsize)) != INVALID_SOCKET)
+				if ((newsock = accept(this->server, reinterpret_cast<sockaddr *>(&sin), &addrsize)) != INVALID_SOCKET)
 				{
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN64)
 					closesocket(newsock);
-#else // WIN32
+#else // defined(WIN32) || defined(WIN64)
 					close(newsock);
-#endif // WIN32
+#endif // defined(WIN32) || defined(WIN64)
 					return 0;
 				}
 			}
 
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN64)
 			nonblocking = 1;
 			ioctlsocket(this->server, FIONBIO, &nonblocking);
-#else // WIN32
+#else // defined(WIN32) || defined(WIN64)
 			fcntl(this->server, F_SETFL, FNONBLOCK|FASYNC);
-#endif // WIN32
-			if ((newsock = accept(this->server, (sockaddr *)&sin, &addrsize)) == INVALID_SOCKET)
+#endif // defined(WIN32) || defined(WIN64)
+			if ((newsock = accept(this->server, reinterpret_cast<sockaddr *>(&sin), &addrsize)) == INVALID_SOCKET)
 			{
 				return 0;
 			}
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN64)
 			nonblocking = 0;
 			ioctlsocket(this->server, FIONBIO, &nonblocking);
-#else // WIN32
+#else // defined(WIN32) || defined(WIN64)
 			fcntl(this->server, F_SETFL, 0);
-#endif // WIN32
+#endif // defined(WIN32) || defined(WIN64)
 
 			newclient = new T(newsock, sin, static_cast<void *>(this));
 			newclient->send_buffer_max = this->send_buffer_max;
+			newclient->recv_buffer_max = this->recv_buffer_max;
 
 			this->clients.push_back(newclient);
 
@@ -451,7 +513,6 @@ template <class T = Client> class Server
 		{
 			timeval timeout_val = {timeout/1000000, timeout%1000000};
 			std::list<T *> selected;
-			class std::list<T *>::iterator it;
 			SOCKET nfds = this->server + 1;
 			int result;
 
@@ -459,25 +520,25 @@ template <class T = Client> class Server
 			FD_ZERO(&this->write_fds);
 			FD_ZERO(&this->except_fds);
 
-			for (it = this->clients.begin(); it != this->clients.end(); ++it)
+			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 			{
-				if ((*it)->connected)
+				if (client->connected)
 				{
-					if ((*it)->recv_buffer.length() < this->recv_buffer_max)
+					if (client->recv_buffer.length() < client->recv_buffer_max)
 					{
-						FD_SET((*it)->sock, &this->read_fds);
+						FD_SET(client->sock, &this->read_fds);
 					}
 
-					if ((*it)->send_buffer.length() > 0)
+					if (client->send_buffer.length() > 0)
 					{
-						FD_SET((*it)->sock, &this->write_fds);
+						FD_SET(client->sock, &this->write_fds);
 					}
 
-					FD_SET((*it)->sock, &this->except_fds);
+					FD_SET(client->sock, &this->except_fds);
 
-					if ((*it)->sock + 1 > nfds)
+					if (client->sock + 1 > nfds)
 					{
-						nfds = (*it)->sock + 1;
+						nfds = client->sock + 1;
 					}
 				}
 			}
@@ -498,54 +559,53 @@ template <class T = Client> class Server
 					throw Socket_Exception("There was an exception on the listening socket.");
 				}
 
-				for (it = this->clients.begin(); it != this->clients.end(); ++it)
+				UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 				{
-					if (FD_ISSET((*it)->sock, &this->except_fds))
+					if (FD_ISSET(client->sock, &this->except_fds))
 					{
-						(*it)->Close();
+						client->Close();
 						continue;
 					}
 
-					if (FD_ISSET((*it)->sock, &this->read_fds))
+					if (FD_ISSET(client->sock, &this->read_fds))
 					{
 						char buf[32767];
-						int recieved = recv((*it)->sock, buf, 32767, 0);
+						int recieved = recv(client->sock, buf, 32767, 0);
 						if (recieved > 0)
 						{
-							buf[recieved] = '\0';
-							(*it)->recv_buffer.append(buf, recieved);
+							client->recv_buffer.append(buf, recieved);
 						}
 						else
 						{
-							(*it)->Close();
+							client->Close();
 							continue;
 						}
 
-						if ((*it)->recv_buffer.length() > this->recv_buffer_max)
+						if (client->recv_buffer.length() > client->recv_buffer_max)
 						{
-							(*it)->Close();
+							client->Close();
 							continue;
 						}
 					}
 
-					if (FD_ISSET((*it)->sock, &this->write_fds))
+					if (FD_ISSET(client->sock, &this->write_fds))
 					{
-						int written = send((*it)->sock, (*it)->send_buffer.c_str(), (*it)->send_buffer.length(), 0);
+						int written = send(client->sock, client->send_buffer.c_str(), client->send_buffer.length(), 0);
 						if (written == SOCKET_ERROR)
 						{
-							(*it)->Close();
+							client->Close();
 							continue;
 						}
-						(*it)->send_buffer.erase(0,written);
+						client->send_buffer.erase(0,written);
 					}
 				}
 			}
 
-			for (it = this->clients.begin(); it != this->clients.end(); ++it)
+			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 			{
-				if ((*it)->recv_buffer.length() > 0)
+				if (client->recv_buffer.length() > 0)
 				{
-					selected.push_back(*it);
+					selected.push_back(client);
 				}
 			}
 
@@ -560,7 +620,7 @@ template <class T = Client> class Server
 		{
 			class std::list<T *>::iterator it;
 
-			for (it = this->clients.begin(); it != this->clients.end(); ++it)
+			UTIL_TPL_LIST_IFOREACH_ALL(this->clients, T *, it)
 			{
 				if (!(*it)->Connected())
 				{
@@ -584,37 +644,16 @@ template <class T = Client> class Server
 		{
 			return this->maxconn;
 		}
-};
 
-/**
- * Generic TCP client class.
- */
-class Client
-{
-	private:
-		Client();
-
-	protected:
-		bool connected;
-		SOCKET sock;
-		sockaddr_in sin;
-		std::string send_buffer;
-		std::string recv_buffer;
-		std::size_t send_buffer_max;
-		void *server;
-
-	public:
-		Client(void *);
-		Client(SOCKET, sockaddr_in, void *);
-		std::string Recv(std::size_t length);
-		void Send(const std::string &data);
-		bool Connected();
-		IPAddress GetRemoteAddr();
-		bool Close();
-		virtual ~Client();
-
-	template<class> friend class Server;
+		virtual ~Server()
+		{
+#if defined(WIN32) || defined(WIN64)
+			closesocket(this->server);
+#else // defined(WIN32) || defined(WIN64)
+			close(this->server);
+#endif // defined(WIN32) || defined(WIN64)
+		}
 };
 
 
-#endif // SOCKET_H_INCLUDED
+#endif // SOCKET_HPP_INCLUDED

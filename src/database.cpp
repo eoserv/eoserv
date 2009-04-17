@@ -113,7 +113,7 @@ Database_Result Database::Query(const char *format, ...)
 	{
 		if (*p == '#'){
 			tempi = va_arg(ap,int);
-			finalquery += static_cast<std::string>(util::variant(tempi));
+			finalquery += util::to_string(tempi);
 		} else if (*p == '@'){
 			tempc = va_arg(ap,char *);
 			finalquery += static_cast<std::string>(tempc);
@@ -127,7 +127,7 @@ Database_Result Database::Query(const char *format, ...)
 					escret = new char[tempi*2+1];
 					mysql_real_escape_string(this->mysql_handle, escret, tempc, tempi);
 					finalquery += escret;
-					delete escret;
+					delete[] escret;
 					break;
 #endif // DATABASE_MYSQL
 
@@ -190,7 +190,7 @@ Database_Result Database::Query(const char *format, ...)
 					{
 						if (row[i])
 						{
-							rescell = static_cast<int>(util::variant(row[i]));
+							rescell = util::to_int(row[i]);
 						}
 						else
 						{

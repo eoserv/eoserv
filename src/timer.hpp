@@ -1,7 +1,7 @@
 #ifndef TIMER_HPP_INCLUDED
 #define TIMER_HPP_INCLUDED
 
-#include <list>
+#include <set>
 
 class Timer;
 class TimeEvent;
@@ -17,13 +17,25 @@ class Timer
 		/**
 		 * List of TimeEvent objects a Timer controls
 		 */
-		std::list<TimeEvent *> timers;
+		std::set<TimeEvent *> timers;
+
+		/**
+		 * Copy of timers which is used to allow timers to unregister themselves safely
+		 */
+		std::set<TimeEvent *> execlist;
+
+		/**
+		 * Used to track when execlist needs to be remade
+		 */
+		bool changed;
 
 	public:
 		/**
 		 * TimeEvent lifetime that will never expire
 		 */
 		static const int FOREVER = -1;
+
+		Timer();
 
 		/**
 		 * Helper function to get the current time in seconds
@@ -86,12 +98,12 @@ struct TimeEvent
 	/**
 	 * Number of ticks before the Timer will stop calling it
 	 */
-	int lifetime;
+	volatile int lifetime;
 
 	/**
 	 * Whether the owning Timer object should delete the TimeEvent object when it expires
 	 */
-	bool autofree;
+	volatile bool autofree;
 
 	/**
 	 * Construct a new TimeEvent object

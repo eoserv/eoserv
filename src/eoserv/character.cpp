@@ -185,7 +185,7 @@ void Character::Emote(int emote)
 
 int Character::HasItem(int item)
 {
-	UTIL_FOREACH(this->inventory, it)
+	UTIL_LIST_FOREACH_ALL(this->inventory, Character_Item, it)
 	{
 		if (it.id == item)
 		{
@@ -210,7 +210,7 @@ bool Character::AddItem(int item, int amount)
 		return false;
 	}
 
-	UTIL_IFOREACH(this->inventory, it)
+	UTIL_LIST_IFOREACH(this->inventory.begin(), this->inventory.end(), Character_Item, it)
 	{
 		if (it->id == item)
 		{
@@ -242,7 +242,7 @@ void Character::DelItem(int item, int amount)
 		return;
 	}
 
-	UTIL_IFOREACH(this->inventory, it)
+	UTIL_LIST_IFOREACH(this->inventory.begin(), this->inventory.end(), Character_Item, it)
 	{
 		if (it->id == item)
 		{
@@ -520,7 +520,7 @@ std::string Character::PaddedGuildTag()
 
 	if (static_cast<int>(eoserv_config["ShowLevel"]))
 	{
-		tag = static_cast<std::string>(util::variant(this->level));
+		tag = util::to_string(this->level);
 		if (tag.length() < 3)
 		{
 			tag.insert(tag.begin(), 'L');
@@ -558,15 +558,15 @@ void Character::CalculateStats()
 	this->evade = 0;
 	this->armor = 0;
 	this->maxsp = 0;
-	UTIL_FOREACH(this->inventory, item)
+	UTIL_LIST_FOREACH_ALL(this->inventory, Character_Item, item)
 	{
 		this->weight += eoserv_items->Get(item.id)->weight * item.amount;
 	}
-	for (std::size_t i = 0; i < this->paperdoll.size(); ++i)
+	UTIL_ARRAY_FOREACH_ALL(this->paperdoll, int, 15, i)
 	{
-		if (this->paperdoll[i])
+		if (i)
 		{
-			EIF_Data *item = eoserv_items->Get(this->paperdoll[i]);
+			EIF_Data *item = eoserv_items->Get(i);
 			this->weight += item->weight;
 			this->maxhp += item->hp;
 			this->maxtp += item->tp;

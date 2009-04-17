@@ -17,6 +17,8 @@ class EOClient;
 #define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(int action, PacketReader &reader)
 
 void server_ping_all(void *server_void);
+void sln_request(void *server_void);
+void sln_tick_request(void *server_void);
 
 /**
  * Information about a temporary in-memory ban
@@ -52,6 +54,8 @@ class EOServer : public Server<EOClient>
 		bool UsernameBanned(std::string username);
 		bool AddressBanned(IPAddress address);
 		bool HDIDBanned(std::string hdid);
+
+		~EOServer();
 };
 
 /**
@@ -71,14 +75,14 @@ class EOClient : public Client
 		std::string hdid;
 		bool init;
 
-		enum State
+		enum PacketState
 		{
 			ReadLen1,
 			ReadLen2,
 			ReadData
 		};
 
-		int state;
+		PacketState state;
 		unsigned char raw_length[2];
 		unsigned int length;
 		std::string data;

@@ -29,11 +29,11 @@ std::string ItemSerialize(std::list<Character_Item> list)
 {
 	std::string serialized;
 	serialized.reserve(list.size()*10); // Reserve some space to stop some mass-reallocations
-	UTIL_FOREACH(list, item)
+	UTIL_LIST_FOREACH_ALL(list, Character_Item, item)
 	{
-		serialized.append(static_cast<std::string>(util::variant(item.id)));
+		serialized.append(util::to_string(item.id));
 		serialized.append(",");
-		serialized.append(static_cast<std::string>(util::variant(item.amount)));
+		serialized.append(util::to_string(item.amount));
 		serialized.append(";");
 	}
 	serialized.reserve(0); // Clean up the reserve to save memory
@@ -56,8 +56,8 @@ std::list<Character_Item> ItemUnserialize(std::string serialized)
 		{
 			continue;
 		}
-		newitem.id = static_cast<int>(util::variant(part.substr(0, pp)));
-		newitem.amount = static_cast<int>(util::variant(part.substr(pp+1)));
+		newitem.id = util::to_int(part.substr(0, pp));
+		newitem.amount = util::to_int(part.substr(pp+1));
 
 		list.push_back(newitem);
 
@@ -73,9 +73,9 @@ std::string DollSerialize(util::array<int, 15> list)
 
 	serialized.reserve(15*5); // Reserve some space to stop some mass-reallocations
 
-	for (std::size_t i = 0; i < 15; ++i)
+	UTIL_ARRAY_FOREACH_ALL(list, int, 15, item)
 	{
-		serialized.append(static_cast<std::string>(util::variant(list[i])));
+		serialized.append(util::to_string(item));
 		serialized.append(",");
 	}
 
@@ -86,18 +86,13 @@ std::string DollSerialize(util::array<int, 15> list)
 
 util::array<int, 15> DollUnserialize(std::string serialized)
 {
-	util::array<int, 15> list;
-	// Initialize all paperdoll entrys to 0 in case some are missing in the serialized value
-	for (std::size_t i = 0; i < 15; ++i)
-	{
-		list[i] = 0;
-	}
+	util::array<int, 15> list(0);
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	int i = 0;
 	while ((p = serialized.find_first_of(',', p+1)) != std::string::npos)
 	{
-		list[i++] = static_cast<int>(util::variant(serialized.substr(lastp+1, p-lastp-1)));
+		list[i++] = util::to_int(serialized.substr(lastp+1, p-lastp-1));
 		lastp = p;
 	}
 	return list;

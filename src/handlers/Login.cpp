@@ -12,7 +12,7 @@ CLIENT_F_FUNC(Login)
 			std::string username = reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
-			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
+			util::lowercase(username);
 
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
 
@@ -42,7 +42,7 @@ CLIENT_F_FUNC(Login)
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
-			UTIL_FOREACH(this->player->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);

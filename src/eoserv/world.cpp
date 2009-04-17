@@ -106,7 +106,7 @@ int World::GeneratePlayerID()
 {
 	unsigned int lowest_free_id = 1;
 	restart_loop:
-	UTIL_FOREACH(this->server->clients, client)
+	UTIL_LIST_FOREACH_ALL(this->server->clients, EOClient *, client)
 	{
 		if (client->id == lowest_free_id)
 		{
@@ -126,11 +126,11 @@ void World::Login(Character *character)
 void World::Logout(Character *character)
 {
 	this->maps[character->mapid]->Leave(character);
-	UTIL_FOREACH(characters, checkcharacter)
+	UTIL_LIST_IFOREACH(this->characters.begin(), this->characters.end(), Character *, checkcharacter)
 	{
-		if (checkcharacter == character)
+		if (*checkcharacter == character)
 		{
-			this->characters.erase(util_it);
+			this->characters.erase(checkcharacter);
 			break;
 		}
 	}
@@ -144,7 +144,7 @@ void World::Msg(Character *from, std::string message)
 	builder.AddBreakString(from->name);
 	builder.AddBreakString(message);
 
-	UTIL_FOREACH(this->characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from)
 		{
@@ -163,7 +163,7 @@ void World::AdminMsg(Character *from, std::string message)
 	builder.AddBreakString(from->name);
 	builder.AddBreakString(message);
 
-	UTIL_FOREACH(this->characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || character->admin < ADMIN_GUARDIAN)
 		{
@@ -182,7 +182,7 @@ void World::AnnounceMsg(Character *from, std::string message)
 	builder.AddBreakString(from->name);
 	builder.AddBreakString(message);
 
-	UTIL_FOREACH(this->characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from)
 		{
@@ -197,9 +197,9 @@ Character *World::GetCharacter(std::string name)
 {
 	Character *selected = 0;
 
-	std::transform(name.begin(), name.end(), name.begin(), static_cast<int(*)(int)>(std::tolower));
+	util::lowercase(name);
 
-	UTIL_FOREACH(this->characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character->name.compare(name) == 0)
 		{

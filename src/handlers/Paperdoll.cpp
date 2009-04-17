@@ -12,7 +12,7 @@ CLIENT_F_FUNC(Paperdoll)
 			unsigned int id = reader.GetShort();
 			Character *character = this->player->character;
 
-			UTIL_FOREACH(this->player->character->map->characters, checkcharacter)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, checkcharacter)
 			{
 				if (checkcharacter->player->id == id)
 				{
@@ -32,9 +32,9 @@ CLIENT_F_FUNC(Paperdoll)
 			reply.AddChar(character->clas);
 			reply.AddChar(character->gender);
 			reply.AddChar(0); // admin/party flag?
-			for (int i = 0; i < 15; ++i)
+			UTIL_ARRAY_FOREACH_ALL(character->paperdoll, int, 15, item)
 			{
-				reply.AddShort(character->paperdoll[i]);
+				reply.AddShort(item);
 			}
 			CLIENT_SEND(reply);
 		}
@@ -93,7 +93,7 @@ CLIENT_F_FUNC(Paperdoll)
 			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
 			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
-			UTIL_FOREACH(this->player->character->map->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (character == this->player->character || !this->player->character->InRange(character))
 				{
@@ -156,7 +156,7 @@ CLIENT_F_FUNC(Paperdoll)
 			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
 			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
-			UTIL_FOREACH(this->player->character->map->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (character == this->player->character || !this->player->character->InRange(character))
 				{

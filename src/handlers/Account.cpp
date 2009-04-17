@@ -11,7 +11,7 @@ CLIENT_F_FUNC(Account)
 		{
 			std::string username = reader.GetEndString();
 
-			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
+			util::lowercase(username);
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
@@ -48,7 +48,7 @@ CLIENT_F_FUNC(Account)
 			std::string computer = reader.GetBreakString();
 			std::string hdid = reader.GetBreakString();
 
-			std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
+			util::lowercase(username);
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
@@ -63,7 +63,7 @@ CLIENT_F_FUNC(Account)
 			}
 			else
 			{
-				std::transform(username.begin(), username.end(), username.begin(), static_cast<int(*)(int)>(std::tolower));
+				util::lowercase(username);
 
 				Player::Create(username, password, fullname, location, email, computer, hdid, static_cast<std::string>(this->GetRemoteAddr()));
 				reply.AddShort(PACKET_ACCOUNT_CREATED);

@@ -9,14 +9,14 @@ CLIENT_F_FUNC(Refresh)
 		{
 			std::list<Character *> updatecharacters;
 			std::list<Map_Item> updateitems;
-			UTIL_FOREACH(this->player->character->map->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (this->player->character->InRange(character))
 				{
 					updatecharacters.push_back(character);
 				}
 			}
-			UTIL_FOREACH(this->player->character->map->items, item)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
 			{
 				if (this->player->character->InRange(item))
 				{
@@ -26,7 +26,7 @@ CLIENT_F_FUNC(Refresh)
 			reply.SetID(PACKET_REFRESH, PACKET_REPLY);
 			reply.AddChar(updatecharacters.size()); // Number of players
 			reply.AddByte(255);
-			UTIL_FOREACH(updatecharacters, character)
+			UTIL_LIST_FOREACH_ALL(updatecharacters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddShort(character->player->id);
@@ -60,7 +60,7 @@ CLIENT_F_FUNC(Refresh)
 				reply.AddByte(255);
 			}
 			reply.AddByte(255);
-			UTIL_FOREACH(updateitems, item)
+			UTIL_LIST_FOREACH_ALL(updateitems, Map_Item, item)
 			{
 				reply.AddShort(item.uid);
 				reply.AddShort(item.id);

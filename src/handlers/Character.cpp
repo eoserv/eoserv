@@ -30,7 +30,7 @@ CLIENT_F_FUNC(Character)
 			int race = reader.GetShort();
 			reader.GetByte();
 			std::string name = reader.GetBreakString();
-			std::transform(name.begin(), name.end(), name.begin(), static_cast<int(*)(int)>(std::tolower));
+			util::lowercase(name);
 
 			if (gender < 0 || gender > 1) return false;
 			if (hairstyle < static_cast<int>(eoserv_config["CreateMinHairStyle"]) || hairstyle > static_cast<int>(eoserv_config["CreateMaxHairStyle"])) return false;
@@ -68,7 +68,7 @@ CLIENT_F_FUNC(Character)
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
-			UTIL_FOREACH(this->player->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);
@@ -98,14 +98,14 @@ CLIENT_F_FUNC(Character)
 			unsigned int charid = reader.GetInt();
 
 			bool yourchar = false;
-			typeof(this->player->characters.begin()) char_it;
+			std::list<Character *>::iterator char_it;
 
-			UTIL_FOREACH(this->player->characters, character)
+			UTIL_LIST_IFOREACH(this->player->characters.begin(), this->player->characters.end(), Character *, character)
 			{
-				if (character->id == charid)
+				if ((*character)->id == charid)
 				{
-					Character::Delete(character->name);
-					char_it = util_it;
+					Character::Delete((*character)->name);
+					char_it = character;
 					yourchar = true;
 					break;
 				}
@@ -123,7 +123,7 @@ CLIENT_F_FUNC(Character)
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
-			UTIL_FOREACH(this->player->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);
@@ -150,7 +150,7 @@ CLIENT_F_FUNC(Character)
 
 			bool yourchar = false;
 
-			UTIL_FOREACH(this->player->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
 			{
 				if (character->id == charid)
 				{

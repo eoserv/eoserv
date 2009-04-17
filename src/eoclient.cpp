@@ -8,6 +8,7 @@
 #include "eoclient.hpp"
 #include "eoserv.hpp"
 #include "timer.hpp"
+#include "nanohttp.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
@@ -24,7 +25,9 @@ void server_ping_all(void *server_void)
 	builder.AddShort(0);
 	builder.AddChar(0);
 
-	UTIL_FOREACH(server->clients, client)
+	std::list<int> x;
+
+	UTIL_LIST_FOREACH_ALL(server->clients, EOClient *, client)
 	{
 		if (client->needpong)
 		{
@@ -38,10 +41,77 @@ void server_ping_all(void *server_void)
 	}
 }
 
+HTTP *sln_http;
+TimeEvent *sln_tick_request_timer;
+
+void sln_request(void *server_void)
+{
+	EOServer *server = static_cast<EOServer *>(server_void);
+
+	if (sln_tick_request_timer != 0)
+	{
+		return;
+	}
+
+	std::string url = eoserv_config["SLNURL"];
+	url += "check?software=EOSERV";
+	url += std::string("&retry=") + static_cast<std::string>(eoserv_config["SLNPeriod"]);
+	if (static_cast<std::string>(eoserv_config["SLNHost"]).length() > 0)
+	{
+		url += std::string("&host=") + HTTP::URLEncode(eoserv_config["SLNHost"]);
+	}
+	url += std::string("&port=") + HTTP::URLEncode(eoserv_config["Port"]);
+	url += std::string("&name=") + HTTP::URLEncode(eoserv_config["ServerName"]);
+	if (static_cast<std::string>(eoserv_config["SLNSite"]).length() > 0)
+	{
+		url += std::string("&url=") + HTTP::URLEncode(eoserv_config["SLNSite"]);
+	}
+	if (static_cast<std::string>(eoserv_config["SLNZone"]).length() > 0)
+	{
+		url += std::string("&zone=") + HTTP::URLEncode(eoserv_config["SLNZone"]);
+	}
+
+	sln_http = HTTP::RequestURL(url);
+	sln_tick_request_timer = new TimeEvent(sln_tick_request, server_void, 0.01, Timer::FOREVER, false);
+	server->world->timer.Register(sln_tick_request_timer);
+}
+
+void sln_tick_request(void *server_void)
+{
+	EOServer *server = static_cast<EOServer *>(server_void);
+
+	if (sln_http == 0)
+	{
+		return;
+	}
+
+	sln_http->Tick(0);
+
+	if (sln_http->Done())
+	{
+		delete sln_http;
+		sln_http = 0;
+		if (sln_tick_request_timer != 0)
+		{
+			server->world->timer.Unregister(sln_tick_request_timer);
+		}
+		sln_tick_request_timer = 0;
+		if (static_cast<int>(eoserv_config["SLN"]))
+		{
+			server->world->timer.Register(new TimeEvent(sln_request, server_void, eoserv_config["SLNPeriod"], 1, true));
+		}
+	}
+}
+
 void EOServer::Initialize(util::array<std::string, 5> dbinfo, Config config)
 {
 	this->world = new World(dbinfo, config);
-	this->world->timer.Register(new TimeEvent(server_ping_all, (void *)this, 60.0, Timer::FOREVER));
+	this->world->timer.Register(new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER));
+	if (static_cast<int>(eoserv_config["SLN"]))
+	{
+		sln_tick_request_timer = 0;
+		sln_request(this);
+	}
 	this->world->server = this;
 }
 
@@ -49,11 +119,11 @@ void EOServer::AddBan(std::string username, IPAddress address, std::string hdid,
 {
 	double now = Timer::GetTime();
 	restart_loop:
-	UTIL_FOREACH(this->bans, ban)
+	UTIL_LIST_IFOREACH(this->bans.begin(), this->bans.end(), EOServer_Ban, ban)
 	{
-		if (ban.expires < now)
+		if (ban->expires < now)
 		{
-			this->bans.erase(util_it);
+			this->bans.erase(ban);
 			goto restart_loop;
 		}
 	}
@@ -68,7 +138,7 @@ void EOServer::AddBan(std::string username, IPAddress address, std::string hdid,
 bool EOServer::UsernameBanned(std::string username)
 {
 	double now = Timer::GetTime();
-	UTIL_FOREACH(this->bans, ban)
+	UTIL_LIST_FOREACH_ALL(this->bans, EOServer_Ban, ban)
 	{
 		if (ban.expires > now && ban.username == username)
 		{
@@ -82,7 +152,7 @@ bool EOServer::UsernameBanned(std::string username)
 bool EOServer::AddressBanned(IPAddress address)
 {
 	double now = Timer::GetTime();
-	UTIL_FOREACH(this->bans, ban)
+	UTIL_LIST_FOREACH_ALL(this->bans, EOServer_Ban, ban)
 	{
 		if (ban.expires > now && ban.address == address)
 		{
@@ -96,7 +166,7 @@ bool EOServer::AddressBanned(IPAddress address)
 bool EOServer::HDIDBanned(std::string hdid)
 {
 	double now = Timer::GetTime();
-	UTIL_FOREACH(this->bans, ban)
+	UTIL_LIST_FOREACH_ALL(this->bans, EOServer_Ban, ban)
 	{
 		if (ban.expires > now && ban.hdid == hdid)
 		{
@@ -107,11 +177,16 @@ bool EOServer::HDIDBanned(std::string hdid)
 	return false;
 }
 
+EOServer::~EOServer()
+{
+	delete this->world;
+}
+
 void EOClient::Initialize()
 {
 	this->id = the_world->GeneratePlayerID();
 	this->length = 0;
-	this->state = 0;
+	this->state = EOClient::ReadLen1;
 	this->player = 0;
 	this->version = 0;
 	this->needpong = false;

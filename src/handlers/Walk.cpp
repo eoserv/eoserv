@@ -49,7 +49,7 @@ CLIENT_F_FUNC(Walk)
 			if (this->player->character->x != x || this->player->character->y != y)
 			{
 				std::list<Character *> updatecharacters;
-				UTIL_FOREACH(this->player->character->map->characters, character)
+				UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 				{
 					if (this->player->character->InRange(character))
 					{
@@ -61,7 +61,7 @@ CLIENT_F_FUNC(Walk)
 				builder.SetID(PACKET_REFRESH, PACKET_REPLY);
 				builder.AddChar(updatecharacters.size()); // Number of players
 				builder.AddByte(255);
-				UTIL_FOREACH(updatecharacters, character)
+				UTIL_LIST_FOREACH_ALL(updatecharacters, Character *, character)
 				{
 					builder.AddBreakString(character->name);
 					builder.AddShort(character->player->id);

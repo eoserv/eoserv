@@ -34,6 +34,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-Wextra" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
 			<Add option="-DDATABASE_MYSQL" />
@@ -224,6 +225,8 @@
 		<Unit filename="..\src\hash.cpp" />
 		<Unit filename="..\src\hash.hpp" />
 		<Unit filename="..\src\main.cpp" />
+		<Unit filename="..\src\nanohttp.cpp" />
+		<Unit filename="..\src\nanohttp.hpp" />
 		<Unit filename="..\src\packet.cpp" />
 		<Unit filename="..\src\packet.hpp" />
 		<Unit filename="..\src\sha256.c">

@@ -24,13 +24,12 @@ EIF::EIF(std::string filename)
 	unsigned char namesize;
 	char *namebuf;
 	std::string name;
-	char buf[EIF::DATA_SIZE] = {0,};
-	EIF_Data newdata = {0,};
+	char buf[EIF::DATA_SIZE] = {0};
+	EIF_Data newdata;
 
-	this->nulldata = new EIF_Data;
-	*this->nulldata = newdata;
+	this->data.resize(numobj+1, newdata);
 
-	this->data.resize(numobj+1, *this->nulldata);
+	this->data[0] = newdata;
 
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	for (int i = 1; i <= numobj; ++i)
@@ -39,7 +38,7 @@ EIF::EIF(std::string filename)
 		namebuf = new char[namesize];
 		std::fread(namebuf, sizeof(char), namesize, fh);
 		name.assign(namebuf,namesize);
-		delete namebuf;
+		delete[] namebuf;
 		std::fread(buf, sizeof(char), EIF::DATA_SIZE, fh);
 
 		newdata.id = i;
@@ -93,7 +92,7 @@ EIF_Data *EIF::Get(unsigned int id)
 	}
 	else
 	{
-		return this->nulldata;
+		return &this->data[0];
 	}
 }
 
@@ -116,15 +115,12 @@ ENF::ENF(std::string filename)
 	unsigned char namesize;
 	char *namebuf;
 	std::string name;
-	char buf[ENF::DATA_SIZE] = {0,};
-	ENF_Data newdata = {0,};
+	char buf[ENF::DATA_SIZE] = {0};
+	ENF_Data newdata;
 
-	this->nulldata = new ENF_Data;
-	*this->nulldata = newdata;
+	this->data.resize(numobj+1, newdata);
 
-	this->data.resize(numobj+1, *this->nulldata);
-
-	this->data[0] = *this->nulldata;
+	this->data[0] = newdata;
 
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	for (int i = 1; i <= numobj; ++i)
@@ -133,7 +129,7 @@ ENF::ENF(std::string filename)
 		namebuf = new char[namesize];
 		std::fread(namebuf, sizeof(char), namesize, fh);
 		name.assign(namebuf,namesize);
-		delete namebuf;
+		delete[] namebuf;
 		std::fread(buf, sizeof(char), ENF::DATA_SIZE, fh);
 
 		newdata.id = i;
@@ -180,15 +176,12 @@ ESF::ESF(std::string filename)
 	unsigned char namesize;
 	char *namebuf;
 	std::string name;
-	char buf[ESF::DATA_SIZE] = {0,};
-	ESF_Data newdata = {0,};
+	char buf[ESF::DATA_SIZE] = {0};
+	ESF_Data newdata;
 
-	this->nulldata = new ESF_Data;
-	*this->nulldata = newdata;
+	this->data.resize(numobj+1, newdata);
 
-	this->data.resize(numobj+1, *this->nulldata);
-
-	this->data[0] = *this->nulldata;
+	this->data[0] = newdata;
 
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	for (int i = 1; i <= numobj; ++i)
@@ -197,7 +190,7 @@ ESF::ESF(std::string filename)
 		namebuf = new char[namesize];
 		std::fread(namebuf, sizeof(char), namesize, fh);
 		name.assign(namebuf,namesize);
-		delete namebuf;
+		delete[] namebuf;
 		std::fread(buf, sizeof(char), ESF::DATA_SIZE, fh);
 
 		newdata.id = i;
@@ -237,15 +230,12 @@ ECF::ECF(std::string filename)
 	unsigned char namesize;
 	char *namebuf;
 	std::string name;
-	char buf[ECF::DATA_SIZE] = {0,};
-	ECF_Data newdata = {0,};
+	char buf[ECF::DATA_SIZE] = {0};
+	ECF_Data newdata;
 
-	this->nulldata = new ECF_Data;
-	*this->nulldata = newdata;
+	this->data.resize(numobj+1, newdata);
 
-	this->data.resize(numobj+1, *this->nulldata);
-
-	this->data[0] = *this->nulldata;
+	this->data[0] = newdata;
 
 	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	for (int i = 1; i <= numobj; ++i)
@@ -254,7 +244,7 @@ ECF::ECF(std::string filename)
 		namebuf = new char[namesize];
 		std::fread(namebuf, sizeof(char), namesize, fh);
 		name.assign(namebuf,namesize);
-		delete namebuf;
+		delete[] namebuf;
 		std::fread(buf, sizeof(char), ECF::DATA_SIZE, fh);
 
 		newdata.id = i;

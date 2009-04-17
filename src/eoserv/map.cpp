@@ -118,7 +118,7 @@ int Map::GenerateItemID()
 {
 	int lowest_free_id = 1;
 	restart_loop:
-	UTIL_FOREACH(this->items, item)
+	UTIL_LIST_FOREACH_ALL(this->items, Map_Item, item)
 	{
 		if (item.uid == lowest_free_id)
 		{
@@ -171,7 +171,7 @@ void Map::Enter(Character *character, int animation)
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
-	UTIL_FOREACH(this->characters, checkcharacter)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkcharacter)
 	{
 		if (checkcharacter == character || !character->InRange(checkcharacter))
 		{
@@ -200,7 +200,7 @@ void Map::Leave(Character *character, int animation)
 		builder.AddChar(animation);
 	}
 
-	UTIL_FOREACH(this->characters, checkcharacter)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkcharacter)
 	{
 		if (checkcharacter == character || !character->InRange(checkcharacter))
 		{
@@ -210,11 +210,11 @@ void Map::Leave(Character *character, int animation)
 		checkcharacter->player->client->SendBuilder(builder);
 	}
 
-	UTIL_FOREACH(this->characters, checkcharacter)
+	UTIL_LIST_IFOREACH_ALL(this->characters, Character *, checkcharacter)
 	{
-		if (checkcharacter == character)
+		if (*(checkcharacter) == character)
 		{
-			this->characters.erase(util_it);
+			this->characters.erase(checkcharacter);
 			break;
 		}
 	}
@@ -229,7 +229,7 @@ void Map::Msg(Character *from, std::string message)
 	builder.AddShort(from->player->id);
 	builder.AddString(message);
 
-	UTIL_FOREACH(characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -322,7 +322,7 @@ bool Map::Walk(Character *from, int direction, bool admin)
 	std::list<Character *> newchars;
 	std::list<Character *> oldchars;
 	std::list<Map_Item> newitems;
-	UTIL_FOREACH(this->characters, checkchar)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkchar)
 	{
 		if (checkchar == from)
 		{
@@ -409,7 +409,7 @@ bool Map::Walk(Character *from, int direction, bool admin)
 		}
 	}
 
-	UTIL_FOREACH(this->items, checkitem)
+	UTIL_LIST_FOREACH_ALL(this->items, Map_Item, checkitem)
 	{
 		switch (direction)
 		{
@@ -481,7 +481,7 @@ bool Map::Walk(Character *from, int direction, bool admin)
 	builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
 	builder.AddShort(from->player->id);
 
-	UTIL_FOREACH(oldchars, character)
+	UTIL_LIST_FOREACH_ALL(oldchars, Character *, character)
 	{
 		PacketBuilder rbuilder;
 		rbuilder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
@@ -527,7 +527,7 @@ bool Map::Walk(Character *from, int direction, bool admin)
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
-	UTIL_FOREACH(newchars, character)
+	UTIL_LIST_FOREACH_ALL(newchars, Character *, character)
 	{
 		PacketBuilder rbuilder;
 		rbuilder.SetID(PACKET_PLAYERS, PACKET_AGREE);
@@ -576,7 +576,7 @@ bool Map::Walk(Character *from, int direction, bool admin)
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
 
-	UTIL_FOREACH(characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -591,7 +591,7 @@ bool Map::Walk(Character *from, int direction, bool admin)
 	builder.SetID(PACKET_WALK, PACKET_REPLY);
 	builder.AddByte(255);
 	builder.AddByte(255);
-	UTIL_FOREACH(newitems, item)
+	UTIL_LIST_FOREACH_ALL(newitems, Map_Item, item)
 	{
 		builder.AddShort(item.uid);
 		builder.AddShort(item.id);
@@ -614,7 +614,7 @@ void Map::Attack(Character *from, int direction)
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 
-	UTIL_FOREACH(characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -635,7 +635,7 @@ void Map::Face(Character *from, int direction)
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 
-	UTIL_FOREACH(characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -659,7 +659,7 @@ void Map::Sit(Character *from, int sit_type)
 	builder.AddChar(from->direction);
 	builder.AddChar(0); // ?
 
-	UTIL_FOREACH(characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -681,7 +681,7 @@ void Map::Stand(Character *from)
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
 
-	UTIL_FOREACH(characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -700,7 +700,7 @@ void Map::Emote(Character *from, int emote)
 	builder.AddShort(from->player->id);
 	builder.AddChar(emote);
 
-	UTIL_FOREACH(characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -733,7 +733,7 @@ bool Map::OpenDoor(Character *from, int x, int y)
 		builder.AddChar(x);
 		builder.AddShort(y);
 
-		UTIL_FOREACH(this->characters, character)
+		UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 		{
 			if (character->InRange(x, y))
 			{
@@ -765,7 +765,7 @@ Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 		int ontile = 0;
 		int onmap = 0;
 
-		UTIL_FOREACH(this->items, item)
+		UTIL_LIST_FOREACH_ALL(this->items, Map_Item, item)
 		{
 			++onmap;
 			if (item.x == x && item.y == y)
@@ -780,7 +780,7 @@ Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 		}
 	}
 
-	UTIL_FOREACH(this->characters, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if ((from && character == from) || !character->InRange(newitem))
 		{
@@ -795,17 +795,17 @@ Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 
 void Map::DelItem(int uid, Character *from)
 {
-	UTIL_FOREACH(this->items, item)
+	UTIL_LIST_IFOREACH_ALL(this->items, Map_Item, item)
 	{
-		if (item.uid == uid)
+		if (item->uid == uid)
 		{
-			this->items.erase(util_it);
+			this->items.erase(item);
 			PacketBuilder builder;
 			builder.SetID(PACKET_ITEM, PACKET_REMOVE);
 			builder.AddShort(uid);
-			UTIL_FOREACH(this->characters, character)
+			UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 			{
-				if ((from && character == from) || !character->InRange(item))
+				if ((from && character == from) || !character->InRange(*item))
 				{
 					continue;
 				}

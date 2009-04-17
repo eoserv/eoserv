@@ -260,4 +260,24 @@ double tdparse(std::string timestr)
 	return ret;
 }
 
+int to_int(const std::string &subject)
+{
+	return static_cast<int>(util::variant(subject));
+}
+
+std::string to_string(int subject)
+{
+	return static_cast<std::string>(util::variant(subject));
+}
+
+void lowercase(std::string &subject)
+{
+	std::transform(subject.begin(), subject.end(), subject.begin(), static_cast<int(*)(int)>(std::tolower));
+}
+
+void uppercase(std::string &subject)
+{
+	std::transform(subject.begin(), subject.end(), subject.begin(), static_cast<int(*)(int)>(std::toupper));
+}
+
 }

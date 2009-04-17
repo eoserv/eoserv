@@ -21,7 +21,7 @@ void sha256(std::string &str)
 	sha256_update(&ctx, data, str.length());
 	sha256_finish(&ctx, digest);
 
-	for (int i = 0; i <= 32; ++i)
+	for (int i = 0; i < 32; ++i)
 	{
 		cdigest[i*2]   = "0123456789abcdef"[((digest[i] >> 4) & 0x0F)];
 		cdigest[i*2+1] = "0123456789abcdef"[((digest[i]) & 0x0F)];
@@ -29,5 +29,5 @@ void sha256(std::string &str)
 
 	str.assign(cdigest, 64);
 
-	delete data;
+	delete[] data;
 }

@@ -8,7 +8,14 @@
 #include <sys/time.h>
 #endif // WIN32
 
+#include <algorithm>
+
 #include "util.hpp"
+
+Timer::Timer()
+{
+	this->changed = true;
+}
 
 double Timer::GetTime()
 {
@@ -28,9 +35,16 @@ double Timer::GetTime()
 void Timer::Tick()
 {
 	double currenttime = Timer::GetTime();
-	UTIL_FOREACH(this->timers, timer)
+
+	if (this->changed)
 	{
-		if (timer->lifetime != 0 && timer->lasttime + timer->speed < currenttime)
+		this->execlist = this->timers;
+	}
+
+	std::set<TimeEvent *> container = this->execlist;
+	UTIL_SET_FOREACH_ALL(this->execlist, TimeEvent *, timer)
+	{
+		if (timer->lasttime + timer->speed < currenttime)
 		{
 			timer->callback(timer->param);
 			timer->lasttime += timer->speed;
@@ -38,14 +52,10 @@ void Timer::Tick()
 			if (timer->lifetime != Timer::FOREVER)
 			{
 				--timer->lifetime;
-			}
 
-			if (timer->lifetime == 0)
-			{
-				this->Unregister(timer);
-				if (timer->autofree)
+				if (timer->lifetime == 0)
 				{
-					delete timer;
+					this->Unregister(timer);
 				}
 			}
 		}
@@ -54,18 +64,30 @@ void Timer::Tick()
 
 void Timer::Register(TimeEvent *timer)
 {
+	this->changed = true;
+
+	if (timer->lifetime == 0)
+	{
+		return;
+	}
+
 	timer->lasttime = Timer::GetTime();
-	this->timers.push_back(timer);
+	this->timers.insert(timer);
 }
 
 void Timer::Unregister(TimeEvent *timer)
 {
-	this->timers.remove(timer);
+	this->changed = true;
+	this->timers.erase(timer);
+	if (timer->autofree)
+	{
+		delete timer;
+	}
 }
 
 Timer::~Timer()
 {
-	UTIL_FOREACH(this->timers, timer)
+	UTIL_SET_FOREACH_ALL(this->timers, TimeEvent *, timer)
 	{
 		if (timer->autofree)
 		{
@@ -86,7 +108,7 @@ TimeEvent::TimeEvent(TimerCallback callback, void *param, double speed, int life
 
 TimeEvent::~TimeEvent()
 {
-	if (this->manager != 0 && this->lifetime > 0)
+	if (this->manager != 0)
 	{
 		this->manager->Unregister(this);
 	}

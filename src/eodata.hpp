@@ -72,7 +72,6 @@ class EIF
 		unsigned char rid[4];
 		unsigned char len[2];
 		std::vector<EIF_Data> data;
-		EIF_Data *nulldata;
 		EIF(std::string filename);
 
 		EIF_Data *Get(unsigned int id);
@@ -120,6 +119,10 @@ struct EIF_Data
 	int classreq;
 
 	int weight;
+
+	EIF_Data() : id(0), graphic(0), type(EIF::Static), special(EIF::Normal), hp(0), tp(0),
+	mindam(0), maxdam(0), accuracy(0), evade(0), armor(0), str(0), intl(0), wis(0), agi(0),
+	con(0), cha(0), scrollmap(0), gender(0), scrolly(0), classreq(0), weight(0) {};
 };
 
 /**
@@ -151,7 +154,6 @@ class ENF
 		unsigned char rid[4];
 		unsigned char len[2];
 		std::vector<ENF_Data> data;
-		ENF_Data *nulldata;
 		ENF(std::string filename);
 
 };
@@ -170,6 +172,8 @@ struct ENF_Data
 	ENF::Type type;
 
 	int exp;
+
+	ENF_Data() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), exp(0) {}
 };
 
 /**
@@ -182,7 +186,6 @@ class ESF
 		unsigned char rid[4];
 		unsigned char len[2];
 		std::vector<ESF_Data> data;
-		ESF_Data *nulldata;
 		ESF(std::string filename);
 
 };
@@ -194,6 +197,8 @@ struct ESF_Data
 {
 	int id;
 	std::string name;
+
+	ESF_Data() : id(0) {}
 };
 
 /**
@@ -206,7 +211,6 @@ class ECF
 		unsigned char rid[4];
 		unsigned char len[2];
 		std::vector<ECF_Data> data;
-		ECF_Data *nulldata;
 		ECF(std::string filename);
 
 };
@@ -218,6 +222,8 @@ struct ECF_Data
 {
 	int id;
 	std::string name;
+
+	ECF_Data() : id(0) {}
 };
 
 #endif // EODATA_HPP_INCLUDED
