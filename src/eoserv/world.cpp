@@ -211,6 +211,38 @@ Character *World::GetCharacter(std::string name)
 	return selected;
 }
 
+Character *World::GetCharacterPID(unsigned int id)
+{
+	Character *selected = 0;
+
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	{
+		if (character->player->id == id)
+		{
+			selected = character;
+			break;
+		}
+	}
+
+	return selected;
+}
+
+Character *World::GetCharacterCID(unsigned int id)
+{
+	Character *selected = 0;
+
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	{
+		if (character->id == id)
+		{
+			selected = character;
+			break;
+		}
+	}
+
+	return selected;
+}
+
 void World::Kick(Character *from, Character *victim, bool announce)
 {
 	victim->player->client->Close();

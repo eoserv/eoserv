@@ -203,16 +203,23 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["rehash"]))
 				{
-					eoserv_config.Read("config.ini");
-					admin_config.Read("admin.ini");
+					try
+					{
+						eoserv_config.Read("config.ini");
+						admin_config.Read("admin.ini");
+					}
+					catch (std::runtime_error)
+					{
+
+					}
 				}
-				else if (command.length() >= 2 && command.compare(0,2,"in") == 0 && this->player->character->admin >= static_cast<int>(admin_config["info"]))
+				else if (command.length() >= 2 && command.compare(0,2,"in") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["info"]))
 				{
 					Character *victim = the_world->GetCharacter(arguments[0]);
-					std::string name = victim->name;
-					util::ucfirst(name);
 					if (victim)
 					{
+						std::string name = victim->name;
+						util::ucfirst(name);
 						reply.SetID(PACKET_ADMININTERACT, PACKET_TELL);
 						if (victim->admin >= 4)
 						{
@@ -232,7 +239,7 @@ CLIENT_F_FUNC(Talk)
 						}
 						reply.AddString(name);
 						reply.AddString(" ");
-						reply.AddBreakString(victim->PaddedGuildTag());
+						reply.AddBreakString(util::trim(victim->PaddedGuildTag()));
 						reply.AddInt(victim->Usage());
 						reply.AddByte(255);
 						reply.AddByte(255);

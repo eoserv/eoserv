@@ -34,7 +34,6 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-Wextra" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
 			<Add option="-DDATABASE_MYSQL" />

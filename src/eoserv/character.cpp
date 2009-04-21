@@ -62,6 +62,12 @@ Character::Character(std::string name)
 	this->evade = 0;
 	this->armor = 0;
 
+	this->modal = false;
+
+	this->trading = false;
+	this->trade_partner = 0;
+	this->trade_agree = false;
+
 	this->warp_anim = 0;
 
 	this->sitting = static_cast<int>(row["sitting"]);
@@ -191,7 +197,22 @@ int Character::HasItem(int item)
 	{
 		if (it.id == item)
 		{
-			return it.amount;
+			if (this->trading)
+			{
+				UTIL_LIST_FOREACH_ALL(this->trade_inventory, Character_Item, tit)
+				{
+					if (tit.id == item)
+					{
+						return std::max(it.amount - tit.amount, 0);
+					}
+				}
+
+				return it.amount;
+			}
+			else
+			{
+				return it.amount;
+			}
 		}
 	}
 
@@ -212,7 +233,7 @@ bool Character::AddItem(int item, int amount)
 		return false;
 	}
 
-	UTIL_LIST_IFOREACH(this->inventory.begin(), this->inventory.end(), Character_Item, it)
+	UTIL_LIST_IFOREACH_ALL(this->inventory, Character_Item, it)
 	{
 		if (it->id == item)
 		{
@@ -237,14 +258,14 @@ bool Character::AddItem(int item, int amount)
 	return true;
 }
 
-void Character::DelItem(int item, int amount)
+bool Character::DelItem(int item, int amount)
 {
 	if (amount <= 0)
 	{
-		return;
+		return false;
 	}
 
-	UTIL_LIST_IFOREACH(this->inventory.begin(), this->inventory.end(), Character_Item, it)
+	UTIL_LIST_IFOREACH_ALL(this->inventory, Character_Item, it)
 	{
 		if (it->id == item)
 		{
@@ -258,9 +279,65 @@ void Character::DelItem(int item, int amount)
 			}
 
 			this->CalculateStats();
-			return;
+			return true;
 		}
 	}
+
+	return false;
+}
+
+bool Character::AddTradeItem(int item, int amount)
+{
+	Character_Item newitem;
+
+	if (amount <= 0)
+	{
+		puts("requested trade of <= 0 items");
+		return false;
+	}
+
+	if (item <= 0 || static_cast<std::size_t>(item) >= eoserv_items->data.size())
+	{
+		puts("requested trade of item id <= 0");
+		return false;
+	}
+
+	int hasitem = this->HasItem(item);
+
+	if (hasitem - amount < 0)
+	{
+		printf("%i - %i < 0 (%i)\n", hasitem, amount, hasitem - amount);
+		return false;
+	}
+
+	UTIL_LIST_IFOREACH_ALL(this->trade_inventory, Character_Item, it)
+	{
+		if (it->id == item)
+		{
+			it->amount += amount;
+			return true;
+		}
+	}
+
+	newitem.id = item;
+	newitem.amount = amount;
+
+	this->trade_inventory.push_back(newitem);
+	return true;
+}
+
+bool Character::DelTradeItem(int item)
+{
+	UTIL_LIST_IFOREACH_ALL(this->trade_inventory, Character_Item, it)
+	{
+		if (it->id == item)
+		{
+			this->trade_inventory.erase(it);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool Character::Unequip(int item, int subloc)
@@ -620,6 +697,24 @@ void Character::Save()
 
 Character::~Character()
 {
+	if (this->trading)
+	{
+		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
+		builder.AddShort(this->id);
+		this->trade_partner->player->client->SendBuilder(builder);
+
+		this->modal = this->trading = false;
+		this->trade_inventory.clear();
+		this->trade_agree = false;
+
+		this->trade_partner->modal = this->trade_partner->trading = false;
+		this->trade_partner->trade_inventory.clear();
+		this->trade_agree = false;
+
+		this->trade_partner->trade_partner = 0;
+		this->trade_partner = 0;
+	}
+
 	if (this->player)
 	{
 		the_world->Logout(this);

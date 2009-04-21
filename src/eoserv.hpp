@@ -98,6 +98,8 @@ class World
 		void Ban(Character *from, Character *victim, double duration, bool announce = true);
 
 		Character *GetCharacter(std::string name);
+		Character *GetCharacterPID(unsigned int id);
+		Character *GetCharacterCID(unsigned int id);
 };
 
 #include "eoclient.hpp"
@@ -274,6 +276,10 @@ class Map
 		bool Walkable(int x, int y);
 		Map_Tile::TileSpec GetSpec(int x, int y);
 		Map_Warp *GetWarp(int x, int y);
+
+		Character *GetCharacter(std::string name);
+		Character *GetCharacterPID(unsigned int id);
+		Character *GetCharacterCID(unsigned int id);
 };
 
 /**
@@ -357,6 +363,13 @@ class Character
 		int accuracy, evade, armor;
 		int mindam, maxdam;
 
+		bool modal;
+
+		bool trading;
+		Character *trade_partner;
+		bool trade_agree;
+		std::list<Character_Item> trade_inventory;
+
 		int warp_anim;
 
 		enum EquipLocation
@@ -400,7 +413,9 @@ class Character
 		void Emote(int emote);
 		int HasItem(int item);
 		bool AddItem(int item, int amount);
-		void DelItem(int item, int amount);
+		bool DelItem(int item, int amount);
+		bool AddTradeItem(int item, int amount);
+		bool DelTradeItem(int item);
 		bool Unequip(int item, int subloc);
 		bool Equip(int item, int subloc);
 		bool InRange(int x, int y);

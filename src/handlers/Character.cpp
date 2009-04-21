@@ -146,6 +146,8 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_TAKE: // Request to delete a character from an account
 		{
+			if (!this->player) return false;
+
 			unsigned int charid = reader.GetInt();
 
 			bool yourchar = false;

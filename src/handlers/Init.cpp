@@ -14,6 +14,11 @@ int stupid_hash(int i)
 
 CLIENT_F_FUNC(Init)
 {
+	if (this->init)
+	{
+		return false;
+	}
+
 	PacketBuilder reply;
 	unsigned int challenge;
 	unsigned int response;

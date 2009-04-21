@@ -297,7 +297,7 @@ int rand(int min, int max)
 		init = true;
 		std::srand(std::time(0));
 	}
-	return double(std::rand()) / RAND_MAX * (max - min + 1) + min;
+	return static_cast<int>(double(std::rand()) / RAND_MAX * (max - min + 1) + min);
 }
 
 }

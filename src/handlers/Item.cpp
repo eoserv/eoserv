@@ -17,6 +17,11 @@ CLIENT_F_FUNC(Item)
 				switch (item->type)
 				{
 					case EIF::Teleport:
+						if (this->player->character->modal)
+						{
+							break;
+						}
+
 						if (this->player->character->mapid == static_cast<int>(eoserv_config["JailMap"]))
 						{
 							break;
@@ -131,21 +136,24 @@ CLIENT_F_FUNC(Item)
 			int id = reader.GetShort();
 			int amount = reader.GetInt();
 
-			this->player->character->DelItem(id, amount);
+			if (this->player->character->HasItem(id) >= amount)
+			{
+				this->player->character->DelItem(id, amount);
 
-			reply.SetID(PACKET_ITEM, PACKET_JUNK);
-			reply.AddShort(id);
-			reply.AddThree(amount); // Overflows, does it matter?
-			reply.AddInt(this->player->character->HasItem(id));
-			reply.AddChar(this->player->character->weight);
-			reply.AddChar(this->player->character->maxweight);
-			CLIENT_SEND(reply);
+				reply.SetID(PACKET_ITEM, PACKET_JUNK);
+				reply.AddShort(id);
+				reply.AddThree(amount); // Overflows, does it matter?
+				reply.AddInt(this->player->character->HasItem(id));
+				reply.AddChar(this->player->character->weight);
+				reply.AddChar(this->player->character->maxweight);
+				CLIENT_SEND(reply);
+			}
 		}
 		break;
 
 		case PACKET_GET: // Retrieve an item from the ground
 		{
-			if (!this->player || !this->player->character) return false;
+			if (!this->player || !this->player->character || this->player->character->modal) return false;
 
 			int uid = reader.GetShort();
 

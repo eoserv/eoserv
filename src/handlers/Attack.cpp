@@ -5,9 +5,9 @@ CLIENT_F_FUNC(Attack)
 
 	switch (action)
 	{
-		case PACKET_USE: // Player walking
+		case PACKET_USE: // Player attacking
 		{
-			if (!this->player || !this->player->character) return false;
+			if (!this->player || !this->player->character || this->player->character->modal) return false;
 
 			int direction = reader.GetChar();
 			/*int timestamp = */reader.GetThree();

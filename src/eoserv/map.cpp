@@ -845,3 +845,53 @@ Map_Warp *Map::GetWarp(int x, int y)
 
 	return this->tiles[y][x].warp;
 }
+
+Character *Map::GetCharacter(std::string name)
+{
+	Character *selected = 0;
+
+	util::lowercase(name);
+
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	{
+		if (character->name.compare(name) == 0)
+		{
+			selected = character;
+			break;
+		}
+	}
+
+	return selected;
+}
+
+Character *Map::GetCharacterPID(unsigned int id)
+{
+	Character *selected = 0;
+
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	{
+		if (character->player->id == id)
+		{
+			selected = character;
+			break;
+		}
+	}
+
+	return selected;
+}
+
+Character *Map::GetCharacterCID(unsigned int id)
+{
+	Character *selected = 0;
+
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	{
+		if (character->id == id)
+		{
+			selected = character;
+			break;
+		}
+	}
+
+	return selected;
+}

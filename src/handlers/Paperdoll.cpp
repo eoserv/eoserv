@@ -10,15 +10,12 @@ CLIENT_F_FUNC(Paperdoll)
 			if (!this->player || !this->player->character) return false;
 
 			unsigned int id = reader.GetShort();
-			Character *character = this->player->character;
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, checkcharacter)
+			Character *character = this->player->character->map->GetCharacterPID(id);
+
+			if (character == 0)
 			{
-				if (checkcharacter->player->id == id)
-				{
-					character = checkcharacter;
-					break;
-				}
+				character = this->player->character;
 			}
 
 			reply.SetID(PACKET_PAPERDOLL, PACKET_REPLY);

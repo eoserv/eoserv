@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Walk)
 	{
 		case PACKET_MOVEADMIN: // Player walking (admin)
 		{
-			if (!this->player || !this->player->character) return false;
+			if (!this->player || !this->player->character || this->player->character->modal) return false;
 
 			if (this->player->character->admin < ADMIN_GUARDIAN)
 			{
@@ -19,7 +19,7 @@ CLIENT_F_FUNC(Walk)
 		case PACKET_PLAYER: // Player walking (normal)
 		case PACKET_MOVESPEC: // Player walking (ghost)
 		{
-			if (!this->player || !this->player->character) return false;
+			if (!this->player || !this->player->character || this->player->character->modal) return false;
 
 			int direction = reader.GetChar();
 			/*int timestamp = */reader.GetThree();

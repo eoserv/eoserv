@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Chair)
 	{
 		case PACKET_REQUEST: // Player sitting on a chair
 		{
-			if (!this->player || !this->player->character) return false;
+			if (!this->player || !this->player->character || this->player->character->modal) return false;
 
 			int action = reader.GetChar();
 
