@@ -27,6 +27,7 @@ struct NPC_Opponent;
 #include "timer.hpp"
 #include "socket.hpp"
 #include "packet.hpp"
+#include "eodata.hpp"
 
 extern World *the_world;
 
@@ -88,7 +89,7 @@ class World
 		void Logout(Character *);
 
 		void Msg(Character *from, std::string message);
-		void AdminMsg(Character *from, std::string message);
+		void AdminMsg(Character *from, std::string message, int minlevel = ADMIN_GUARDIAN);
 		void AnnounceMsg(Character *from, std::string message);
 
 		void Reboot();
@@ -277,6 +278,8 @@ class Map
 		Map_Tile::TileSpec GetSpec(int x, int y);
 		Map_Warp *GetWarp(int x, int y);
 
+		void Effect(int effect, int param);
+
 		Character *GetCharacter(std::string name);
 		Character *GetCharacterPID(unsigned int id);
 		Character *GetCharacterCID(unsigned int id);
@@ -454,14 +457,15 @@ struct NPC_Opponent
 class NPC
 {
 	public:
-		int type;
-		int x, y;
+		ENF_Data *data;
 		bool attack;
-		int hp, maxhp;
+		int hp;
 		std::list<NPC_Opponent> damagelist;
 		Player *owner;
 
 		Map *map;
+
+		NPC(Map *map, int type);
 };
 
 /**

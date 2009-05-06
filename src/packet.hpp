@@ -35,6 +35,7 @@ const unsigned char PACKET_REFRESH = 25;
 const unsigned char PACKET_AUTOREFRESH = 27;
 const unsigned char PACKET_APPEAR = 29;
 const unsigned char PACKET_PAPERDOLL = 30;
+const unsigned char PACKET_EFFECT = 31;
 const unsigned char PACKET_TRADE = 32;
 const unsigned char PACKET_CHEST = 33;
 const unsigned char PACKET_DOOR = 34;

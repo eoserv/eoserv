@@ -73,7 +73,11 @@ void Config::Read(std::string filename)
 			val = std::string("");
 		}
 
-		if (key == "INCLUDE")
+		if (key == "REQUIRE")
+		{
+			this->Read(val);
+		}
+		else if (key == "INCLUDE")
 		{
 			try
 			{
@@ -86,6 +90,29 @@ void Config::Read(std::string filename)
 		}
 		else
 		{
+			std::size_t loc = val.find('\\');
+			while (loc != std::string::npos && loc != val.length())
+			{
+				if (val[loc + 1] == 't')
+				{
+					val.replace(loc, 2, "\t");
+				}
+				else if (val[loc + 1] == 'r')
+				{
+					val.replace(loc, 2, "\r");
+				}
+				else if (val[loc + 1] == 'n')
+				{
+					val.replace(loc, 2, "\n");
+				}
+				else if (val[loc + 1] == '\\')
+				{
+					val.replace(loc, 2, "\\");
+				}
+
+				loc = val.find('\\', loc+1);
+			}
+
 			this->operator[](key) = static_cast<util::variant>(val);
 		}
 	}

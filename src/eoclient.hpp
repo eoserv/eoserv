@@ -18,6 +18,7 @@ class EOClient;
 
 void server_ping_all(void *server_void);
 void sln_request(void *server_void);
+void *real_sln_request(void *server_void);
 void sln_tick_request(void *server_void);
 
 /**

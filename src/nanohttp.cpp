@@ -12,10 +12,10 @@ HTTP::HTTP(std::string host, unsigned short port, std::string path)
 
 	this->done = false;
 
-	request = "GET " + path + " HTTP/1.1\r\n"
+	request = "GET " + path + " HTTP/1.0\r\n"
 	"Host: " + host + "\r\n"
 	"User-Agent: EOSERV\r\n"
-	"Accept: */*\r\n"
+	"Accept: text/plain\r\n"
 	"Connection: close\r\n"
 	"\r\n";
 
@@ -78,6 +78,8 @@ void HTTP::Tick(int timeout)
 {
 	this->client->Tick(timeout);
 
+	this->response += this->client->Recv(32767);
+
 	if (!this->client->Connected())
 	{
 		if (this->response.length() > 12)
@@ -95,8 +97,6 @@ void HTTP::Tick(int timeout)
 		}
 		this->done = true;
 	}
-
-	this->response += this->client->Recv(32767);
 }
 
 bool HTTP::Done()

@@ -840,10 +840,23 @@ Map_Warp *Map::GetWarp(int x, int y)
 {
 	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
 	{
-		return false;
+		return 0;
 	}
 
 	return this->tiles[y][x].warp;
+}
+
+void Map::Effect(int effect, int param)
+{
+	PacketBuilder builder;
+	builder.SetID(PACKET_EFFECT, PACKET_USE);
+	builder.AddChar(effect);
+	builder.AddChar(param);
+
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	{
+		character->player->client->SendBuilder(builder);
+	}
 }
 
 Character *Map::GetCharacter(std::string name)

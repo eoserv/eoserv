@@ -23,8 +23,6 @@ CLIENT_F_FUNC(Init)
 	unsigned int challenge;
 	unsigned int response;
 
-	if (this->version) return false;
-
 	reply.SetID(0); // 0 is a special case which sends the connection data
 
 	challenge = reader.GetThree();

@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstring>
 #include <stdexcept>
+#include <vector>
 
 /**
  * Return the OS last error message
@@ -49,6 +50,9 @@ typedef int socklen_t;
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#ifdef SOCKET_POLL
+#include <sys/poll.h>
+#endif // SOCKET_POLL
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -258,7 +262,7 @@ class Client
 		Client(SOCKET, sockaddr_in, void *);
 		std::string Recv(std::size_t length);
 		void Send(const std::string &data);
-		void Tick(int timeout);
+		void Tick(double timeout);
 		bool Connected();
 		IPAddress GetRemoteAddr();
 		bool Close();
@@ -511,15 +515,122 @@ template <class T = Client> class Server
 		/**
 		 * Check clients for incoming data and errors, and sends data in their send_buffer.
 		 * If data is recieved, it is added to their recv_buffer.
+		 * @param timeout Max number of seconds to block for
 		 * @throw Socket_SelectFailed
 		 * @throw Socket_Exception
 		 * @return Returns a list of clients that have data in their recv_buffer.
 		 */
-		std::list<T *> Select(int timeout)
+#ifdef SOCKET_POLL
+		std::list<T *> Select(double timeout)
 		{
-			timeval timeout_val = {timeout/1000000, timeout%1000000};
+			class std::list<T *> selected;
+			class std::vector<pollfd> fds;
+			int result;
+			pollfd fd;
+
+			fds.reserve(this->clients.size() + 1);
+
+			fd.fd = this->server;
+			fd.events = POLLERR;
+			fds.push_back(fd);
+
+			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+			{
+				if (client->connected)
+				{
+					fd.fd = client->sock;
+
+					fd.events = 0;
+
+					if (client->recv_buffer.length() < client->recv_buffer_max)
+					{
+						fd.events |= POLLIN;
+					}
+
+					if (client->send_buffer.length() > 0)
+					{
+						fd.events |= POLLOUT;
+					}
+
+					fds.push_back(fd);
+				}
+			}
+
+			result = poll(&fds[0], fds.size(), long(timeout * 1000));
+
+			if (result == -1)
+			{
+				throw Socket_SelectFailed(OSErrorString());
+			}
+
+			if (result > 0)
+			{
+				if (fds[0].revents & POLLERR == POLLERR)
+				{
+					throw Socket_Exception("There was an exception on the listening socket.");
+				}
+
+				int i = 0;
+				UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+				{
+					++i;
+					if (fds[i].revents & POLLERR || fds[i].revents & POLLHUP || fds[i].revents & POLLNVAL)
+					{
+						client->Close();
+						continue;
+					}
+
+					if (fds[i].revents & POLLIN)
+					{
+						char buf[32767];
+						int recieved = recv(client->sock, buf, 32767, 0);
+						if (recieved > 0)
+						{
+							client->recv_buffer.append(buf, recieved);
+						}
+						else
+						{
+							client->Close();
+							continue;
+						}
+
+						if (client->recv_buffer.length() > client->recv_buffer_max)
+						{
+							client->Close();
+							continue;
+						}
+					}
+
+					if (fds[i].revents & POLLOUT)
+					{
+						int written = send(client->sock, client->send_buffer.c_str(), client->send_buffer.length(), 0);
+						if (written == SOCKET_ERROR)
+						{
+							client->Close();
+							continue;
+						}
+						client->send_buffer.erase(0,written);
+					}
+				}
+			}
+
+			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+			{
+				if (client->connected || client->recv_buffer.length() > 0)
+				{
+					selected.push_back(client);
+				}
+			}
+
+			return selected;
+		}
+#else // SOCKET_POLL
+		std::list<T *> Select(double timeout)
+		{
+			long tsecs = long(timeout);
+			timeval timeout_val = {tsecs, (long(timeout) - tsecs)*1000000};
 			std::list<T *> selected;
-			SOCKET nfds = this->server + 1;
+			SOCKET nfds = this->server;
 			int result;
 
 			FD_ZERO(&this->read_fds);
@@ -542,16 +653,16 @@ template <class T = Client> class Server
 
 					FD_SET(client->sock, &this->except_fds);
 
-					if (client->sock + 1 > nfds)
+					if (client->sock > nfds)
 					{
-						nfds = client->sock + 1;
+						nfds = client->sock;
 					}
 				}
 			}
 
 			FD_SET(this->server, &this->except_fds);
 
-			result = select(nfds, &this->read_fds, &this->write_fds, &this->except_fds, &timeout_val);
+			result = select(nfds+1, &this->read_fds, &this->write_fds, &this->except_fds, &timeout_val);
 
 			if (result == -1)
 			{
@@ -617,6 +728,7 @@ template <class T = Client> class Server
 
 			return selected;
 		}
+#endif // SOCKET_POLL
 
 		/**
 		 * Destroys any dead clients, should be called periodically.

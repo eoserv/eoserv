@@ -284,6 +284,11 @@ CLIENT_F_FUNC(Talk)
 					std::printf("Server shut down by %s\n", this->player->character->name.c_str());
 					std::exit(0);
 				}
+				else if (command.length() >= 1 && command.compare(0,1,"q") == 0 && this->player->character->admin >= static_cast<int>(admin_config["quake"]))
+				{
+					int strength = (arguments.size() >= 1)?std::min(8,std::max(1,util::to_int(arguments[0]))):5;
+					this->player->character->map->Effect(MAP_EFFECT_QUAKE, strength);
+				}
 			}
 			else
 			{

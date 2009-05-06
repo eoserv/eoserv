@@ -45,6 +45,7 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	CONFIG_DEFAULT("sitem"         , 4)
 	CONFIG_DEFAULT("ditem"         , 4)
 	CONFIG_DEFAULT("learn"         , 3)
+	CONFIG_DEFAULT("quake"         , 2)
 	CONFIG_DEFAULT("setlevel"      , 3)
 	CONFIG_DEFAULT("setexp"        , 3)
 	CONFIG_DEFAULT("setstr"        , 3)
@@ -141,7 +142,14 @@ void World::Msg(Character *from, std::string message)
 	PacketBuilder builder;
 
 	builder.SetID(PACKET_TALK, PACKET_MSG);
-	builder.AddBreakString(from->name);
+	if (from)
+	{
+		builder.AddBreakString(from->name);
+	}
+	else
+	{
+		builder.AddBreakString("Server");
+	}
 	builder.AddBreakString(message);
 
 	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
@@ -155,17 +163,24 @@ void World::Msg(Character *from, std::string message)
 	}
 }
 
-void World::AdminMsg(Character *from, std::string message)
+void World::AdminMsg(Character *from, std::string message, int minlevel)
 {
 	PacketBuilder builder;
 
 	builder.SetID(PACKET_TALK, PACKET_MOVEADMIN);
-	builder.AddBreakString(from->name);
+	if (from)
+	{
+		builder.AddBreakString(from->name);
+	}
+	else
+	{
+		builder.AddBreakString("Server");
+	}
 	builder.AddBreakString(message);
 
 	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
-		if (character == from || character->admin < ADMIN_GUARDIAN)
+		if (character == from || character->admin < minlevel)
 		{
 			continue;
 		}
@@ -179,7 +194,14 @@ void World::AnnounceMsg(Character *from, std::string message)
 	PacketBuilder builder;
 
 	builder.SetID(PACKET_TALK, PACKET_ANNOUNCE);
-	builder.AddBreakString(from->name);
+	if (from)
+	{
+		builder.AddBreakString(from->name);
+	}
+	else
+	{
+		builder.AddBreakString("Server");
+	}
 	builder.AddBreakString(message);
 
 	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)

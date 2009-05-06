@@ -83,6 +83,11 @@ const int SIT_FLOOR = 2;
 
 const int WARP_ANIMATION_NONE = 1;
 const int WARP_ANIMATION_ADMIN = 2;
+const int WARP_ANIMATION_CLICK = 3;
+const int WARP_ANIMATION_CLUNK = 9;
+const int WARP_ANIMATION_FADE = 27;
+
+const int MAP_EFFECT_QUAKE = 1;
 
 
 #endif // EOCONST_HPP_INCLUDED

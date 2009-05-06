@@ -224,6 +224,33 @@ std::vector<std::string> explode(char delimiter, std::string str)
 	return pieces;
 }
 
+std::vector<std::string> explode(std::string delimiter, std::string str)
+{
+	std::size_t lastpos = 0;
+	std::size_t pos = 0;
+	std::vector<std::string> pieces;
+
+	if (delimiter.length() == 0)
+	{
+		return pieces;
+	}
+
+	if (delimiter.length() == 1)
+	{
+		return explode(delimiter[0], str);
+	}
+
+	for (pos = str.find(delimiter); pos != std::string::npos; )
+	{
+		pieces.push_back(str.substr(lastpos, pos - lastpos));
+		lastpos = pos + delimiter.length();
+		pos = str.find(delimiter, pos + delimiter.length());
+	}
+	pieces.push_back(str.substr(lastpos));
+
+	return pieces;
+}
+
 double tdparse(std::string timestr)
 {
 	static char period_names[] = {'s', 'm',  'h',    'd'    };

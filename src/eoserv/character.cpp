@@ -292,13 +292,11 @@ bool Character::AddTradeItem(int item, int amount)
 
 	if (amount <= 0)
 	{
-		puts("requested trade of <= 0 items");
 		return false;
 	}
 
 	if (item <= 0 || static_cast<std::size_t>(item) >= eoserv_items->data.size())
 	{
-		puts("requested trade of item id <= 0");
 		return false;
 	}
 
@@ -306,7 +304,6 @@ bool Character::AddTradeItem(int item, int amount)
 
 	if (hasitem - amount < 0)
 	{
-		printf("%i - %i < 0 (%i)\n", hasitem, amount, hasitem - amount);
 		return false;
 	}
 

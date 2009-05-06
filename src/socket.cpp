@@ -219,19 +219,88 @@ void Client::Send(const std::string &data)
 	}
 }
 
-void Client::Tick(int timeout)
+#ifdef SOCKET_POLL
+void Client::Tick(double timeout)
+{
+	pollfd fd;
+
+	fd.fd = this->sock;
+	fd.events = POLLIN;
+
+	if (this->send_buffer.length() > 0)
+	{
+		fd.events |= POLLOUT;
+	}
+
+	int result = poll(&fd, 1, long(timeout * 1000));
+
+	if (result == -1)
+	{
+		throw Socket_SelectFailed(OSErrorString());
+	}
+
+	if (result > 0)
+	{
+		if (fd.revents & POLLERR || fd.revents & POLLHUP || fd.revents & POLLNVAL)
+		{
+			this->Close();
+			return;
+		}
+
+		if (fd.revents & POLLIN)
+		{
+			char buf[32767];
+			int recieved = recv(this->sock, buf, 32767, 0);
+			if (recieved > 0)
+			{
+				this->recv_buffer.append(buf, recieved);
+			}
+			else
+			{
+				this->Close();
+				return;
+			}
+
+			if (this->recv_buffer.length() > this->recv_buffer_max)
+			{
+				this->Close();
+				return;
+			}
+		}
+
+		if (fd.revents & POLLOUT)
+		{
+			int written = send(this->sock, this->send_buffer.c_str(), this->send_buffer.length(), 0);
+			if (written == SOCKET_ERROR)
+			{
+				this->Close();
+				return;
+			}
+			this->send_buffer.erase(0,written);
+		}
+	}
+}
+#else // SOCKET_POLL
+void Client::Tick(double timeout)
 {
 	fd_set read_fds, write_fds, except_fds;
-	timeval timeout_val = {timeout/1000000, timeout%1000000};
+	long tsecs = long(timeout);
+	timeval timeout_val = {tsecs, (long(timeout) - tsecs)*1000000};
 
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 	FD_ZERO(&except_fds);
-	FD_SET(this->sock, &read_fds);
+
+	if (this->recv_buffer.length() < this->recv_buffer_max)
+	{
+		FD_SET(this->sock, &read_fds);
+	}
+
 	if (this->send_buffer.length() > 0)
 	{
 		FD_SET(this->sock, &write_fds);
 	}
+
 	FD_SET(this->sock, &except_fds);
 
 	int result = select(this->sock+1, &read_fds, &write_fds, &except_fds, &timeout_val);
@@ -254,7 +323,6 @@ void Client::Tick(int timeout)
 			int recieved = recv(this->sock, buf, 32767, 0);
 			if (recieved > 0)
 			{
-				buf[recieved] = '\0';
 				this->recv_buffer.append(buf, recieved);
 			}
 			else
@@ -282,6 +350,7 @@ void Client::Tick(int timeout)
 		}
 	}
 }
+#endif // SOCKET_POLL
 
 bool Client::Connected()
 {

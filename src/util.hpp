@@ -493,6 +493,11 @@ std::string trim(const std::string &);
 std::vector<std::string> explode(char delimiter, std::string);
 
 /**
+ * Split a string in to a vector with a specified delimiter
+ */
+std::vector<std::string> explode(std::string delimiter, std::string);
+
+/**
  * Alternate name for variant.
  */
 typedef variant var;

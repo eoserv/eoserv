@@ -232,7 +232,7 @@ EO Version Support: .27 .28\n\
 				std::printf("New connection from %s (%i/%i connections)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str(), server.Connections(), server.MaxConnections());
 			}
 
-			std::list<EOClient *> active_clients = server.Select(10);
+			std::list<EOClient *> active_clients = server.Select(0.001);
 
 			UTIL_LIST_IFOREACH_ALL(active_clients, EOClient *, ci)
 			{
