@@ -628,7 +628,7 @@ template <class T = Client> class Server
 		std::list<T *> Select(double timeout)
 		{
 			long tsecs = long(timeout);
-			timeval timeout_val = {tsecs, (long(timeout) - tsecs)*1000000};
+			timeval timeout_val = {tsecs, long((timeout - double(tsecs))*1000000)};
 			std::list<T *> selected;
 			SOCKET nfds = this->server;
 			int result;

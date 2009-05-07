@@ -23,6 +23,7 @@ CLIENT_F_FUNC(Warp)
 			}
 
 			std::list<Character *> updatecharacters;
+			std::list<NPC *> updatenpcs;
 			std::list<Map_Item> updateitems;
 			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
@@ -76,6 +77,17 @@ CLIENT_F_FUNC(Warp)
 				reply.AddChar(character->sitting);
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
+			}
+			UTIL_LIST_FOREACH_ALL(updatenpcs, NPC *, npc)
+			{
+				if (npc->alive)
+				{
+					reply.AddChar(npc->index);
+					reply.AddShort(npc->data->id);
+					reply.AddChar(npc->x);
+					reply.AddChar(npc->y);
+					reply.AddChar(npc->direction);
+				}
 			}
 			reply.AddByte(255);
 			UTIL_LIST_FOREACH_ALL(updateitems, Map_Item, item)

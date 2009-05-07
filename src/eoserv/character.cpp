@@ -542,6 +542,11 @@ bool Character::InRange(Character *other)
 	return this->InRange(other->x, other->y);
 }
 
+bool Character::InRange(NPC *other)
+{
+	return this->InRange(other->x, other->y);
+}
+
 bool Character::InRange(Map_Item other)
 {
 	return this->InRange(other.x, other.y);
@@ -586,6 +591,102 @@ void Character::Warp(int map, int x, int y, int animation)
 	this->map->Enter(this, animation);
 
 	this->warp_anim = animation;
+
+	this->player->client->SendBuilder(builder);
+}
+
+void Character::Refresh()
+{
+	PacketBuilder builder;
+
+	std::list<Character *> updatecharacters;
+	std::list<NPC *> updatenpcs;
+	std::list<Map_Item> updateitems;
+
+	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+	{
+		if (this->InRange(character))
+		{
+			updatecharacters.push_back(character);
+		}
+	}
+
+	UTIL_LIST_FOREACH_ALL(this->map->npcs, NPC *, npc)
+	{
+		if (this->InRange(npc))
+		{
+			updatenpcs.push_back(npc);
+		}
+	}
+
+	UTIL_LIST_FOREACH_ALL(this->map->items, Map_Item, item)
+	{
+		if (this->InRange(item))
+		{
+			updateitems.push_back(item);
+		}
+	}
+
+	builder.SetID(PACKET_REFRESH, PACKET_REPLY);
+	builder.AddChar(updatecharacters.size()); // Number of players
+	builder.AddByte(255);
+
+	UTIL_LIST_FOREACH_ALL(updatecharacters, Character *, character)
+	{
+		builder.AddBreakString(character->name);
+		builder.AddShort(character->player->id);
+		builder.AddShort(character->mapid);
+		builder.AddShort(character->x);
+		builder.AddShort(character->y);
+		builder.AddChar(character->direction);
+		builder.AddChar(6); // ?
+		builder.AddString(character->PaddedGuildTag());
+		builder.AddChar(character->level);
+		builder.AddChar(character->gender);
+		builder.AddChar(character->hairstyle);
+		builder.AddChar(character->haircolor);
+		builder.AddChar(character->race);
+		builder.AddShort(character->maxhp);
+		builder.AddShort(character->hp);
+		builder.AddShort(character->maxtp);
+		builder.AddShort(character->tp);
+		// equipment
+		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
+		builder.AddShort(0); // ??
+		builder.AddShort(0); // ??
+		builder.AddShort(0); // ??
+		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
+		builder.AddShort(0); // ??
+		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
+		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+		builder.AddChar(character->sitting);
+		builder.AddChar(0); // visible
+		builder.AddByte(255);
+	}
+
+	UTIL_LIST_FOREACH_ALL(updatenpcs, NPC *, npc)
+	{
+		if (npc->alive)
+		{
+			builder.AddChar(npc->index);
+			builder.AddShort(npc->data->id);
+			builder.AddChar(npc->x);
+			builder.AddChar(npc->y);
+			builder.AddChar(npc->direction);
+		}
+	}
+
+	builder.AddByte(255);
+
+	UTIL_LIST_FOREACH_ALL(updateitems, Map_Item, item)
+	{
+		builder.AddShort(item.uid);
+		builder.AddShort(item.id);
+		builder.AddChar(item.x);
+		builder.AddChar(item.y);
+		builder.AddThree(item.amount);
+	}
 
 	this->player->client->SendBuilder(builder);
 }

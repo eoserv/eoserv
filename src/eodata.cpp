@@ -157,6 +157,18 @@ ENF::ENF(std::string filename)
 	std::fclose(fh);
 }
 
+ENF_Data *ENF::Get(unsigned int id)
+{
+	if (id > 0 && id < this->data.size())
+	{
+		return &this->data[id];
+	}
+	else
+	{
+		return &this->data[0];
+	}
+}
+
 ESF::ESF(std::string filename)
 {
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");

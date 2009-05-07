@@ -197,7 +197,7 @@ struct Map_Tile
 
 	Map_Tile() : tilespec(Map_Tile::None), warp(0) {}
 
-	bool Walkable()
+	bool Walkable(bool npc = false)
 	{
 		switch (this->tilespec)
 		{
@@ -221,6 +221,8 @@ struct Map_Tile
 			case Board7:
 			case Jukebox:
 				return false;
+			case NPCBoundary:
+				return !npc;
 			default:
 				return true;
 		}
@@ -274,7 +276,7 @@ class Map
 		void DelItem(int uid, Character *from = 0);
 
 		bool InBounds(int x, int y);
-		bool Walkable(int x, int y);
+		bool Walkable(int x, int y, bool npc = false);
 		Map_Tile::TileSpec GetSpec(int x, int y);
 		Map_Warp *GetWarp(int x, int y);
 
@@ -283,6 +285,8 @@ class Map
 		Character *GetCharacter(std::string name);
 		Character *GetCharacterPID(unsigned int id);
 		Character *GetCharacterCID(unsigned int id);
+
+		~Map();
 };
 
 /**
@@ -423,8 +427,10 @@ class Character
 		bool Equip(int item, int subloc);
 		bool InRange(int x, int y);
 		bool InRange(Character *);
+		bool InRange(NPC *);
 		bool InRange(Map_Item);
 		void Warp(int map, int x, int y, int animation = WARP_ANIMATION_NONE);
+		void Refresh();
 		std::string PaddedGuildTag();
 		int Usage();
 		void CalculateStats();
@@ -457,15 +463,32 @@ struct NPC_Opponent
 class NPC
 {
 	public:
+		int id;
 		ENF_Data *data;
+		int x, y;
+		int direction;
+		int distance;
+		int spawn_time;
+		int spawn_x, spawn_y;
+		int min_x, min_y, max_x, max_y;
+		int tries;
+		NPC *parent;
+
+		bool alive;
+		int dead_since;
 		bool attack;
 		int hp;
 		std::list<NPC_Opponent> damagelist;
-		Player *owner;
 
 		Map *map;
+		int index;
 
-		NPC(Map *map, int type);
+		NPC(Map *map, int id, int x, int y, int distance, int spawn_time, int index);
+
+		bool SpawnReady();
+		void Spawn();
+
+		void Follow(Character *target = 0);
 };
 
 /**

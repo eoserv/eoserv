@@ -1,6 +1,8 @@
 
 Map::Map(int id)
 {
+	this->id = id;
+
 	char namebuf[6];
 	if (id < 0)
 	{
@@ -105,6 +107,37 @@ Map::Map(int id)
 			std::fread(buf, sizeof(char), 2, fh);
 			newwarp->spec = static_cast<Map_Warp::WarpSpec>(PacketProcessor::Number(buf[0], buf[1]));
 			this->tiles[yloc][xloc].warp = newwarp;
+		}
+	}
+
+	std::fseek(fh, 0x2E, SEEK_SET);
+	std::fread(buf, sizeof(char), 1, fh);
+	outersize = PacketProcessor::Number(buf[0]);
+	int index = 0;
+	for (int i = 0; i < outersize; ++i)
+	{
+		std::fread(buf, sizeof(char), 1, fh);
+		int x = PacketProcessor::Number(buf[0]);
+		std::fread(buf, sizeof(char), 1, fh);
+		int y = PacketProcessor::Number(buf[0]);
+		std::fread(buf, sizeof(char), 2, fh);
+		int npc_id = PacketProcessor::Number(buf[0], buf[1]);
+		std::fread(buf, sizeof(char), 1, fh);
+		int distance = PacketProcessor::Number(buf[0]);
+		std::fread(buf, sizeof(char), 2, fh);
+		int spawntime = PacketProcessor::Number(buf[0], buf[1]);
+		std::fread(buf, sizeof(char), 1, fh);
+		int amount = PacketProcessor::Number(buf[0]);
+
+		for (int ii = 0; ii < amount; ++ii)
+		{
+			NPC *newnpc = new NPC(this, npc_id, x, y, distance, spawntime, index++);
+			this->npcs.push_back(newnpc);
+
+			//if (distance >= 7)
+			{
+				newnpc->Spawn();
+			}
 		}
 	}
 
@@ -321,6 +354,8 @@ bool Map::Walk(Character *from, int direction, bool admin)
 	int oldy;
 	std::list<Character *> newchars;
 	std::list<Character *> oldchars;
+	std::list<NPC *> newnpcs;
+	std::list<NPC *> oldnpcs;
 	std::list<Map_Item> newitems;
 	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkchar)
 	{
@@ -402,6 +437,89 @@ bool Map::Walk(Character *from, int direction, bool admin)
 					else if (checkchar->x == newx && checkchar->y == newy)
 					{
 						newchars.push_back(checkchar);
+					}
+				}
+				break;
+
+		}
+	}
+
+	UTIL_LIST_FOREACH_ALL(this->npcs, NPC *, checknpc)
+	{
+		switch (direction)
+		{
+			case DIRECTION_UP:
+				for (int i = -seedistance; i <= seedistance; ++i)
+				{
+					newy = from->y - seedistance + std::abs(i);
+					newx = from->x + i;
+					oldy = from->y + seedistance + 1 - std::abs(i);
+					oldx = from->x + i;
+
+					if (checknpc->x == oldx && checknpc->y == oldy)
+					{
+						oldnpcs.push_back(checknpc);
+					}
+					else if (checknpc->x == newx && checknpc->y == newy)
+					{
+						newnpcs.push_back(checknpc);
+					}
+				}
+				break;
+
+			case DIRECTION_RIGHT:
+				for (int i = -seedistance; i <= seedistance; ++i)
+				{
+					newx = from->x + seedistance - std::abs(i);
+					newy = from->y + i;
+					oldx = from->x - seedistance - 1 + std::abs(i);
+					oldy = from->y + i;
+
+					if (checknpc->x == oldx && checknpc->y == oldy)
+					{
+						oldnpcs.push_back(checknpc);
+					}
+					else if (checknpc->x == newx && checknpc->y == newy)
+					{
+						newnpcs.push_back(checknpc);
+					}
+				}
+				break;
+
+			case DIRECTION_DOWN:
+				for (int i = -seedistance; i <= seedistance; ++i)
+				{
+					newy = from->y + seedistance - std::abs(i);
+					newx = from->x + i;
+					oldy = from->y - seedistance - 1 + std::abs(i);
+					oldx = from->x + i;
+
+					if (checknpc->x == oldx && checknpc->y == oldy)
+					{
+						oldnpcs.push_back(checknpc);
+					}
+					else if (checknpc->x == newx && checknpc->y == newy)
+					{
+						newnpcs.push_back(checknpc);
+					}
+				}
+				break;
+
+			case DIRECTION_LEFT:
+				for (int i = -seedistance; i <= seedistance; ++i)
+				{
+					newx = from->x - seedistance + std::abs(i);
+					newy = from->y + i;
+					oldx = from->x + seedistance + 1 - std::abs(i);
+					oldy = from->y + i;
+
+					if (checknpc->x == oldx && checknpc->y == oldy)
+					{
+						oldnpcs.push_back(checknpc);
+					}
+					else if (checknpc->x == newx && checknpc->y == newy)
+					{
+						newnpcs.push_back(checknpc);
 					}
 				}
 				break;
@@ -601,6 +719,23 @@ bool Map::Walk(Character *from, int direction, bool admin)
 	}
 	from->player->client->SendBuilder(builder);
 
+	builder.SetID(PACKET_APPEAR, PACKET_REPLY);
+	UTIL_LIST_FOREACH_ALL(newnpcs, NPC *, npc)
+	{
+		builder.Reset();
+		builder.AddChar(0);
+		builder.AddByte(255);
+		builder.AddChar(npc->index);
+		builder.AddShort(npc->id);
+		builder.AddChar(npc->x);
+		builder.AddChar(npc->y);
+		builder.AddChar(npc->direction);
+
+		from->player->client->SendBuilder(builder);
+	}
+
+	// TODO: Find some way to delete NPCs from the client view
+
 	return true;
 }
 
@@ -711,6 +846,14 @@ void Map::Emote(Character *from, int emote)
 	}
 }
 
+Map::~Map()
+{
+	UTIL_LIST_FOREACH_ALL(this->npcs, NPC *, npc)
+	{
+		delete npc;
+	}
+}
+
 bool Map::OpenDoor(Character *from, int x, int y)
 {
 	if (from && !from->InRange(x, y))
@@ -816,14 +959,14 @@ void Map::DelItem(int uid, Character *from)
 	}
 }
 
-bool Map::Walkable(int x, int y)
+bool Map::Walkable(int x, int y, bool npc)
 {
 	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
 	{
 		return false;
 	}
 
-	return this->tiles[y][x].Walkable();
+	return this->tiles[y][x].Walkable(npc);
 }
 
 Map_Tile::TileSpec Map::GetSpec(int x, int y)

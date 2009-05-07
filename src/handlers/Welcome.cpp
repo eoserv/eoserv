@@ -213,12 +213,20 @@ CLIENT_F_FUNC(Welcome)
 			// }
 			reply.AddByte(255);
 			std::list<Character *> updatecharacters;
+			std::list<NPC *> updatenpcs;
 			std::list<Map_Item> updateitems;
 			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (this->player->character->InRange(character))
 				{
 					updatecharacters.push_back(character);
+				}
+			}
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->npcs, NPC *, npc)
+			{
+				if (this->player->character->InRange(npc))
+				{
+					updatenpcs.push_back(npc);
 				}
 			}
 			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
@@ -263,13 +271,17 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
 			}
-			// foreach npc {
-			//reply.AddChar(1); // NPC ID
-			//reply.AddShort(1); // Graphic ID
-			//reply.AddChar(5); // Map X
-			//reply.AddChar(5); // Map Y
-			//reply.AddChar(3); // Direction
-			// }
+			UTIL_LIST_FOREACH_ALL(updatenpcs, NPC *, npc)
+			{
+				if (npc->alive)
+				{
+					reply.AddChar(npc->index);
+					reply.AddShort(npc->data->id);
+					reply.AddChar(npc->x);
+					reply.AddChar(npc->y);
+					reply.AddChar(npc->direction);
+				}
+			}
 			reply.AddByte(255);
 			UTIL_LIST_FOREACH_ALL(updateitems, Map_Item, item)
 			{

@@ -32,6 +32,7 @@ const unsigned char PACKET_PLAYERS = 22;
 const unsigned char PACKET_CLOTHES = 23;
 const unsigned char PACKET_PARTY = 24;
 const unsigned char PACKET_REFRESH = 25;
+const unsigned char PACKET_NPC = 26;
 const unsigned char PACKET_AUTOREFRESH = 27;
 const unsigned char PACKET_APPEAR = 29;
 const unsigned char PACKET_PAPERDOLL = 30;

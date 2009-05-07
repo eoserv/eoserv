@@ -285,7 +285,7 @@ void Client::Tick(double timeout)
 {
 	fd_set read_fds, write_fds, except_fds;
 	long tsecs = long(timeout);
-	timeval timeout_val = {tsecs, (long(timeout) - tsecs)*1000000};
+	timeval timeout_val = {tsecs, long((timeout - double(tsecs))*1000000)};
 
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);

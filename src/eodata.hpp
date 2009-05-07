@@ -156,6 +156,7 @@ class ENF
 		std::vector<ENF_Data> data;
 		ENF(std::string filename);
 
+		ENF_Data *Get(unsigned int id);
 };
 
 /**
