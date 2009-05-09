@@ -147,7 +147,7 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	exp_table[0] = 0;
 	for (std::size_t i = 1; i < sizeof(this->exp_table)/sizeof(int); ++i)
 	{
-		exp_table[i] = util::round(std::pow(i, 3) * 133.1);
+		exp_table[i] = int(util::round(std::pow(double(i), 3.0) * 133.1));
 	}
 }
 

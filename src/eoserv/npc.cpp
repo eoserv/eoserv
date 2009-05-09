@@ -129,7 +129,7 @@ void NPC::Damage(Character *from, int amount)
 	else
 	{
 		this->alive = false;
-		this->dead_since = Timer::GetTime();
+		this->dead_since = int(Timer::GetTime());
 
 		bool level_up = false;
 
