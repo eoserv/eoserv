@@ -16,17 +16,17 @@ CLIENT_F_FUNC(Account)
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
 			{
-				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
+				reply.AddShort(ACCOUNT_NOT_APPROVED);
 				reply.AddString("NO");
 			}
 			else if (Player::Exists(username))
 			{
-				reply.AddShort(PACKET_ACCOUNT_EXISTS);
+				reply.AddShort(ACCOUNT_EXISTS);
 				reply.AddString("NO");
 			}
 			else
 			{
-				reply.AddShort(PACKET_ACCOUNT_CONTINUE);
+				reply.AddShort(ACCOUNT_CONTINUE);
 				reply.AddString("OK");
 			}
 			CLIENT_SEND(reply);
@@ -53,12 +53,12 @@ CLIENT_F_FUNC(Account)
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
 			{
-				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
+				reply.AddShort(ACCOUNT_NOT_APPROVED);
 				reply.AddString("NO");
 			}
 			else if (Player::Exists(username))
 			{
-				reply.AddShort(PACKET_ACCOUNT_EXISTS);
+				reply.AddShort(ACCOUNT_EXISTS);
 				reply.AddString("NO");
 			}
 			else
@@ -66,7 +66,7 @@ CLIENT_F_FUNC(Account)
 				util::lowercase(username);
 
 				Player::Create(username, password, fullname, location, email, computer, hdid, static_cast<std::string>(this->GetRemoteAddr()));
-				reply.AddShort(PACKET_ACCOUNT_CREATED);
+				reply.AddShort(ACCOUNT_CREATED);
 				reply.AddString("OK");
 			}
 
@@ -85,7 +85,7 @@ CLIENT_F_FUNC(Account)
 			if (!Player::ValidName(username))
 			{
 				reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
-				reply.AddShort(PACKET_ACCOUNT_NOT_APPROVED);
+				reply.AddShort(ACCOUNT_NOT_APPROVED);
 				reply.AddString("NO");
 				CLIENT_SEND(reply);
 				return true;
@@ -100,7 +100,7 @@ CLIENT_F_FUNC(Account)
 			if (!changepass)
 			{
 				reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
-				reply.AddShort(PACKET_ACCOUNT_CHANGE_FAILED);
+				reply.AddShort(ACCOUNT_CHANGE_FAILED);
 				reply.AddString("NO");
 				CLIENT_SEND(reply);
 				return true;
@@ -109,7 +109,7 @@ CLIENT_F_FUNC(Account)
 			changepass->ChangePass(newpassword);
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
-			reply.AddShort(PACKET_ACCOUNT_CHANGED);
+			reply.AddShort(ACCOUNT_CHANGED);
 			reply.AddString("OK");
 			CLIENT_SEND(reply);
 

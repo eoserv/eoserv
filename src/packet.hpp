@@ -10,77 +10,83 @@ class PacketBuilder;
 
 #include "util.hpp"
 
-// FAMILY
-const unsigned char PACKET_CONNECTION = 1;
-const unsigned char PACKET_ACCOUNT = 2;
-const unsigned char PACKET_CHARACTER = 3;
-const unsigned char PACKET_LOGIN = 4;
-const unsigned char PACKET_WELCOME = 5;
-const unsigned char PACKET_WALK = 6;
-const unsigned char PACKET_FACE = 7;
-const unsigned char PACKET_CHAIR = 8;
-const unsigned char PACKET_EMOTE = 9;
-const unsigned char PACKET_ATTACK = 11;
-const unsigned char PACKET_SHOP = 13;
-const unsigned char PACKET_ITEM = 14;
-const unsigned char PACKET_SKILLMASTER = 16;
-const unsigned char PACKET_GLOBAL = 17;
-const unsigned char PACKET_TALK = 18;
-const unsigned char PACKET_WARP = 19;
-const unsigned char PACKET_JUKEBOX = 21;
-const unsigned char PACKET_PLAYERS = 22;
-const unsigned char PACKET_CLOTHES = 23;
-const unsigned char PACKET_PARTY = 24;
-const unsigned char PACKET_REFRESH = 25;
-const unsigned char PACKET_NPC = 26;
-const unsigned char PACKET_AUTOREFRESH = 27;
-const unsigned char PACKET_APPEAR = 29;
-const unsigned char PACKET_PAPERDOLL = 30;
-const unsigned char PACKET_EFFECT = 31;
-const unsigned char PACKET_TRADE = 32;
-const unsigned char PACKET_CHEST = 33;
-const unsigned char PACKET_DOOR = 34;
-const unsigned char PACKET_PING = 35;
-const unsigned char PACKET_BANK = 36;
-const unsigned char PACKET_LOCKER = 37;
-const unsigned char PACKET_GUILD = 39;
-const unsigned char PACKET_SIT = 41;
-const unsigned char PACKET_BOARD = 43;
-const unsigned char PACKET_ARENA = 45;
-const unsigned char PACKET_ADMININTERACT = 48;
-const unsigned char PACKET_CITIZEN = 49;
-const unsigned char PACKET_QUEST = 50;
-const unsigned char PACKET_BOOK = 51;
-const unsigned char PACKET_INIT = 255; // Also an action
+enum PacketFamily UTIL_EXTEND_ENUM(unsigned char)
+{
+	PACKET_CONNECTION = 1,
+	PACKET_ACCOUNT = 2,
+	PACKET_CHARACTER = 3,
+	PACKET_LOGIN = 4,
+	PACKET_WELCOME = 5,
+	PACKET_WALK = 6,
+	PACKET_FACE = 7,
+	PACKET_CHAIR = 8,
+	PACKET_EMOTE = 9,
+	PACKET_ATTACK = 11,
+	PACKET_SHOP = 13,
+	PACKET_ITEM = 14,
+	PACKET_STATSKILL = 16,
+	PACKET_GLOBAL = 17,
+	PACKET_TALK = 18,
+	PACKET_WARP = 19,
+	PACKET_JUKEBOX = 21,
+	PACKET_PLAYERS = 22,
+	PACKET_CLOTHES = 23,
+	PACKET_PARTY = 24,
+	PACKET_REFRESH = 25,
+	PACKET_NPC = 26,
+	PACKET_AUTOREFRESH = 27,
+	PACKET_APPEAR = 29,
+	PACKET_PAPERDOLL = 30,
+	PACKET_EFFECT = 31,
+	PACKET_TRADE = 32,
+	PACKET_CHEST = 33,
+	PACKET_DOOR = 34,
+	PACKET_PING = 35,
+	PACKET_BANK = 36,
+	PACKET_LOCKER = 37,
+	PACKET_GUILD = 39,
+	PACKET_SIT = 41,
+	PACKET_RECOVER = 42,
+	PACKET_BOARD = 43,
+	PACKET_ARENA = 45,
+	PACKET_ADMININTERACT = 48,
+	PACKET_CITIZEN = 49,
+	PACKET_QUEST = 50,
+	PACKET_BOOK = 51,
+	PACKET_F_INIT = 255
+};
 
-// ACTION
-const unsigned char PACKET_REQUEST = 1;
-const unsigned char PACKET_ACCEPT = 2;
-const unsigned char PACKET_REPLY = 3;
-const unsigned char PACKET_REMOVE = 4;
-const unsigned char PACKET_AGREE = 5;
-const unsigned char PACKET_CREATE = 6;
-const unsigned char PACKET_ADD = 7;
-const unsigned char PACKET_PLAYER = 8;
-const unsigned char PACKET_TAKE = 9;
-const unsigned char PACKET_USE = 10;
-const unsigned char PACKET_BUY = 11;
-const unsigned char PACKET_SELL = 12;
-const unsigned char PACKET_OPEN = 13;
-const unsigned char PACKET_CLOSE = 14;
-const unsigned char PACKET_MSG = 15;
-const unsigned char PACKET_MOVESPEC = 16;
-const unsigned char PACKET_MOVEADMIN = 17;
-const unsigned char PACKET_LIST = 18;
-const unsigned char PACKET_TELL = 20;
-const unsigned char PACKET_REPORT = 21;
-const unsigned char PACKET_ANNOUNCE = 22;
-const unsigned char PACKET_DROP = 24;
-const unsigned char PACKET_JUNK = 25;
-const unsigned char PACKET_GET = 27;
-const unsigned char PACKET_NET = 240;
-const unsigned char PACKET_NET2 = 241;
-const unsigned char PACKET_NET3 = 242;
+enum PacketAction UTIL_EXTEND_ENUM(unsigned char)
+{
+	PACKET_REQUEST = 1,
+	PACKET_ACCEPT = 2,
+	PACKET_REPLY = 3,
+	PACKET_REMOVE = 4,
+	PACKET_AGREE = 5,
+	PACKET_CREATE = 6,
+	PACKET_ADD = 7,
+	PACKET_PLAYER = 8,
+	PACKET_TAKE = 9,
+	PACKET_USE = 10,
+	PACKET_BUY = 11,
+	PACKET_SELL = 12,
+	PACKET_OPEN = 13,
+	PACKET_CLOSE = 14,
+	PACKET_MSG = 15,
+	PACKET_SPEC = 16,
+	PACKET_ADMIN = 17,
+	PACKET_LIST = 18,
+	PACKET_TELL = 20,
+	PACKET_REPORT = 21,
+	PACKET_ANNOUNCE = 22,
+	PACKET_DROP = 24,
+	PACKET_JUNK = 25,
+	PACKET_GET = 27,
+	PACKET_NET = 240,
+	PACKET_NET2 = 241,
+	PACKET_NET3 = 242,
+	PACKET_A_INIT = 255
+};
 
 /**
  * Encodes and Decodes packets for a Client.
@@ -125,12 +131,12 @@ class PacketProcessor
 		/**
 		 * Return a string describing a packet's family ID.
 		 */
-		static std::string GetFamilyName(unsigned char family);
+		static std::string GetFamilyName(PacketFamily family);
 
 		/**
 		 * Return a string describing a packet's action ID.
 		 */
-		static std::string GetActionName(unsigned char action);
+		static std::string GetActionName(PacketAction action);
 
 		std::string Decode(const std::string &);
 		std::string Encode(const std::string &);
@@ -144,7 +150,7 @@ class PacketProcessor
 		static util::quadchar ENumber(unsigned int);
 		static util::quadchar ENumber(unsigned int, std::size_t &size);
 
-		static unsigned short PID(unsigned char family, unsigned char action);
+		static unsigned short PID(PacketFamily family, PacketAction action);
 		static util::pairchar EPID(unsigned short id);
 };
 
@@ -181,10 +187,10 @@ class PacketBuilder
 	public:
 		PacketBuilder();
 		PacketBuilder(unsigned short id);
-		PacketBuilder(unsigned char family, unsigned char action);
+		PacketBuilder(PacketFamily family, PacketAction action);
 
 		unsigned short SetID(unsigned short id);
-		unsigned short SetID(unsigned char family, unsigned char action);
+		unsigned short SetID(PacketFamily family, PacketAction action);
 
 		std::size_t Length();
 

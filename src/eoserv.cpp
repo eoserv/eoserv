@@ -14,6 +14,7 @@
 #include "eodata.hpp"
 #include "database.hpp"
 #include "hash.hpp"
+#include "timer.hpp"
 
 Database eoserv_db;
 World *the_world;
@@ -23,6 +24,8 @@ ESF *eoserv_spells;
 ECF *eoserv_classes;
 Config eoserv_config; // assigned to later
 Config admin_config; // assigned to later
+
+void world_spawn_npcs(void *world_void);
 
 // TODO: Clean up these functions
 std::string ItemSerialize(std::list<Character_Item> list)

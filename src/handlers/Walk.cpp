@@ -5,7 +5,7 @@ CLIENT_F_FUNC(Walk)
 
 	switch (action)
 	{
-		case PACKET_MOVEADMIN: // Player walking (admin)
+		case PACKET_ADMIN: // Player walking (admin)
 		{
 			if (!this->player || !this->player->character || this->player->character->modal) return false;
 
@@ -17,7 +17,7 @@ CLIENT_F_FUNC(Walk)
 		// no break
 
 		case PACKET_PLAYER: // Player walking (normal)
-		case PACKET_MOVESPEC: // Player walking (ghost)
+		case PACKET_SPEC: // Player walking (ghost)
 		{
 			if (!this->player || !this->player->character || this->player->character->modal) return false;
 
@@ -33,7 +33,7 @@ CLIENT_F_FUNC(Walk)
 
 			if (direction >= 0 && direction <= 3)
 			{
-				if (action == PACKET_MOVEADMIN)
+				if (action == PACKET_ADMIN)
 				{
 					this->player->character->AdminWalk(direction);
 				}

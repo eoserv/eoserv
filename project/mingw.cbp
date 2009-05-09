@@ -198,7 +198,7 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
-		<Unit filename="..\src\handlers\SkillMaster.cpp">
+		<Unit filename="..\src\handlers\StatSkill.cpp">
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>

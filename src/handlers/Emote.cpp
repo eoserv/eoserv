@@ -13,7 +13,7 @@ CLIENT_F_FUNC(Emote)
 
 			if ((emote >= 0 && emote <= 10) || emote == 14)
 			{
-				this->player->character->Emote(emote);
+				this->player->character->Emote(emote, false);
 			}
 		}
 		break;

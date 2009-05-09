@@ -27,7 +27,7 @@ Map::Map(int id)
 	std::fseek(fh, 0x03, SEEK_SET);
 	std::fread(this->rid, sizeof(char), 4, fh);
 
-	char buf[2];
+	char buf[8];
 	int outersize;
 	int innersize;
 
@@ -36,10 +36,9 @@ Map::Map(int id)
 	this->pk = PacketProcessor::Number(buf[0]) == 3;
 
 	std::fseek(fh, 0x25, SEEK_SET);
-	std::fread(buf, sizeof(char), 1, fh);
+	std::fread(buf, sizeof(char), 2, fh);
 	this->width = PacketProcessor::Number(buf[0]) + 1;
-	std::fread(buf, sizeof(char), 1, fh);
-	this->height = PacketProcessor::Number(buf[0]) + 1;
+	this->height = PacketProcessor::Number(buf[1]) + 1;
 
 	std::fseek(fh, 0x2E, SEEK_SET);
 	std::fread(buf, sizeof(char), 1, fh);
@@ -67,17 +66,15 @@ Map::Map(int id)
 	outersize = PacketProcessor::Number(buf[0]);
 	for (int i = 0; i < outersize; ++i)
 	{
-		std::fread(buf, sizeof(char), 1, fh);
+		std::fread(buf, sizeof(char), 2, fh);
 		int yloc = PacketProcessor::Number(buf[0]);
-		std::fread(buf, sizeof(char), 1, fh);
-		innersize = PacketProcessor::Number(buf[0]);
+		innersize = PacketProcessor::Number(buf[1]);
 		for (int ii = 0; ii < innersize; ++ii)
 		{
 			Map_Tile newtile;
-			std::fread(buf, sizeof(char), 1, fh);
+			std::fread(buf, sizeof(char), 2, fh);
 			int xloc = PacketProcessor::Number(buf[0]);
-			std::fread(buf, sizeof(char), 1, fh);
-			int spec = PacketProcessor::Number(buf[0]);
+			int spec = PacketProcessor::Number(buf[1]);
 			newtile.tilespec = static_cast<Map_Tile::TileSpec>(spec);
 			this->tiles[yloc][xloc] = newtile;
 		}
@@ -87,25 +84,19 @@ Map::Map(int id)
 	outersize = PacketProcessor::Number(buf[0]);
 	for (int i = 0; i < outersize; ++i)
 	{
-		std::fread(buf, sizeof(char), 1, fh);
+		std::fread(buf, sizeof(char), 2, fh);
 		int yloc = PacketProcessor::Number(buf[0]);
-		std::fread(buf, sizeof(char), 1, fh);
-		innersize = PacketProcessor::Number(buf[0]);
+		innersize = PacketProcessor::Number(buf[1]);
 		for (int ii = 0; ii < innersize; ++ii)
 		{
 			Map_Warp *newwarp = new Map_Warp;
-			std::fread(buf, sizeof(char), 1, fh);
+			std::fread(buf, sizeof(char), 8, fh);
 			int xloc = PacketProcessor::Number(buf[0]);
-			std::fread(buf, sizeof(char), 2, fh);
-			newwarp->map = PacketProcessor::Number(buf[0], buf[1]);
-			std::fread(buf, sizeof(char), 1, fh);
-			newwarp->x = PacketProcessor::Number(buf[0]);
-			std::fread(buf, sizeof(char), 1, fh);
-			newwarp->y = PacketProcessor::Number(buf[0]);
-			std::fread(buf, sizeof(char), 1, fh);
-			newwarp->levelreq = PacketProcessor::Number(buf[0]);
-			std::fread(buf, sizeof(char), 2, fh);
-			newwarp->spec = static_cast<Map_Warp::WarpSpec>(PacketProcessor::Number(buf[0], buf[1]));
+			newwarp->map = PacketProcessor::Number(buf[1], buf[2]);
+			newwarp->x = PacketProcessor::Number(buf[3]);
+			newwarp->y = PacketProcessor::Number(buf[4]);
+			newwarp->levelreq = PacketProcessor::Number(buf[5]);
+			newwarp->spec = static_cast<Map_Warp::WarpSpec>(PacketProcessor::Number(buf[6], buf[7]));
 			this->tiles[yloc][xloc].warp = newwarp;
 		}
 	}
@@ -116,28 +107,20 @@ Map::Map(int id)
 	int index = 0;
 	for (int i = 0; i < outersize; ++i)
 	{
-		std::fread(buf, sizeof(char), 1, fh);
+		std::fread(buf, sizeof(char), 8, fh);
 		int x = PacketProcessor::Number(buf[0]);
-		std::fread(buf, sizeof(char), 1, fh);
-		int y = PacketProcessor::Number(buf[0]);
-		std::fread(buf, sizeof(char), 2, fh);
-		int npc_id = PacketProcessor::Number(buf[0], buf[1]);
-		std::fread(buf, sizeof(char), 1, fh);
-		int distance = PacketProcessor::Number(buf[0]);
-		std::fread(buf, sizeof(char), 2, fh);
-		int spawntime = PacketProcessor::Number(buf[0], buf[1]);
-		std::fread(buf, sizeof(char), 1, fh);
-		int amount = PacketProcessor::Number(buf[0]);
+		int y = PacketProcessor::Number(buf[1]);
+		int npc_id = PacketProcessor::Number(buf[2], buf[3]);
+		int distance = PacketProcessor::Number(buf[4]);
+		int spawntime = PacketProcessor::Number(buf[5], buf[6]);
+		int amount = PacketProcessor::Number(buf[7]);
 
 		for (int ii = 0; ii < amount; ++ii)
 		{
 			NPC *newnpc = new NPC(this, npc_id, x, y, distance, spawntime, index++);
 			this->npcs.push_back(newnpc);
 
-			//if (distance >= 7)
-			{
-				newnpc->Spawn();
-			}
+			newnpc->Spawn();
 		}
 	}
 
@@ -280,317 +263,165 @@ bool Map::Walk(Character *from, int direction, bool admin)
 
 	// TODO: Check for open/closed doors
 
+	int target_x = from->x;
+	int target_y = from->y;
+
 	switch (direction)
 	{
 		case DIRECTION_UP:
-			--from->y;
+			target_y -= 1;
 			break;
+
 		case DIRECTION_RIGHT:
-			++from->x;
+			target_x += 1;
 			break;
+
 		case DIRECTION_DOWN:
-			++from->y;
+			target_y += 1;
 			break;
+
 		case DIRECTION_LEFT:
-			--from->x;
+			target_x -= 1;
 			break;
 	}
 
-	if (!admin)
+	if (!admin && !this->Walkable(target_x, target_y))
 	{
-		if (!this->Walkable(from->x, from->y))
-		{
-			// Reverse the walk (walking in to a wall / outside map bounds)
-			switch (direction)
-			{
-				case DIRECTION_UP:
-					++from->y;
-					break;
-				case DIRECTION_RIGHT:
-					--from->x;
-					break;
-				case DIRECTION_DOWN:
-					--from->y;
-					break;
-				case DIRECTION_LEFT:
-					++from->x;
-					break;
-			}
-			return false;
-		}
-
-		if (Map_Warp *warp = this->GetWarp(from->x, from->y))
-		{
-			if (from->level >= warp->levelreq)
-			{
-				from->Warp(warp->map, warp->x, warp->y);
-				return false;
-			}
-
-			// Reverse the walk (walking in to a level barrier)
-			switch (direction)
-			{
-				case DIRECTION_UP:
-					++from->y;
-					break;
-				case DIRECTION_RIGHT:
-					--from->x;
-					break;
-				case DIRECTION_DOWN:
-					--from->y;
-					break;
-				case DIRECTION_LEFT:
-					++from->x;
-					break;
-			}
-
-			return false;
-		}
+		return false;
 	}
+
+	Map_Warp *warp;
+	if (!admin && (warp = this->GetWarp(target_x, target_y)))
+	{
+		if (from->level >= warp->levelreq)
+		{
+			from->Warp(warp->map, warp->x, warp->y);
+		}
+
+		return false;
+	}
+
+	from->x = target_x;
+	from->y = target_y;
 
 	int newx;
 	int newy;
 	int oldx;
 	int oldy;
+
+	std::vector<std::pair<int, int> > newcoords;
+	std::vector<std::pair<int, int> > oldcoords;
+
 	std::list<Character *> newchars;
 	std::list<Character *> oldchars;
 	std::list<NPC *> newnpcs;
-	std::list<NPC *> oldnpcs;
+	//std::list<NPC *> oldnpcs;
 	std::list<Map_Item> newitems;
+
+	switch (direction)
+	{
+		case DIRECTION_UP:
+			for (int i = -seedistance; i <= seedistance; ++i)
+			{
+				newy = from->y - seedistance + std::abs(i);
+				newx = from->x + i;
+				oldy = from->y + seedistance + 1 - std::abs(i);
+				oldx = from->x + i;
+
+				newcoords.push_back(std::make_pair(newx, newy));
+				oldcoords.push_back(std::make_pair(oldx, oldy));
+			}
+			break;
+
+		case DIRECTION_RIGHT:
+			for (int i = -seedistance; i <= seedistance; ++i)
+			{
+				newx = from->x + seedistance - std::abs(i);
+				newy = from->y + i;
+				oldx = from->x - seedistance - 1 + std::abs(i);
+				oldy = from->y + i;
+
+				newcoords.push_back(std::make_pair(newx, newy));
+				oldcoords.push_back(std::make_pair(oldx, oldy));
+			}
+			break;
+
+		case DIRECTION_DOWN:
+			for (int i = -seedistance; i <= seedistance; ++i)
+			{
+				newy = from->y + seedistance - std::abs(i);
+				newx = from->x + i;
+				oldy = from->y - seedistance - 1 + std::abs(i);
+				oldx = from->x + i;
+
+				newcoords.push_back(std::make_pair(newx, newy));
+				oldcoords.push_back(std::make_pair(oldx, oldy));
+			}
+			break;
+
+		case DIRECTION_LEFT:
+			for (int i = -seedistance; i <= seedistance; ++i)
+			{
+				newx = from->x - seedistance + std::abs(i);
+				newy = from->y + i;
+				oldx = from->x + seedistance + 1 - std::abs(i);
+				oldy = from->y + i;
+
+				newcoords.push_back(std::make_pair(newx, newy));
+				oldcoords.push_back(std::make_pair(oldx, oldy));
+			}
+			break;
+
+	}
+
 	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkchar)
 	{
 		if (checkchar == from)
 		{
 			continue;
 		}
-		switch (direction)
+
+		for (std::size_t i = 0; i < oldcoords.size(); ++i)
 		{
-			case DIRECTION_UP:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newy = from->y - seedistance + std::abs(i);
-					newx = from->x + i;
-					oldy = from->y + seedistance + 1 - std::abs(i);
-					oldx = from->x + i;
-
-					if (checkchar->x == oldx && checkchar->y == oldy)
-					{
-						oldchars.push_back(checkchar);
-					}
-					else if (checkchar->x == newx && checkchar->y == newy)
-					{
-						newchars.push_back(checkchar);
-					}
-				}
-				break;
-
-			case DIRECTION_RIGHT:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newx = from->x + seedistance - std::abs(i);
-					newy = from->y + i;
-					oldx = from->x - seedistance - 1 + std::abs(i);
-					oldy = from->y + i;
-
-					if (checkchar->x == oldx && checkchar->y == oldy)
-					{
-						oldchars.push_back(checkchar);
-					}
-					else if (checkchar->x == newx && checkchar->y == newy)
-					{
-						newchars.push_back(checkchar);
-					}
-				}
-				break;
-
-			case DIRECTION_DOWN:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newy = from->y + seedistance - std::abs(i);
-					newx = from->x + i;
-					oldy = from->y - seedistance - 1 + std::abs(i);
-					oldx = from->x + i;
-
-					if (checkchar->x == oldx && checkchar->y == oldy)
-					{
-						oldchars.push_back(checkchar);
-					}
-					else if (checkchar->x == newx && checkchar->y == newy)
-					{
-						newchars.push_back(checkchar);
-					}
-				}
-				break;
-
-			case DIRECTION_LEFT:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newx = from->x - seedistance + std::abs(i);
-					newy = from->y + i;
-					oldx = from->x + seedistance + 1 - std::abs(i);
-					oldy = from->y + i;
-
-					if (checkchar->x == oldx && checkchar->y == oldy)
-					{
-						oldchars.push_back(checkchar);
-					}
-					else if (checkchar->x == newx && checkchar->y == newy)
-					{
-						newchars.push_back(checkchar);
-					}
-				}
-				break;
-
+			if (checkchar->x == oldcoords[i].first && checkchar->y == oldcoords[i].second)
+			{
+				oldchars.push_back(checkchar);
+			}
+			else if (checkchar->x == newcoords[i].first && checkchar->y == newcoords[i].second)
+			{
+				newchars.push_back(checkchar);
+			}
 		}
 	}
 
 	UTIL_LIST_FOREACH_ALL(this->npcs, NPC *, checknpc)
 	{
-		switch (direction)
+		if (!checknpc->alive)
 		{
-			case DIRECTION_UP:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newy = from->y - seedistance + std::abs(i);
-					newx = from->x + i;
-					oldy = from->y + seedistance + 1 - std::abs(i);
-					oldx = from->x + i;
+			continue;
+		}
 
-					if (checknpc->x == oldx && checknpc->y == oldy)
-					{
-						oldnpcs.push_back(checknpc);
-					}
-					else if (checknpc->x == newx && checknpc->y == newy)
-					{
-						newnpcs.push_back(checknpc);
-					}
-				}
-				break;
-
-			case DIRECTION_RIGHT:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newx = from->x + seedistance - std::abs(i);
-					newy = from->y + i;
-					oldx = from->x - seedistance - 1 + std::abs(i);
-					oldy = from->y + i;
-
-					if (checknpc->x == oldx && checknpc->y == oldy)
-					{
-						oldnpcs.push_back(checknpc);
-					}
-					else if (checknpc->x == newx && checknpc->y == newy)
-					{
-						newnpcs.push_back(checknpc);
-					}
-				}
-				break;
-
-			case DIRECTION_DOWN:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newy = from->y + seedistance - std::abs(i);
-					newx = from->x + i;
-					oldy = from->y - seedistance - 1 + std::abs(i);
-					oldx = from->x + i;
-
-					if (checknpc->x == oldx && checknpc->y == oldy)
-					{
-						oldnpcs.push_back(checknpc);
-					}
-					else if (checknpc->x == newx && checknpc->y == newy)
-					{
-						newnpcs.push_back(checknpc);
-					}
-				}
-				break;
-
-			case DIRECTION_LEFT:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newx = from->x - seedistance + std::abs(i);
-					newy = from->y + i;
-					oldx = from->x + seedistance + 1 - std::abs(i);
-					oldy = from->y + i;
-
-					if (checknpc->x == oldx && checknpc->y == oldy)
-					{
-						oldnpcs.push_back(checknpc);
-					}
-					else if (checknpc->x == newx && checknpc->y == newy)
-					{
-						newnpcs.push_back(checknpc);
-					}
-				}
-				break;
-
+		for (std::size_t i = 0; i < oldcoords.size(); ++i)
+		{
+			/*if (checknpc->x == oldcoords[i].first && checknpc->y == oldcoords[i].second)
+			{
+				oldnpcs.push_back(checknpc);
+			}
+			else */if (checknpc->x == newcoords[i].first && checknpc->y == newcoords[i].second)
+			{
+				newnpcs.push_back(checknpc);
+			}
 		}
 	}
 
 	UTIL_LIST_FOREACH_ALL(this->items, Map_Item, checkitem)
 	{
-		switch (direction)
+		for (std::size_t i = 0; i < oldcoords.size(); ++i)
 		{
-			case DIRECTION_UP:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newy = from->y - seedistance + std::abs(i);
-					newx = from->x + i;
-					oldy = from->y + seedistance + 1 - std::abs(i);
-					oldx = from->x + i;
-
-					if (checkitem.x == newx && checkitem.y == newy)
-					{
-						newitems.push_back(checkitem);
-					}
-				}
-				break;
-
-			case DIRECTION_RIGHT:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newx = from->x + seedistance - std::abs(i);
-					newy = from->y + i;
-					oldx = from->x - seedistance - 1 + std::abs(i);
-					oldy = from->y + i;
-
-					if (checkitem.x == newx && checkitem.y == newy)
-					{
-						newitems.push_back(checkitem);
-					}
-				}
-				break;
-
-			case DIRECTION_DOWN:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newy = from->y + seedistance - std::abs(i);
-					newx = from->x + i;
-					oldy = from->y - seedistance - 1 + std::abs(i);
-					oldx = from->x + i;
-
-					if (checkitem.x == newx && checkitem.y == newy)
-					{
-						newitems.push_back(checkitem);
-					}
-				}
-				break;
-
-			case DIRECTION_LEFT:
-				for (int i = -seedistance; i <= seedistance; ++i)
-				{
-					newx = from->x - seedistance + std::abs(i);
-					newy = from->y + i;
-					oldx = from->x + seedistance + 1 - std::abs(i);
-					oldy = from->y + i;
-
-					if (checkitem.x == newx && checkitem.y == newy)
-					{
-						newitems.push_back(checkitem);
-					}
-				}
-				break;
-
+			if (checkitem.x == newcoords[i].first && checkitem.y == newcoords[i].second)
+			{
+				newitems.push_back(checkitem);
+			}
 		}
 	}
 
@@ -758,6 +589,83 @@ void Map::Attack(Character *from, int direction)
 
 		character->player->client->SendBuilder(builder);
 	}
+
+	int target_x = from->x;
+	int target_y = from->y;
+
+	switch (from->direction)
+	{
+		case DIRECTION_UP:
+			target_y -= 1;
+			break;
+
+		case DIRECTION_RIGHT:
+			target_x += 1;
+			break;
+
+		case DIRECTION_DOWN:
+			target_y += 1;
+			break;
+
+		case DIRECTION_LEFT:
+			target_x -= 1;
+			break;
+	}
+
+	UTIL_LIST_FOREACH_ALL(this->npcs, NPC *, npc)
+	{
+		if ((npc->data->type == ENF::Passive || npc->data->type == ENF::Aggressive || from->admin > static_cast<int>(admin_config["killnpcs"]))
+		 && npc->alive && npc->x == target_x && npc->y == target_y)
+		{
+			int amount = util::rand(from->mindam, from->maxdam);
+
+			// TODO: Revise these stat effects
+
+			int hit_rate = 180;
+			bool critical = true;
+
+			if ((npc->direction == DIRECTION_UP && from->direction == DIRECTION_DOWN)
+			 || (npc->direction == DIRECTION_RIGHT && from->direction == DIRECTION_LEFT)
+			 || (npc->direction == DIRECTION_DOWN && from->direction == DIRECTION_UP)
+			 || (npc->direction == DIRECTION_LEFT && from->direction == DIRECTION_RIGHT))
+			{
+				critical = false;
+				hit_rate -= 100;
+			}
+
+			hit_rate += npc->data->accuracy/2;
+			hit_rate -= npc->data->evade/3;
+			hit_rate = std::min(std::max(hit_rate, 0), 100);
+
+			int rand = util::rand(0, 105 + from->cha/5);
+
+			if (rand > hit_rate)
+			{
+				amount = 0;
+			}
+
+			if (rand > 100)
+			{
+				critical = true;
+			}
+
+			amount -= npc->data->armor/2;
+			amount = std::max(amount, 0);
+			amount = std::min(amount, npc->hp);
+
+			if (critical)
+			{
+				amount *= 2;
+			}
+
+			amount = std::max(amount, 0);
+			amount = std::min(amount, npc->hp);
+
+			npc->Damage(from, amount);
+
+			break;
+		}
+	}
 }
 
 void Map::Face(Character *from, int direction)
@@ -827,7 +735,7 @@ void Map::Stand(Character *from)
 	}
 }
 
-void Map::Emote(Character *from, int emote)
+void Map::Emote(Character *from, int emote, bool relay)
 {
 	PacketBuilder builder;
 
@@ -837,7 +745,7 @@ void Map::Emote(Character *from, int emote)
 
 	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
-		if (character == from || !from->InRange(character))
+		if (!relay && (character == from || !from->InRange(character)))
 		{
 			continue;
 		}

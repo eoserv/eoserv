@@ -80,6 +80,11 @@ class World
 
 		int last_character_id;
 
+		util::array<int, 251> exp_table;
+
+		TimeEvent *npc_spawn_timer;
+		TimeEvent *recover_timer;
+
 		World(util::array<std::string, 5> dbinfo, Config);
 
 		int GenerateCharacterID();
@@ -110,11 +115,11 @@ class World
  */
 struct Map_Item
 {
-	int uid;
-	int id;
+	short uid;
+	short id;
 	int amount;
-	int x;
-	int y;
+	unsigned char x;
+	unsigned char y;
 	unsigned int owner; // Player ID
 	double unprotecttime;
 };
@@ -124,10 +129,10 @@ struct Map_Item
  */
 struct Map_Warp
 {
-	int map;
-	int x;
-	int y;
-	int levelreq;
+	short map;
+	unsigned char x;
+	unsigned char y;
+	unsigned char levelreq;
 
 	enum WarpSpec
 	{
@@ -243,12 +248,12 @@ struct Map_Tile
 class Map
 {
 	public:
-		int id;
+		short id;
 		char rid[4];
 		bool pk;
 		int filesize;
-		int width;
-		int height;
+		unsigned char width;
+		unsigned char height;
 		std::string filename;
 		std::list<Character *> characters;
 		std::list<NPC *> npcs;
@@ -269,7 +274,7 @@ class Map
 		void Face(Character *from, int direction);
 		void Sit(Character *from, int sit_type);
 		void Stand(Character *from);
-		void Emote(Character *from, int emote);
+		void Emote(Character *from, int emote, bool relay = true);
 		bool OpenDoor(Character *from, int x, int y);
 
 		Map_Item *AddItem(int id, int amount, int x, int y, Character *from = 0);
@@ -324,7 +329,7 @@ class Player
  */
 struct Character_Item
 {
-	int id;
+	short id;
 	int amount;
 };
 
@@ -333,8 +338,8 @@ struct Character_Item
  */
 struct Character_Spell
 {
-	int id;
-	int level;
+	short id;
+	unsigned char level;
 };
 
 class Character
@@ -343,32 +348,35 @@ class Character
 		int login_time;
 		bool online;
 		unsigned int id;
-		int admin;
+		unsigned char admin;
 		std::string name;
 		std::string title;
 		std::string home;
 		std::string partner;
-		int clas;
-		int gender;
-		int race;
-		int hairstyle, haircolor;
-		int mapid, x, y, direction;
-		int spawnmap, spawnx, spawny;
-		int level, exp;
-		int hp, tp;
-		int str, intl, wis, agi, con, cha;
-		int statpoints, skillpoints;
-		int weight, maxweight;
-		int karma;
-		int sitting, visible;
+		unsigned char clas;
+		unsigned char gender;
+		unsigned char race;
+		unsigned char hairstyle, haircolor;
+		short mapid;
+		unsigned char x, y, direction;
+		short spawnmap;
+		unsigned char spawnx, spawny;
+		unsigned char level;
+		int exp;
+		short hp, tp;
+		short str, intl, wis, agi, con, cha;
+		short statpoints, skillpoints;
+		short weight, maxweight;
+		short karma;
+		unsigned char sitting, visible;
 		int bankmax;
 		int goldbank;
 		int usage;
 
-		int maxsp;
-		int maxhp, maxtp;
-		int accuracy, evade, armor;
-		int mindam, maxdam;
+		short maxsp;
+		short maxhp, maxtp;
+		short accuracy, evade, armor;
+		short mindam, maxdam;
 
 		bool modal;
 
@@ -412,24 +420,24 @@ class Character
 		static void Delete(std::string name);
 
 		void Msg(Character *from, std::string message);
-		bool Walk(int direction);
-		bool AdminWalk(int direction);
-		void Attack(int direction);
-		void Sit(int sit_type);
+		bool Walk(unsigned char direction);
+		bool AdminWalk(unsigned char direction);
+		void Attack(unsigned char direction);
+		void Sit(unsigned char sit_type);
 		void Stand();
-		void Emote(int emote);
-		int HasItem(int item);
-		bool AddItem(int item, int amount);
-		bool DelItem(int item, int amount);
-		bool AddTradeItem(int item, int amount);
-		bool DelTradeItem(int item);
-		bool Unequip(int item, int subloc);
-		bool Equip(int item, int subloc);
-		bool InRange(int x, int y);
+		void Emote(unsigned char emote, bool relay = true);
+		int HasItem(short item);
+		bool AddItem(short item, int amount);
+		bool DelItem(short item, int amount);
+		bool AddTradeItem(short item, int amount);
+		bool DelTradeItem(short item);
+		bool Unequip(short item, unsigned char subloc);
+		bool Equip(short item, unsigned char subloc);
+		bool InRange(unsigned char x, unsigned char y);
 		bool InRange(Character *);
 		bool InRange(NPC *);
 		bool InRange(Map_Item);
-		void Warp(int map, int x, int y, int animation = WARP_ANIMATION_NONE);
+		void Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation = WARP_ANIMATION_NONE);
 		void Refresh();
 		std::string PaddedGuildTag();
 		int Usage();
@@ -442,7 +450,7 @@ class Character
 		Player *player;
 		Guild *guild;
 		std::string guild_tag;
-		int guild_rank;
+		unsigned char guild_rank;
 		Party *party;
 		Map *map;
 };
@@ -463,14 +471,14 @@ struct NPC_Opponent
 class NPC
 {
 	public:
-		int id;
+		short id;
 		ENF_Data *data;
-		int x, y;
-		int direction;
-		int distance;
-		int spawn_time;
-		int spawn_x, spawn_y;
-		int min_x, min_y, max_x, max_y;
+		unsigned char x, y;
+		unsigned char direction;
+		unsigned char distance;
+		short spawn_time;
+		unsigned char spawn_x, spawn_y;
+		unsigned char min_x, min_y, max_x, max_y;
 		int tries;
 		NPC *parent;
 
@@ -481,12 +489,14 @@ class NPC
 		std::list<NPC_Opponent> damagelist;
 
 		Map *map;
-		int index;
+		unsigned char index;
 
-		NPC(Map *map, int id, int x, int y, int distance, int spawn_time, int index);
+		NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char distance, short spawn_time, unsigned char index);
 
 		bool SpawnReady();
+
 		void Spawn();
+		void Damage(Character *from, int amount);
 
 		void Follow(Character *target = 0);
 };

@@ -17,36 +17,36 @@ Character::Character(std::string name)
 	this->home = static_cast<std::string>(row["home"]);
 	this->partner = static_cast<std::string>(row["partner"]);
 
-	this->clas = row["class"];
-	this->gender = row["gender"];
-	this->race = row["race"];
-	this->hairstyle = row["hairstyle"];
-	this->haircolor = row["haircolor"];
+	this->clas = static_cast<int>(row["class"]);
+	this->gender = static_cast<int>(row["gender"]);
+	this->race = static_cast<int>(row["race"]);
+	this->hairstyle = static_cast<int>(row["hairstyle"]);
+	this->haircolor = static_cast<int>(row["haircolor"]);
 
-	this->mapid = row["map"];
-	this->x = row["x"];
-	this->y = row["y"];
-	this->direction = row["direction"];
+	this->mapid = static_cast<int>(row["map"]);
+	this->x = static_cast<int>(row["x"]);
+	this->y = static_cast<int>(row["y"]);
+	this->direction = static_cast<int>(row["direction"]);
 
-	this->spawnmap = row["spawnmap"];
-	this->spawnx = row["spawnx"];
-	this->spawny = row["spawny"];
+	this->spawnmap = static_cast<int>(row["spawnmap"]);
+	this->spawnx = static_cast<int>(row["spawnx"]);
+	this->spawny = static_cast<int>(row["spawny"]);
 
-	this->level = row["level"];
-	this->exp = row["exp"];
+	this->level = static_cast<int>(row["level"]);
+	this->exp = static_cast<int>(row["exp"]);
 
-	this->hp = row["hp"];
-	this->tp = row["tp"];
+	this->hp = static_cast<int>(row["hp"]);
+	this->tp = static_cast<int>(row["tp"]);
 
-	this->str = row["str"];
-	this->intl = row["int"];
-	this->wis = row["wis"];
-	this->agi = row["agi"];
-	this->con = row["con"];
-	this->cha = row["cha"];
-	this->statpoints = row["statpoints"];
-	this->skillpoints = row["skillpoints"];
-	this->karma = row["karma"];
+	this->str = static_cast<int>(row["str"]);
+	this->intl = static_cast<int>(row["int"]);
+	this->wis = static_cast<int>(row["wis"]);
+	this->agi = static_cast<int>(row["agi"]);
+	this->con = static_cast<int>(row["con"]);
+	this->cha = static_cast<int>(row["cha"]);
+	this->statpoints = static_cast<int>(row["statpoints"]);
+	this->skillpoints = static_cast<int>(row["skillpoints"]);
+	this->karma = static_cast<int>(row["karma"]);
 
 	this->weight = 0;
 	this->maxweight = 0;
@@ -161,22 +161,22 @@ void Character::Msg(Character *from, std::string message)
 	this->player->client->SendBuilder(builder);
 }
 
-bool Character::Walk(int direction)
+bool Character::Walk(unsigned char direction)
 {
 	return this->map->Walk(this, direction);
 }
 
-bool Character::AdminWalk(int direction)
+bool Character::AdminWalk(unsigned char direction)
 {
 	return this->map->Walk(this, direction, true);
 }
 
-void Character::Attack(int direction)
+void Character::Attack(unsigned char direction)
 {
 	this->map->Attack(this, direction);
 }
 
-void Character::Sit(int sit_type)
+void Character::Sit(unsigned char sit_type)
 {
 	this->map->Sit(this, sit_type);
 }
@@ -186,12 +186,12 @@ void Character::Stand()
 	this->map->Stand(this);
 }
 
-void Character::Emote(int emote)
+void Character::Emote(unsigned char emote, bool relay)
 {
-	this->map->Emote(this, emote);
+	this->map->Emote(this, emote, relay);
 }
 
-int Character::HasItem(int item)
+int Character::HasItem(short item)
 {
 	UTIL_LIST_FOREACH_ALL(this->inventory, Character_Item, it)
 	{
@@ -219,7 +219,7 @@ int Character::HasItem(int item)
 	return 0;
 }
 
-bool Character::AddItem(int item, int amount)
+bool Character::AddItem(short item, int amount)
 {
 	Character_Item newitem;
 
@@ -258,7 +258,7 @@ bool Character::AddItem(int item, int amount)
 	return true;
 }
 
-bool Character::DelItem(int item, int amount)
+bool Character::DelItem(short item, int amount)
 {
 	if (amount <= 0)
 	{
@@ -286,7 +286,7 @@ bool Character::DelItem(int item, int amount)
 	return false;
 }
 
-bool Character::AddTradeItem(int item, int amount)
+bool Character::AddTradeItem(short item, int amount)
 {
 	Character_Item newitem;
 
@@ -323,7 +323,7 @@ bool Character::AddTradeItem(int item, int amount)
 	return true;
 }
 
-bool Character::DelTradeItem(int item)
+bool Character::DelTradeItem(short item)
 {
 	UTIL_LIST_IFOREACH_ALL(this->trade_inventory, Character_Item, it)
 	{
@@ -337,7 +337,7 @@ bool Character::DelTradeItem(int item)
 	return false;
 }
 
-bool Character::Unequip(int item, int subloc)
+bool Character::Unequip(short item, unsigned char subloc)
 {
 	if (item == 0)
 	{
@@ -361,7 +361,7 @@ bool Character::Unequip(int item, int subloc)
 	return false;
 }
 
-bool Character::Equip(int item, int subloc)
+bool Character::Equip(short item, unsigned char subloc)
 {
 	if (!this->HasItem(item))
 	{
@@ -530,10 +530,10 @@ bool Character::Equip(int item, int subloc)
 	return true;
 }
 
-bool Character::InRange(int x, int y)
+bool Character::InRange(unsigned char x, unsigned char y)
 {
-	int xdistance = std::abs(this->x - x);
-	int ydistance = std::abs(this->y - y);
+	unsigned char xdistance = std::abs(this->x - x);
+	unsigned char ydistance = std::abs(this->y - y);
 	return (xdistance + ydistance) <= 11;
 }
 
@@ -552,7 +552,7 @@ bool Character::InRange(Map_Item other)
 	return this->InRange(other.x, other.y);
 }
 
-void Character::Warp(int map, int x, int y, int animation)
+void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation)
 {
 	if (map <= 0 || static_cast<std::size_t>(map) > the_world->maps.size() || !the_world->maps[map]->exists)
 	{
@@ -564,14 +564,14 @@ void Character::Warp(int map, int x, int y, int animation)
 
 	if (this->player->character->mapid == map)
 	{
-		builder.AddChar(PACKET_WARP_LOCAL);
+		builder.AddChar(WARP_LOCAL);
 		builder.AddShort(map);
 		builder.AddChar(x);
 		builder.AddChar(y);
 	}
 	else
 	{
-		builder.AddChar(PACKET_WARP_SWITCH);
+		builder.AddChar(WARP_SWITCH);
 		builder.AddShort(map);
 		builder.AddByte(the_world->maps[map]->rid[0]);
 		builder.AddByte(the_world->maps[map]->rid[1]);
@@ -724,13 +724,19 @@ int Character::Usage()
 // TODO: calculate equipment bonuses, check formulas
 void Character::CalculateStats()
 {
-	int calcstr = this->str;
-	int calcintl = this->intl;
-	int calcwis = this->wis;
-	int calcagi = this->agi;
-	int calccon = this->con;
-	int calccha = this->cha;
+	short calcstr = this->str;
+	short calcintl = this->intl;
+	short calcwis = this->wis;
+	short calcagi = this->agi;
+	short calccon = this->con;
+	short calccha = this->cha;
 	this->maxweight = 70 + this->str;
+
+	if (this->maxweight < 70 || this->maxweight > 250)
+	{
+		this->maxweight = 250;
+	}
+
 	this->weight = 0;
 	this->maxhp = 0;
 	this->maxtp = 0;
@@ -765,14 +771,14 @@ void Character::CalculateStats()
 			calccha += item->cha;
 		}
 	}
-	this->maxhp += 10 + calccon*3 + calccha/2;
-	this->maxtp += 10 + calcwis*3 + calccha/2;
-	this->mindam += 0 + calcstr/2 + calccha/6;
-	this->maxdam += 1 + calcstr/2 + calccha/6;
-	this->accuracy += 0 + calcagi/2 + calccha/4;
-	this->evade += 0 + calcagi/2 + calccha/4;
-	this->armor += 0 + calccon/2 + calccha/4;
-	this->maxsp += std::min(20 + this->level*2 + calccha/6, 100);
+	this->maxhp += 10 + calccon*3;
+	this->maxtp += 10 + calcwis*3;
+	this->mindam += 1 + calcstr/2;
+	this->maxdam += 2 + calcstr/2;
+	this->accuracy += 0 + calcagi/2;
+	this->evade += 0 + calcagi/2;
+	this->armor += 0 + calccon/2;
+	this->maxsp += std::min(20 + this->level*2, 100);
 }
 
 void Character::Save()

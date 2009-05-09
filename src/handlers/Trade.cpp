@@ -139,6 +139,9 @@ CLIENT_F_FUNC(Trade)
 					CLIENT_SEND(builder);
 					this->player->character->trade_partner->player->client->SendBuilder(builder);
 
+					this->player->character->Emote(EMOTE_TRADE);
+					this->player->character->trade_partner->Emote(EMOTE_TRADE);
+
 					this->player->character->modal = this->player->character->trading = false;
 					this->player->character->trade_inventory.clear();
 					this->player->character->trade_agree = false;
@@ -152,7 +155,7 @@ CLIENT_F_FUNC(Trade)
 				}
 				else
 				{
-					reply.SetID(PACKET_TRADE, PACKET_MOVESPEC);
+					reply.SetID(PACKET_TRADE, PACKET_SPEC);
 					reply.AddChar(agree);
 					CLIENT_SEND(reply);
 					PacketBuilder builder(PACKET_TRADE, PACKET_AGREE);
@@ -163,7 +166,7 @@ CLIENT_F_FUNC(Trade)
 			}
 			else
 			{
-				reply.SetID(PACKET_TRADE, PACKET_MOVESPEC);
+				reply.SetID(PACKET_TRADE, PACKET_SPEC);
 				reply.AddChar(agree);
 				CLIENT_SEND(reply);
 				PacketBuilder builder(PACKET_TRADE, PACKET_AGREE);

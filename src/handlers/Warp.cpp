@@ -25,6 +25,7 @@ CLIENT_F_FUNC(Warp)
 			std::list<Character *> updatecharacters;
 			std::list<NPC *> updatenpcs;
 			std::list<Map_Item> updateitems;
+
 			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (this->player->character->InRange(character))
@@ -32,6 +33,15 @@ CLIENT_F_FUNC(Warp)
 					updatecharacters.push_back(character);
 				}
 			}
+
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->npcs, NPC *, npc)
+			{
+				if (this->player->character->InRange(npc))
+				{
+					updatenpcs.push_back(npc);
+				}
+			}
+
 			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
 			{
 				if (this->player->character->InRange(item))
@@ -39,6 +49,7 @@ CLIENT_F_FUNC(Warp)
 					updateitems.push_back(item);
 				}
 			}
+
 			reply.SetID(PACKET_WARP, PACKET_AGREE);
 			reply.AddChar(2); // ?
 			reply.AddShort(map);

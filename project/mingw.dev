@@ -658,7 +658,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit62]
-FileName=..\src\handlers\SkillMaster.cpp
+FileName=..\src\handlers\StatSkill.cpp
 CompileCpp=0
 Folder=handlers
 Compile=0

@@ -9,7 +9,7 @@ CLIENT_F_FUNC(Welcome)
 	{
 		case PACKET_REQUEST: // Selected a character
 		{
-			if (!this->player) return false;
+			if (!this->player || (this->player && this->player->character)) return false;
 
 			id = reader.GetInt(); // Character ID
 

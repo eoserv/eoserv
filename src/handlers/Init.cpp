@@ -1,5 +1,5 @@
 
-int stupid_hash(int i)
+unsigned int stupid_hash(unsigned int i)
 {
 	++i;
 	int a = ((i % 11 + 1) * 119);

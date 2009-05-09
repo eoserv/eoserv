@@ -11,7 +11,7 @@ PacketProcessor::PacketProcessor()
 	this->firstdec = true;
 }
 
-std::string PacketProcessor::GetFamilyName(unsigned char family)
+std::string PacketProcessor::GetFamilyName(PacketFamily family)
 {
 	switch (family)
 	{
@@ -27,17 +27,20 @@ std::string PacketProcessor::GetFamilyName(unsigned char family)
 		case PACKET_ATTACK: return "Attack";
 		case PACKET_SHOP: return "Shop";
 		case PACKET_ITEM: return "Item";
-		case PACKET_SKILLMASTER: return "SkillMaster";
+		case PACKET_STATSKILL: return "StatSkill";
 		case PACKET_GLOBAL: return "Global";
 		case PACKET_TALK: return "Talk";
 		case PACKET_WARP: return "Warp";
 		case PACKET_JUKEBOX: return "Jukebox";
 		case PACKET_PLAYERS: return "Players";
+		case PACKET_CLOTHES: return "Clothes";
 		case PACKET_PARTY: return "Party";
 		case PACKET_REFRESH: return "Refresh";
+		case PACKET_NPC: return "NPC";
 		case PACKET_AUTOREFRESH: return "AutoRefresh";
 		case PACKET_APPEAR: return "Appear";
 		case PACKET_PAPERDOLL: return "Paperdoll";
+		case PACKET_EFFECT: return "Effect";
 		case PACKET_TRADE: return "Trade";
 		case PACKET_CHEST: return "Chest";
 		case PACKET_DOOR: return "Door";
@@ -52,12 +55,12 @@ std::string PacketProcessor::GetFamilyName(unsigned char family)
 		case PACKET_CITIZEN: return "Citizen";
 		case PACKET_QUEST: return "Quest";
 		case PACKET_BOOK: return "Book";
-		case PACKET_INIT: return "Init";
-		default: return "UNKOWN";
+		case PACKET_F_INIT: return "Init";
+		default: return "UNKNOWN";
 	}
 }
 
-std::string PacketProcessor::GetActionName(unsigned char action)
+std::string PacketProcessor::GetActionName(PacketAction action)
 {
 	switch (action)
 	{
@@ -76,8 +79,8 @@ std::string PacketProcessor::GetActionName(unsigned char action)
 		case PACKET_OPEN: return "Open";
 		case PACKET_CLOSE: return "Close";
 		case PACKET_MSG: return "Msg";
-		case PACKET_MOVESPEC: return "MoveSpec";
-		case PACKET_MOVEADMIN: return "MoveAdmin";
+		case PACKET_SPEC: return "Spec";
+		case PACKET_ADMIN: return "Admin";
 		case PACKET_LIST: return "List";
 		case PACKET_TELL: return "Tell";
 		case PACKET_REPORT: return "Report";
@@ -86,8 +89,10 @@ std::string PacketProcessor::GetActionName(unsigned char action)
 		case PACKET_JUNK: return "Junk";
 		case PACKET_GET: return "Get";
 		case PACKET_NET: return "Net";
-		case PACKET_INIT: return "Init";
-		default: return "UNKOWN";
+		case PACKET_NET2: return "Net2";
+		case PACKET_NET3: return "Net3";
+		case PACKET_A_INIT: return "Init";
+		default: return "UNKNOWN";
 	}
 }
 
@@ -308,7 +313,7 @@ util::quadchar PacketProcessor::ENumber(unsigned int number, std::size_t &size)
 	return bytes;
 }
 
-unsigned short PacketProcessor::PID(unsigned char b1, unsigned char b2)
+unsigned short PacketProcessor::PID(PacketFamily b1, PacketAction b2)
 {
 	return b1 + b2*256;
 }
@@ -510,7 +515,7 @@ PacketBuilder::PacketBuilder(unsigned short id)
 	this->SetID(id);
 }
 
-PacketBuilder::PacketBuilder(unsigned char family, unsigned char action)
+PacketBuilder::PacketBuilder(PacketFamily family, PacketAction action)
 {
 	this->length = 0;
 	this->SetID(family, action);
@@ -520,7 +525,7 @@ unsigned short PacketBuilder::SetID(unsigned short id)
 {
 	if (id == 0)
 	{
-		id = PacketProcessor::PID(255, 255);
+		id = PacketProcessor::PID(PACKET_F_INIT, PACKET_A_INIT);
 	}
 
 	this->id = id;
@@ -528,7 +533,7 @@ unsigned short PacketBuilder::SetID(unsigned short id)
 	return this->id;
 }
 
-unsigned short PacketBuilder::SetID(unsigned char family, unsigned char action)
+unsigned short PacketBuilder::SetID(PacketFamily family, PacketAction action)
 {
 	return this->SetID(PacketProcessor::PID(family,action));
 }

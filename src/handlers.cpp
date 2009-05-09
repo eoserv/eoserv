@@ -60,7 +60,7 @@ extern Config eoserv_config;
 #include "handlers/Refresh.cpp"
 #include "handlers/Shop.cpp"
 #include "handlers/Sit.cpp"
-#include "handlers/SkillMaster.cpp"
+#include "handlers/StatSkill.cpp"
 #include "handlers/Talk.cpp"
 #include "handlers/Trade.cpp"
 #include "handlers/Walk.cpp"

@@ -119,7 +119,7 @@ class EOClient : public Client
 		CLIENT_F_FUNC(Attack);
 		CLIENT_F_FUNC(Shop);
 		CLIENT_F_FUNC(Item);
-		CLIENT_F_FUNC(SkillMaster);
+		CLIENT_F_FUNC(StatSkill);
 		CLIENT_F_FUNC(Global);
 		CLIENT_F_FUNC(Talk);
 		CLIENT_F_FUNC(Warp);

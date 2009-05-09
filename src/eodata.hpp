@@ -84,41 +84,41 @@ struct EIF_Data
 {
 	int id;
 	std::string name;
-	int graphic;
+	short graphic;
 	EIF::Type type;
 
 	EIF::Special special;
-	int hp;
-	int tp;
-	int mindam;
-	int maxdam;
-	int accuracy;
-	int evade;
-	int armor;
+	short hp;
+	short tp;
+	short mindam;
+	short maxdam;
+	short accuracy;
+	short evade;
+	short armor;
 
-	int str;
-	int intl;
-	int wis;
-	int agi;
-	int con;
-	int cha;
+	short str;
+	short intl;
+	short wis;
+	short agi;
+	short con;
+	short cha;
 
 	union
 	{
-		int scrollmap;
-		int dollgraphic;
-		int expreward;
+		short scrollmap;
+		short dollgraphic;
+		short expreward;
 	};
 	union
 	{
-		int gender;
-		int scrollx;
+		short gender;
+		short scrollx;
 	};
-	int scrolly;
+	short scrolly;
 
-	int classreq;
+	short classreq;
 
-	int weight;
+	short weight;
 
 	EIF_Data() : id(0), graphic(0), type(EIF::Static), special(EIF::Normal), hp(0), tp(0),
 	mindam(0), maxdam(0), accuracy(0), evade(0), armor(0), str(0), intl(0), wis(0), agi(0),
@@ -168,13 +168,20 @@ struct ENF_Data
 	std::string name;
 	int graphic;
 
-	int boss;
-	int child;
+	short boss;
+	short child;
 	ENF::Type type;
 
+	int hp;
 	int exp;
+	short mindam;
+	short maxdam;
 
-	ENF_Data() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), exp(0) {}
+	short accuracy;
+	short evade;
+	short armor;
+
+	ENF_Data() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), hp(0), exp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0) {}
 };
 
 /**

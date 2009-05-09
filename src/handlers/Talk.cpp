@@ -69,7 +69,7 @@ CLIENT_F_FUNC(Talk)
 			else
 			{
 				reply.SetID(PACKET_TALK, PACKET_REPLY);
-				reply.AddShort(PACKET_TALK_NOTFOUND);
+				reply.AddShort(TALK_NOTFOUND);
 				reply.AddString(name);
 				CLIENT_SEND(reply);
 			}
@@ -297,7 +297,7 @@ CLIENT_F_FUNC(Talk)
 		}
 		break;
 
-		case PACKET_MOVEADMIN: // Admin chat message
+		case PACKET_ADMIN: // Admin chat message
 		{
 			if (!this->player || !this->player->character) return false;
 

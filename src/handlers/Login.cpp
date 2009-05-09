@@ -18,14 +18,14 @@ CLIENT_F_FUNC(Login)
 
 			if (Player::Online(username))
 			{
-				reply.AddShort(PACKET_LOGIN_LOGGEDIN);
+				reply.AddShort(LOGIN_LOGGEDIN);
 				CLIENT_SEND(reply);
 				return true;
 			}
 
 			if ((this->player = Player::Login(username, password)) == 0)
 			{
-				reply.AddShort(PACKET_LOGIN_WRONG_USERPASS);
+				reply.AddShort(LOGIN_WRONG_USERPASS);
 				CLIENT_SEND(reply);
 				return true;
 			}
@@ -38,7 +38,7 @@ CLIENT_F_FUNC(Login)
 				return false;
 			}
 
-			reply.AddShort(PACKET_LOGIN_OK);
+			reply.AddShort(LOGIN_OK);
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);

@@ -54,7 +54,7 @@ namespace util
 #define UTIL_ARRAY_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(util::array<type, type2 >::iterator, start, end, type, as)
 #define UTIL_DEQUE_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::deque<type >::iterator, start, end, type, as)
 #define UTIL_LIST_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::list<type >::iterator, start, end, type, as)
-#define UTIL_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(std::map<type >::iterator, start, end, type, as)
+#define UTIL_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(std::map<type, type2>::iterator, start, end, type, as)
 #define UTIL_MULTIMAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(std::multimap<type >::iterator, start, end, type, as)
 #define UTIL_QUEUE_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::queue<type >::iterator, start, end, type, as)
 #define UTIL_PRIORITY_QUEUE_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::priority_queue<type >::iterator, start, end, type, as)
@@ -169,6 +169,12 @@ namespace util
 #define UTIL_FOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (decltype(*(container.begin())) as; util_i < 1; ++util_i) for (decltype(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = *(util_it)):(as = *container.begin())), util_it != container.end(); as = *(util_it++))
 #define UTIL_IFOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (decltype(container.begin()) as; util_i < 1; ++util_i) for (decltype(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = util_it):(as = container.begin())), util_it != container.end(); as = util_it++)
 #endif // __GNUC__
+
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#define UTIL_EXTEND_ENUM(T) : T
+#else // __GXX_EXPERIMENTAL_CXX0X__
+#define UTIL_EXTEND_ENUM(T)
+#endif // __GXX_EXPERIMENTAL_CXX0X__
 
 template <typename T, std::size_t N> class array;
 class variant;
@@ -520,6 +526,8 @@ void uppercase(std::string &);
 void ucfirst(std::string &);
 
 int rand(int min, int max);
+
+double round(double);
 
 }
 

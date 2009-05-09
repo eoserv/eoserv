@@ -1,93 +1,143 @@
 #ifndef EOCONST_HPP_INCLUDED
 #define EOCONST_HPP_INCLUDED
 
-const int ADMIN_PLAYER = 0;
-const int ADMIN_GUIDE = 1;
-const int ADMIN_GUARDIAN = 2;
-const int ADMIN_GM = 3;
-const int ADMIN_HGM = 4;
+#include "util.hpp"
 
-const int DIRECTION_DOWN = 0;
-const int DIRECTION_LEFT = 1;
-const int DIRECTION_UP = 2;
-const int DIRECTION_RIGHT = 3;
+enum AdminLevel UTIL_EXTEND_ENUM(unsigned char)
+{
+	ADMIN_PLAYER = 0,
+	ADMIN_GUIDE = 1,
+	ADMIN_GUARDIAN = 2,
+	ADMIN_GM = 3,
+	ADMIN_HGM = 4
+};
 
-const int SIT_SITTING = 1;
-const int SIT_STANDING = 2;
+enum Direction UTIL_EXTEND_ENUM(unsigned char)
+{
+	DIRECTION_DOWN = 0,
+	DIRECTION_LEFT = 1,
+	DIRECTION_UP = 2,
+	DIRECTION_RIGHT = 3
+};
 
-const int EMOTE_HAPPY = 1;
-const int EMOTE_DEPRESSED = 2;
-const int EMOTE_SAD = 3;
-const int EMOTE_ANGRY = 4;
-const int EMOTE_CONFUSED = 5;
-const int EMOTE_SURPRISED = 6;
-const int EMOTE_HEARTS = 7;
-const int EMOTE_MOON = 8;
-const int EMOTE_SUICIDAL = 9;
-const int EMOTE_EMBARASSED = 10;
-const int EMOTE_DRUNK = 11;
-const int EMOTE_TRACE = 12;
-const int EMOTE_LEVELUP = 13;
-const int EMOTE_PLAYFUL = 14;
+enum SitState UTIL_EXTEND_ENUM(unsigned char)
+{
+	SIT_SITTING = 1,
+	SIT_STANDING = 2
+};
 
-const int QUEST_PROGRESS = 1;
-const int QUEST_HISTORY = 2;
+enum Emote UTIL_EXTEND_ENUM(unsigned char)
+{
+	EMOTE_HAPPY = 1,
+	EMOTE_DEPRESSED = 2,
+	EMOTE_SAD = 3,
+	EMOTE_ANGRY = 4,
+	EMOTE_CONFUSED = 5,
+	EMOTE_SURPRISED = 6,
+	EMOTE_HEARTS = 7,
+	EMOTE_MOON = 8,
+	EMOTE_SUICIDAL = 9,
+	EMOTE_EMBARASSED = 10,
+	EMOTE_DRUNK = 11,
+	EMOTE_TRADE = 12,
+	EMOTE_LEVELUP = 13,
+	EMOTE_PLAYFUL = 14,
+};
 
-const int FILE_MAP = 1;
-const int FILE_ITEM = 2;
-const int FILE_NPC = 3;
-const int FILE_SPELL = 4;
-const int FILE_CLASS = 5;
+enum QuestAction UTIL_EXTEND_ENUM(unsigned char)
+{
+	QUEST_PROGRESS = 1,
+	QUEST_HISTORY = 2
+};
 
-const int SKIN_WHITE = 0;
-const int SKIN_YELLOW = 1;
-const int SKIN_TAN = 2;
-const int SKIN_ORC = 3;
-const int SKIN_PANDA = 4;
-const int SKIN_SKELETON = 5;
-const int SKIN_FISH = 6;
+enum FileType UTIL_EXTEND_ENUM(unsigned char)
+{
+	FILE_MAP = 1,
+	FILE_ITEM = 2,
+	FILE_NPC = 3,
+	FILE_SPELL = 4,
+	FILE_CLASS = 5
+};
 
-const int ICON_NORMAL = 0;
-const int ICON_GM = 4;
-const int ICON_HGM = 5;
-const int ICON_PARTY = 6;
-const int ICON_GM_PARTY = 9;
-const int ICON_HGM_PARTY = 10;
+enum Skin UTIL_EXTEND_ENUM(unsigned char)
+{
+	SKIN_WHITE = 0,
+	SKIN_YELLOW = 1,
+	SKIN_TAN = 2,
+	SKIN_ORC = 3,
+	SKIN_PANDA = 4,
+	SKIN_SKELETON = 5,
+	SKIN_FISH = 6
+};
 
-const int PACKET_ACCOUNT_EXISTS = 1;
-const int PACKET_ACCOUNT_NOT_APPROVED = 2;
-const int PACKET_ACCOUNT_CREATED = 3;
-const int PACKET_ACCOUNT_CHANGE_FAILED = 5;
-const int PACKET_ACCOUNT_CHANGED = 6;
-const int PACKET_ACCOUNT_CONTINUE = 1000; // TODO: Check this for the real value
+enum PaperdollIcon UTIL_EXTEND_ENUM(unsigned char)
+{
+	ICON_NORMAL = 0,
+	ICON_GM = 4,
+	ICON_HGM = 5,
+	ICON_PARTY = 6,
+	ICON_GM_PARTY = 9,
+	ICON_HGM_PARTY = 10
+};
 
-const int PACKET_CHARACTER_EXISTS = 1;
-const int PACKET_CHARACTER_FULL = 2;
-const int PACKET_CHARACTER_NOT_APPROVED = 4;
-const int PACKET_CHARACTER_OK = 5;
-const int PACKET_CHARACTER_DELETED = 6;
+enum AccountReply UTIL_EXTEND_ENUM(unsigned char)
+{
+	ACCOUNT_EXISTS = 1,
+	ACCOUNT_NOT_APPROVED = 2,
+	ACCOUNT_CREATED = 3,
+	ACCOUNT_CHANGE_FAILED = 5,
+	ACCOUNT_CHANGED = 6,
+	ACCOUNT_CONTINUE = 1000 // TODO: Check this for the real value
+};
 
-const int PACKET_LOGIN_WRONG_USER = 1;
-const int PACKET_LOGIN_WRONG_USERPASS = 2;
-const int PACKET_LOGIN_OK = 3;
-const int PACKET_LOGIN_LOGGEDIN = 5;
+enum CharacterReply UTIL_EXTEND_ENUM(unsigned char)
+{
+	CHARACTER_EXISTS = 1,
+	CHARACTER_FULL = 2,
+	CHARACTER_NOT_APPROVED = 4,
+	CHARACTER_OK = 5,
+	CHARACTER_DELETED = 6,
+};
 
-const int PACKET_WARP_LOCAL = 1;
-const int PACKET_WARP_SWITCH = 2;
+enum LoginReply UTIL_EXTEND_ENUM(unsigned char)
+{
+	LOGIN_WRONG_USER = 1,
+	LOGIN_WRONG_USERPASS = 2,
+	LOGIN_OK = 3,
+	LOGIN_LOGGEDIN = 5
+};
 
-const int PACKET_TALK_NOTFOUND = 1;
+enum WarpReply UTIL_EXTEND_ENUM(unsigned char)
+{
+	WARP_LOCAL = 1,
+	WARP_SWITCH = 2,
+};
 
-const int SIT_STAND = 0;
-const int SIT_CHAIR = 1;
-const int SIT_FLOOR = 2;
+enum TalkReply UTIL_EXTEND_ENUM(unsigned char)
+{
+	TALK_NOTFOUND = 1
+};
 
-const int WARP_ANIMATION_NONE = 1;
-const int WARP_ANIMATION_ADMIN = 2;
-const int WARP_ANIMATION_CLICK = 3;
-const int WARP_ANIMATION_CLUNK = 9;
-const int WARP_ANIMATION_FADE = 27;
+enum SitAction UTIL_EXTEND_ENUM(unsigned char)
+{
+	SIT_STAND = 0,
+	SIT_CHAIR = 1,
+	SIT_FLOOR = 2
+};
 
-const int MAP_EFFECT_QUAKE = 1;
+enum WarpAnimation UTIL_EXTEND_ENUM(unsigned char)
+{
+	WARP_ANIMATION_NONE = 1,
+	WARP_ANIMATION_ADMIN = 2,
+	WARP_ANIMATION_CLICK = 3,
+	WARP_ANIMATION_CLUNK = 9,
+	WARP_ANIMATION_FADE = 27
+};
+
+enum MapEffect UTIL_EXTEND_ENUM(unsigned char)
+{
+	MAP_EFFECT_QUAKE = 1
+};
 
 
 #endif // EOCONST_HPP_INCLUDED

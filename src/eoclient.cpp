@@ -245,7 +245,7 @@ void sln_tick_request(void *server_void)
 		sln_tick_request_timer = 0;
 		if (static_cast<int>(eoserv_config["SLN"]))
 		{
-			server->world->timer.Register(new TimeEvent(sln_request, server_void, eoserv_config["SLNPeriod"], 1, true));
+			server->world->timer.Register(new TimeEvent(sln_request, server_void, int(eoserv_config["SLNPeriod"]), 1, true));
 		}
 	}
 }
@@ -342,8 +342,8 @@ void EOClient::Initialize()
 
 void EOClient::Execute(std::string data)
 {
-	unsigned char family;
-	unsigned char action;
+	PacketFamily family;
+	PacketAction action;
 
 	if (data.length() < 2)
 	{
@@ -352,19 +352,19 @@ void EOClient::Execute(std::string data)
 
 	data = processor.Decode(data);
 
-	family = data[1];
-	action = data[0];
+	family = static_cast<PacketFamily>(static_cast<unsigned char>(data[1]));
+	action = static_cast<PacketAction>(static_cast<unsigned char>(data[0]));
 
 	PacketReader reader(data.substr(2));
 
 	bool result = false;
 
-	if (family != PACKET_INIT)
+	if (family != PACKET_F_INIT)
 	{
 		reader.GetChar(); // Ordering Byte
 	}
 
-	if (!this->init && family != PACKET_INIT && family != PACKET_PLAYERS)
+	if (!this->init && family != PACKET_F_INIT && family != PACKET_PLAYERS)
 	{
 		this->Close();
 		return;
@@ -372,7 +372,7 @@ void EOClient::Execute(std::string data)
 
 	switch (family)
 	{
-		CLIENT_F_HANDLE(PACKET_INIT,Init);
+		CLIENT_F_HANDLE(PACKET_F_INIT,Init);
 		CLIENT_F_HANDLE(PACKET_CONNECTION,Connection);
 		CLIENT_F_HANDLE(PACKET_ACCOUNT,Account);
 		CLIENT_F_HANDLE(PACKET_CHARACTER,Character);
@@ -385,7 +385,7 @@ void EOClient::Execute(std::string data)
 		CLIENT_F_HANDLE(PACKET_ATTACK,Attack);
 		CLIENT_F_HANDLE(PACKET_SHOP,Shop);
 		CLIENT_F_HANDLE(PACKET_ITEM,Item);
-		CLIENT_F_HANDLE(PACKET_SKILLMASTER,SkillMaster);
+		CLIENT_F_HANDLE(PACKET_STATSKILL,StatSkill);
 		CLIENT_F_HANDLE(PACKET_GLOBAL,Global);
 		CLIENT_F_HANDLE(PACKET_TALK,Talk);
 		CLIENT_F_HANDLE(PACKET_WARP,Warp);
@@ -408,10 +408,11 @@ void EOClient::Execute(std::string data)
 		CLIENT_F_HANDLE(PACKET_CITIZEN,Citizen);
 		//CLIENT_F_HANDLE(PACKET_QUEST,Quest);
 		CLIENT_F_HANDLE(PACKET_BOOK,Book);
+		default: ; // Keep the compiler quiet until all packet types are handled
 	}
 
 #ifdef DEBUG
-	if (family != PACKET_CONNECTION || family != PACKET_NET)
+	//if (family != PACKET_CONNECTION || action != PACKET_NET)
 	{
 		std::printf("Packet %s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
 	}
