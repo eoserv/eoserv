@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Refresh)
 	{
 		case PACKET_REQUEST: // User requesting data of all objects in their location
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			this->player->character->Refresh();
 		}

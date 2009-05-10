@@ -11,17 +11,8 @@
 
 extern Database eoserv_db;
 
-void syspause(){ std::puts("Server terminated.\nPress enter to continue . . ."); std::getc(stdin); }
-
 int main()
 {
-#ifdef DEBUG
-#ifdef __GNUC__
-	std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
-#endif
-	std::atexit(syspause);
-#endif
-
 	try
 	{
 		bool running = true;
@@ -128,6 +119,7 @@ int main()
 		CONFIG_DEFAULT("DropRate"           , 100)
 		CONFIG_DEFAULT("GoldRate"           , 100)
 		CONFIG_DEFAULT("MobRate"            , 100)
+		CONFIG_DEFAULT("SpawnRate"          , 100)
 		CONFIG_DEFAULT("MaxBankGold"        , 2000000000)
 		CONFIG_DEFAULT("MaxItem"            , 10000000)
 		CONFIG_DEFAULT("MaxDrop"            , 10000000)
@@ -240,23 +232,23 @@ EO Version Support: .27 .28\n\
 				int done = false;
 				int oldlength;
 
-				data = cl->Recv((cl->state == EOClient::ReadData)?cl->length:1);
+				data = cl->Recv((cl->packet_state == EOClient::ReadData)?cl->length:1);
 
 				while (data.length() > 0 && !done)
 				{
-					switch (cl->state)
+					switch (cl->packet_state)
 					{
 						case EOClient::ReadLen1:
 							cl->raw_length[0] = data[0];
 							data.erase(0,1);
-							cl->state = EOClient::ReadLen2;
+							cl->packet_state = EOClient::ReadLen2;
 							break;
 
 						case EOClient::ReadLen2:
 							cl->raw_length[1] = data[0];
 							data.erase(0,1);
 							cl->length = PacketProcessor::Number(cl->raw_length[0], cl->raw_length[1]);
-							cl->state = EOClient::ReadData;
+							cl->packet_state = EOClient::ReadData;
 							break;
 
 						case EOClient::ReadData:
@@ -306,7 +298,7 @@ EO Version Support: .27 .28\n\
 								}
 
 								cl->data.erase();
-								cl->state = EOClient::ReadLen1;
+								cl->packet_state = EOClient::ReadLen1;
 
 								done = true;
 							}
@@ -316,7 +308,7 @@ EO Version Support: .27 .28\n\
 							// If the code ever gets here, something is broken, so we just reset the client's state.
 							data.erase();
 							cl->data.erase();
-							cl->state = EOClient::ReadLen1;
+							cl->packet_state = EOClient::ReadLen1;
 					}
 				}
 			}

@@ -133,9 +133,11 @@ void NPC::Damage(Character *from, int amount)
 
 		bool level_up = false;
 
-		from->exp += this->data->exp;
+		from->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0)));
 
-		if (from->exp >= the_world->exp_table[from->level+1])
+		from->exp = std::min(from->exp, static_cast<int>(eoserv_config["MaxExp"]));
+
+		if (from->level < static_cast<int>(eoserv_config["MaxLevel"]) && from->exp >= the_world->exp_table[from->level+1])
 		{
 			level_up = true;
 			++from->level;

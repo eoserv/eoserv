@@ -7,7 +7,8 @@ CLIENT_F_FUNC(Attack)
 	{
 		case PACKET_USE: // Player attacking
 		{
-			if (!this->player || !this->player->character || this->player->character->modal) return false;
+			if (this->state < EOClient::Playing) return false;
+			CLIENT_QUEUE_ACTION(0.6)
 
 			int direction = reader.GetChar();
 			/*int timestamp = */reader.GetThree();

@@ -7,7 +7,8 @@ CLIENT_F_FUNC(Emote)
 	{
 		case PACKET_REPORT: // Player sending an emote
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
+			CLIENT_QUEUE_ACTION(0.0)
 
 			int emote = reader.GetChar();
 

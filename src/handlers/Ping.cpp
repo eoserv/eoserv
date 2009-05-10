@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Ping)
 	{
 		case PACKET_NET: // User sending a ping request (#ping)
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			int something = reader.GetShort();
 

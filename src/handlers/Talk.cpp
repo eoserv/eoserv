@@ -30,7 +30,7 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_MSG: // Global chat message
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			if (this->player->character->mapid == static_cast<int>(eoserv_config["JailMap"]))
 			{
@@ -46,7 +46,7 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_TELL: // Private chat message
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			std::string name = reader.GetBreakString();
 			message = reader.GetEndString();
@@ -78,7 +78,7 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_REPORT: // Public chat message
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			message = reader.GetEndString();
 			limit_message(message);
@@ -299,7 +299,7 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_ADMIN: // Admin chat message
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 
@@ -312,7 +312,7 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_ANNOUNCE: // Announcement message
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 

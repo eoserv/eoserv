@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Item)
 	{
 		case PACKET_USE: // Player using an item
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			int id = reader.GetShort();
 
@@ -17,7 +17,7 @@ CLIENT_F_FUNC(Item)
 				switch (item->type)
 				{
 					case EIF::Teleport:
-						if (this->player->character->modal)
+						if (this->state < EOClient::Playing)
 						{
 							break;
 						}
@@ -54,7 +54,7 @@ CLIENT_F_FUNC(Item)
 
 		case PACKET_DROP: // Drop an item on the ground
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			int id = reader.GetShort();
 			int amount;
@@ -89,6 +89,7 @@ CLIENT_F_FUNC(Item)
 			}
 			else
 			{
+				if (this->state < EOClient::Playing) return false;
 				x = PacketProcessor::Number(x);
 				y = PacketProcessor::Number(y);
 			}
@@ -131,7 +132,7 @@ CLIENT_F_FUNC(Item)
 
 		case PACKET_JUNK: // Destroying an item
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			int id = reader.GetShort();
 			int amount = reader.GetInt();
@@ -153,7 +154,7 @@ CLIENT_F_FUNC(Item)
 
 		case PACKET_GET: // Retrieve an item from the ground
 		{
-			if (!this->player || !this->player->character || this->player->character->modal) return false;
+			if (this->state < EOClient::Playing) return false;
 
 			int uid = reader.GetShort();
 

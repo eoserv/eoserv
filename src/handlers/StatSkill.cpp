@@ -19,7 +19,7 @@ CLIENT_F_FUNC(StatSkill)
 
 		case PACKET_ADD: // Spending a stat point on a skill
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			short *stat;
 			/*int action = */reader.GetChar();

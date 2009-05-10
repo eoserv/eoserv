@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Warp)
 	{
 		case PACKET_ACCEPT: // Player accepting a warp request from the server
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			int map = reader.GetShort();
 
@@ -116,7 +116,7 @@ CLIENT_F_FUNC(Warp)
 
 		case PACKET_TAKE: // Player needs a copy of the map they're being warped to
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			char mapbuf[6] = {0};
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));

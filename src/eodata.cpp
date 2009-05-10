@@ -161,7 +161,7 @@ ENF::ENF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i npcs loaded.\n", this->data.size()-1);
+	std::printf("%i npc types loaded.\n", this->data.size()-1);
 
 	std::fclose(fh);
 }

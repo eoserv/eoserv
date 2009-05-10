@@ -9,7 +9,7 @@ CLIENT_F_FUNC(Welcome)
 	{
 		case PACKET_REQUEST: // Selected a character
 		{
-			if (!this->player || (this->player && this->player->character)) return false;
+			if (this->state != EOClient::LoggedIn) return false;
 
 			id = reader.GetInt(); // Character ID
 
@@ -145,12 +145,14 @@ CLIENT_F_FUNC(Welcome)
 
 		case PACKET_MSG: // Welcome message after you login.
 		{
-			if (!this->player && !this->player->character) return false;
+			if (this->state != EOClient::LoggedIn) return false;
 
 			reader.GetThree(); // ??
 			id = reader.GetInt(); // Character ID
 
 			the_world->Login(this->player->character);
+
+			this->state = EOClient::Playing;
 
 			reply.SetID(PACKET_WELCOME, PACKET_REPLY);
 
@@ -297,7 +299,7 @@ CLIENT_F_FUNC(Welcome)
 
 		case PACKET_AGREE: // Client wants a file
 		{
-			if (!this->player && !this->player->character) return false;
+			if (this->state != EOClient::LoggedIn) return false;
 
 			std::string content;
 			char mapbuf[6] = {0};

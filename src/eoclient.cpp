@@ -15,7 +15,12 @@
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
-	result = this->Handle_##FUNC(action,reader);\
+	result = this->Handle_##FUNC(family, action, reader, false);\
+	break
+
+#define QUEUE_F_HANDLE(ID,FUNC) \
+case ID: \
+	result = client->Handle_##FUNC(action->family, action->action, action->reader, true);\
 	break
 
 void server_ping_all(void *server_void)
@@ -250,15 +255,101 @@ void sln_tick_request(void *server_void)
 	}
 }
 
+void server_pump_queue(void *server_void)
+{
+	EOServer *server = static_cast<EOServer *>(server_void);
+	double now = Timer::GetTime();
+
+	UTIL_LIST_FOREACH_ALL(server->clients, EOClient *, client)
+	{
+		std::size_t size = client->queue.size();
+
+		if (size > 40)
+		{
+#ifdef DEBUG
+			std::puts("Client was disconnected for filling up the action queue");
+#endif // DEBUG
+			client->Close();
+			continue;
+		}
+
+		if (size != 0 && client->queue.next <= now)
+		{
+			ActionQueue_Action *action = client->queue.front();
+			client->queue.pop();
+
+			bool result;
+
+			switch (action->family)
+			{
+				QUEUE_F_HANDLE(PACKET_F_INIT,Init);
+				QUEUE_F_HANDLE(PACKET_CONNECTION,Connection);
+				QUEUE_F_HANDLE(PACKET_ACCOUNT,Account);
+				QUEUE_F_HANDLE(PACKET_CHARACTER,Character);
+				QUEUE_F_HANDLE(PACKET_LOGIN,Login);
+				QUEUE_F_HANDLE(PACKET_WELCOME,Welcome);
+				QUEUE_F_HANDLE(PACKET_WALK,Walk);
+				QUEUE_F_HANDLE(PACKET_FACE,Face);
+				QUEUE_F_HANDLE(PACKET_CHAIR,Chair);
+				QUEUE_F_HANDLE(PACKET_EMOTE,Emote);
+				QUEUE_F_HANDLE(PACKET_ATTACK,Attack);
+				QUEUE_F_HANDLE(PACKET_SHOP,Shop);
+				QUEUE_F_HANDLE(PACKET_ITEM,Item);
+				QUEUE_F_HANDLE(PACKET_STATSKILL,StatSkill);
+				QUEUE_F_HANDLE(PACKET_GLOBAL,Global);
+				QUEUE_F_HANDLE(PACKET_TALK,Talk);
+				QUEUE_F_HANDLE(PACKET_WARP,Warp);
+				QUEUE_F_HANDLE(PACKET_JUKEBOX,Jukebox);
+				QUEUE_F_HANDLE(PACKET_PLAYERS,Players);
+				QUEUE_F_HANDLE(PACKET_PARTY,Party);
+				QUEUE_F_HANDLE(PACKET_REFRESH,Refresh);
+				QUEUE_F_HANDLE(PACKET_PAPERDOLL,Paperdoll);
+				QUEUE_F_HANDLE(PACKET_TRADE,Trade);
+				QUEUE_F_HANDLE(PACKET_CHEST,Chest);
+				QUEUE_F_HANDLE(PACKET_DOOR,Door);
+				QUEUE_F_HANDLE(PACKET_PING,Ping);
+				QUEUE_F_HANDLE(PACKET_BANK,Bank);
+				QUEUE_F_HANDLE(PACKET_LOCKER,Locker);
+				QUEUE_F_HANDLE(PACKET_GUILD,Guild);
+				QUEUE_F_HANDLE(PACKET_SIT,Sit);
+				QUEUE_F_HANDLE(PACKET_BOARD,Board);
+				//QUEUE_F_HANDLE(PACKET_ARENA,Arena);
+				QUEUE_F_HANDLE(PACKET_ADMININTERACT,AdminInteract);
+				QUEUE_F_HANDLE(PACKET_CITIZEN,Citizen);
+				//QUEUE_F_HANDLE(PACKET_QUEST,Quest);
+				QUEUE_F_HANDLE(PACKET_BOOK,Book);
+				default: ; // Keep the compiler quiet until all packet types are handled
+			}
+
+			client->queue.next = now + action->time;
+
+			delete action;
+		}
+	}
+}
+
+ActionQueue::~ActionQueue()
+{
+	while (!this->empty())
+	{
+		ActionQueue_Action *action = this->front();
+		this->pop();
+		delete action;
+	}
+}
+
 void EOServer::Initialize(util::array<std::string, 5> dbinfo, Config config)
 {
 	this->world = new World(dbinfo, config);
 	this->world->timer.Register(new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER));
+	this->world->timer.Register(new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER));
+
 	if (static_cast<int>(eoserv_config["SLN"]))
 	{
 		sln_tick_request_timer = 0;
 		sln_request(this);
 	}
+
 	this->world->server = this;
 }
 
@@ -333,11 +424,11 @@ void EOClient::Initialize()
 {
 	this->id = the_world->GeneratePlayerID();
 	this->length = 0;
-	this->state = EOClient::ReadLen1;
+	this->packet_state = EOClient::ReadLen1;
+	this->state = EOClient::Uninitialized;
 	this->player = 0;
 	this->version = 0;
 	this->needpong = false;
-	this->init = false;
 }
 
 void EOClient::Execute(std::string data)
@@ -364,8 +455,11 @@ void EOClient::Execute(std::string data)
 		reader.GetChar(); // Ordering Byte
 	}
 
-	if (!this->init && family != PACKET_F_INIT && family != PACKET_PLAYERS)
+	if (this->state < EOClient::Initialized && family != PACKET_F_INIT && family != PACKET_PLAYERS)
 	{
+#ifdef DEBUG
+		std::puts("Closing client connection sending a non-init packet before init.");
+#endif // DEBUG
 		this->Close();
 		return;
 	}

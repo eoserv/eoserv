@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Walk)
 	{
 		case PACKET_ADMIN: // Player walking (admin)
 		{
-			if (!this->player || !this->player->character || this->player->character->modal) return false;
+			if (this->state < EOClient::Playing) return false;
 
 			if (this->player->character->admin < ADMIN_GUARDIAN)
 			{
@@ -19,7 +19,8 @@ CLIENT_F_FUNC(Walk)
 		case PACKET_PLAYER: // Player walking (normal)
 		case PACKET_SPEC: // Player walking (ghost)
 		{
-			if (!this->player || !this->player->character || this->player->character->modal) return false;
+			if (this->state < EOClient::Playing) return false;
+			if (!act) CLIENT_QUEUE_ACTION(0.5);
 
 			int direction = reader.GetChar();
 			/*int timestamp = */reader.GetThree();

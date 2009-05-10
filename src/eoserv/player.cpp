@@ -131,13 +131,13 @@ bool Player::Online(std::string username)
 
 Player::~Player()
 {
-#ifdef DEBUG
-	std::printf("Saving player '%s' (session lasted %i minutes)\n", this->username.c_str(), int(std::time(0) - this->login_time) / 60);
-#endif // DEBUG
-	eoserv_db.Query("UPDATE `accounts` SET `lastused` = #, `lastip` = '$' WHERE username = '$'", std::time(0), static_cast<std::string>(this->client->GetRemoteAddr()).c_str(), this->username.c_str());
-
 	if (this->client)
 	{
+#ifdef DEBUG
+		std::printf("Saving player '%s' (session lasted %i minutes)\n", this->username.c_str(), int(std::time(0) - this->login_time) / 60);
+#endif // DEBUG
+		eoserv_db.Query("UPDATE `accounts` SET `lastused` = #, `lastip` = '$' WHERE username = '$'", std::time(0), static_cast<std::string>(this->client->GetRemoteAddr()).c_str(), this->username.c_str());
+
 		// Disconnect the client to make sure this null pointer is never dereferenced
 		this->client->Close();
 		this->client->player = 0;

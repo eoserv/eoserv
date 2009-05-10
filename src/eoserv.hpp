@@ -13,7 +13,6 @@ class Guild;
 class Party;
 class NPC;
 class Map;
-class ActionQueue;
 
 struct Map_Item;
 struct Character_Item;
@@ -80,7 +79,7 @@ class World
 
 		int last_character_id;
 
-		util::array<int, 251> exp_table;
+		util::array<int, 254> exp_table;
 
 		TimeEvent *npc_spawn_timer;
 		TimeEvent *recover_timer;
@@ -377,8 +376,6 @@ class Character
 		short maxhp, maxtp;
 		short accuracy, evade, armor;
 		short mindam, maxdam;
-
-		bool modal;
 
 		bool trading;
 		Character *trade_partner;

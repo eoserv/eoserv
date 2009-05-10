@@ -4,9 +4,14 @@
 #include <string>
 #include <cstddef>
 #include <list>
+#include <queue>
+
+class EOServer_Ban;
+class ActionQueue_Action;
 
 class EOServer;
 class EOClient;
+class ActionQueue;
 
 #include "socket.hpp"
 #include "packet.hpp"
@@ -14,12 +19,40 @@ class EOClient;
 #include "util.hpp"
 #include "config.hpp"
 
-#define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(int action, PacketReader &reader)
+#define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(PacketFamily family, PacketAction action, PacketReader &reader, int act)
 
 void server_ping_all(void *server_void);
 void sln_request(void *server_void);
 void *real_sln_request(void *server_void);
 void sln_tick_request(void *server_void);
+void server_pump_queue(void *server_void);
+
+/**
+ * An action the server will execute for the client
+ */
+struct ActionQueue_Action
+{
+	PacketFamily family;
+	PacketAction action;
+	PacketReader reader;
+	double time;
+
+	ActionQueue_Action(PacketFamily family, PacketAction action, PacketReader reader, double time) : family(family), action(action), reader(reader), time(time) {};
+};
+
+/**
+ * A list of actions a client needs to eventually have executed for it
+ */
+class ActionQueue : public std::queue<ActionQueue_Action *>
+{
+	public:
+		double next;
+		void Execute();
+
+		ActionQueue() : next(0) {};
+
+		~ActionQueue();
+};
 
 /**
  * Information about a temporary in-memory ban
@@ -74,7 +107,8 @@ class EOClient : public Client
 		unsigned int id;
 		bool needpong;
 		std::string hdid;
-		bool init;
+
+		ActionQueue queue;
 
 		enum PacketState
 		{
@@ -83,7 +117,17 @@ class EOClient : public Client
 			ReadData
 		};
 
-		PacketState state;
+		enum ClientState
+		{
+			Uninitialized,
+			Initialized,
+			LoggedIn,
+			PlayingModal,
+			Playing
+		};
+
+		PacketState packet_state;
+		ClientState state;
 		unsigned char raw_length[2];
 		unsigned int length;
 		std::string data;

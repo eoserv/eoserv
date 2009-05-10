@@ -3,14 +3,17 @@ void world_spawn_npcs(void *world_void)
 {
 	World *world = static_cast<World *>(world_void);
 
+	double spawnrate = static_cast<double>(eoserv_config["SpawnRate"]) / 100.0;
 	double current_time = Timer::GetTime();
 	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
 	{
 		UTIL_LIST_FOREACH_ALL(map->npcs, NPC *, npc)
 		{
-			if (!npc->alive && npc->dead_since + npc->spawn_time < current_time)
+			if (!npc->alive && npc->dead_since + (npc->spawn_time * spawnrate) < current_time)
 			{
+#ifdef DEBUG
 				std::printf("Spawning NPC %i on map %i\n", map->id, npc->id);
+#endif // DEBUG
 				npc->Spawn();
 			}
 		}
@@ -124,16 +127,18 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	this->maps.resize(static_cast<int>(eoserv_config["Maps"])+1);
 	this->maps[0] = new Map(1); // Just in case
 	int loaded = 0;
+	int npcs = 0;
 	for (int i = 1; i <= static_cast<int>(eoserv_config["Maps"]); ++i)
 	{
 		this->maps[i] = new Map(i);
 		if (this->maps[i]->exists)
 		{
+			npcs += this->maps[i]->npcs.size();
 			++loaded;
 		}
 	}
 	std::printf("%i/%i maps loaded.\n", loaded, this->maps.size()-1);
-
+	std::printf("%i NPCs loaded.\n", npcs);
 	the_world = this;
 
 	this->last_character_id = 0;

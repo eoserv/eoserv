@@ -62,8 +62,6 @@ Character::Character(std::string name)
 	this->evade = 0;
 	this->armor = 0;
 
-	this->modal = false;
-
 	this->trading = false;
 	this->trade_partner = 0;
 	this->trade_agree = false;
@@ -807,11 +805,13 @@ Character::~Character()
 		builder.AddShort(this->id);
 		this->trade_partner->player->client->SendBuilder(builder);
 
-		this->modal = this->trading = false;
+		this->player->client->state = EOClient::Playing;
+		this->trading = false;
 		this->trade_inventory.clear();
 		this->trade_agree = false;
 
-		this->trade_partner->modal = this->trade_partner->trading = false;
+		this->trade_partner->player->client->state = EOClient::Playing;
+		this->trade_partner->trading = false;
 		this->trade_partner->trade_inventory.clear();
 		this->trade_agree = false;
 

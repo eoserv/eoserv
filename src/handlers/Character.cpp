@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Character)
 	{
 		case PACKET_REQUEST: // Request to create a new character
 		{
-			if (!this->player || (this->player && this->player->character)) return false;
+			if (this->state != EOClient::LoggedIn) return false;
 
 			reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
 			reply.AddShort(1000); // CreateID?
@@ -18,7 +18,7 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_CREATE: // Create a character
 		{
-			if (!this->player || (this->player && this->player->character)) return false;
+			if (this->state != EOClient::LoggedIn) return false;
 
 			reader.GetShort(); // CreateID?
 
@@ -83,7 +83,7 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_REMOVE: // Delete a character from an account
 		{
-			if (!this->player || (this->player && this->player->character)) return false;
+			if (this->state != EOClient::LoggedIn) return false;
 
 			/*int deleteid = */reader.GetShort();
 			unsigned int charid = reader.GetInt();
@@ -137,7 +137,7 @@ CLIENT_F_FUNC(Character)
 
 		case PACKET_TAKE: // Request to delete a character from an account
 		{
-			if (!this->player || (this->player && this->player->character)) return false;
+			if (this->state != EOClient::LoggedIn) return false;
 
 			unsigned int charid = reader.GetInt();
 

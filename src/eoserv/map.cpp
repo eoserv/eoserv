@@ -612,6 +612,7 @@ void Map::Attack(Character *from, int direction)
 			break;
 	}
 
+	double mobrate = static_cast<double>(eoserv_config["MobRate"]) / 100.0;
 	UTIL_LIST_FOREACH_ALL(this->npcs, NPC *, npc)
 	{
 		if ((npc->data->type == ENF::Passive || npc->data->type == ENF::Aggressive || from->admin > static_cast<int>(admin_config["killnpcs"]))
@@ -621,7 +622,7 @@ void Map::Attack(Character *from, int direction)
 
 			// TODO: Revise these stat effects
 
-			int hit_rate = 180;
+			int hit_rate = 120;
 			bool critical = true;
 
 			if ((npc->direction == DIRECTION_UP && from->direction == DIRECTION_DOWN)
@@ -630,32 +631,34 @@ void Map::Attack(Character *from, int direction)
 			 || (npc->direction == DIRECTION_LEFT && from->direction == DIRECTION_RIGHT))
 			{
 				critical = false;
-				hit_rate -= 100;
+				hit_rate -= 40;
 			}
 
-			hit_rate += npc->data->accuracy/2;
-			hit_rate -= npc->data->evade/3;
-			hit_rate = std::min(std::max(hit_rate, 0), 100);
+			hit_rate += int(double(npc->data->accuracy) / 2.0 * mobrate);
+			hit_rate -= int(double(npc->data->evade) / 2.0 * mobrate);
+			hit_rate = std::min(std::max(hit_rate, 20), 100);
 
-			int rand = util::rand(0, 105 + from->cha/5);
+			int origamount = amount;
+			amount -= int(double(npc->data->armor) / 2.0 * mobrate);
+
+			amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
+			amount = std::min(amount, npc->hp);
+
+			int rand = util::rand(0, 100);
 
 			if (rand > hit_rate)
 			{
 				amount = 0;
 			}
 
-			if (rand > 100)
+			if (rand > 92)
 			{
 				critical = true;
 			}
 
-			amount -= npc->data->armor/2;
-			amount = std::max(amount, 0);
-			amount = std::min(amount, npc->hp);
-
 			if (critical)
 			{
-				amount *= 2;
+				amount = int(double(amount) * 1.5);
 			}
 
 			amount = std::max(amount, 0);

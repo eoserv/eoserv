@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Players)
 	{
 		case PACKET_ACCEPT: // User checking if a player is near (#find)
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			std::string name = reader.GetEndString();
 			Character *victim = the_world->GetCharacter(name);

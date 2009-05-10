@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Login)
 	{
 		case PACKET_REQUEST: // Logging in to an account
 		{
-			if (this->player) return false;
+			if (this->state != EOClient::Initialized) return false;
 
 			std::string username = reader.GetBreakString();
 			std::string password = reader.GetBreakString();
@@ -31,6 +31,7 @@ CLIENT_F_FUNC(Login)
 			}
 			this->player->id = this->id;
 			this->player->client = this;
+			this->state = EOClient::LoggedIn;
 
 			if (the_world->server->UsernameBanned(username))
 			{

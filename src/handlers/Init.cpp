@@ -14,10 +14,7 @@ unsigned int stupid_hash(unsigned int i)
 
 CLIENT_F_FUNC(Init)
 {
-	if (this->init)
-	{
-		return false;
-	}
+	if (this->state != EOClient::Uninitialized) return false;
 
 	PacketBuilder reply;
 	unsigned int challenge;
@@ -67,6 +64,6 @@ CLIENT_F_FUNC(Init)
 
 	CLIENT_SENDRAW(reply);
 
-	this->init = true;
+	this->state = EOClient::Initialized;
 	return true;
 }

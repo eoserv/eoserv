@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Paperdoll)
 	{
 		case PACKET_REQUEST: // Request for currently equipped items
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			unsigned int id = reader.GetShort();
 
@@ -39,7 +39,7 @@ CLIENT_F_FUNC(Paperdoll)
 
 		case PACKET_REMOVE: // Unequipping an item
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			int itemid = reader.GetShort();
 			int subloc = reader.GetChar(); // Used for double slot items (rings etc)
@@ -103,7 +103,7 @@ CLIENT_F_FUNC(Paperdoll)
 
 		case PACKET_ADD: // Equipping an item
 		{
-			if (!this->player || !this->player->character) return false;
+			if (this->state < EOClient::PlayingModal) return false;
 
 			int itemid = reader.GetShort();
 			int subloc = reader.GetChar(); // Used for double slot items (rings etc)

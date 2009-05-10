@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Door)
 	{
 		case PACKET_OPEN: // User opening a door
 		{
-			if (!this->player || !this->player->character || this->player->character->modal) return false;
+			if (this->state < EOClient::Playing) return false;
 
 			int x = reader.GetChar();
 			int y = reader.GetChar();

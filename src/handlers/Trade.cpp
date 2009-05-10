@@ -7,7 +7,7 @@ CLIENT_F_FUNC(Trade)
 	{
 		case PACKET_REQUEST: // Requesting a trade with another player
 		{
-			if (!this->player || !this->player->character || this->player->character->modal) return false;
+			if (this->state < EOClient::Playing) return false;
 
 			int something = reader.GetChar(); // ?
 			int victimid = reader.GetShort();
@@ -34,14 +34,14 @@ CLIENT_F_FUNC(Trade)
 
 		case PACKET_ACCEPT: // Accepting a trade request
 		{
-			if (!this->player || !this->player->character || this->player->character->modal) return false;
+			if (this->state < EOClient::Playing) return false;
 
 			/*int accept =*/ reader.GetChar();
 			int victimid = reader.GetShort();
 
 			Character *victim = this->player->character->map->GetCharacterCID(victimid);
 
-			if (victim && victim->mapid == this->player->character->mapid && victim->trade_partner == this->player->character && !victim->modal)
+			if (victim && victim->mapid == this->player->character->mapid && victim->trade_partner == this->player->character && (victim->player->client->state > EOClient::PlayingModal))
 			{
 				PacketBuilder builder(PACKET_TRADE, PACKET_OPEN);
 				builder.AddShort(this->player->character->id);
@@ -52,9 +52,11 @@ CLIENT_F_FUNC(Trade)
 				victim->player->client->SendBuilder(builder);
 
 				this->player->character->trade_partner = victim;
-				this->player->character->modal = this->player->character->trading = true;
+				this->state = EOClient::PlayingModal;
+				this->player->character->trading = true;
 				this->player->character->trade_agree = false;
-				victim->modal = victim->trading = true;
+				victim->player->client->state = EOClient::PlayingModal;
+				victim->trading = true;
 				victim->trade_agree = false;
 			}
 		}
@@ -62,7 +64,7 @@ CLIENT_F_FUNC(Trade)
 
 		case PACKET_REMOVE: // Remove an item from the trade screen
 		{
-			if (!this->player || !this->player->character || !this->player->character->trading) return false;
+			if (this->state < EOClient::PlayingModal || !this->player->character->trading) return false;
 
 			int itemid = reader.GetShort();
 
@@ -102,7 +104,7 @@ CLIENT_F_FUNC(Trade)
 
 		case PACKET_AGREE: // Mark your (dis)agreeance with the current trade
 		{
-			if (!this->player || !this->player->character || !this->player->character->trading) return false;
+			if (this->state < EOClient::PlayingModal || !this->player->character->trading) return false;
 
 			int agree = reader.GetChar();
 
@@ -142,11 +144,13 @@ CLIENT_F_FUNC(Trade)
 					this->player->character->Emote(EMOTE_TRADE);
 					this->player->character->trade_partner->Emote(EMOTE_TRADE);
 
-					this->player->character->modal = this->player->character->trading = false;
+					this->state = EOClient::Playing;
+					this->player->character->trading = false;
 					this->player->character->trade_inventory.clear();
 					this->player->character->trade_agree = false;
 
-					this->player->character->trade_partner->modal = this->player->character->trade_partner->trading = false;
+					this->player->character->trade_partner->player->client->state = EOClient::Playing;
+					this->player->character->trade_partner->trading = false;
 					this->player->character->trade_partner->trade_inventory.clear();
 					this->player->character->trade_agree = false;
 
@@ -179,7 +183,7 @@ CLIENT_F_FUNC(Trade)
 
 		case PACKET_ADD: // Add an item to the trade screen
 		{
-			if (!this->player || !this->player->character || !this->player->character->trading) return false;
+			if (this->state < EOClient::PlayingModal || !this->player->character->trading) return false;
 
 			int itemid = reader.GetShort();
 			int amount = reader.GetInt();
@@ -234,7 +238,7 @@ CLIENT_F_FUNC(Trade)
 
 		case PACKET_CLOSE: // Cancel the trade
 		{
-			if (!this->player || !this->player->character || !this->player->character->trading) return false;
+			if (this->state < EOClient::PlayingModal || !this->player->character->trading) return false;
 
 			/*int something =*/ reader.GetChar();
 
@@ -242,11 +246,13 @@ CLIENT_F_FUNC(Trade)
 			builder.AddShort(this->player->character->id);
 			this->player->character->trade_partner->player->client->SendBuilder(builder);
 
-			this->player->character->modal = this->player->character->trading = false;
+			this->state = EOClient::Playing;
+			this->player->character->trading = false;
 			this->player->character->trade_inventory.clear();
 			this->player->character->trade_agree = false;
 
-			this->player->character->trade_partner->modal = this->player->character->trade_partner->trading = false;
+			this->player->character->trade_partner->player->client->state = EOClient::Playing;
+			this->player->character->trade_partner->trading = false;
 			this->player->character->trade_partner->trade_inventory.clear();
 			this->player->character->trade_agree = false;
 

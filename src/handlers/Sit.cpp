@@ -7,7 +7,8 @@ CLIENT_F_FUNC(Sit)
 	{
 		case PACKET_REQUEST: // Player sitting down
 		{
-			if (!this->player || !this->player->character || this->player->character->modal) return false;
+			if (this->state < EOClient::Playing) return false;
+			CLIENT_QUEUE_ACTION(0.0)
 
 			int action = reader.GetChar();
 

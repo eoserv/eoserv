@@ -5,10 +5,9 @@ CLIENT_F_FUNC(Account)
 
 	switch (action)
 	{
-		if (this->player) return false;
-
 		case PACKET_REQUEST: // Check if a character exists
 		{
+			if (this->state != EOClient::Initialized) return false;
 			std::string username = reader.GetEndString();
 
 			util::lowercase(username);
@@ -35,7 +34,7 @@ CLIENT_F_FUNC(Account)
 
 		case PACKET_CREATE: // Account creation
 		{
-			if (this->player) return false;
+			if (this->state != EOClient::Initialized) return false;
 
 			reader.GetShort(); // Account creation "session ID"
 			reader.GetByte(); // ?
@@ -76,7 +75,7 @@ CLIENT_F_FUNC(Account)
 
 		case PACKET_AGREE: // Change password
 		{
-			if (!this->player || (this->player && this->player->character)) return false;
+			if (this->state != EOClient::LoggedIn) return false;
 
 			std::string username = reader.GetBreakString();
 			std::string oldpassword = reader.GetBreakString();
