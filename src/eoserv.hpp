@@ -290,6 +290,14 @@ class Map
 		Character *GetCharacterPID(unsigned int id);
 		Character *GetCharacterCID(unsigned int id);
 
+		enum OccupiedTarget
+		{
+			PlayerOnly,
+			NPCOnly,
+			PlayerAndNPC
+		};
+		bool Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target);
+
 		~Map();
 };
 
@@ -462,6 +470,8 @@ struct NPC_Opponent
 	bool first;
 };
 
+extern double npc_speed_table[8];
+
 /**
  * An instance of an NPC created and managed by a Map
  */
@@ -472,11 +482,9 @@ class NPC
 		ENF_Data *data;
 		unsigned char x, y;
 		unsigned char direction;
-		unsigned char distance;
+		unsigned char spawn_type;
 		short spawn_time;
 		unsigned char spawn_x, spawn_y;
-		unsigned char min_x, min_y, max_x, max_y;
-		int tries;
 		NPC *parent;
 
 		bool alive;
@@ -488,7 +496,7 @@ class NPC
 		Map *map;
 		unsigned char index;
 
-		NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char distance, short spawn_time, unsigned char index);
+		NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index);
 
 		bool SpawnReady();
 

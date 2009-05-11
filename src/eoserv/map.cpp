@@ -111,13 +111,13 @@ Map::Map(int id)
 		int x = PacketProcessor::Number(buf[0]);
 		int y = PacketProcessor::Number(buf[1]);
 		int npc_id = PacketProcessor::Number(buf[2], buf[3]);
-		int distance = PacketProcessor::Number(buf[4]);
+		int spawntype = PacketProcessor::Number(buf[4]);
 		int spawntime = PacketProcessor::Number(buf[5], buf[6]);
 		int amount = PacketProcessor::Number(buf[7]);
 
 		for (int ii = 0; ii < amount; ++ii)
 		{
-			NPC *newnpc = new NPC(this, npc_id, x, y, distance, spawntime, index++);
+			NPC *newnpc = new NPC(this, npc_id, x, y, spawntype, spawntime, index++);
 			this->npcs.push_back(newnpc);
 
 			newnpc->Spawn();
@@ -755,6 +755,38 @@ void Map::Emote(Character *from, int emote, bool relay)
 
 		character->player->client->SendBuilder(builder);
 	}
+}
+
+bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
+{
+	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
+	{
+		return false;
+	}
+
+	if (target != Map::NPCOnly)
+	{
+		UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+		{
+			if (character->x == x && character->y == y)
+			{
+				return true;
+			}
+		}
+	}
+
+	if (target != Map::PlayerOnly)
+	{
+		UTIL_LIST_FOREACH_ALL(this->npcs, NPC *, npc)
+		{
+			if (npc->alive && npc->x == x && npc->y == y)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 Map::~Map()

@@ -1,5 +1,7 @@
 
-NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char distance, short spawn_time, unsigned char index)
+double npc_speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
+
+NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index)
 {
 	this->map = map;
 	this->index = index;
@@ -10,46 +12,34 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char dis
 	this->alive = false;
 	this->attack = false;
 
-	this->distance = distance;
+	if (spawn_type > 7)
+	{
+		spawn_type = 7;
+	}
+
+	this->spawn_type = spawn_type;
 	this->spawn_time = spawn_time;
 
 	this->data = eoserv_npcs->Get(id);
-	if (distance >= 7)
+
+	if (spawn_type == 7)
 	{
-		this->direction = spawn_time;
-	}
-	else
-	{
-		this->min_x = x - distance;
-		if (this->min_x > x) min_x = 0;
-		this->max_x = x + distance;
-		if (this->max_x < x) max_x = 255;
-		this->min_y = y - distance;
-		if (this->min_y > y) min_y = 0;
-		this->max_y = y + distance;
-		if (this->max_y < y) max_y = 255;
-		this->tries = distance + 3;
-		this->tries = this->tries * this->tries * this->tries;
+		this->direction = spawn_time & 0x03;
+		this->spawn_time = 0;
 	}
 }
 
 void NPC::Spawn()
 {
-	if (this->distance == 0)
-	{
-		this->x = this->spawn_x;
-		this->y = this->spawn_y;
-		this->direction = util::rand(0,3);
-	}
-	else if (this->distance < 7)
+	if (this->spawn_type < 7)
 	{
 		bool found = false;
-		for (int i = 0; i < this->tries; ++i)
+		for (int i = 0; i < 200; ++i)
 		{
-			this->x = util::rand(this->min_x, this->max_x);
-			this->y = util::rand(this->min_y, this->max_y);
+			this->x = util::rand(this->spawn_x-2, this->spawn_x+2);
+			this->y = util::rand(this->spawn_y-2, this->spawn_y+2);
 
-			if (this->map->Walkable(this->x, this->y, true))
+			if (this->map->Walkable(this->x, this->y, true) && (i > 100 || !this->map->Occupied(this->x, this->y, Map::NPCOnly)))
 			{
 				this->direction = util::rand(0,3);
 				found = true;
@@ -59,10 +49,10 @@ void NPC::Spawn()
 
 		if (!found)
 		{
-			std::fprintf(stderr, "Warning: An NPC on map %i at %i,%i is being placed by linear scan of spawn area after %i attempts\n", this->map->id, this->spawn_x, this->spawn_y, this->tries);
-			for (this->x = min_x; this->x <= max_x; ++this->x)
+			std::fprintf(stderr, "Warning: An NPC on map %i at %i,%i is being placed by linear scan of spawn area\n", this->map->id, this->spawn_x, this->spawn_y);
+			for (this->x = this->spawn_x-2; this->x <= spawn_x+2; ++this->x)
 			{
-				for (this->y = min_x; this->y <= max_x; ++this->y)
+				for (this->y = this->spawn_y-2; this->y <= this->spawn_y+2; ++this->y)
 				{
 					if (this->map->Walkable(this->x, this->y, true))
 					{
