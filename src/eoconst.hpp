@@ -59,6 +59,12 @@ enum FileType UTIL_EXTEND_ENUM(unsigned char)
 	FILE_CLASS = 5
 };
 
+enum Gender UTIL_EXTEND_ENUM(unsigned char)
+{
+	GENDER_FEMALE = 0,
+	GENDER_MALE = 1
+};
+
 enum Skin UTIL_EXTEND_ENUM(unsigned char)
 {
 	SKIN_WHITE = 0,

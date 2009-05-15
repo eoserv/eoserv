@@ -4,7 +4,7 @@ OBJ = obj/config.o obj/database.o obj/eoclient.o obj/eodata.o obj/eoserv.o obj/h
 CFLAGS = -O3 -DDATABASE_MYSQL -DDATABASE_SQLITE -DSOCKET_POLL -I"/usr/include/mysql/"
 CXXFLAGS = -O3 -DDATABASE_MYSQL -DDATABASE_SQLITE -DSOCKET_POLL -I"/usr/include/mysql/"
 LDFLAGS = -s
-LIBS = -lmysqlclient -lsqlite3
+LIBS = -lrt -lmysqlclient -lsqlite3
 
 .PHONY: all clean
 

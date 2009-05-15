@@ -45,6 +45,7 @@
 			<Add library="sqlite3" />
 			<Add library="mysql" />
 			<Add library="pthreadGC2" />
+			<Add library="winmm" />
 		</Linker>
 		<Unit filename="..\src\config.cpp" />
 		<Unit filename="..\src\config.hpp" />

@@ -29,11 +29,17 @@ class Timer
 		 */
 		bool changed;
 
+#ifdef WIN32
+		static bool use_gtc;
+#endif // WIN32
+
 	public:
 		/**
 		 * TimeEvent lifetime that will never expire
 		 */
 		static const int FOREVER = -1;
+
+		double resolution;
 
 		Timer();
 

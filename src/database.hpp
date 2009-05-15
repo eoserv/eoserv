@@ -9,6 +9,7 @@
 #ifdef DATABASE_MYSQL
 #include "socket.hpp"
 #include <mysql.h>
+#include <mysql/errmsg.h>
 #endif // DATABASE_MYSQL
 #ifdef DATABASE_SQLITE
 #include <sqlite3.h>
@@ -114,6 +115,8 @@ class Database
 		bool connected;
 		Engine engine;
 
+		std::string host, user, pass, db;
+
 	public:
 		/**
 		 * Constructs a zombie Database object that should have Connect() called on it before anything else
@@ -121,11 +124,12 @@ class Database
 		Database();
 
 		/**
-		 * Opens a connection to a database
+		 * Opens a connection to a database if connectnow is true
+		 * @param connectnow Whether to connect now or on a query request
 		 * @throw Database_InvalidEngine
 		 * @throw Database_OpenFailed
 		 */
-		Database(Database::Engine type, std::string host, std::string user, std::string pass, std::string db);
+		Database(Database::Engine type, std::string host, std::string user, std::string pass, std::string db, bool connectnow = true);
 
 		/**
 		 * Opens a connection to a database
@@ -135,10 +139,21 @@ class Database
 		void Connect(Database::Engine type, std::string host, std::string user, std::string pass, std::string db);
 
 		/**
-		 * Executes a query and returns it's result
+		 * Disconnects from the database
+		 */
+		void Close();
+
+		/**
+		 * Executes a query and returns it's result. [Re]connects to the database if required
 		 * @throw Database_QueryFailed
+		 * @throw Database_OpenFailed
 		 */
 		Database_Result Query(const char *format, ...);
+
+		/**
+		 * Closes the database connection if one is active
+		 */
+		~Database();
 
 		/**
 		 * Object used to collect information from an external callback

@@ -12,7 +12,7 @@ void world_spawn_npcs(void *world_void)
 			if (!npc->alive && npc->dead_since + (npc->spawn_time * spawnrate) < current_time)
 			{
 #ifdef DEBUG
-				std::printf("Spawning NPC %i on map %i\n", map->id, npc->id);
+				std::printf("Spawning NPC %i on map %i\n", npc->id, map->id);
 #endif // DEBUG
 				npc->Spawn();
 			}
@@ -44,6 +44,8 @@ void world_recover(void *world_void)
 
 World::World(util::array<std::string, 5> dbinfo, Config config)
 {
+	std::printf("Timers set at approx. %i ms resolution\n", int(this->timer.resolution * 1000.0));
+
 	Database::Engine engine;
 	if (dbinfo[0].compare("sqlite") == 0)
 	{
@@ -143,11 +145,9 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 
 	this->last_character_id = 0;
 
-	this->npc_spawn_timer = new TimeEvent(world_spawn_npcs, this, 1.0, Timer::FOREVER);
-	this->timer.Register(this->npc_spawn_timer);
+	this->timer.Register(new TimeEvent(world_spawn_npcs, this, 1.0, Timer::FOREVER, true));
 
-	this->recover_timer = new TimeEvent(world_recover, this, 90.0, Timer::FOREVER);
-	this->timer.Register(this->recover_timer);
+	this->timer.Register(new TimeEvent(world_recover, this, 90.0, Timer::FOREVER, true));
 
 	exp_table[0] = 0;
 	for (std::size_t i = 1; i < sizeof(this->exp_table)/sizeof(int); ++i)

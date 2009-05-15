@@ -57,15 +57,35 @@ Database::Database()
 	this->connected = false;
 }
 
-Database::Database(Database::Engine type, std::string host, std::string user, std::string pass, std::string db)
+Database::Database(Database::Engine type, std::string host, std::string user, std::string pass, std::string db, bool connectnow)
 {
 	this->connected = false;
-	this->Connect(type, host, user, pass, db);
+
+	this->engine = type;
+	this->host = host;
+	this->user = user;
+	this->pass = pass;
+	this->db = db;
+
+	if (connectnow)
+	{
+		this->Connect(type, host, user, pass, db);
+	}
 }
 
 void Database::Connect(Database::Engine type, std::string host, std::string user, std::string pass, std::string db)
 {
 	this->engine = type;
+	this->host = host;
+	this->user = user;
+	this->pass = pass;
+	this->db = db;
+
+	if (this->connected)
+	{
+		return;
+	}
+
 	switch (type)
 	{
 #ifdef DATABASE_MYSQL
@@ -82,6 +102,7 @@ void Database::Connect(Database::Engine type, std::string host, std::string user
 			{
 				throw Database_OpenFailed(mysql_error(this->mysql_handle));
 			}
+			this->connected = true;
 			break;
 #endif // DATABASE_MYSQL
 
@@ -89,18 +110,48 @@ void Database::Connect(Database::Engine type, std::string host, std::string user
 		case SQLite:
 			if (sqlite3_open(host.c_str(), &this->sqlite_handle) != SQLITE_OK)
 			{
-				throw Database_OpenFailed("sqlite3err");
+				throw Database_OpenFailed(sqlite3_errmsg(this->sqlite_handle));
 			}
+			this->connected = true;
 			break;
 #endif // DATABASE_SQLITE
 
 		default:
-			throw Database_Exception("Invalid database engine.");
+			throw Database_OpenFailed("Invalid database engine.");
+	}
+}
+
+void Database::Close()
+{
+	if (!this->connected)
+	{
+		return;
+	}
+
+	this->connected = false;
+	switch (this->engine)
+	{
+#ifdef DATABASE_MYSQL
+		case MySQL:
+			mysql_close(this->mysql_handle);
+			break;
+#endif // DATABASE_MYSQL
+
+#ifdef DATABASE_SQLITE
+		case SQLite:
+			sqlite3_close(this->sqlite_handle);
+			break;
+#endif // DATABASE_SQLITE
 	}
 }
 
 Database_Result Database::Query(const char *format, ...)
 {
+	if (!this->connected)
+	{
+		this->Connect(this->engine, this->host, this->user, this->pass, this->db);
+	}
+
 	va_list ap;
 	va_start(ap, format);
 	std::string finalquery;
@@ -158,9 +209,20 @@ Database_Result Database::Query(const char *format, ...)
 			MYSQL_FIELD *fields;
 			int num_fields;
 
+			exec_query:
 			if (mysql_real_query(this->mysql_handle, finalquery.c_str(), finalquery.length()) != 0)
 			{
-				throw Database_QueryFailed(mysql_error(this->mysql_handle));
+				int myerr = mysql_errno(this->mysql_handle);
+				if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
+				{
+					this->Close();
+					this->Connect(this->engine, this->host, this->user, this->pass, this->db);
+					goto exec_query;
+				}
+				else
+				{
+					throw Database_QueryFailed(mysql_error(this->mysql_handle));
+				}
 			}
 
 			num_fields = mysql_field_count(this->mysql_handle);
@@ -233,3 +295,7 @@ Database_Result Database::Query(const char *format, ...)
 	return result;
 }
 
+Database::~Database()
+{
+	this->Close();
+}

@@ -81,9 +81,6 @@ class World
 
 		util::array<int, 254> exp_table;
 
-		TimeEvent *npc_spawn_timer;
-		TimeEvent *recover_timer;
-
 		World(util::array<std::string, 5> dbinfo, Config);
 
 		int GenerateCharacterID();
@@ -268,21 +265,21 @@ class Map
 		void Leave(Character *, int animation = WARP_ANIMATION_NONE);
 
 		void Msg(Character *from, std::string message);
-		bool Walk(Character *from, int direction, bool admin = false);
-		void Attack(Character *from, int direction);
-		void Face(Character *from, int direction);
-		void Sit(Character *from, int sit_type);
+		bool Walk(Character *from, Direction direction, bool admin = false);
+		void Attack(Character *from, Direction direction);
+		void Face(Character *from, Direction direction);
+		void Sit(Character *from, SitAction sit_type);
 		void Stand(Character *from);
-		void Emote(Character *from, int emote, bool relay = true);
-		bool OpenDoor(Character *from, int x, int y);
+		void Emote(Character *from, enum Emote emote, bool relay = true);
+		bool OpenDoor(Character *from, unsigned char x, unsigned char y);
 
-		Map_Item *AddItem(int id, int amount, int x, int y, Character *from = 0);
-		void DelItem(int uid, Character *from = 0);
+		Map_Item *AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from = 0);
+		void DelItem(short uid, Character *from = 0);
 
-		bool InBounds(int x, int y);
-		bool Walkable(int x, int y, bool npc = false);
-		Map_Tile::TileSpec GetSpec(int x, int y);
-		Map_Warp *GetWarp(int x, int y);
+		bool InBounds(unsigned char x, unsigned char y);
+		bool Walkable(unsigned char x, unsigned char y, bool npc = false);
+		Map_Tile::TileSpec GetSpec(unsigned char x, unsigned char y);
+		Map_Warp *GetWarp(unsigned char x, unsigned char y);
 
 		void Effect(int effect, int param);
 
@@ -355,14 +352,14 @@ class Character
 		int login_time;
 		bool online;
 		unsigned int id;
-		unsigned char admin;
+		AdminLevel admin;
 		std::string name;
 		std::string title;
 		std::string home;
 		std::string partner;
 		unsigned char clas;
-		unsigned char gender;
-		unsigned char race;
+		Gender gender;
+		Skin race;
 		unsigned char hairstyle, haircolor;
 		short mapid;
 		unsigned char x, y, direction;
@@ -375,7 +372,8 @@ class Character
 		short statpoints, skillpoints;
 		short weight, maxweight;
 		short karma;
-		unsigned char sitting, visible;
+		SitAction sitting;
+		unsigned char visible;
 		int bankmax;
 		int goldbank;
 		int usage;
@@ -425,12 +423,12 @@ class Character
 		static void Delete(std::string name);
 
 		void Msg(Character *from, std::string message);
-		bool Walk(unsigned char direction);
-		bool AdminWalk(unsigned char direction);
-		void Attack(unsigned char direction);
-		void Sit(unsigned char sit_type);
+		bool Walk(Direction direction);
+		bool AdminWalk(Direction direction);
+		void Attack(Direction direction);
+		void Sit(SitAction sit_type);
 		void Stand();
-		void Emote(unsigned char emote, bool relay = true);
+		void Emote(enum Emote emote, bool relay = true);
 		int HasItem(short item);
 		bool AddItem(short item, int amount);
 		bool DelItem(short item, int amount);

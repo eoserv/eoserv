@@ -171,6 +171,11 @@ EO Version Support: .27 .28\n\
 			{
 				std::fputs("Failed to redirect output.\n", stderr);
 			}
+
+			if (!std::setvbuf(stdout, 0, _IOLBF, 1024) == 0)
+			{
+				std::fputs("Failed to change stdout buffer settings\n", stderr);
+			}
 		}
 
 		std::string logout = static_cast<std::string>(config["LogOut"]);
@@ -180,6 +185,11 @@ EO Version Support: .27 .28\n\
 			if (!std::freopen(logout.c_str(), "a", stdout))
 			{
 				std::fputs("Failed to redirect output.\n", stderr);
+			}
+
+			if (!std::setvbuf(stderr, 0, _IOLBF, 1024) == 0)
+			{
+				std::fputs("Failed to change stderr buffer settings\n", stderr);
 			}
 		}
 

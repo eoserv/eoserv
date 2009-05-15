@@ -20,12 +20,12 @@ CLIENT_F_FUNC(Walk)
 		case PACKET_SPEC: // Player walking (ghost)
 		{
 			if (this->state < EOClient::Playing) return false;
-			if (!act) CLIENT_QUEUE_ACTION(0.5);
+			CLIENT_QUEUE_ACTION(0.5);
 
-			int direction = reader.GetChar();
+			Direction direction = static_cast<Direction>(reader.GetChar());
 			/*int timestamp = */reader.GetThree();
-			int x = reader.GetChar();
-			int y = reader.GetChar();
+			unsigned char x = reader.GetChar();
+			unsigned char y = reader.GetChar();
 
 			if (this->player->character->sitting != SIT_STAND)
 			{

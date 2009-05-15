@@ -10,7 +10,7 @@ CLIENT_F_FUNC(Face)
 			if (this->state < EOClient::Playing) return false;
 			CLIENT_QUEUE_ACTION(0.0)
 
-			int direction = reader.GetChar();
+			Direction direction = static_cast<Direction>(reader.GetChar());
 
 			if (this->player->character->sitting != SIT_STAND)
 			{

@@ -10,7 +10,7 @@ CLIENT_F_FUNC(Emote)
 			if (this->state < EOClient::PlayingModal) return false;
 			CLIENT_QUEUE_ACTION(0.0)
 
-			int emote = reader.GetChar();
+			Emote emote = static_cast<Emote>(reader.GetChar());
 
 			if ((emote >= 0 && emote <= 10) || emote == 14)
 			{

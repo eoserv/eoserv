@@ -67,14 +67,14 @@ Map::Map(int id)
 	for (int i = 0; i < outersize; ++i)
 	{
 		std::fread(buf, sizeof(char), 2, fh);
-		int yloc = PacketProcessor::Number(buf[0]);
+		unsigned char yloc = PacketProcessor::Number(buf[0]);
 		innersize = PacketProcessor::Number(buf[1]);
 		for (int ii = 0; ii < innersize; ++ii)
 		{
 			Map_Tile newtile;
 			std::fread(buf, sizeof(char), 2, fh);
-			int xloc = PacketProcessor::Number(buf[0]);
-			int spec = PacketProcessor::Number(buf[1]);
+			unsigned char xloc = PacketProcessor::Number(buf[0]);
+			unsigned char spec = PacketProcessor::Number(buf[1]);
 			newtile.tilespec = static_cast<Map_Tile::TileSpec>(spec);
 			this->tiles[yloc][xloc] = newtile;
 		}
@@ -85,13 +85,13 @@ Map::Map(int id)
 	for (int i = 0; i < outersize; ++i)
 	{
 		std::fread(buf, sizeof(char), 2, fh);
-		int yloc = PacketProcessor::Number(buf[0]);
+		unsigned char yloc = PacketProcessor::Number(buf[0]);
 		innersize = PacketProcessor::Number(buf[1]);
 		for (int ii = 0; ii < innersize; ++ii)
 		{
 			Map_Warp *newwarp = new Map_Warp;
 			std::fread(buf, sizeof(char), 8, fh);
-			int xloc = PacketProcessor::Number(buf[0]);
+			unsigned char xloc = PacketProcessor::Number(buf[0]);
 			newwarp->map = PacketProcessor::Number(buf[1], buf[2]);
 			newwarp->x = PacketProcessor::Number(buf[3]);
 			newwarp->y = PacketProcessor::Number(buf[4]);
@@ -108,12 +108,12 @@ Map::Map(int id)
 	for (int i = 0; i < outersize; ++i)
 	{
 		std::fread(buf, sizeof(char), 8, fh);
-		int x = PacketProcessor::Number(buf[0]);
-		int y = PacketProcessor::Number(buf[1]);
-		int npc_id = PacketProcessor::Number(buf[2], buf[3]);
-		int spawntype = PacketProcessor::Number(buf[4]);
-		int spawntime = PacketProcessor::Number(buf[5], buf[6]);
-		int amount = PacketProcessor::Number(buf[7]);
+		unsigned char x = PacketProcessor::Number(buf[0]);
+		unsigned char y = PacketProcessor::Number(buf[1]);
+		short npc_id = PacketProcessor::Number(buf[2], buf[3]);
+		unsigned char spawntype = PacketProcessor::Number(buf[4]);
+		short spawntime = PacketProcessor::Number(buf[5], buf[6]);
+		unsigned char amount = PacketProcessor::Number(buf[7]);
 
 		for (int ii = 0; ii < amount; ++ii)
 		{
@@ -256,7 +256,7 @@ void Map::Msg(Character *from, std::string message)
 	}
 }
 
-bool Map::Walk(Character *from, int direction, bool admin)
+bool Map::Walk(Character *from, Direction direction, bool admin)
 {
 	PacketBuilder builder;
 	int seedistance = eoserv_config["SeeDistance"];
@@ -570,7 +570,7 @@ bool Map::Walk(Character *from, int direction, bool admin)
 	return true;
 }
 
-void Map::Attack(Character *from, int direction)
+void Map::Attack(Character *from, Direction direction)
 {
 	PacketBuilder builder;
 
@@ -671,7 +671,7 @@ void Map::Attack(Character *from, int direction)
 	}
 }
 
-void Map::Face(Character *from, int direction)
+void Map::Face(Character *from, Direction direction)
 {
 	PacketBuilder builder;
 
@@ -692,7 +692,7 @@ void Map::Face(Character *from, int direction)
 	}
 }
 
-void Map::Sit(Character *from, int sit_type)
+void Map::Sit(Character *from, SitAction sit_type)
 {
 	PacketBuilder builder;
 
@@ -738,7 +738,7 @@ void Map::Stand(Character *from)
 	}
 }
 
-void Map::Emote(Character *from, int emote, bool relay)
+void Map::Emote(Character *from, enum Emote emote, bool relay)
 {
 	PacketBuilder builder;
 
@@ -759,7 +759,7 @@ void Map::Emote(Character *from, int emote, bool relay)
 
 bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
 {
-	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
+	if (x >= this->width || y >= this->height)
 	{
 		return false;
 	}
@@ -797,7 +797,7 @@ Map::~Map()
 	}
 }
 
-bool Map::OpenDoor(Character *from, int x, int y)
+bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 {
 	if (from && !from->InRange(x, y))
 	{
@@ -834,7 +834,7 @@ bool Map::OpenDoor(Character *from, int x, int y)
 	return false;
 }
 
-Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
+Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from)
 {
 	Map_Item newitem = {GenerateItemID(), id, amount, x, y, 0, 0};
 
@@ -879,7 +879,7 @@ Map_Item *Map::AddItem(int id, int amount, int x, int y, Character *from)
 	return &this->items.back();
 }
 
-void Map::DelItem(int uid, Character *from)
+void Map::DelItem(short uid, Character *from)
 {
 	UTIL_LIST_IFOREACH_ALL(this->items, Map_Item, item)
 	{
@@ -902,9 +902,9 @@ void Map::DelItem(int uid, Character *from)
 	}
 }
 
-bool Map::Walkable(int x, int y, bool npc)
+bool Map::Walkable(unsigned char x, unsigned char y, bool npc)
 {
-	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
+	if (x >= this->width || y >= this->height)
 	{
 		return false;
 	}
@@ -912,9 +912,9 @@ bool Map::Walkable(int x, int y, bool npc)
 	return this->tiles[y][x].Walkable(npc);
 }
 
-Map_Tile::TileSpec Map::GetSpec(int x, int y)
+Map_Tile::TileSpec Map::GetSpec(unsigned char x, unsigned char y)
 {
-	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
+	if (x >= this->width || y >= this->height)
 	{
 		return Map_Tile::None;
 	}
@@ -922,9 +922,9 @@ Map_Tile::TileSpec Map::GetSpec(int x, int y)
 	return this->tiles[y][x].tilespec;
 }
 
-Map_Warp *Map::GetWarp(int x, int y)
+Map_Warp *Map::GetWarp(unsigned char x, unsigned char y)
 {
-	if (x < 0 || y < 0 || x >= this->width || y >= this->height)
+	if (x >= this->width || y >= this->height)
 	{
 		return 0;
 	}

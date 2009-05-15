@@ -11,15 +11,15 @@ Character::Character(std::string name)
 	this->online = true;
 	this->id = the_world->GenerateCharacterID();
 
-	this->admin = static_cast<int>(row["admin"]);
+	this->admin = static_cast<AdminLevel>(static_cast<int>(row["admin"]));
 	this->name = static_cast<std::string>(row["name"]);
 	this->title = static_cast<std::string>(row["title"]);
 	this->home = static_cast<std::string>(row["home"]);
 	this->partner = static_cast<std::string>(row["partner"]);
 
 	this->clas = static_cast<int>(row["class"]);
-	this->gender = static_cast<int>(row["gender"]);
-	this->race = static_cast<int>(row["race"]);
+	this->gender = static_cast<Gender>(static_cast<int>(row["gender"]));
+	this->race = static_cast<Skin>(static_cast<int>(row["race"]));
 	this->hairstyle = static_cast<int>(row["hairstyle"]);
 	this->haircolor = static_cast<int>(row["haircolor"]);
 
@@ -68,7 +68,7 @@ Character::Character(std::string name)
 
 	this->warp_anim = 0;
 
-	this->sitting = static_cast<int>(row["sitting"]);
+	this->sitting = static_cast<SitAction>(static_cast<int>(row["sitting"]));
 
 	this->bankmax = static_cast<int>(row["bankmax"]);
 	this->goldbank = static_cast<int>(row["goldbank"]);
@@ -159,22 +159,22 @@ void Character::Msg(Character *from, std::string message)
 	this->player->client->SendBuilder(builder);
 }
 
-bool Character::Walk(unsigned char direction)
+bool Character::Walk(Direction direction)
 {
 	return this->map->Walk(this, direction);
 }
 
-bool Character::AdminWalk(unsigned char direction)
+bool Character::AdminWalk(Direction direction)
 {
 	return this->map->Walk(this, direction, true);
 }
 
-void Character::Attack(unsigned char direction)
+void Character::Attack(Direction direction)
 {
 	this->map->Attack(this, direction);
 }
 
-void Character::Sit(unsigned char sit_type)
+void Character::Sit(SitAction sit_type)
 {
 	this->map->Sit(this, sit_type);
 }
@@ -184,7 +184,7 @@ void Character::Stand()
 	this->map->Stand(this);
 }
 
-void Character::Emote(unsigned char emote, bool relay)
+void Character::Emote(enum Emote emote, bool relay)
 {
 	this->map->Emote(this, emote, relay);
 }

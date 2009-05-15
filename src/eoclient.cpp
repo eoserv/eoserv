@@ -341,8 +341,8 @@ ActionQueue::~ActionQueue()
 void EOServer::Initialize(util::array<std::string, 5> dbinfo, Config config)
 {
 	this->world = new World(dbinfo, config);
-	this->world->timer.Register(new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER));
-	this->world->timer.Register(new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER));
+	this->world->timer.Register(new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER, true));
+	this->world->timer.Register(new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER, true));
 
 	if (static_cast<int>(eoserv_config["SLN"]))
 	{

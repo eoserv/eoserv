@@ -5,31 +5,81 @@
 #include <windows.h>
 #else // WIN32
 #include <sys/types.h>
-#include <sys/time.h>
 #endif // WIN32
 
 #include <algorithm>
+#include <cmath>
 
 #include "util.hpp"
 
+int rres = 0;
+double gettime_offset = 0.0;
+double gettime_last = 0.0;
+bool gettime_init = false;
+
 Timer::Timer()
 {
+	int res;
+#ifdef WIN32
+#ifndef TIMER_GETTICKCOUNT
+	for (res = 1; res <= 50; ++res)
+	{
+		if (timeBeginPeriod(res) == TIMERR_NOERROR)
+		{
+			rres = res;
+			break;
+		}
+	}
+#endif // TIMER_GETTICKCOUNT
+#endif // WIN32
+	double first = Timer::GetTime();
+	double cur;
+	double last = first;
+	double sum;
+
+	for (int i = 0; i < 100; )
+	{
+		cur = Timer::GetTime();
+
+		if (cur != last)
+		{
+			sum += cur - last;
+			last = cur;
+			++i;
+		}
+	};
+
+	this->resolution = sum / 100.0 - first;
+
 	this->changed = true;
 }
 
 double Timer::GetTime()
 {
 #ifdef WIN32
-#if _WIN32_WINNT >= 0x0600
-	return static_cast<double>(GetTickCount64())/1000.0;
-#else // _WIN32_WINNT >= 0x0600
-	return static_cast<double>(GetTickCount())/1000.0;
-#endif // _WIN32_WINNT >= 0x0600
+#ifdef TIMER_GETTICKCOUNT
+	unsigned int ticks = GetTickCount();
+#else // TIMER_GETTICKCOUNT
+	unsigned int ticks = timeGetTime();
+#endif // TIMER_GETTICKCOUNT
+	double ms = double(ticks) / 1000.0;
 #else // WIN32
-	timeval gettime;
-	gettimeofday(&gettime, 0);
-	return static_cast<double>(gettime.tv_sec) + static_cast<double>(gettime.tv_usec)/1000000.0;
+	timespec gettime;
+	clock_gettime(CLOCK_MONOTONIC, &gettime);
+	double ms = double(gettime.tv_sec) + double(gettime.tv_nsec) / 1000000000.0;
 #endif // WIN32
+	if (!gettime_init)
+	{
+		gettime_last = ms;
+		gettime_init = true;
+	}
+
+	double relms = ms - gettime_last;
+	gettime_last = ms;
+
+	gettime_offset += relms;
+
+	return gettime_offset;
 }
 
 void Timer::Tick()
@@ -94,6 +144,13 @@ Timer::~Timer()
 			delete timer;
 		}
 	}
+#ifdef WIN32
+	if (rres != 0)
+	{
+		timeEndPeriod(rres);
+		rres = 0;
+	}
+#endif // WIN32
 }
 
 TimeEvent::TimeEvent(TimerCallback callback, void *param, double speed, int lifetime, bool autofree)
