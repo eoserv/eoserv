@@ -260,6 +260,8 @@ class Client
 		Client(IPAddress addr, uint16_t port);
 		Client(void *);
 		Client(SOCKET, sockaddr_in, void *);
+		bool Connect(IPAddress addr, uint16_t port);
+		void Bind(IPAddress addr, uint16_t port);
 		std::string Recv(std::size_t length);
 		void Send(const std::string &data);
 		void Tick(double timeout);
@@ -387,7 +389,7 @@ template <class T = Client> class Server
 		/**
 		 * List of connected clients.
 		 */
-		std::list<T *> clients;
+		std::vector<T *> clients;
 
 		/**
 		 * Initializes the Server.
@@ -521,9 +523,9 @@ template <class T = Client> class Server
 		 * @return Returns a list of clients that have data in their recv_buffer.
 		 */
 #ifdef SOCKET_POLL
-		std::list<T *> Select(double timeout)
+		std::vector<T *> Select(double timeout)
 		{
-			class std::list<T *> selected;
+			class std::vector<T *> selected;
 			class std::vector<pollfd> fds;
 			int result;
 			pollfd fd;
@@ -534,7 +536,7 @@ template <class T = Client> class Server
 			fd.events = POLLERR;
 			fds.push_back(fd);
 
-			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+			UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
 			{
 				if (client->connected)
 				{
@@ -571,7 +573,7 @@ template <class T = Client> class Server
 				}
 
 				int i = 0;
-				UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+				UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
 				{
 					++i;
 					if (fds[i].revents & POLLERR || fds[i].revents & POLLHUP || fds[i].revents & POLLNVAL)
@@ -614,7 +616,7 @@ template <class T = Client> class Server
 				}
 			}
 
-			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+			UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
 			{
 				if (client->connected || client->recv_buffer.length() > 0)
 				{
@@ -625,11 +627,11 @@ template <class T = Client> class Server
 			return selected;
 		}
 #else // SOCKET_POLL
-		std::list<T *> Select(double timeout)
+		std::vector<T *> Select(double timeout)
 		{
 			long tsecs = long(timeout);
 			timeval timeout_val = {tsecs, long((timeout - double(tsecs))*1000000)};
-			std::list<T *> selected;
+			std::vector<T *> selected;
 			SOCKET nfds = this->server;
 			int result;
 
@@ -637,7 +639,7 @@ template <class T = Client> class Server
 			FD_ZERO(&this->write_fds);
 			FD_ZERO(&this->except_fds);
 
-			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+			UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
 			{
 				if (client->connected)
 				{
@@ -676,7 +678,7 @@ template <class T = Client> class Server
 					throw Socket_Exception("There was an exception on the listening socket.");
 				}
 
-				UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+				UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
 				{
 					if (FD_ISSET(client->sock, &this->except_fds))
 					{
@@ -718,7 +720,7 @@ template <class T = Client> class Server
 				}
 			}
 
-			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
+			UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
 			{
 				if (client->recv_buffer.length() > 0)
 				{
@@ -736,9 +738,9 @@ template <class T = Client> class Server
 		 */
 		void BuryTheDead()
 		{
-			class std::list<T *>::iterator it;
+			class std::vector<T *>::iterator it;
 
-			UTIL_TPL_LIST_IFOREACH_ALL(this->clients, T *, it)
+			UTIL_TPL_VECTOR_IFOREACH_ALL(this->clients, T *, it)
 			{
 				if (!(*it)->Connected())
 				{

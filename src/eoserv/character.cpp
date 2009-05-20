@@ -597,11 +597,11 @@ void Character::Refresh()
 {
 	PacketBuilder builder;
 
-	std::list<Character *> updatecharacters;
-	std::list<NPC *> updatenpcs;
-	std::list<Map_Item> updateitems;
+	std::vector<Character *> updatecharacters;
+	std::vector<NPC *> updatenpcs;
+	std::vector<Map_Item> updateitems;
 
-	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
 	{
 		if (this->InRange(character))
 		{
@@ -609,7 +609,7 @@ void Character::Refresh()
 		}
 	}
 
-	UTIL_LIST_FOREACH_ALL(this->map->npcs, NPC *, npc)
+	UTIL_VECTOR_FOREACH_ALL(this->map->npcs, NPC *, npc)
 	{
 		if (this->InRange(npc))
 		{
@@ -617,7 +617,7 @@ void Character::Refresh()
 		}
 	}
 
-	UTIL_LIST_FOREACH_ALL(this->map->items, Map_Item, item)
+	UTIL_VECTOR_FOREACH_ALL(this->map->items, Map_Item, item)
 	{
 		if (this->InRange(item))
 		{
@@ -629,7 +629,7 @@ void Character::Refresh()
 	builder.AddChar(updatecharacters.size()); // Number of players
 	builder.AddByte(255);
 
-	UTIL_LIST_FOREACH_ALL(updatecharacters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(updatecharacters, Character *, character)
 	{
 		builder.AddBreakString(character->name);
 		builder.AddShort(character->player->id);
@@ -663,7 +663,7 @@ void Character::Refresh()
 		builder.AddByte(255);
 	}
 
-	UTIL_LIST_FOREACH_ALL(updatenpcs, NPC *, npc)
+	UTIL_VECTOR_FOREACH_ALL(updatenpcs, NPC *, npc)
 	{
 		if (npc->alive)
 		{
@@ -677,7 +677,7 @@ void Character::Refresh()
 
 	builder.AddByte(255);
 
-	UTIL_LIST_FOREACH_ALL(updateitems, Map_Item, item)
+	UTIL_VECTOR_FOREACH_ALL(updateitems, Map_Item, item)
 	{
 		builder.AddShort(item.uid);
 		builder.AddShort(item.id);
@@ -817,6 +817,19 @@ Character::~Character()
 
 		this->trade_partner->trade_partner = 0;
 		this->trade_partner = 0;
+	}
+
+	UTIL_LIST_FOREACH_ALL(this->unregister_npc, NPC *, npc)
+	{
+		UTIL_LIST_IFOREACH_ALL(npc->damagelist, NPC_Opponent, checkopp)
+		{
+			if (checkopp->attacker == this)
+			{
+				npc->totaldamage -= checkopp->damage;
+				npc->damagelist.erase(checkopp);
+				break;
+			}
+		}
 	}
 
 	if (this->player)

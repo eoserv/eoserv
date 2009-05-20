@@ -141,10 +141,10 @@ ENF::ENF(std::string filename)
 		newdata.child = PacketProcessor::Number(buf[5], buf[6]);
 		newdata.type = static_cast<ENF::Type>(PacketProcessor::Number(buf[7], buf[8]));
 		newdata.hp = PacketProcessor::Number(buf[11], buf[12], buf[13]);
+
 		newdata.mindam = PacketProcessor::Number(buf[16], buf[17]);
 		newdata.maxdam = PacketProcessor::Number(buf[18], buf[19]);
 
-		// TODO: Check these are in the right order
 		newdata.accuracy = PacketProcessor::Number(buf[20], buf[21]);
 		newdata.evade = PacketProcessor::Number(buf[22], buf[23]);
 		newdata.armor = PacketProcessor::Number(buf[24], buf[25]);

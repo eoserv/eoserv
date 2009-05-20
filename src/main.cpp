@@ -1,7 +1,10 @@
 
 #include <limits>
 #include <cstdio>
+#include <cstring>
 #include <cstdlib>
+#include <csignal>
+#include <cerrno>
 
 #include "config.hpp"
 #include "socket.hpp"
@@ -9,13 +12,111 @@
 #include "packet.hpp"
 #include "util.hpp"
 
+#if defined(WIN32) || defined(WIN64)
+#include <windows.h>
+#include "extra/ntservice.hpp"
+#endif // defined(WIN32) || defined(WIN64)
+
 extern Database eoserv_db;
 
-int main()
+volatile bool running = true;
+
+void eoserv_rehash(int signal)
 {
+	std::puts("Reloading config");
 	try
 	{
-		bool running = true;
+		eoserv_config.Read("config.ini");
+		admin_config.Read("admin.ini");
+	}
+	catch (std::runtime_error)
+	{
+
+	}
+}
+
+int main(int argc, char *argv[])
+{
+#if defined(WIN32) || defined(WIN64)
+	if (argc >= 2)
+	{
+		std::string mode(argv[1]);
+		std::string name = "EOSERV";
+		bool silent = false;
+
+		if (argc >= 3)
+		{
+			name = argv[2];
+		}
+
+		if (argc >= 4)
+		{
+			if (std::string(argv[3]) == "silent")
+			{
+				silent = true;
+			}
+		}
+
+		if (mode == "service")
+		{
+			char cwd[MAX_PATH];
+			GetModuleFileName(0, cwd, MAX_PATH);
+
+			char *lastslash = 0;
+
+			for (char *p = cwd; *p != '\0'; ++p)
+			{
+				if (*p == '\\' || *p == '/')
+				{
+					lastslash = p;
+				}
+			}
+
+			if (lastslash)
+			{
+				*(lastslash+1) = '\0';
+			}
+
+			SetCurrentDirectory(cwd);
+			service_init(name.c_str());
+		}
+		else if (mode == "install")
+		{
+			if (service_install(name.c_str()))
+			{
+				if (!silent) MessageBox(0, "Service installed.", "EOSERV", MB_OK);
+				return 0;
+			}
+			else
+			{
+				if (!silent) MessageBox(0, OSErrorString(), "EOSERV", MB_OK);
+				return 1;
+			}
+		}
+		else if (mode == "uninstall")
+		{
+			if (service_uninstall(name.c_str()))
+			{
+				if (!silent) MessageBox(0, "Service uninstalled.", "EOSERV", MB_OK);
+				return 0;
+			}
+			else
+			{
+				if (!silent) MessageBox(0, OSErrorString(), "EOSERV", MB_OK);
+				return 1;
+			}
+		}
+
+		return 0;
+	}
+#endif // defined(WIN32) || defined(WIN64)
+
+#ifdef SIGHUP
+	signal(SIGHUP, eoserv_rehash);
+#endif // SIGHUP
+
+	try
+	{
 		Config config;
 		try
 		{
@@ -57,10 +158,16 @@ int main()
 		CONFIG_DEFAULT("SLNSite"            , "")
 		CONFIG_DEFAULT("ServerName"         , "Untitled Server")
 		CONFIG_DEFAULT("SLNPeriod"          , 600)
+		CONFIG_DEFAULT("SLNZone"            , "")
+		CONFIG_DEFAULT("SLNBind"            , "1")
 		CONFIG_DEFAULT("GuildPrice"         , 50000)
 		CONFIG_DEFAULT("RecruitCost"        , 1000)
 		CONFIG_DEFAULT("GuildMaxMembers"    , 5000)
 		CONFIG_DEFAULT("GuildBankMax"       , 10000000)
+		CONFIG_DEFAULT("NPCChaseMode"       , 0)
+		CONFIG_DEFAULT("NPCChaseDistance"   , 18)
+		CONFIG_DEFAULT("NPCBoredTimer"      , 30)
+		CONFIG_DEFAULT("NPCAdjustMaxDam"    , 3)
 		CONFIG_DEFAULT("ShowLevel"          , 0)
 		CONFIG_DEFAULT("PKServer"           , 0)
 		CONFIG_DEFAULT("PKRestrict"         , 5)
@@ -233,9 +340,20 @@ EO Version Support: .27 .28\n\
 				std::printf("New connection from %s (%i/%i connections)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str(), server.Connections(), server.MaxConnections());
 			}
 
-			std::list<EOClient *> active_clients = server.Select(0.001);
+			std::vector<EOClient *> active_clients;
+			try
+			{
+				active_clients = server.Select(0.001);
+			}
+			catch (Socket_SelectFailed &e)
+			{
+				if (errno != EINTR)
+				{
+					throw;
+				}
+			}
 
-			UTIL_LIST_IFOREACH_ALL(active_clients, EOClient *, ci)
+			UTIL_VECTOR_IFOREACH_ALL(active_clients, EOClient *, ci)
 			{
 				EOClient *cl = *ci;
 				std::string data;

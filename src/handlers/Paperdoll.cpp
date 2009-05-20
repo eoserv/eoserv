@@ -90,7 +90,7 @@ CLIENT_F_FUNC(Paperdoll)
 			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
 			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (character == this->player->character || !this->player->character->InRange(character))
 				{
@@ -153,7 +153,7 @@ CLIENT_F_FUNC(Paperdoll)
 			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
 			builder.AddShort(eoserv_items->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (character == this->player->character || !this->player->character->InRange(character))
 				{

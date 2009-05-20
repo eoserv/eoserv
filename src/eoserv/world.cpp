@@ -7,14 +7,31 @@ void world_spawn_npcs(void *world_void)
 	double current_time = Timer::GetTime();
 	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
 	{
-		UTIL_LIST_FOREACH_ALL(map->npcs, NPC *, npc)
+		UTIL_VECTOR_FOREACH_ALL(map->npcs, NPC *, npc)
 		{
-			if (!npc->alive && npc->dead_since + (npc->spawn_time * spawnrate) < current_time)
+			if (!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time)
 			{
 #ifdef DEBUG
 				std::printf("Spawning NPC %i on map %i\n", npc->id, map->id);
 #endif // DEBUG
 				npc->Spawn();
+			}
+		}
+	}
+}
+
+void world_act_npcs(void *world_void)
+{
+	World *world = static_cast<World *>(world_void);
+
+	double current_time = Timer::GetTime();
+	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
+	{
+		UTIL_VECTOR_FOREACH_ALL(map->npcs, NPC *, npc)
+		{
+			if (npc->alive && npc->last_act + npc->act_speed < current_time)
+			{
+				npc->Act();
 			}
 		}
 	}
@@ -26,7 +43,7 @@ void world_recover(void *world_void)
 
 	PacketBuilder builder(PACKET_RECOVER, PACKET_PLAYER);
 
-	UTIL_LIST_FOREACH_ALL(world->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(world->characters, Character *, character)
 	{
 		character->hp += character->maxhp / 10;
 		character->tp += character->maxtp / 10;
@@ -146,7 +163,7 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	this->last_character_id = 0;
 
 	this->timer.Register(new TimeEvent(world_spawn_npcs, this, 1.0, Timer::FOREVER, true));
-
+	this->timer.Register(new TimeEvent(world_act_npcs, this, 0.05, Timer::FOREVER, true));
 	this->timer.Register(new TimeEvent(world_recover, this, 90.0, Timer::FOREVER, true));
 
 	exp_table[0] = 0;
@@ -165,7 +182,7 @@ int World::GeneratePlayerID()
 {
 	unsigned int lowest_free_id = 1;
 	restart_loop:
-	UTIL_LIST_FOREACH_ALL(this->server->clients, EOClient *, client)
+	UTIL_VECTOR_FOREACH_ALL(this->server->clients, EOClient *, client)
 	{
 		if (client->id == lowest_free_id)
 		{
@@ -185,7 +202,7 @@ void World::Login(Character *character)
 void World::Logout(Character *character)
 {
 	this->maps[character->mapid]->Leave(character);
-	UTIL_LIST_IFOREACH(this->characters.begin(), this->characters.end(), Character *, checkcharacter)
+	UTIL_VECTOR_IFOREACH(this->characters.begin(), this->characters.end(), Character *, checkcharacter)
 	{
 		if (*checkcharacter == character)
 		{
@@ -210,7 +227,7 @@ void World::Msg(Character *from, std::string message)
 	}
 	builder.AddBreakString(message);
 
-	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from)
 		{
@@ -236,7 +253,7 @@ void World::AdminMsg(Character *from, std::string message, int minlevel)
 	}
 	builder.AddBreakString(message);
 
-	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || character->admin < minlevel)
 		{
@@ -262,7 +279,7 @@ void World::AnnounceMsg(Character *from, std::string message)
 	}
 	builder.AddBreakString(message);
 
-	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from)
 		{
@@ -279,7 +296,7 @@ Character *World::GetCharacter(std::string name)
 
 	util::lowercase(name);
 
-	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character->name.compare(name) == 0)
 		{
@@ -295,7 +312,7 @@ Character *World::GetCharacterPID(unsigned int id)
 {
 	Character *selected = 0;
 
-	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character->player->id == id)
 		{
@@ -311,7 +328,7 @@ Character *World::GetCharacterCID(unsigned int id)
 {
 	Character *selected = 0;
 
-	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character->id == id)
 		{

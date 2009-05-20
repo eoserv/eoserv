@@ -156,36 +156,30 @@ bool IPAddress::operator ==(const IPAddress &other)
 	return (this->address == other.address);
 }
 
+Client::Client()
+{
+	this->connected = false;
+	this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	this->send_buffer_max = static_cast<unsigned int>(-1);
+	this->recv_buffer_max = static_cast<unsigned int>(-1);
+}
+
 Client::Client(IPAddress addr, uint16_t port)
 {
 	Socket_WSAStartup();
-	this->connected = true;
+	this->connected = false;
+	this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	this->send_buffer_max = static_cast<unsigned int>(-1);
 	this->recv_buffer_max = static_cast<unsigned int>(-1);
 
-	std::memset(&this->sin, 0, sizeof(this->sin));
-	this->sin.sin_family = AF_INET;
-	this->sin.sin_addr = addr;
-	this->sin.sin_port = htons(port);
-
-	this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (this->sock == INVALID_SOCKET)
-	{
-		this->connected = false;
-		return;
-	}
-
-	if (connect(this->sock, reinterpret_cast<sockaddr *>(&this->sin), sizeof(this->sin)) != 0)
-	{
-		this->connected = false;
-		return;
-	}
+	this->Connect(addr, port);
 }
 
 Client::Client(void *server)
 {
 	Socket_WSAStartup();
 	this->connected = false;
+	this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	this->server = server;
 }
 
@@ -196,6 +190,37 @@ Client::Client(SOCKET sock, sockaddr_in sin, void *server)
 	this->sock = sock;
 	this->sin = sin;
 	this->server = server;
+}
+
+bool Client::Connect(IPAddress addr, uint16_t port)
+{
+	std::memset(&this->sin, 0, sizeof(this->sin));
+	this->sin.sin_family = AF_INET;
+	this->sin.sin_addr = addr;
+	this->sin.sin_port = htons(port);
+
+	if (connect(this->sock, reinterpret_cast<sockaddr *>(&this->sin), sizeof(this->sin)) != 0)
+	{
+		return this->connected = false;
+	}
+
+	return this->connected = true;
+}
+
+void Client::Bind(IPAddress addr, uint16_t port)
+{
+	sockaddr_in sin;
+	uint16_t portn = htons(port);
+
+	std::memset(&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_addr = addr;
+	sin.sin_port = portn;
+
+	if (bind(this->sock, reinterpret_cast<sockaddr *>(&sin), sizeof(sin)) == SOCKET_ERROR)
+	{
+		throw Socket_BindFailed(OSErrorString());
+	}
 }
 
 std::string Client::Recv(std::size_t length)

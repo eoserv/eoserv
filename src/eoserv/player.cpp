@@ -19,7 +19,7 @@ Player::Player(std::string username)
 	res = eoserv_db.Query("SELECT `name` FROM `characters` WHERE `account` = '$'", username.c_str());
 
 	typedef std::map<std::string, util::variant> Database_Row;
-	UTIL_LIST_FOREACH_ALL(res, Database_Row, row)
+	UTIL_VECTOR_FOREACH_ALL(res, Database_Row, row)
 	{
 		Character *newchar = new Character(row["name"]);
 		this->characters.push_back(newchar);
@@ -115,7 +115,7 @@ bool Player::Online(std::string username)
 		return false;
 	}
 
-	UTIL_LIST_FOREACH_ALL(the_world->server->clients, EOClient *, connection)
+	UTIL_VECTOR_FOREACH_ALL(the_world->server->clients, EOClient *, connection)
 	{
 		if (connection->player)
 		{

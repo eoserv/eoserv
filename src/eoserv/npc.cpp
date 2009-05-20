@@ -24,7 +24,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 
 	if (spawn_type == 7)
 	{
-		this->direction = spawn_time & 0x03;
+		this->direction = static_cast<Direction>(spawn_time & 0x03);
 		this->spawn_time = 0;
 	}
 }
@@ -41,7 +41,7 @@ void NPC::Spawn()
 
 			if (this->map->Walkable(this->x, this->y, true) && (i > 100 || !this->map->Occupied(this->x, this->y, Map::NPCOnly)))
 			{
-				this->direction = util::rand(0,3);
+				this->direction = static_cast<Direction>(util::rand(0,3));
 				found = true;
 				break;
 			}
@@ -73,6 +73,8 @@ void NPC::Spawn()
 
 	this->alive = true;
 	this->hp = this->data->hp;
+	this->last_act = Timer::GetTime();
+	this->act_speed = npc_speed_table[this->spawn_type];
 
 	PacketBuilder builder(PACKET_APPEAR, PACKET_REPLY);
 	builder.AddChar(0);
@@ -83,7 +85,7 @@ void NPC::Spawn()
 	builder.AddChar(this->y);
 	builder.AddChar(this->direction);
 
-	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
 	{
 		if (character->InRange(this))
 		{
@@ -92,23 +94,155 @@ void NPC::Spawn()
 	}
 }
 
+void NPC::Act()
+{
+	this->last_act += double(util::rand(int(this->act_speed * 750.0), int(this->act_speed * 1250.0))) / 1000.0;
+
+	if (this->spawn_type == 7)
+	{
+		return;
+	}
+
+	Character *attacker = 0;
+	unsigned char attacker_distance = static_cast<int>(eoserv_config["NPCChaseDistance"]);
+	unsigned short attacker_damage = 0;
+	int npccoordsum = this->x + this->y;
+
+	UTIL_LIST_IFOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
+	{
+		if (opponent->attacker->map != this->map || opponent->last_hit < Timer::GetTime() - static_cast<double>(eoserv_config["NPCBoredTimer"]))
+		{
+			continue;
+		}
+
+		int distance = std::abs(opponent->attacker->x + opponent->attacker->y - npccoordsum);
+
+		if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
+		{
+			attacker = opponent->attacker;
+			attacker_damage = opponent->damage;
+		}
+	}
+
+	if (attacker)
+	{
+		int xdiff = this->x - attacker->x;
+		int ydiff = this->y - attacker->y;
+		int absxdiff = std::abs(xdiff);
+		int absydiff = std::abs(ydiff);
+
+		if ((absxdiff == 1 && absydiff == 0) || (absxdiff == 0 && absydiff == 1) || (absxdiff == 0 && absydiff == 0))
+		{
+			this->Attack(attacker);
+			return;
+		}
+		else if (absxdiff > absydiff)
+		{
+			if (xdiff < 0)
+			{
+				this->direction = DIRECTION_RIGHT;
+			}
+			else
+			{
+				this->direction = DIRECTION_LEFT;
+			}
+		}
+		else
+		{
+			if (ydiff < 0)
+			{
+				this->direction = DIRECTION_DOWN;
+			}
+			else
+			{
+				this->direction = DIRECTION_UP;
+			}
+		}
+
+		if (!this->Walk(this->direction))
+		{
+			this->Walk(static_cast<Direction>(util::rand(0,3)));
+		}
+	}
+	else
+	{
+		// Random walking
+
+		int act;
+		if (this->walk_idle_for == 0)
+		{
+			act = util::rand(1,10);
+		}
+		else
+		{
+			--this->walk_idle_for;
+			act = 11;
+		}
+
+		if (act >= 1 && act <= 6) // 60% chance walk foward
+		{
+			this->Walk(this->direction);
+		}
+
+		if (act >= 7 && act <= 9) // 30% change direction
+		{
+			this->Walk(static_cast<Direction>(util::rand(0,3)));
+		}
+
+		if (act == 10) // 10% take a break
+		{
+			this->walk_idle_for = util::rand(1,4);
+		}
+	}
+}
+
+bool NPC::Walk(Direction direction)
+{
+	return this->map->Walk(this, direction);
+}
+
 void NPC::Damage(Character *from, int amount)
 {
+	int sharemode = static_cast<int>(eoserv_config["ShareMode"]);
 	PacketBuilder builder;
 
+	amount = std::min(this->hp, amount);
 	this->hp -= amount;
+	this->totaldamage += amount;
+
+	NPC_Opponent opponent;
+	bool found = false;
+
+	UTIL_LIST_IFOREACH_ALL(this->damagelist, NPC_Opponent, checkopp)
+	{
+		if (checkopp->attacker == from)
+		{
+			found = true;
+			checkopp->damage += amount;
+			checkopp->last_hit = Timer::GetTime();
+		}
+	}
+
+	if (!found)
+	{
+		opponent.attacker = from;
+		opponent.damage = amount;
+		opponent.last_hit = Timer::GetTime();
+		this->damagelist.push_back(opponent);
+		opponent.attacker->unregister_npc.push_back(this);
+	}
 
 	if (this->hp > 0)
 	{
 		builder.SetID(PACKET_NPC, PACKET_REPLY);
-		builder.AddShort(from->id);
-		builder.AddChar(1); // ?
+		builder.AddShort(from->player->id);
+		builder.AddChar(from->direction);
 		builder.AddShort(this->index);
-		builder.AddThree(amount); // damage
-		builder.AddShort(int((double(this->hp) / this->data->hp)*100)); // % HP remaining
+		builder.AddThree(amount);
+		builder.AddShort(int(double(this->hp) / double(this->data->hp) * 100.0));
 		builder.AddChar(1); // ?
 
-		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
 		{
 			if (character->InRange(this))
 			{
@@ -118,40 +252,94 @@ void NPC::Damage(Character *from, int amount)
 	}
 	else
 	{
+		int most_damage_counter = 0;
+		Character *most_damage = 0;
 		this->alive = false;
 		this->dead_since = int(Timer::GetTime());
 
-		bool level_up = false;
-
-		from->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0)));
-
-		from->exp = std::min(from->exp, static_cast<int>(eoserv_config["MaxExp"]));
-
-		if (from->level < static_cast<int>(eoserv_config["MaxLevel"]) && from->exp >= the_world->exp_table[from->level+1])
+		if (sharemode == 1)
 		{
-			level_up = true;
-			++from->level;
-			from->statpoints += static_cast<int>(eoserv_config["StatPerLevel"]);
-			from->skillpoints += static_cast<int>(eoserv_config["SkillPerLevel"]);
-			from->CalculateStats();
-		}
-
-		if (level_up)
-		{
-			builder.SetID(PACKET_NPC, PACKET_ACCEPT);
-		}
-		else
-		{
-			builder.SetID(PACKET_NPC, PACKET_SPEC);
-		}
-
-		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
-		{
-			if (character->InRange(this))
+			UTIL_LIST_FOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
 			{
+				if (opponent.damage > most_damage_counter)
+				{
+					most_damage_counter = opponent.damage;
+					most_damage = opponent.attacker;
+				}
+			}
+		}
+
+		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+		{
+			std::list<NPC_Opponent>::iterator findopp;
+			found = false;
+			UTIL_LIST_IFOREACH_ALL(this->damagelist, NPC_Opponent, checkopp)
+			{
+				if (checkopp->attacker == character)
+				{
+					found = true;
+					findopp = checkopp;
+				}
+			}
+
+			if (found || character->InRange(this))
+			{
+				bool level_up = false;
+
 				builder.Reset();
-				builder.AddShort(from->id);
-				builder.AddChar(0); // ?
+
+				builder.SetID(PACKET_NPC, PACKET_SPEC);
+
+				if (this->data->exp != 0)
+				{
+					if (found)
+					{
+						switch (sharemode)
+						{
+							case 0:
+								if (character == from)
+								{
+									character->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0)));
+								}
+								break;
+
+							case 1:
+								if (character == most_damage)
+								{
+									character->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0)));
+								}
+								break;
+
+							case 2:
+								character->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0) * (double(findopp->damage) / double(this->totaldamage))));
+								break;
+
+							case 3:
+								character->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0) * (double(this->damagelist.size()) / 1.0)));
+								break;
+						}
+
+
+						character->exp = std::min(character->exp, static_cast<int>(eoserv_config["MaxExp"]));
+
+						if (character->level < static_cast<int>(eoserv_config["MaxLevel"]) && character->exp >= the_world->exp_table[character->level+1])
+						{
+							level_up = true;
+							++character->level;
+							character->statpoints += static_cast<int>(eoserv_config["StatPerLevel"]);
+							character->skillpoints += static_cast<int>(eoserv_config["SkillPerLevel"]);
+							character->CalculateStats();
+						}
+
+						if (level_up)
+						{
+							builder.SetID(PACKET_NPC, PACKET_ACCEPT);
+						}
+					}
+				}
+
+				builder.AddShort(from->player->id);
+				builder.AddChar(from->direction);
 				builder.AddShort(this->index);
 				builder.AddShort(0); // ?
 				builder.AddShort(0); // dropped item ID
@@ -160,12 +348,12 @@ void NPC::Damage(Character *from, int amount)
 				builder.AddInt(0); // items dropped
 				builder.AddThree(amount);
 
-				if (!level_up || (level_up && character == from))
+				if ((sharemode == 0 && character == from) || (sharemode != 0 && found))
 				{
 					builder.AddInt(character->exp);
 				}
 
-				if (level_up && character == from)
+				if (level_up)
 				{
 					builder.AddChar(character->level);
 					builder.AddShort(character->statpoints);
@@ -178,5 +366,126 @@ void NPC::Damage(Character *from, int amount)
 				character->player->client->SendBuilder(builder);
 			}
 		}
+
+		UTIL_LIST_FOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
+		{
+			std::list<NPC *>::iterator findnpc = std::find(opponent.attacker->unregister_npc.begin(), opponent.attacker->unregister_npc.end(), this);
+
+			if (findnpc != opponent.attacker->unregister_npc.end())
+			{
+				opponent.attacker->unregister_npc.erase(findnpc);
+			}
+		}
+
+		this->damagelist.clear();
+		this->totaldamage = 0;
+	}
+}
+
+void NPC::Attack(Character *target)
+{
+	double mobrate = static_cast<double>(eoserv_config["MobRate"]) / 100.0;
+
+	int amount = util::rand(this->data->mindam, this->data->maxdam + static_cast<int>(eoserv_config["NPCAdjustMaxDam"]));
+
+	int hit_rate = 120;
+	bool critical = true;
+
+	if ((target->direction == DIRECTION_UP && this->direction == DIRECTION_DOWN)
+	 || (target->direction == DIRECTION_RIGHT && this->direction == DIRECTION_LEFT)
+	 || (target->direction == DIRECTION_DOWN && this->direction == DIRECTION_UP)
+	 || (target->direction == DIRECTION_LEFT && this->direction == DIRECTION_RIGHT)
+	 || target->sitting != SIT_STAND)
+	{
+		hit_rate -= 40;
+	}
+
+	hit_rate += int(double(this->data->accuracy) / 2.0 * mobrate);
+	hit_rate -= int(double(target->evade) / 2.0);
+	hit_rate = std::min(std::max(hit_rate, 20), 100);
+
+	int origamount = amount;
+	amount -= int(double(target->armor) / 3.0);
+
+	amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
+	amount = std::min(amount, this->hp);
+
+	int rand = util::rand(0, 100);
+
+	if (rand > hit_rate)
+	{
+		amount = 0;
+	}
+
+	if (rand > 92)
+	{
+		critical = true;
+	}
+
+	if (critical)
+	{
+		amount = int(double(amount) * 1.5);
+	}
+
+	amount = std::max(amount, 0);
+	amount = std::min(amount, int(target->hp));
+
+	target->hp -= amount;
+
+	int xdiff = this->x - target->x;
+	int ydiff = this->y - target->y;
+
+	if (std::abs(xdiff) > std::abs(ydiff))
+	{
+		if (xdiff < 0)
+		{
+			this->direction = DIRECTION_RIGHT;
+		}
+		else
+		{
+			this->direction = DIRECTION_LEFT;
+		}
+	}
+	else
+	{
+		if (ydiff < 0)
+		{
+			this->direction = DIRECTION_DOWN;
+		}
+		else
+		{
+			this->direction = DIRECTION_UP;
+		}
+	}
+
+	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER);
+	builder.AddByte(255);
+	builder.AddChar(this->index);
+	builder.AddChar(1 + (target->hp == 0));
+	builder.AddChar(this->direction);
+	builder.AddShort(target->player->id);
+	builder.AddThree(amount);
+	builder.AddThree(int(double(target->hp) / double(target->maxhp) * 100.0));
+	builder.AddByte(255);
+	builder.AddByte(255);
+
+	UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+	{
+		if (character == target || !character->InRange(target))
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+
+	builder.AddShort(target->hp);
+	builder.AddShort(target->tp);
+
+	target->player->client->SendBuilder(builder);
+
+	if (target->hp == 0)
+	{
+		target->Warp(target->spawnmap, target->spawnx, target->spawny);
 	}
 }

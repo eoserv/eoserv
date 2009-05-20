@@ -35,7 +35,7 @@ Timer::Timer()
 	double first = Timer::GetTime();
 	double cur;
 	double last = first;
-	double sum;
+	double sum = 0.0;
 
 	for (int i = 0; i < 100; )
 	{

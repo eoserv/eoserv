@@ -1,7 +1,6 @@
 #ifndef EOSERV_HPP_INCLUDED
 #define EOSERV_HPP_INCLUDED
 
-#include <list>
 #include <vector>
 #include <ctime>
 #include <string>
@@ -71,10 +70,9 @@ class World
 
 		EOServer *server;
 
-		std::list<Character *> characters;
-		std::list<Guild *> guilds;
-		std::list<Party *> partys;
-		std::list<NPC *> npcs;
+		std::vector<Character *> characters;
+		std::vector<Guild *> guilds;
+		std::vector<Party *> partys;
 		std::vector<Map *> maps;
 
 		int last_character_id;
@@ -200,6 +198,11 @@ struct Map_Tile
 
 	bool Walkable(bool npc = false)
 	{
+		if (this->warp && npc)
+		{
+			return false;
+		}
+
 		switch (this->tilespec)
 		{
 			case Wall:
@@ -251,10 +254,10 @@ class Map
 		unsigned char width;
 		unsigned char height;
 		std::string filename;
-		std::list<Character *> characters;
-		std::list<NPC *> npcs;
-		std::list<Map_Item> items;
-		std::map<int, std::map<int, Map_Tile> > tiles;
+		std::vector<Character *> characters;
+		std::vector<NPC *> npcs;
+		std::vector<Map_Item> items;
+		std::vector<std::vector<Map_Tile> > tiles;
 		bool exists;
 
 		Map(int id);
@@ -272,6 +275,8 @@ class Map
 		void Stand(Character *from);
 		void Emote(Character *from, enum Emote emote, bool relay = true);
 		bool OpenDoor(Character *from, unsigned char x, unsigned char y);
+
+		bool Walk(NPC *from, Direction direction);
 
 		Map_Item *AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from = 0);
 		void DelItem(short uid, Character *from = 0);
@@ -312,7 +317,7 @@ class Player
 
 		Player(std::string username);
 
-		std::list<Character *> characters;
+		std::vector<Character *> characters;
 		Character *character;
 
 		static bool ValidName(std::string username);
@@ -464,8 +469,8 @@ class Character
 struct NPC_Opponent
 {
 	Character *attacker;
-	int damage;
-	bool first;
+	unsigned short damage;
+	double last_hit;
 };
 
 extern double npc_speed_table[8];
@@ -479,16 +484,20 @@ class NPC
 		short id;
 		ENF_Data *data;
 		unsigned char x, y;
-		unsigned char direction;
+		Direction direction;
 		unsigned char spawn_type;
 		short spawn_time;
 		unsigned char spawn_x, spawn_y;
 		NPC *parent;
 
 		bool alive;
-		int dead_since;
+		double dead_since;
+		double last_act;
+		double act_speed;
+		int walk_idle_for;
 		bool attack;
 		int hp;
+		int totaldamage;
 		std::list<NPC_Opponent> damagelist;
 
 		Map *map;
@@ -499,9 +508,12 @@ class NPC
 		bool SpawnReady();
 
 		void Spawn();
+		void Act();
+
+		bool Walk(Direction);
 		void Damage(Character *from, int amount);
 
-		void Follow(Character *target = 0);
+		void Attack(Character *target);
 };
 
 /**
@@ -513,7 +525,7 @@ class Guild
 	public:
 		std::string tag;
 		std::string name;
-		std::list<Character *> members;
+		std::vector<Character *> members;
 		util::array<std::string, 9> ranks;
 		std::time_t created;
 
@@ -529,7 +541,7 @@ class Party
 		Party(Character *host, Character *other);
 
 		Character *host;
-		std::list<Character *> members;
+		std::vector<Character *> members;
 
 		void Msg(Character *from, std::string message);
 		void Join(Character *);

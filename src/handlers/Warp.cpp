@@ -22,11 +22,11 @@ CLIENT_F_FUNC(Warp)
 				return true;
 			}
 
-			std::list<Character *> updatecharacters;
-			std::list<NPC *> updatenpcs;
-			std::list<Map_Item> updateitems;
+			std::vector<Character *> updatecharacters;
+			std::vector<NPC *> updatenpcs;
+			std::vector<Map_Item> updateitems;
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (this->player->character->InRange(character))
 				{
@@ -34,7 +34,7 @@ CLIENT_F_FUNC(Warp)
 				}
 			}
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->npcs, NPC *, npc)
+			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->npcs, NPC *, npc)
 			{
 				if (this->player->character->InRange(npc))
 				{
@@ -42,7 +42,7 @@ CLIENT_F_FUNC(Warp)
 				}
 			}
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
+			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
 			{
 				if (this->player->character->InRange(item))
 				{
@@ -56,7 +56,7 @@ CLIENT_F_FUNC(Warp)
 			reply.AddChar(anim);
 			reply.AddChar(updatecharacters.size());
 			reply.AddByte(255);
-			UTIL_LIST_FOREACH_ALL(updatecharacters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(updatecharacters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddShort(character->player->id);
@@ -89,7 +89,7 @@ CLIENT_F_FUNC(Warp)
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
 			}
-			UTIL_LIST_FOREACH_ALL(updatenpcs, NPC *, npc)
+			UTIL_VECTOR_FOREACH_ALL(updatenpcs, NPC *, npc)
 			{
 				if (npc->alive)
 				{
@@ -101,7 +101,7 @@ CLIENT_F_FUNC(Warp)
 				}
 			}
 			reply.AddByte(255);
-			UTIL_LIST_FOREACH_ALL(updateitems, Map_Item, item)
+			UTIL_VECTOR_FOREACH_ALL(updateitems, Map_Item, item)
 			{
 				reply.AddShort(item.uid);
 				reply.AddShort(item.id);

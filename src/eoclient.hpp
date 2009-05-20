@@ -3,7 +3,7 @@
 
 #include <string>
 #include <cstddef>
-#include <list>
+#include <vector>
 #include <queue>
 
 class EOServer_Ban;
@@ -73,7 +73,7 @@ class EOServer : public Server<EOClient>
 	private:
 		void Initialize(util::array<std::string, 5> dbinfo, Config config);
 		EOServer(){};
-		std::list<EOServer_Ban> bans;
+		std::vector<EOServer_Ban> bans;
 
 	public:
 		World *world;

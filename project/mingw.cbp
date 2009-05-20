@@ -86,6 +86,8 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="..\src\extra\ntservice.cpp" />
+		<Unit filename="..\src\extra\ntservice.hpp" />
 		<Unit filename="..\src\handlers.cpp" />
 		<Unit filename="..\src\handlers\Account.cpp">
 			<Option compile="0" />

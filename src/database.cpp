@@ -242,17 +242,19 @@ Database_Result Database::Query(const char *format, ...)
 
 			fields = mysql_fetch_fields(mresult);
 
+			result.resize(mysql_num_rows(mresult));
+			int i = 0;
 			for (MYSQL_ROW row = mysql_fetch_row(mresult); row != 0; row = mysql_fetch_row(mresult))
 			{
 				std::map<std::string, util::variant> resrow;
-				for (int i = 0; i < num_fields; ++i)
+				for (int ii = 0; ii < num_fields; ++ii)
 				{
 					util::variant rescell;
-					if (IS_NUM(fields[i].type))
+					if (IS_NUM(fields[ii].type))
 					{
-						if (row[i])
+						if (row[ii])
 						{
-							rescell = util::to_int(row[i]);
+							rescell = util::to_int(row[ii]);
 						}
 						else
 						{
@@ -261,18 +263,18 @@ Database_Result Database::Query(const char *format, ...)
 					}
 					else
 					{
-						if (row[i])
+						if (row[ii])
 						{
-							rescell = row[i];
+							rescell = row[ii];
 						}
 						else
 						{
 							rescell = "";
 						}
 					}
-					resrow[fields[i].name] = rescell;
+					resrow[fields[ii].name] = rescell;
 				}
-				result.push_back(resrow);
+				result[i++] = resrow;
 			}
 
 			mysql_free_result(mresult);

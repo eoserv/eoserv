@@ -53,7 +53,7 @@ CLIENT_F_FUNC(Talk)
 			limit_message(message);
 			Character *to = 0;
 
-			UTIL_LIST_FOREACH_ALL(the_world->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(the_world->characters, Character *, character)
 			{
 				if (character->name == name)
 				{
@@ -203,6 +203,7 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["rehash"]))
 				{
+					std::printf("Config reloaded by %s\n", this->player->character->name.c_str());
 					try
 					{
 						eoserv_config.Read("config.ini");
@@ -276,7 +277,7 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(admin_config["shutdown"]))
 				{
-					UTIL_LIST_FOREACH_ALL(the_world->characters, Character *, character)
+					UTIL_VECTOR_FOREACH_ALL(the_world->characters, Character *, character)
 					{
 						character->Save();
 						character->player->client->Close();

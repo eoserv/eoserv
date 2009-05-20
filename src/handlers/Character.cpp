@@ -57,7 +57,7 @@ CLIENT_F_FUNC(Character)
 				reply.AddChar(this->player->characters.size());
 				reply.AddByte(1); // ??
 				reply.AddByte(255);
-				UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
+				UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
 				{
 					reply.AddBreakString(character->name);
 					reply.AddInt(character->id);
@@ -89,9 +89,9 @@ CLIENT_F_FUNC(Character)
 			unsigned int charid = reader.GetInt();
 
 			bool yourchar = false;
-			std::list<Character *>::iterator char_it;
+			std::vector<Character *>::iterator char_it;
 
-			UTIL_LIST_IFOREACH(this->player->characters.begin(), this->player->characters.end(), Character *, character)
+			UTIL_VECTOR_IFOREACH(this->player->characters.begin(), this->player->characters.end(), Character *, character)
 			{
 				if ((*character)->id == charid)
 				{
@@ -114,7 +114,7 @@ CLIENT_F_FUNC(Character)
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
-			UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);
@@ -143,7 +143,7 @@ CLIENT_F_FUNC(Character)
 
 			bool yourchar = false;
 
-			UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
 			{
 				if (character->id == charid)
 				{

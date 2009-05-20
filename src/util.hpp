@@ -329,20 +329,14 @@ class variant
 {
 	protected:
 		/**
-		 * Integer and float values are a union to save on a few bytes of memory.
+		 * Value stored as an integer.
 		 */
-		union
-		{
-			/**
-			 * Value stored as an integer.
-			 */
-			int val_int;
+		int val_int;
 
-			/**
-			 * Value stored as a float.
-			 */
-			double val_float;
-		};
+		/**
+		 * Value stored as a float.
+		 */
+		double val_float;
 
 		/**
 		 * Value stored as a string.
@@ -355,6 +349,8 @@ class variant
 			type_float,
 			type_string
 		};
+
+		bool cache_val[3];
 
 		/**
 		 * Current type the value is stored as.

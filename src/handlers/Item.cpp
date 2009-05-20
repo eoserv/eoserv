@@ -158,7 +158,7 @@ CLIENT_F_FUNC(Item)
 
 			int uid = reader.GetShort();
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
+			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
 			{
 				if (item.uid == uid)
 				{

@@ -33,9 +33,7 @@ void server_ping_all(void *server_void)
 	builder.AddShort(0);
 	builder.AddChar(0);
 
-	std::list<int> x;
-
-	UTIL_LIST_FOREACH_ALL(server->clients, EOClient *, client)
+	UTIL_VECTOR_FOREACH_ALL(server->clients, EOClient *, client)
 	{
 		if (client->needpong)
 		{
@@ -86,7 +84,32 @@ void *real_sln_request(void *server_void)
 		url += std::string("&zone=") + HTTP::URLEncode(eoserv_config["SLNZone"]);
 	}
 
-	sln_http = HTTP::RequestURL(url);
+	try
+	{
+		if (static_cast<int>(eoserv_config["SLNBind"]) == 0)
+		{
+			sln_http = HTTP::RequestURL(url);
+		}
+		else if (static_cast<int>(eoserv_config["SLNBind"]) == 1)
+		{
+			sln_http = HTTP::RequestURL(url, IPAddress(static_cast<std::string>(eoserv_config["Host"])));
+		}
+		else
+		{
+			sln_http = HTTP::RequestURL(url, IPAddress(static_cast<std::string>(eoserv_config["SLNBind"])));
+		}
+	}
+	catch (Socket_Exception &e)
+	{
+		std::fputs(e.error(), stderr);
+		return 0;
+	}
+	catch (...)
+	{
+		std::fputs("There was a problem trying to make the HTTP request...", stderr);
+		return 0;
+	}
+
 	sln_tick_request_timer = new TimeEvent(sln_tick_request, server_void, 0.01, Timer::FOREVER, false);
 	server->world->timer.Register(sln_tick_request_timer);
 
@@ -260,7 +283,7 @@ void server_pump_queue(void *server_void)
 	EOServer *server = static_cast<EOServer *>(server_void);
 	double now = Timer::GetTime();
 
-	UTIL_LIST_FOREACH_ALL(server->clients, EOClient *, client)
+	UTIL_VECTOR_FOREACH_ALL(server->clients, EOClient *, client)
 	{
 		std::size_t size = client->queue.size();
 
@@ -357,7 +380,7 @@ void EOServer::AddBan(std::string username, IPAddress address, std::string hdid,
 {
 	double now = Timer::GetTime();
 	restart_loop:
-	UTIL_LIST_IFOREACH(this->bans.begin(), this->bans.end(), EOServer_Ban, ban)
+	UTIL_VECTOR_IFOREACH(this->bans.begin(), this->bans.end(), EOServer_Ban, ban)
 	{
 		if (ban->expires < now)
 		{
@@ -376,7 +399,7 @@ void EOServer::AddBan(std::string username, IPAddress address, std::string hdid,
 bool EOServer::UsernameBanned(std::string username)
 {
 	double now = Timer::GetTime();
-	UTIL_LIST_FOREACH_ALL(this->bans, EOServer_Ban, ban)
+	UTIL_VECTOR_FOREACH_ALL(this->bans, EOServer_Ban, ban)
 	{
 		if (ban.expires > now && ban.username == username)
 		{
@@ -390,7 +413,7 @@ bool EOServer::UsernameBanned(std::string username)
 bool EOServer::AddressBanned(IPAddress address)
 {
 	double now = Timer::GetTime();
-	UTIL_LIST_FOREACH_ALL(this->bans, EOServer_Ban, ban)
+	UTIL_VECTOR_FOREACH_ALL(this->bans, EOServer_Ban, ban)
 	{
 		if (ban.expires > now && ban.address == address)
 		{
@@ -404,7 +427,7 @@ bool EOServer::AddressBanned(IPAddress address)
 bool EOServer::HDIDBanned(std::string hdid)
 {
 	double now = Timer::GetTime();
-	UTIL_LIST_FOREACH_ALL(this->bans, EOServer_Ban, ban)
+	UTIL_VECTOR_FOREACH_ALL(this->bans, EOServer_Ban, ban)
 	{
 		if (ban.expires > now && ban.hdid == hdid)
 		{

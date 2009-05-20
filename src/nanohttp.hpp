@@ -13,9 +13,9 @@ class HTTP
 		bool done;
 
 	public:
-		HTTP(std::string host, unsigned short port, std::string path);
+		HTTP(std::string host, unsigned short port, std::string path, IPAddress outgoing = 0U);
 
-		static HTTP *RequestURL(std::string url);
+		static HTTP *RequestURL(std::string url, IPAddress outgoing = 0U);
 
 		void Tick(int timeout);
 

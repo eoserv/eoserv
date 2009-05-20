@@ -6,7 +6,7 @@
 #include "socket.hpp"
 #include "util.hpp"
 
-HTTP::HTTP(std::string host, unsigned short port, std::string path)
+HTTP::HTTP(std::string host, unsigned short port, std::string path, IPAddress outgoing)
 {
 	std::string request;
 
@@ -19,14 +19,19 @@ HTTP::HTTP(std::string host, unsigned short port, std::string path)
 	"Connection: close\r\n"
 	"\r\n";
 
-	client = new Client(IPAddress::Lookup(host), port);
+	client = new Client;
+	if (static_cast<unsigned int>(outgoing) != 0)
+	{
+		client->Bind(outgoing, util::rand(49152, 65535));
+	}
+	client->Connect(IPAddress::Lookup(host), port);
 
 	this->done = false;
 
 	client->Send(request);
 }
 
-HTTP *HTTP::RequestURL(std::string url)
+HTTP *HTTP::RequestURL(std::string url, IPAddress outgoing)
 {
 	std::size_t loc, loc2;
 
@@ -71,7 +76,7 @@ HTTP *HTTP::RequestURL(std::string url)
 
 	std::string path = url.substr(loc2);
 
-	return new HTTP(host, port, path);
+	return new HTTP(host, port, path, outgoing);
 }
 
 void HTTP::Tick(int timeout)

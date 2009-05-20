@@ -43,7 +43,7 @@ CLIENT_F_FUNC(Login)
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
-			UTIL_LIST_FOREACH_ALL(this->player->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);
