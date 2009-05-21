@@ -4,9 +4,9 @@
 #include <cstdio>
 #include <string>
 
-#include "./extra/ntservice.hpp"
+#include "ntservice.hpp"
 
-#include "socket.hpp" // OSErrorString
+#include "../socket.hpp" // OSErrorString
 
 SERVICE_STATUS_HANDLE service_handle;
 HANDLE service_event;

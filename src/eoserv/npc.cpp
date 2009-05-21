@@ -121,6 +121,29 @@ void NPC::Act()
 		{
 			attacker = opponent->attacker;
 			attacker_damage = opponent->damage;
+			attacker_distance = distance;
+		}
+	}
+
+	if (this->data->type == ENF::Aggressive && !attacker)
+	{
+		Character *closest = 0;
+		unsigned char closest_distance = static_cast<int>(eoserv_config["SeeDistance"]);
+
+		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+		{
+			int distance = std::abs(character->x + character->y - npccoordsum);
+
+			if (distance < closest_distance)
+			{
+				closest = character;
+				closest_distance = distance;
+			}
+		}
+
+		if (closest)
+		{
+			attacker = closest;
 		}
 	}
 
