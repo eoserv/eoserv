@@ -56,11 +56,11 @@ int variant::GetInt()
 
 	switch (this->type)
 	{
-		case type_float: puts("CAST!");
+		case type_float:
 			this->val_int = static_cast<int>(this->val_float);
 			break;
 
-		case type_string: puts("CAST!");
+		case type_string:
 			this->val_int = 0;
 			std::sscanf(this->val_string.c_str(), "%d", &this->val_int);
 			break;
@@ -79,11 +79,11 @@ double variant::GetFloat()
 
 	switch (this->type)
 	{
-		case type_int: puts("CAST!");
+		case type_int:
 			this->val_float = static_cast<double>(this->val_int);
 			break;
 
-		case type_string: puts("CAST!");
+		case type_string:
 			this->val_float = 0.0;
 			std::sscanf(this->val_string.c_str(), "%lf", &this->val_float);
 			break;
@@ -104,12 +104,12 @@ std::string variant::GetString()
 
 	switch (this->type)
 	{
-		case type_int: puts("CAST!");
+		case type_int:
 			std::snprintf(buf, 1024, "%i", this->val_int);
 			this->val_string = buf;
 			break;
 
-		case type_float: puts("CAST!");
+		case type_float:
 			std::snprintf(buf, 1024, "%lf", this->val_float);
 			this->val_string = buf;
 			break;

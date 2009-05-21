@@ -1,7 +1,7 @@
 [Project]
 FileName=mingw.dev
 Name=mingw
-UnitCount=68
+UnitCount=70
 Type=1
 Ver=1
 ObjFiles=
@@ -10,9 +10,9 @@ Libs=
 PrivateResource=
 ResourceIncludes=
 MakeIncludes=
-Compiler=-DDEBUG -DDATABASE_MYSQL -DDATABASE_SQLITE -DDATABASE_DEBUG
-CppCompiler=-DDEBUG -DDATABASE_MYSQL -DDATABASE_SQLITE -DDATABASE_DEBUG
-Linker=-lws2_32 -lmysql -lsqlite3 -lpthreadGC2 -winmm
+Compiler=-DDEBUG -DDATABASE_MYSQL -DDATABASE_SQLITE -DDATABASE_DEBUG -I../src
+CppCompiler=-DDEBUG -DDATABASE_MYSQL -DDATABASE_SQLITE -DDATABASE_DEBUG -I../src
+Linker=-lws2_32 -lmysql -lsqlite3 -lpthreadGC2 -lwinmm
 IsCpp=1
 Icon=
 ExeOutput=../
@@ -20,7 +20,7 @@ ObjectOutput=../obj/Debug
 OverrideOutput=1
 OverrideOutputName=eoserv-debug.exe
 HostApplication=
-Folders=eoserv,handlers
+Folders=eoserv,handlers,extra
 CommandLine=
 UseCustomMakefile=0
 CustomMakefile=
@@ -721,6 +721,27 @@ BuildCmd=
 FileName=..\src\nanohttp.hpp
 CompileCpp=1
 Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+BuildCmd=
+
+[Unit69]
+FileName=..\src\extra\ntservice.cpp
+CompileCpp=1
+Folder=extra
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit70]
+FileName=..\src\extra\ntservice.hpp
+CompileCpp=1
+Folder=extra
 Compile=1
 Link=1
 Priority=1000
