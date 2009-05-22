@@ -22,8 +22,12 @@ EIF *eoserv_items;
 ENF *eoserv_npcs;
 ESF *eoserv_spells;
 ECF *eoserv_classes;
-Config eoserv_config; // assigned to later
-Config admin_config; // assigned to later
+
+// assigned to in World::World()
+Config eoserv_config;
+Config admin_config;
+Config drops_config;
+Config shops_config;
 
 void world_spawn_npcs(void *world_void);
 

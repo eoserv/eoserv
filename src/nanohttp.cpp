@@ -2,6 +2,7 @@
 #include "nanohttp.hpp"
 
 #include <string>
+#include <cstdio>
 
 #include "socket.hpp"
 #include "util.hpp"
@@ -134,7 +135,7 @@ std::string HTTP::URLEncode(std::string raw)
 		}
 		else
 		{
-			std::snprintf(buf, 3, "%02x", c);
+			snprintf(buf, 3, "%02x", c);
 			encoded += std::string("%") + std::string(buf, 2);
 		}
 	}

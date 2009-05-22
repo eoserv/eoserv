@@ -126,14 +126,14 @@ Character *Character::Create(Player *player, std::string name, int gender, int h
 	if (static_cast<int>(eoserv_config["StartMap"]))
 	{
 		startmapinfo = ", `map`, `x`, `y`";
-		std::snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["StartMap"]), static_cast<int>(eoserv_config["StartX"]), static_cast<int>(eoserv_config["StartY"]));
+		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["StartMap"]), static_cast<int>(eoserv_config["StartX"]), static_cast<int>(eoserv_config["StartY"]));
 		startmapval = buffer;
 	}
 
 	if (static_cast<int>(eoserv_config["SpawnMap"]))
 	{
 		spawnmapinfo = ", `spawnmap`, `spawnx`, `spawny`";
-		std::snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["SpawnMap"]), static_cast<int>(eoserv_config["SpawnX"]), static_cast<int>(eoserv_config["SpawnY"]));
+		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["SpawnMap"]), static_cast<int>(eoserv_config["SpawnX"]), static_cast<int>(eoserv_config["SpawnY"]));
 		spawnmapval = buffer;
 	}
 

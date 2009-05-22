@@ -27,6 +27,30 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		this->direction = static_cast<Direction>(spawn_time & 0x03);
 		this->spawn_time = 0;
 	}
+
+	Config::iterator drops = drops_config.find(util::to_string(this->id));
+	if (drops != drops_config.end())
+	{
+		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*drops).second));
+
+		if (parts.size() % 4 != 0)
+		{
+			std::fprintf(stderr, "WARNING: skipping invalid drop data for NPC #%i\n", id);
+			return;
+		}
+
+		for (std::size_t i = 0; i < parts.size(); i += 4)
+		{
+			NPC_Drop drop;
+
+			drop.id = util::to_int(parts[i]);
+			drop.min = util::to_int(parts[i+1]);
+			drop.max = util::to_int(parts[i+2]);
+			drop.chance = util::to_float(parts[i+3]);
+
+			this->drops.push_back(drop);
+		}
+	}
 }
 
 void NPC::Spawn()
@@ -226,6 +250,7 @@ bool NPC::Walk(Direction direction)
 
 void NPC::Damage(Character *from, int amount)
 {
+	double droprate = static_cast<double>(eoserv_config["DropRate"]);
 	int sharemode = static_cast<int>(eoserv_config["ShareMode"]);
 	PacketBuilder builder;
 
@@ -280,6 +305,15 @@ void NPC::Damage(Character *from, int amount)
 		this->alive = false;
 		this->dead_since = int(Timer::GetTime());
 
+		NPC_Drop *drop = 0;
+		UTIL_VECTOR_FOREACH_ALL(this->drops, NPC_Drop, checkdrop)
+		{
+			if ((double(util::rand(0,10000)) / 100.0) < checkdrop.chance * droprate)
+			{
+				drop = &checkdrop;
+			}
+		}
+
 		if (sharemode == 1)
 		{
 			UTIL_LIST_FOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
@@ -289,6 +323,68 @@ void NPC::Damage(Character *from, int amount)
 					most_damage_counter = opponent.damage;
 					most_damage = opponent.attacker;
 				}
+			}
+		}
+
+		int dropuid = 0;
+		int dropid = 0;
+		int dropamount = 0;
+		if (drop)
+		{
+			dropuid = this->map->GenerateItemID();
+			dropid = drop->id;
+			dropamount = util::rand(drop->min, drop->max);
+			Map_Item newitem = {dropuid, dropid, dropamount, this->x, this->y, 0, static_cast<int>(eoserv_config["ProtectNPCDrop"])};
+			this->map->items.push_back(newitem);
+
+			// Selects a random number between 0 and maxhp, and decides the winner based on that
+			switch (sharemode)
+			{
+				case 0:
+					this->map->items.back().owner = from->player->id;
+					break;
+
+				case 1:
+					this->map->items.back().owner = most_damage->player->id;
+					break;
+
+				case 2:
+				{
+					int rewarded_hp = util::rand(0, this->data->hp);
+					int count_hp = 0;
+					UTIL_LIST_FOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
+					{
+						if (opponent.attacker->InRange(this))
+						{
+							if (rewarded_hp >= count_hp && rewarded_hp < opponent.damage)
+							{
+								this->map->items.back().owner = opponent.attacker->player->id;
+								break;
+							}
+
+							count_hp += opponent.damage;
+						}
+					}
+				}
+					break;
+
+				case 3:
+				{
+					int rand = util::rand(0, this->damagelist.size());
+					int i = 0;
+					UTIL_LIST_FOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
+					{
+						if (opponent.attacker->InRange(this))
+						{
+							if (rand == i++)
+							{
+								this->map->items.back().owner = opponent.attacker->player->id;
+								break;
+							}
+						}
+					}
+				}
+					break;
 			}
 		}
 
@@ -342,7 +438,6 @@ void NPC::Damage(Character *from, int amount)
 								break;
 						}
 
-
 						character->exp = std::min(character->exp, static_cast<int>(eoserv_config["MaxExp"]));
 
 						if (character->level < static_cast<int>(eoserv_config["MaxLevel"]) && character->exp >= the_world->exp_table[character->level+1])
@@ -364,11 +459,11 @@ void NPC::Damage(Character *from, int amount)
 				builder.AddShort(from->player->id);
 				builder.AddChar(from->direction);
 				builder.AddShort(this->index);
-				builder.AddShort(0); // ?
-				builder.AddShort(0); // dropped item ID
+				builder.AddShort(dropuid);
+				builder.AddShort(dropid);
 				builder.AddChar(this->x);
 				builder.AddChar(this->y);
-				builder.AddInt(0); // items dropped
+				builder.AddInt(dropamount);
 				builder.AddThree(amount);
 
 				if ((sharemode == 0 && character == from) || (sharemode != 0 && found))

@@ -4,6 +4,7 @@
 #include <string>
 #include <stdexcept>
 #include <cstdarg>
+#include <cstdio>
 
 #include "util.hpp"
 

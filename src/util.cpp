@@ -7,6 +7,7 @@
 #include <cmath>
 #include <ctime>
 #include <string>
+#include <limits>
 
 namespace util
 {
@@ -105,12 +106,12 @@ std::string variant::GetString()
 	switch (this->type)
 	{
 		case type_int:
-			std::snprintf(buf, 1024, "%i", this->val_int);
+			snprintf(buf, 1024, "%i", this->val_int);
 			this->val_string = buf;
 			break;
 
 		case type_float:
-			std::snprintf(buf, 1024, "%lf", this->val_float);
+			snprintf(buf, 1024, "%lf", this->val_float);
 			this->val_string = buf;
 			break;
 	}
@@ -317,7 +318,17 @@ int to_int(const std::string &subject)
 	return static_cast<int>(util::variant(subject));
 }
 
+double to_float(const std::string &subject)
+{
+	return static_cast<double>(util::variant(subject));
+}
+
 std::string to_string(int subject)
+{
+	return static_cast<std::string>(util::variant(subject));
+}
+
+std::string to_string(double subject)
 {
 	return static_cast<std::string>(util::variant(subject));
 }
@@ -340,15 +351,41 @@ void ucfirst(std::string &subject)
 	}
 }
 
-int rand(int min, int max)
+static void rand_init()
 {
 	static bool init = false;
+
 	if (!init)
 	{
 		init = true;
 		std::srand(std::time(0));
 	}
-	return static_cast<int>(double(std::rand()) / RAND_MAX * (max - min + 1) + min);
+}
+
+static unsigned long long_rand()
+{
+#if RAND_MAX < 65535
+	return (std::rand() & 0xFF) << 24 | (std::rand() & 0xFF) << 16 | (std::rand() & 0xFF) << 8 | (std::rand() & 0xFF);
+#else
+#if RAND_MAX < 4294967295
+	return (std::rand() & 0xFFFF) << 16 | (std::rand() & 0xFFFF);
+#else
+	return std::rand();
+#endif
+#endif
+}
+
+int rand(int min, int max)
+{
+	rand_init();
+	rand(double(min), double(max));
+	return static_cast<int>(double(long_rand()) / (double(std::numeric_limits<unsigned long>::max()) + 1.0) * double(max - min + 1) + double(min));
+}
+
+double rand(double min, double max)
+{
+	rand_init();
+	return double(long_rand()) / double(std::numeric_limits<unsigned long>::max()) * (max - min) + min;
 }
 
 double round(double subject)

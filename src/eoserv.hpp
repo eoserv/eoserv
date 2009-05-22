@@ -51,6 +51,8 @@ util::array<int, 15> DollUnserialize(std::string serialized);
 
 extern Config eoserv_config;
 extern Config admin_config;
+extern Config drops_config;
+extern Config shops_config;
 
 // ewww
 class EOClient;
@@ -473,6 +475,17 @@ struct NPC_Opponent
 	double last_hit;
 };
 
+/**
+ * Used by the NPC class to store information about an item drop
+ */
+struct NPC_Drop
+{
+	unsigned short id;
+	int min;
+	int max;
+	double chance;
+};
+
 extern double npc_speed_table[8];
 
 /**
@@ -489,6 +502,7 @@ class NPC
 		short spawn_time;
 		unsigned char spawn_x, spawn_y;
 		NPC *parent;
+		std::vector<NPC_Drop> drops;
 
 		bool alive;
 		double dead_since;

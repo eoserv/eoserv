@@ -807,80 +807,95 @@ void Map::Attack(Character *from, Direction direction)
 	int target_x = from->x;
 	int target_y = from->y;
 
-	switch (from->direction)
+	int range = 1;
+
+	if (eoserv_items->Get(from->paperdoll[Character::Weapon])->subtype == EIF::Ranged)
 	{
-		case DIRECTION_UP:
-			target_y -= 1;
-			break;
-
-		case DIRECTION_RIGHT:
-			target_x += 1;
-			break;
-
-		case DIRECTION_DOWN:
-			target_y += 1;
-			break;
-
-		case DIRECTION_LEFT:
-			target_x -= 1;
-			break;
+		range = static_cast<int>(eoserv_config["RangedDistance"]);
 	}
 
-	double mobrate = static_cast<double>(eoserv_config["MobRate"]) / 100.0;
-	UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
+	for (int i = 0; i < range; ++i)
 	{
-		if ((npc->data->type == ENF::Passive || npc->data->type == ENF::Aggressive || from->admin > static_cast<int>(admin_config["killnpcs"]))
-		 && npc->alive && npc->x == target_x && npc->y == target_y)
+		switch (from->direction)
 		{
-			int amount = util::rand(from->mindam, from->maxdam);
+			case DIRECTION_UP:
+				target_y -= 1;
+				break;
 
-			// TODO: Revise these stat effects
+			case DIRECTION_RIGHT:
+				target_x += 1;
+				break;
 
-			int hit_rate = 120;
-			bool critical = true;
+			case DIRECTION_DOWN:
+				target_y += 1;
+				break;
 
-			if ((npc->direction == DIRECTION_UP && from->direction == DIRECTION_DOWN)
-			 || (npc->direction == DIRECTION_RIGHT && from->direction == DIRECTION_LEFT)
-			 || (npc->direction == DIRECTION_DOWN && from->direction == DIRECTION_UP)
-			 || (npc->direction == DIRECTION_LEFT && from->direction == DIRECTION_RIGHT))
+			case DIRECTION_LEFT:
+				target_x -= 1;
+				break;
+		}
+
+		if (!this->Walkable(target_x, target_y, true))
+		{
+			return;
+		}
+
+		double mobrate = static_cast<double>(eoserv_config["MobRate"]) / 100.0;
+		UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
+		{
+			if ((npc->data->type == ENF::Passive || npc->data->type == ENF::Aggressive || from->admin > static_cast<int>(admin_config["killnpcs"]))
+			 && npc->alive && npc->x == target_x && npc->y == target_y)
 			{
-				critical = false;
-				hit_rate -= 40;
+				int amount = util::rand(from->mindam, from->maxdam);
+
+				// TODO: Revise these stat effects
+
+				int hit_rate = 120;
+				bool critical = true;
+
+				if ((npc->direction == DIRECTION_UP && from->direction == DIRECTION_DOWN)
+				 || (npc->direction == DIRECTION_RIGHT && from->direction == DIRECTION_LEFT)
+				 || (npc->direction == DIRECTION_DOWN && from->direction == DIRECTION_UP)
+				 || (npc->direction == DIRECTION_LEFT && from->direction == DIRECTION_RIGHT))
+				{
+					critical = false;
+					hit_rate -= 40;
+				}
+
+				hit_rate += int(from->accuracy / 2.0);
+				hit_rate -= int(double(npc->data->evade) / 2.0 * mobrate);
+				hit_rate = std::min(std::max(hit_rate, 20), 100);
+
+				int origamount = amount;
+				amount -= int(double(npc->data->armor) / 3.0 * mobrate);
+
+				amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
+				amount = std::min(amount, npc->hp);
+
+				int rand = util::rand(0, 100);
+
+				if (rand > hit_rate)
+				{
+					amount = 0;
+				}
+
+				if (rand > 92)
+				{
+					critical = true;
+				}
+
+				if (critical)
+				{
+					amount = int(double(amount) * 1.5);
+				}
+
+				amount = std::max(amount, 0);
+				amount = std::min(amount, npc->hp);
+
+				npc->Damage(from, amount);
+
+				return;
 			}
-
-			hit_rate += int(from->accuracy / 2.0);
-			hit_rate -= int(double(npc->data->evade) / 2.0 * mobrate);
-			hit_rate = std::min(std::max(hit_rate, 20), 100);
-
-			int origamount = amount;
-			amount -= int(double(npc->data->armor) / 3.0 * mobrate);
-
-			amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
-			amount = std::min(amount, npc->hp);
-
-			int rand = util::rand(0, 100);
-
-			if (rand > hit_rate)
-			{
-				amount = 0;
-			}
-
-			if (rand > 92)
-			{
-				critical = true;
-			}
-
-			if (critical)
-			{
-				amount = int(double(amount) * 1.5);
-			}
-
-			amount = std::max(amount, 0);
-			amount = std::min(amount, npc->hp);
-
-			npc->Damage(from, amount);
-
-			break;
 		}
 	}
 }

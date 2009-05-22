@@ -61,7 +61,10 @@ void world_recover(void *world_void)
 
 World::World(util::array<std::string, 5> dbinfo, Config config)
 {
-	std::printf("Timers set at approx. %i ms resolution\n", int(this->timer.resolution * 1000.0));
+	if (int(this->timer.resolution * 1000.0) < 1)
+	{
+		std::printf("Timers set at approx. %i ms resolution\n", int(this->timer.resolution * 1000.0));
+	}
 
 	Database::Engine engine;
 	if (dbinfo[0].compare("sqlite") == 0)
@@ -137,6 +140,24 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 
 	eoserv_config = config;
 	admin_config = aconfig;
+
+	try
+	{
+		drops_config.Read(static_cast<std::string>(eoserv_config["DropsFile"]));
+	}
+	catch (std::runtime_error)
+	{
+		std::fprintf(stderr, "WARNING: Could not load %s\n", static_cast<std::string>(eoserv_config["DropsFile"]).c_str());
+	}
+
+	try
+	{
+		shops_config.Read(static_cast<std::string>(eoserv_config["ShopsFile"]));
+	}
+	catch (std::runtime_error)
+	{
+		std::fprintf(stderr, "WARNING: Could not load %s\n", static_cast<std::string>(eoserv_config["ShopsFile"]).c_str());
+	}
 
 	eoserv_items = new EIF(static_cast<std::string>(eoserv_config["EIF"]));
 	eoserv_npcs = new ENF(static_cast<std::string>(eoserv_config["ENF"]));

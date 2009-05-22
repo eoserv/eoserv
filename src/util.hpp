@@ -496,8 +496,10 @@ typedef variant var;
 double tdparse(std::string timestr);
 
 int to_int(const std::string &);
+double to_float(const std::string &);
 
 std::string to_string(int);
+std::string to_string(double);
 
 void lowercase(std::string &);
 
@@ -506,6 +508,7 @@ void uppercase(std::string &);
 void ucfirst(std::string &);
 
 int rand(int min, int max);
+double rand(double min, double max);
 
 double round(double);
 

@@ -46,7 +46,13 @@ EIF::EIF(std::string filename)
 
 		newdata.graphic = PacketProcessor::Number(buf[0], buf[1]);
 		newdata.type = static_cast<EIF::Type>(PacketProcessor::Number(buf[2]));
-
+		newdata.subtype = static_cast<EIF::SubType>(PacketProcessor::Number(buf[3]));
+		// Ranged gun hack
+		if (newdata.id == 365 && newdata.name == "Gun")
+		{
+			newdata.subtype = EIF::Ranged;
+		}
+		// / Ranged gun hack
 		newdata.special = static_cast<EIF::Special>(PacketProcessor::Number(buf[4]));
 		newdata.hp = PacketProcessor::Number(buf[5], buf[6]);
 		newdata.tp = PacketProcessor::Number(buf[7], buf[8]);

@@ -58,6 +58,14 @@ class EIF
 			UnknownType6,
 		};
 
+		enum SubType
+		{
+			None,
+			Ranged,
+			Arrows,
+			Wings
+		};
+
 		enum Special
 		{
 			Normal,
@@ -86,6 +94,7 @@ struct EIF_Data
 	std::string name;
 	short graphic;
 	EIF::Type type;
+	EIF::SubType subtype;
 
 	EIF::Special special;
 	short hp;
@@ -120,9 +129,9 @@ struct EIF_Data
 
 	short weight;
 
-	EIF_Data() : id(0), graphic(0), type(EIF::Static), special(EIF::Normal), hp(0), tp(0),
-	mindam(0), maxdam(0), accuracy(0), evade(0), armor(0), str(0), intl(0), wis(0), agi(0),
-	con(0), cha(0), scrollmap(0), gender(0), scrolly(0), classreq(0), weight(0) {};
+	EIF_Data() : id(0), graphic(0), type(EIF::Static), subtype(EIF::None), special(EIF::Normal),
+	hp(0), tp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0), str(0), intl(0), wis(0),
+	agi(0), con(0), cha(0), scrollmap(0), gender(0), scrolly(0), classreq(0), weight(0) {};
 };
 
 /**
