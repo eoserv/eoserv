@@ -192,7 +192,6 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	{
 		exp_table[i] = int(util::round(std::pow(double(i), 3.0) * 133.1));
 	}
-	Sleep(10000);
 }
 
 int World::GenerateCharacterID()
