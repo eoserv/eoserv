@@ -40,6 +40,7 @@ CLIENT_F_FUNC(Walk)
 				}
 				else
 				{
+					this->player->character->shop_npc = 0;
 					if (!this->player->character->Walk(direction))
 					{
 						return true;

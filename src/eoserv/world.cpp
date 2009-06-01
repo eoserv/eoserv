@@ -107,8 +107,8 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	CONFIG_DEFAULT("evacuate"      , 2)
 	CONFIG_DEFAULT("shutdown"      , 4)
 	CONFIG_DEFAULT("rehash"        , 4)
-	CONFIG_DEFAULT("sitem"         , 4)
-	CONFIG_DEFAULT("ditem"         , 4)
+	CONFIG_DEFAULT("sitem"         , 3)
+	CONFIG_DEFAULT("ditem"         , 3)
 	CONFIG_DEFAULT("learn"         , 3)
 	CONFIG_DEFAULT("quake"         , 2)
 	CONFIG_DEFAULT("setlevel"      , 3)
@@ -192,6 +192,7 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	{
 		exp_table[i] = int(util::round(std::pow(double(i), 3.0) * 133.1));
 	}
+	Sleep(10000);
 }
 
 int World::GenerateCharacterID()

@@ -8,7 +8,6 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 	this->id = id;
 	this->spawn_x = this->x = x;
 	this->spawn_y = this->y = y;
-
 	this->alive = false;
 	this->attack = false;
 
@@ -33,22 +32,97 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 	{
 		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*drops).second));
 
-		if (parts.size() % 4 != 0)
+		if (parts.size() > 1)
 		{
-			std::fprintf(stderr, "WARNING: skipping invalid drop data for NPC #%i\n", id);
-			return;
+			if (parts.size() % 4 != 0)
+			{
+				std::fprintf(stderr, "WARNING: skipping invalid drop data for NPC #%i\n", id);
+				return;
+			}
+
+			this->drops.resize(parts.size() / 4);
+
+			for (std::size_t i = 0; i < parts.size(); i += 4)
+			{
+				NPC_Drop drop;
+
+				drop.id = util::to_int(parts[i]);
+				drop.min = util::to_int(parts[i+1]);
+				drop.max = util::to_int(parts[i+2]);
+				drop.chance = util::to_float(parts[i+3]);
+
+				this->drops[i/4] = drop;
+			}
 		}
+	}
 
-		for (std::size_t i = 0; i < parts.size(); i += 4)
+	this->shop_name = static_cast<std::string>(shops_config[util::to_string(this->id) + ".name"]);
+	Config::iterator shops = shops_config.find(util::to_string(this->id) + ".trade");
+	if (shops != shops_config.end())
+	{
+		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
+
+		if (parts.size() > 1)
 		{
-			NPC_Drop drop;
+			if (parts.size() % 3 != 0)
+			{
+				std::fprintf(stderr, "WARNING: skipping invalid trade shop data for NPC #%i\n", id);
+				return;
+			}
 
-			drop.id = util::to_int(parts[i]);
-			drop.min = util::to_int(parts[i+1]);
-			drop.max = util::to_int(parts[i+2]);
-			drop.chance = util::to_float(parts[i+3]);
+			this->shop_trade.resize(parts.size() / 3);
 
-			this->drops.push_back(drop);
+			for (std::size_t i = 0; i < parts.size(); i += 3)
+			{
+				NPC_Shop_Trade_Item item;
+				item.id = util::to_int(parts[i]);
+				item.buy = util::to_int(parts[i+1]);
+				item.sell = util::to_int(parts[i+2]);
+
+				if (item.buy != 0 && item.sell != 0 && item.sell > item.buy)
+				{
+					std::fprintf(stderr, "WARNING: item #%i (NPC #%i) has a higher sell price than buy price.\n", item.id, id);
+				}
+
+				this->shop_trade[i/3] = item;
+			}
+		}
+	}
+
+	shops = shops_config.find(util::to_string(this->id) + ".craft");
+	if (shops != shops_config.end())
+	{
+		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
+
+		if (parts.size() > 1)
+		{
+			if (parts.size() % 9 != 0)
+			{
+				std::fprintf(stderr, "WARNING: skipping invalid craft shop data for NPC #%i\n", id);
+				return;
+			}
+
+			this->shop_craft.resize(parts.size() / 9);
+
+			for (std::size_t i = 0; i < parts.size(); i += 9)
+			{
+				NPC_Shop_Craft_Item item;
+				std::vector<NPC_Shop_Craft_Ingredient> ingredients(4);
+				NPC_Shop_Craft_Ingredient ingredient;
+
+				item.id = util::to_int(parts[i]);
+
+				for (int ii = 0; ii < 4; ++ii)
+				{
+					ingredient.id = util::to_int(parts[i+1+ii*2]);
+					ingredient.amount = util::to_int(parts[i+2+ii*2]);
+					ingredients[ii] = ingredient;
+				}
+
+				item.ingredients = ingredients;
+
+				this->shop_craft[i/9] = item;
+			}
 		}
 	}
 }
@@ -250,7 +324,7 @@ bool NPC::Walk(Direction direction)
 
 void NPC::Damage(Character *from, int amount)
 {
-	double droprate = static_cast<double>(eoserv_config["DropRate"]);
+	double droprate = static_cast<double>(eoserv_config["DropRate"]) / 100.0;
 	int sharemode = static_cast<int>(eoserv_config["ShareMode"]);
 	PacketBuilder builder;
 
@@ -305,13 +379,19 @@ void NPC::Damage(Character *from, int amount)
 		this->alive = false;
 		this->dead_since = int(Timer::GetTime());
 
+		std::vector<NPC_Drop> drops;
 		NPC_Drop *drop = 0;
 		UTIL_VECTOR_FOREACH_ALL(this->drops, NPC_Drop, checkdrop)
 		{
 			if ((double(util::rand(0,10000)) / 100.0) < checkdrop.chance * droprate)
 			{
-				drop = &checkdrop;
+				drops.push_back(checkdrop);
 			}
+		}
+
+		if (drops.size() > 0)
+		{
+			drop = &drops[util::rand(0, drops.size()-1)];
 		}
 
 		if (sharemode == 1)

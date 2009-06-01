@@ -66,6 +66,8 @@ Character::Character(std::string name)
 	this->trade_partner = 0;
 	this->trade_agree = false;
 
+	this->shop_npc = 0;
+
 	this->warp_anim = 0;
 
 	this->sitting = static_cast<SitAction>(static_cast<int>(row["sitting"]));

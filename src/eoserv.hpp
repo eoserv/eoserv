@@ -395,6 +395,8 @@ class Character
 		bool trade_agree;
 		std::list<Character_Item> trade_inventory;
 
+		NPC *shop_npc;
+
 		int warp_anim;
 
 		enum EquipLocation
@@ -486,6 +488,34 @@ struct NPC_Drop
 	double chance;
 };
 
+/**
+ * Used by the NPC class to store trade shop data
+ */
+struct NPC_Shop_Trade_Item
+{
+	unsigned short id;
+	int buy;
+	int sell;
+};
+
+/**
+ * Used by the NPC_Shop_Craft_Item class to store item ingredients
+ */
+struct NPC_Shop_Craft_Ingredient
+{
+	unsigned short id;
+	unsigned char amount;
+};
+
+/**
+ * Used by the NPC class to store craft shop data
+ */
+struct NPC_Shop_Craft_Item
+{
+	unsigned short id;
+	std::vector<NPC_Shop_Craft_Ingredient> ingredients;
+};
+
 extern double npc_speed_table[8];
 
 /**
@@ -503,6 +533,9 @@ class NPC
 		unsigned char spawn_x, spawn_y;
 		NPC *parent;
 		std::vector<NPC_Drop> drops;
+		std::string shop_name;
+		std::vector<NPC_Shop_Trade_Item> shop_trade;
+		std::vector<NPC_Shop_Craft_Item> shop_craft;
 
 		bool alive;
 		double dead_since;
