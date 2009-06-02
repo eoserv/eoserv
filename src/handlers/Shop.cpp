@@ -69,7 +69,7 @@ CLIENT_F_FUNC(Shop)
 						reply.SetID(PACKET_SHOP, PACKET_BUY);
 						reply.AddInt(this->player->character->HasItem(1));
 						reply.AddShort(item);
-						reply.AddInt(this->player->character->HasItem(item));
+						reply.AddInt(amount);
 						reply.AddChar(this->player->character->weight);
 						reply.AddChar(this->player->character->maxweight);
 						CLIENT_SEND(reply);

@@ -10,6 +10,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 	this->spawn_y = this->y = y;
 	this->alive = false;
 	this->attack = false;
+	this->totaldamage = 0;
 
 	if (spawn_type > 7)
 	{
@@ -325,6 +326,7 @@ bool NPC::Walk(Direction direction)
 void NPC::Damage(Character *from, int amount)
 {
 	double droprate = static_cast<double>(eoserv_config["DropRate"]) / 100.0;
+	double exprate = static_cast<double>(eoserv_config["ExpRate"]) / 100.0;
 	int sharemode = static_cast<int>(eoserv_config["ShareMode"]);
 	PacketBuilder builder;
 
@@ -493,28 +495,49 @@ void NPC::Damage(Character *from, int amount)
 				{
 					if (found)
 					{
+						int reward;
 						switch (sharemode)
 						{
 							case 0:
 								if (character == from)
 								{
-									character->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0)));
+									reward = std::ceil(double(this->data->exp) * exprate);
+
+									if (reward > 0)
+									{
+										character->exp += reward;
+									}
 								}
 								break;
 
 							case 1:
 								if (character == most_damage)
 								{
-									character->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0)));
+									reward = std::ceil(double(this->data->exp) * exprate);
+
+									if (reward > 0)
+									{
+										character->exp += reward;
+									}
 								}
 								break;
 
 							case 2:
-								character->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0) * (double(findopp->damage) / double(this->totaldamage))));
+								reward = std::ceil(double(this->data->exp) * exprate * (double(findopp->damage) / double(this->totaldamage)));
+
+								if (reward > 0)
+								{
+									character->exp += reward;
+								}
 								break;
 
 							case 3:
-								character->exp += int(std::ceil(double(this->data->exp) * (static_cast<double>(eoserv_config["ExpRate"]) / 100.0) * (double(this->damagelist.size()) / 1.0)));
+								reward = std::ceil(double(this->data->exp) * exprate * (double(this->damagelist.size()) / 1.0));
+
+								if (reward > 0)
+								{
+									character->exp += reward;
+								}
 								break;
 						}
 

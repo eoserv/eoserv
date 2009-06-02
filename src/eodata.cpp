@@ -12,7 +12,7 @@ EIF::EIF(std::string filename)
 	if (!fh)
 	{
 		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
-		return;
+		std::exit(1);
 	}
 
 	std::fseek(fh, 3, SEEK_SET);
@@ -109,7 +109,7 @@ ENF::ENF(std::string filename)
 	if (!fh)
 	{
 		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
-		return;
+		std::exit(1);
 	}
 
 	std::fseek(fh, 3, SEEK_SET);
@@ -191,7 +191,7 @@ ESF::ESF(std::string filename)
 	if (!fh)
 	{
 		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
-		return;
+		std::exit(1);
 	}
 
 	std::fseek(fh, 3, SEEK_SET);
@@ -245,7 +245,7 @@ ECF::ECF(std::string filename)
 	if (!fh)
 	{
 		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
-		return;
+		std::exit(1);
 	}
 
 	std::fseek(fh, 3, SEEK_SET);
