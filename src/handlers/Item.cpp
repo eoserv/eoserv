@@ -17,9 +17,10 @@ CLIENT_F_FUNC(Item)
 				reply.SetID(PACKET_ITEM, PACKET_REPLY);
 				reply.AddChar(item->type); // ?
 				reply.AddShort(id);
-				reply.AddInt(this->player->character->HasItem(id));
+				reply.AddInt(this->player->character->HasItem(id)-1);
 				reply.AddChar(this->player->character->weight);
 				reply.AddChar(this->player->character->maxweight);
+
 				switch (item->type)
 				{
 					case EIF::Teleport:
@@ -36,12 +37,13 @@ CLIENT_F_FUNC(Item)
 
 						if (item->scrollmap == 0)
 						{
-							this->player->character->Warp(this->player->character->spawnmap, this->player->character->spawnx, this->player->character->spawny, WARP_ANIMATION_ADMIN);
+							this->player->character->Warp(this->player->character->spawnmap, this->player->character->spawnx, this->player->character->spawny, WARP_ANIMATION_SCROLL);
 						}
 						else
 						{
-							this->player->character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_ADMIN);
+							this->player->character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_SCROLL);
 						}
+
 						this->player->character->DelItem(id, 1);
 					}
 					break;
@@ -52,7 +54,7 @@ CLIENT_F_FUNC(Item)
 						int tpgain = std::min(int(item->tp), this->player->character->maxtp - this->player->character->tp);
 						this->player->character->hp += hpgain;
 						this->player->character->tp += tpgain;
-						this->player->character->DelItem(id, 1);
+
 						reply.AddInt(hpgain);
 						reply.AddShort(this->player->character->hp);
 						reply.AddShort(this->player->character->tp);
@@ -69,12 +71,15 @@ CLIENT_F_FUNC(Item)
 								character->player->client->SendBuilder(builder);
 							}
 						}
+
+						this->player->character->DelItem(id, 1);
 					}
 					break;
 
 					default:
 						break;
 				}
+
 				CLIENT_SEND(reply);
 			}
 		}

@@ -283,7 +283,7 @@ EO Version Support: .27 .28\n\
 
 			if (!std::setvbuf(stderr, 0, _IOLBF, 1024) == 0)
 			{
-				std::fputs("Failed to change stdout buffer settings\n", stderr);
+				std::fputs("Failed to change stderr buffer settings\n", stderr);
 			}
 		}
 
@@ -298,7 +298,7 @@ EO Version Support: .27 .28\n\
 
 			if (!std::setvbuf(stdout, 0, _IOLBF, 1024) == 0)
 			{
-				std::fputs("Failed to change stderr buffer settings\n", stderr);
+				std::fputs("Failed to change stdout buffer settings\n", stderr);
 			}
 		}
 

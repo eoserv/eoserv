@@ -266,8 +266,8 @@ class Map
 
 		int GenerateItemID();
 
-		void Enter(Character *, int animation = WARP_ANIMATION_NONE);
-		void Leave(Character *, int animation = WARP_ANIMATION_NONE);
+		void Enter(Character *, WarpAnimation animation = WARP_ANIMATION_NONE);
+		void Leave(Character *, WarpAnimation animation = WARP_ANIMATION_NONE);
 
 		void Msg(Character *from, std::string message);
 		bool Walk(Character *from, Direction direction, bool admin = false);
@@ -397,7 +397,7 @@ class Character
 
 		NPC *shop_npc;
 
-		int warp_anim;
+		WarpAnimation warp_anim;
 
 		enum EquipLocation
 		{

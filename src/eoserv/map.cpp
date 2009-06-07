@@ -151,7 +151,7 @@ int Map::GenerateItemID()
 	return lowest_free_id;
 }
 
-void Map::Enter(Character *character, int animation)
+void Map::Enter(Character *character, WarpAnimation animation)
 {
 	PacketBuilder builder;
 	this->characters.push_back(character);
@@ -204,7 +204,7 @@ void Map::Enter(Character *character, int animation)
 	}
 }
 
-void Map::Leave(Character *character, int animation)
+void Map::Leave(Character *character, WarpAnimation animation)
 {
 	PacketBuilder builder;
 

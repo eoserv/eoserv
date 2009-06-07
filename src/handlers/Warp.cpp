@@ -13,9 +13,9 @@ CLIENT_F_FUNC(Warp)
 
 			int anim = this->player->character->warp_anim;
 
-			if (anim && this->player->character->mapid == map)
+			if (anim != WARP_ANIMNATION_INVALID && this->player->character->mapid == map)
 			{
-				this->player->character->warp_anim = 0;
+				this->player->character->warp_anim = WARP_ANIMNATION_INVALID;
 			}
 			else
 			{
