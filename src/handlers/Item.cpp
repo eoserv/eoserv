@@ -14,9 +14,16 @@ CLIENT_F_FUNC(Item)
 			if (this->player->character->HasItem(id))
 			{
 				EIF_Data *item = eoserv_items->Get(id);
+				reply.SetID(PACKET_ITEM, PACKET_REPLY);
+				reply.AddChar(item->type); // ?
+				reply.AddShort(id);
+				reply.AddInt(this->player->character->HasItem(id));
+				reply.AddChar(this->player->character->weight);
+				reply.AddChar(this->player->character->maxweight);
 				switch (item->type)
 				{
 					case EIF::Teleport:
+					{
 						if (this->state < EOClient::Playing)
 						{
 							break;
@@ -36,17 +43,38 @@ CLIENT_F_FUNC(Item)
 							this->player->character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_ADMIN);
 						}
 						this->player->character->DelItem(id, 1);
-						break;
+					}
+					break;
+
+					case EIF::Heal:
+					{
+						int hpgain = std::min(int(item->hp), this->player->character->maxhp - this->player->character->hp);
+						int tpgain = std::min(int(item->tp), this->player->character->maxtp - this->player->character->tp);
+						this->player->character->hp += hpgain;
+						this->player->character->tp += tpgain;
+						this->player->character->DelItem(id, 1);
+						reply.AddInt(hpgain);
+						reply.AddShort(this->player->character->hp);
+						reply.AddShort(this->player->character->tp);
+
+						PacketBuilder builder(PACKET_RECOVER, PACKET_AGREE);
+						builder.AddShort(this->player->id);
+						builder.AddInt(hpgain);
+						builder.AddChar(int(double(this->player->character->hp) / double(this->player->character->maxhp) * 100.0));
+
+						UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+						{
+							if (character != this->player->character && this->player->character->InRange(character))
+							{
+								character->player->client->SendBuilder(builder);
+							}
+						}
+					}
+					break;
 
 					default:
 						break;
 				}
-				reply.SetID(PACKET_ITEM, PACKET_REPLY);
-				reply.AddChar(4); // ?
-				reply.AddShort(id);
-				reply.AddInt(this->player->character->HasItem(id));
-				reply.AddChar(this->player->character->weight);
-				reply.AddChar(this->player->character->maxweight);
 				CLIENT_SEND(reply);
 			}
 		}
