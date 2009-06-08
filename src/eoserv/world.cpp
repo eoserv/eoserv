@@ -203,7 +203,7 @@ int World::GeneratePlayerID()
 {
 	unsigned int lowest_free_id = 1;
 	restart_loop:
-	UTIL_VECTOR_FOREACH_ALL(this->server->clients, EOClient *, client)
+	UTIL_LIST_FOREACH_ALL(this->server->clients, EOClient *, client)
 	{
 		if (client->id == lowest_free_id)
 		{

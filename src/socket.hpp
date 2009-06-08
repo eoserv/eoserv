@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <cstddef>
 #include <cstring>
+#include <ctime>
 #include <stdexcept>
 #include <vector>
 
@@ -254,6 +255,7 @@ class Client
 		void *server;
 		std::size_t recv_buffer_max;
 		std::size_t send_buffer_max;
+		time_t connect_time;
 
 	public:
 		Client();
@@ -268,6 +270,7 @@ class Client
 		bool Connected();
 		IPAddress GetRemoteAddr();
 		bool Close();
+		time_t ConnectTime();
 		virtual ~Client();
 
 	template<class> friend class Server;
@@ -389,7 +392,7 @@ template <class T = Client> class Server
 		/**
 		 * List of connected clients.
 		 */
-		std::vector<T *> clients;
+		std::list<T *> clients;
 
 		/**
 		 * Initializes the Server.
@@ -508,6 +511,7 @@ template <class T = Client> class Server
 			newclient = new T(newsock, sin, static_cast<void *>(this));
 			newclient->send_buffer_max = this->send_buffer_max;
 			newclient->recv_buffer_max = this->recv_buffer_max;
+			newclient->connect_time = time(0);
 
 			this->clients.push_back(newclient);
 
@@ -536,7 +540,7 @@ template <class T = Client> class Server
 			fd.events = POLLERR;
 			fds.push_back(fd);
 
-			UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
+			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 			{
 				if (client->connected)
 				{
@@ -573,7 +577,7 @@ template <class T = Client> class Server
 				}
 
 				int i = 0;
-				UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
+				UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 				{
 					++i;
 					if (fds[i].revents & POLLERR || fds[i].revents & POLLHUP || fds[i].revents & POLLNVAL)
@@ -616,7 +620,7 @@ template <class T = Client> class Server
 				}
 			}
 
-			UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
+			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 			{
 				if (client->connected || client->recv_buffer.length() > 0)
 				{
@@ -639,7 +643,7 @@ template <class T = Client> class Server
 			FD_ZERO(&this->write_fds);
 			FD_ZERO(&this->except_fds);
 
-			UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
+			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 			{
 				if (client->connected)
 				{
@@ -678,7 +682,7 @@ template <class T = Client> class Server
 					throw Socket_Exception("There was an exception on the listening socket.");
 				}
 
-				UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
+				UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 				{
 					if (FD_ISSET(client->sock, &this->except_fds))
 					{
@@ -720,7 +724,7 @@ template <class T = Client> class Server
 				}
 			}
 
-			UTIL_TPL_VECTOR_FOREACH_ALL(this->clients, T *, client)
+			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 			{
 				if (client->recv_buffer.length() > 0)
 				{
@@ -738,9 +742,7 @@ template <class T = Client> class Server
 		 */
 		void BuryTheDead()
 		{
-			class std::vector<T *>::iterator it;
-
-			UTIL_TPL_VECTOR_IFOREACH_ALL(this->clients, T *, it)
+			UTIL_TPL_LIST_IFOREACH_ALL(this->clients, T *, it)
 			{
 				if (!(*it)->Connected())
 				{

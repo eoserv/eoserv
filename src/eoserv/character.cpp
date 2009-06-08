@@ -68,7 +68,7 @@ Character::Character(std::string name)
 
 	this->shop_npc = 0;
 
-	this->warp_anim = WARP_ANIMNATION_INVALID;
+	this->warp_anim = WARP_ANIMATION_INVALID;
 
 	this->sitting = static_cast<SitAction>(static_cast<int>(row["sitting"]));
 

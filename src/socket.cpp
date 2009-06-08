@@ -1,5 +1,6 @@
 
 #include <cstdio>
+#include <ctime>
 
 #include "socket.hpp"
 
@@ -402,6 +403,11 @@ bool Client::Close()
 IPAddress Client::GetRemoteAddr()
 {
 	return IPAddress(this->sin.sin_addr);
+}
+
+time_t Client::ConnectTime()
+{
+	return this->connect_time;
 }
 
 Client::~Client()

@@ -19,6 +19,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 
 	this->spawn_type = spawn_type;
 	this->spawn_time = spawn_time;
+	this->walk_idle_for = 0;
 
 	this->data = eoserv_npcs->Get(id);
 

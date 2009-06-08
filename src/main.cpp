@@ -334,15 +334,39 @@ EO Version Support: .27 .28\n\
 			std::exit(1);
 		}
 
+		std::vector<EOClient *> active_clients;
+		Client *newclient;
 		while (running)
 		{
-			Client *newclient;
 			if ((newclient = server.Poll()) != 0)
 			{
-				std::printf("New connection from %s (%i/%i connections)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str(), server.Connections(), server.MaxConnections());
+				int ip_connections = 0;
+				//bool throttle = false;
+
+				UTIL_LIST_FOREACH_ALL(server.clients, EOClient *, client)
+				{
+					if (client->GetRemoteAddr() == newclient->GetRemoteAddr())
+					{
+						++ip_connections;
+					}
+				}
+
+				/*if (throttle)
+				{
+					std::printf("Connection from %s was rejected (reconnecting too fast)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
+					newclient->Close();
+				}
+				else */if (ip_connections > static_cast<int>(config["MaxConnectionsPerIP"]))
+				{
+					std::printf("Connection from %s was rejected (too many connections from this address)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
+					newclient->Close();
+				}
+				else
+				{
+					std::printf("New connection from %s (%i/%i connections)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str(), server.Connections(), server.MaxConnections());
+				}
 			}
 
-			std::vector<EOClient *> active_clients;
 			try
 			{
 				active_clients = server.Select(0.001);

@@ -33,7 +33,7 @@ void server_ping_all(void *server_void)
 	builder.AddShort(0);
 	builder.AddChar(0);
 
-	UTIL_VECTOR_FOREACH_ALL(server->clients, EOClient *, client)
+	UTIL_LIST_FOREACH_ALL(server->clients, EOClient *, client)
 	{
 		if (client->needpong)
 		{
@@ -283,7 +283,7 @@ void server_pump_queue(void *server_void)
 	EOServer *server = static_cast<EOServer *>(server_void);
 	double now = Timer::GetTime();
 
-	UTIL_VECTOR_FOREACH_ALL(server->clients, EOClient *, client)
+	UTIL_LIST_FOREACH_ALL(server->clients, EOClient *, client)
 	{
 		std::size_t size = client->queue.size();
 

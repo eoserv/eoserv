@@ -115,7 +115,7 @@ bool Player::Online(std::string username)
 		return false;
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(the_world->server->clients, EOClient *, connection)
+	UTIL_LIST_FOREACH_ALL(the_world->server->clients, EOClient *, connection)
 	{
 		if (connection->player)
 		{
