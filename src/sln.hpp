@@ -7,19 +7,29 @@
 #ifndef SLN_HPP_INCLUDED
 #define SLN_HPP_INCLUDED
 
-#include "nanohttp.hpp"
-#include "timer.hpp"
+#include <pthread.h>
 
-namespace SLN
+class SLN;
+
+#include "eoserver.hpp"
+
+/**
+ * Manages checking in with the SLN server regularly
+ */
+class SLN
 {
+	private:
+		pthread_t *thread;
+		EOServer *server;
 
-extern HTTP *http;
-extern TimeEvent *tick_request_timer;
+		void RequestTick();
+		static void *RequestThread(void *void_sln);
+		static void TimedRequest(void *void_sln);
 
-void request(void *server_void);
-void *real_request(void *server_void);
-void tick_request(void *server_void);
-
-}
+	public:
+		SLN(EOServer *server);
+		void Request();
+		~SLN();
+};
 
 #endif //SLN_HPP_INCLUDED

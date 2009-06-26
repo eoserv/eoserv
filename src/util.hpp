@@ -518,6 +518,8 @@ double rand(double min, double max);
 
 double round(double);
 
+void sleep(double seconds);
+
 }
 
 #endif // UTIL_HPP_INCLUDED

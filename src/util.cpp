@@ -14,6 +14,10 @@
 #include <string>
 #include <limits>
 
+#if defined(WIN32) || defined(WIN64)
+#include <windows.h>
+#endif // defined(WIN32) || defined(WIN64)
+
 namespace util
 {
 
@@ -396,6 +400,17 @@ double rand(double min, double max)
 double round(double subject)
 {
 	return std::floor(subject + 0.5);
+}
+
+void sleep(double seconds)
+{
+#if defined(WIN32) || defined(WIN64)
+	Sleep(int(seconds * 1000.0));
+#else // defined(WIN32) || defined(WIN64)
+	unsigned long sec = seconds;
+	unsigned long nsec = (seconds - double(sec)) * 1000000000.0;
+	nanosleep({sec, nsec});
+#endif // defined(WIN32) || defined(WIN64)
 }
 
 }

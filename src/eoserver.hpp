@@ -19,6 +19,7 @@ struct EOServer_Ban;
 #include "eoclient.hpp"
 #include "config.hpp"
 #include "world.hpp"
+#include "sln.hpp"
 
 void server_ping_all(void *server_void);
 void server_pump_queue(void *server_void);
@@ -42,6 +43,7 @@ class EOServer : public Server<EOClient>
 	private:
 		void Initialize(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config);
 		std::vector<EOServer_Ban> bans;
+		SLN *sln;
 
 	public:
 		World *world;

@@ -133,13 +133,16 @@ void EOServer::Initialize(util::array<std::string, 5> dbinfo, const Config &eose
 	this->world->timer.Register(new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER, true));
 	this->world->timer.Register(new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER, true));
 
+	this->world->server = this;
+
 	if (static_cast<int>(this->world->config["SLN"]))
 	{
-		SLN::tick_request_timer = 0;
-		SLN::request(this);
+		this->sln = new SLN(this);
 	}
-
-	this->world->server = this;
+	else
+	{
+		this->sln = 0;
+	}
 }
 
 void EOServer::AddBan(std::string username, IPAddress address, std::string hdid, double duration)
@@ -206,5 +209,10 @@ bool EOServer::HDIDBanned(std::string hdid)
 
 EOServer::~EOServer()
 {
+	if (this->sln)
+	{
+		delete this->sln;
+	}
+
 	delete this->world;
 }

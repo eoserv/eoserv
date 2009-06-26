@@ -88,6 +88,11 @@ util::array<int, 15> DollUnserialize(std::string serialized)
 	return list;
 }
 
+template <typename T> T GetRow(std::map<std::string, util::variant> &row, const char *col)
+{
+	return row[col];
+}
+
 Character::Character(std::string name, World *world)
 {
 	this->world = world;
@@ -102,42 +107,42 @@ Character::Character(std::string name, World *world)
 	this->online = true;
 	this->id = this->world->GenerateCharacterID();
 
-	this->admin = static_cast<AdminLevel>(static_cast<int>(row["admin"]));
-	this->name = static_cast<std::string>(row["name"]);
-	this->title = static_cast<std::string>(row["title"]);
-	this->home = static_cast<std::string>(row["home"]);
-	this->partner = static_cast<std::string>(row["partner"]);
+	this->admin = static_cast<AdminLevel>(GetRow<int>(row, "admin"));
+	this->name = GetRow<std::string>(row, "name");
+	this->title = GetRow<std::string>(row, "title");
+	this->home = GetRow<std::string>(row, "home");
+	this->partner = GetRow<std::string>(row, "partner");
 
-	this->clas = static_cast<int>(row["class"]);
-	this->gender = static_cast<Gender>(static_cast<int>(row["gender"]));
-	this->race = static_cast<Skin>(static_cast<int>(row["race"]));
-	this->hairstyle = static_cast<int>(row["hairstyle"]);
-	this->haircolor = static_cast<int>(row["haircolor"]);
+	this->clas = GetRow<int>(row, "class");
+	this->gender = static_cast<Gender>(GetRow<int>(row, "gender"));
+	this->race = static_cast<Skin>(GetRow<int>(row, "race"));
+	this->hairstyle = GetRow<int>(row, "hairstyle");
+	this->haircolor = GetRow<int>(row, "haircolor");
 
-	this->mapid = static_cast<int>(row["map"]);
-	this->x = static_cast<int>(row["x"]);
-	this->y = static_cast<int>(row["y"]);
-	this->direction = static_cast<int>(row["direction"]);
+	this->mapid = GetRow<int>(row, "map");
+	this->x = GetRow<int>(row, "x");
+	this->y = GetRow<int>(row, "y");
+	this->direction = GetRow<int>(row, "direction");
 
-	this->spawnmap = static_cast<int>(row["spawnmap"]);
-	this->spawnx = static_cast<int>(row["spawnx"]);
-	this->spawny = static_cast<int>(row["spawny"]);
+	this->spawnmap = GetRow<int>(row, "spawnmap");
+	this->spawnx = GetRow<int>(row, "spawnx");
+	this->spawny = GetRow<int>(row, "spawny");
 
-	this->level = static_cast<int>(row["level"]);
-	this->exp = static_cast<int>(row["exp"]);
+	this->level = GetRow<int>(row, "level");
+	this->exp = GetRow<int>(row, "exp");
 
-	this->hp = static_cast<int>(row["hp"]);
-	this->tp = static_cast<int>(row["tp"]);
+	this->hp = GetRow<int>(row, "hp");
+	this->tp = GetRow<int>(row, "tp");
 
-	this->str = static_cast<int>(row["str"]);
-	this->intl = static_cast<int>(row["int"]);
-	this->wis = static_cast<int>(row["wis"]);
-	this->agi = static_cast<int>(row["agi"]);
-	this->con = static_cast<int>(row["con"]);
-	this->cha = static_cast<int>(row["cha"]);
-	this->statpoints = static_cast<int>(row["statpoints"]);
-	this->skillpoints = static_cast<int>(row["skillpoints"]);
-	this->karma = static_cast<int>(row["karma"]);
+	this->str = GetRow<int>(row, "str");
+	this->intl = GetRow<int>(row, "int");
+	this->wis = GetRow<int>(row, "wis");
+	this->agi = GetRow<int>(row, "agi");
+	this->con = GetRow<int>(row, "con");
+	this->cha = GetRow<int>(row, "cha");
+	this->statpoints = GetRow<int>(row, "statpoints");
+	this->skillpoints = GetRow<int>(row, "skillpoints");
+	this->karma = GetRow<int>(row, "karma");
 
 	this->weight = 0;
 	this->maxweight = 0;
