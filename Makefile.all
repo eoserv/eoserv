@@ -1,0 +1,125 @@
+
+SRCDIR = src
+
+DEBUG_BIN = eoserv-debug
+RELEASE_BIN = eoserv
+
+DEBUG_OBJDIR = obj/Debug/$(SRCDIR)
+RELEASE_OBJDIR = obj/Release/$(SRCDIR)
+
+DEBUG_FORMAT = -g
+OPTIMIZATION_LEVEL = -O2
+
+CFLAGS = -DEOSERV_MAKEFILE
+CXXFLAGS = -DEOSERV_MAKEFILE
+LDFLAGS = 
+LIBS = $(PTHREAD_LIB)
+
+ifeq ($(DEBUG),1)
+	BIN = $(DEBUG_BIN)
+	OBJDIR = $(DEBUG_OBJDIR)
+	CFLAGS += $(DEBUG_FORMAT)
+	CXXFLAGS += $(DEBUG_FORMAT)
+else
+	BIN = $(RELEASE_BIN)
+	OBJDIR = $(RELEASE_OBJDIR)
+	CFLAGS += $(OPTIMIZATION_LEVEL)
+	CXXFLAGS += $(OPTIMIZATION_LEVEL)
+	LDFLAGS += -s
+endif
+
+OBJ += $(OBJDIR)/character.o \
+       $(OBJDIR)/config.o \
+       $(OBJDIR)/database.o \
+       $(OBJDIR)/eoclient.o \
+       $(OBJDIR)/eodata.o \
+       $(OBJDIR)/eoserver.o \
+       $(OBJDIR)/guild.o \
+       $(OBJDIR)/hash.o \
+       $(OBJDIR)/main.o \
+       $(OBJDIR)/map.o \
+       $(OBJDIR)/nanohttp.o \
+       $(OBJDIR)/npc.o \
+       $(OBJDIR)/packet.o \
+       $(OBJDIR)/party.o \
+       $(OBJDIR)/player.o \
+       $(OBJDIR)/sha256.o \
+       $(OBJDIR)/sln.o \
+       $(OBJDIR)/socket.o \
+       $(OBJDIR)/timer.o \
+       $(OBJDIR)/util.o \
+       $(OBJDIR)/world.o \
+       $(OBJDIR)/handlers/Account.o \
+       $(OBJDIR)/handlers/AdminInteract.o \
+       $(OBJDIR)/handlers/Attack.o \
+       $(OBJDIR)/handlers/Bank.o \
+       $(OBJDIR)/handlers/Board.o \
+       $(OBJDIR)/handlers/Book.o \
+       $(OBJDIR)/handlers/Chair.o \
+       $(OBJDIR)/handlers/Character.o \
+       $(OBJDIR)/handlers/Chest.o \
+       $(OBJDIR)/handlers/Citizen.o \
+       $(OBJDIR)/handlers/Connection.o \
+       $(OBJDIR)/handlers/Door.o \
+       $(OBJDIR)/handlers/Emote.o \
+       $(OBJDIR)/handlers/Face.o \
+       $(OBJDIR)/handlers/Global.o \
+       $(OBJDIR)/handlers/Guild.o \
+       $(OBJDIR)/handlers/Init.o \
+       $(OBJDIR)/handlers/Item.o \
+       $(OBJDIR)/handlers/Jukebox.o \
+       $(OBJDIR)/handlers/Locker.o \
+       $(OBJDIR)/handlers/Login.o \
+       $(OBJDIR)/handlers/Paperdoll.o \
+       $(OBJDIR)/handlers/Party.o \
+       $(OBJDIR)/handlers/Ping.o \
+       $(OBJDIR)/handlers/Players.o \
+       $(OBJDIR)/handlers/Refresh.o \
+       $(OBJDIR)/handlers/Shop.o \
+       $(OBJDIR)/handlers/Sit.o \
+       $(OBJDIR)/handlers/StatSkill.o \
+       $(OBJDIR)/handlers/Talk.o \
+       $(OBJDIR)/handlers/Trade.o \
+       $(OBJDIR)/handlers/Walk.o \
+       $(OBJDIR)/handlers/Warp.o \
+       $(OBJDIR)/handlers/Welcome.o
+
+ifeq ($(MYSQL),1)
+	LIBS += $(MYSQL_LIB)
+	CFLAGS += -DDATABASE_MYSQL
+	CXXFLAGS += -DDATABASE_MYSQL
+endif
+
+ifeq ($(SQLITE),1)
+	LIBS += $(SQLITE_LIB)
+	CFLAGS += -DDATABASE_SQLITE
+	CXXFLAGS += -DDATABASE_SQLITE
+endif
+
+include $(MAKEFILE_INC)
+
+ifeq ($(POLL),1)
+	CFLAGS += -DSOCKET_POLL
+	CXXFLAGS += -DSOCKET_POLL
+endif
+
+.PHONY: all clean
+
+all: eoserv
+
+clean:
+	${RM} $(OBJ) $(DEBUG_BIN) $(RELEASE_BIN)
+
+create-build-dirs:
+	-@mkdir $(OBJDIR)
+	-@mkdir $(OBJDIR)/extra
+	-@mkdir $(OBJDIR)/handlers
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) -I./$(SRCDIR)/ -I./$(SRCDIR)/extra/ -I./$(SRCDIR)/handlers/ -c $< -o $@ $(CFLAGS)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -I./$(SRCDIR)/ -I./$(SRCDIR)/extra/ -I./$(SRCDIR)/handlers/ -c $< -o $@ $(CXXFLAGS)
+
+eoserv: create-build-dirs $(OBJ)
+	$(CXX) $(OBJ) -o $(BIN) $(LIBS) $(LDFLAGS)

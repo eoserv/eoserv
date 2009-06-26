@@ -1,5 +1,12 @@
 
-unsigned int stupid_hash(unsigned int i)
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
+static unsigned int stupid_hash(unsigned int i)
 {
 	++i;
 	int a = ((i % 11 + 1) * 119);
@@ -31,12 +38,12 @@ CLIENT_F_FUNC(Init)
 	reader.GetChar(); // ?
 	this->hdid = reader.GetEndString();
 
-	if (the_world->server->AddressBanned(this->GetRemoteAddr()))
+	if (this->server->AddressBanned(this->GetRemoteAddr()))
 	{
 		this->Close();
 	}
 
-	if (the_world->server->HDIDBanned(this->hdid))
+	if (this->server->HDIDBanned(this->hdid))
 	{
 		this->Close();
 	}

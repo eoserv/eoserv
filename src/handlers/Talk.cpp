@@ -1,10 +1,16 @@
 
-// Prevents exploitation of a buffer overflow in the EO client
-void limit_message(std::string &message)
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
+static void limit_message(std::string &message, std::size_t chatlength)
 {
-	if (message.length() > static_cast<std::size_t>(static_cast<int>(eoserv_config["ChatLength"])))
+	if (message.length() > chatlength)
 	{
-		message = message.substr(0, static_cast<int>(eoserv_config["ChatLength"])-6) + " [...]";
+		message = message.substr(0, chatlength - 6) + " [...]";
 	}
 }
 
@@ -32,15 +38,15 @@ CLIENT_F_FUNC(Talk)
 		{
 			if (this->state < EOClient::PlayingModal) return false;
 
-			if (this->player->character->mapid == static_cast<int>(eoserv_config["JailMap"]))
+			if (this->player->character->mapid == static_cast<int>(this->server->world->config["JailMap"]))
 			{
 				return false;
 			}
 
 			message = reader.GetEndString();
-			limit_message(message);
+			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 
-			the_world->Msg(this->player->character, message);
+			this->server->world->Msg(this->player->character, message);
 		}
 		break;
 
@@ -50,10 +56,10 @@ CLIENT_F_FUNC(Talk)
 
 			std::string name = reader.GetBreakString();
 			message = reader.GetEndString();
-			limit_message(message);
+			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 			Character *to = 0;
 
-			UTIL_VECTOR_FOREACH_ALL(the_world->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(this->server->world->characters, Character *, character)
 			{
 				if (character->name == name)
 				{
@@ -81,7 +87,7 @@ CLIENT_F_FUNC(Talk)
 			if (this->state < EOClient::PlayingModal) return false;
 
 			message = reader.GetEndString();
-			limit_message(message);
+			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 
 			if (message.empty())
 			{
@@ -95,41 +101,41 @@ CLIENT_F_FUNC(Talk)
 				command = arguments.front().substr(1);
 				arguments.erase(arguments.begin());
 
-				if (command.length() >= 1 && command.compare(0,1,"k") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["kick"]))
+				if (command.length() >= 1 && command.compare(0,1,"k") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["kick"]))
 				{
-					Character *victim = the_world->GetCharacter(arguments[0]);
+					Character *victim = this->server->world->GetCharacter(arguments[0]);
 					if (victim)
 					{
 						if (victim->admin < this->player->character->admin)
 						{
-							the_world->Kick(this->player->character, victim);
+							this->server->world->Kick(this->player->character, victim);
 						}
 					}
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"b") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["ban"]))
+				else if (command.length() >= 1 && command.compare(0,1,"b") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["ban"]))
 				{
-					Character *victim = the_world->GetCharacter(arguments[0]);
-					double duration = (arguments.size() >= 2)?util::tdparse(arguments[1]):util::tdparse(eoserv_config["DefaultBanLength"]);
+					Character *victim = this->server->world->GetCharacter(arguments[0]);
+					double duration = (arguments.size() >= 2)?util::tdparse(arguments[1]):util::tdparse(this->server->world->config["DefaultBanLength"]);
 					if (victim)
 					{
 						if (victim->admin < this->player->character->admin)
 						{
-							the_world->Ban(this->player->character, victim, duration);
+							this->server->world->Ban(this->player->character, victim, duration);
 						}
 					}
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"j") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["jail"]))
+				else if (command.length() >= 1 && command.compare(0,1,"j") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["jail"]))
 				{
-					Character *victim = the_world->GetCharacter(arguments[0]);
+					Character *victim = this->server->world->GetCharacter(arguments[0]);
 					if (victim)
 					{
 						if (victim->admin < this->player->character->admin)
 						{
-							victim->Warp(static_cast<int>(eoserv_config["JailMap"]), static_cast<int>(eoserv_config["JailX"]), static_cast<int>(eoserv_config["JailY"]), WARP_ANIMATION_ADMIN);
+							victim->Warp(static_cast<int>(this->server->world->config["JailMap"]), static_cast<int>(this->server->world->config["JailX"]), static_cast<int>(this->server->world->config["JailY"]), WARP_ANIMATION_ADMIN);
 						}
 					}
 				}
-				else if (command.length() >= 2 && command.compare(0,2,"si") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["sitem"]))
+				else if (command.length() >= 2 && command.compare(0,2,"si") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["sitem"]))
 				{
 					int id = util::to_int(arguments[0]);
 					int amount = (arguments.size() >= 2)?util::to_int(arguments[1]):1;
@@ -144,7 +150,7 @@ CLIENT_F_FUNC(Talk)
 						CLIENT_SEND(reply);
 					}
 				}
-				else if (command.length() >= 2 && command.compare(0,2,"di") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["ditem"]))
+				else if (command.length() >= 2 && command.compare(0,2,"di") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["ditem"]))
 				{
 					int id = util::to_int(arguments[0]);
 					int amount = (arguments.size() >= 2)?util::to_int(arguments[1]):1;
@@ -156,7 +162,7 @@ CLIENT_F_FUNC(Talk)
 						if (item)
 						{
 							item->owner = this->player->id;
-							item->unprotecttime = Timer::GetTime() + static_cast<double>(eoserv_config["ProctectPlayerDrop"]);
+							item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server->world->config["ProctectPlayerDrop"]);
 							this->player->character->DelItem(id, amount);
 
 							reply.SetID(PACKET_ITEM, PACKET_DROP);
@@ -172,51 +178,51 @@ CLIENT_F_FUNC(Talk)
 						}
 					}
 				}
-				else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["warpmeto"]))
+				else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["warpmeto"]))
 				{
-					Character *victim = the_world->GetCharacter(arguments[0]);
+					Character *victim = this->server->world->GetCharacter(arguments[0]);
 					if (victim)
 					{
 						this->player->character->Warp(victim->mapid, victim->x, victim->y, WARP_ANIMATION_ADMIN);
 					}
 				}
-				else if (command.length() >= 5 && command.compare(0,5,"warpt") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["warptome"]))
+				else if (command.length() >= 5 && command.compare(0,5,"warpt") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["warptome"]))
 				{
-					Character *victim = the_world->GetCharacter(arguments[0]);
+					Character *victim = this->server->world->GetCharacter(arguments[0]);
 					if (victim)
 					{
 						victim->Warp(this->player->character->mapid, this->player->character->x, this->player->character->y, WARP_ANIMATION_ADMIN);
 					}
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"w") == 0 && arguments.size() >= 3 && this->player->character->admin >= static_cast<int>(admin_config["warp"]))
+				else if (command.length() >= 1 && command.compare(0,1,"w") == 0 && arguments.size() >= 3 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["warp"]))
 				{
 					int map = util::to_int(arguments[0]);
 					int x = util::to_int(arguments[1]);
 					int y = util::to_int(arguments[2]);
 
-					if (map < 0 || map >= static_cast<int>(the_world->maps.size()))
+					if (map < 0 || map >= static_cast<int>(this->server->world->maps.size()))
 					{
 						break;
 					}
 
 					this->player->character->Warp(map, x, y, WARP_ANIMATION_ADMIN);
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["rehash"]))
+				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["rehash"]))
 				{
 					std::printf("Config reloaded by %s\n", this->player->character->name.c_str());
 					try
 					{
-						eoserv_config.Read("config.ini");
-						admin_config.Read("admin.ini");
+						this->server->world->config.Read("config.ini");
+						this->server->world->admin_config.Read("admin.ini");
 					}
 					catch (std::runtime_error)
 					{
 
 					}
 				}
-				else if (command.length() >= 2 && command.compare(0,2,"in") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(admin_config["info"]))
+				else if (command.length() >= 2 && command.compare(0,2,"in") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["info"]))
 				{
-					Character *victim = the_world->GetCharacter(arguments[0]);
+					Character *victim = this->server->world->GetCharacter(arguments[0]);
 					if (victim)
 					{
 						std::string name = victim->name;
@@ -275,9 +281,9 @@ CLIENT_F_FUNC(Talk)
 						CLIENT_SEND(reply);
 					}
 				}
-				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(admin_config["shutdown"]))
+				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["shutdown"]))
 				{
-					UTIL_VECTOR_FOREACH_ALL(the_world->characters, Character *, character)
+					UTIL_VECTOR_FOREACH_ALL(this->server->world->characters, Character *, character)
 					{
 						character->Save();
 						character->player->client->Close();
@@ -285,7 +291,7 @@ CLIENT_F_FUNC(Talk)
 					std::printf("Server shut down by %s\n", this->player->character->name.c_str());
 					std::exit(0);
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"q") == 0 && this->player->character->admin >= static_cast<int>(admin_config["quake"]))
+				else if (command.length() >= 1 && command.compare(0,1,"q") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["quake"]))
 				{
 					int strength = (arguments.size() >= 1)?std::min(8,std::max(1,util::to_int(arguments[0]))):5;
 					this->player->character->map->Effect(MAP_EFFECT_QUAKE, strength);
@@ -305,9 +311,9 @@ CLIENT_F_FUNC(Talk)
 			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 
 			message = reader.GetEndString(); // message
-			limit_message(message);
+			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 
-			the_world->AdminMsg(this->player->character, message);
+			this->server->world->AdminMsg(this->player->character, message);
 		}
 		break;
 
@@ -318,9 +324,9 @@ CLIENT_F_FUNC(Talk)
 			if (this->player->character->admin < ADMIN_GUARDIAN) return false;
 
 			message = reader.GetEndString(); // message
-			limit_message(message);
+			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 
-			the_world->AnnounceMsg(this->player->character, message);
+			this->server->world->AnnounceMsg(this->player->character, message);
 		}
 		break;
 

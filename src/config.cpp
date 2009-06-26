@@ -1,15 +1,16 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include "config.hpp"
 
+#include <string>
 #include <cstdio>
 #include <stdexcept>
 
 #include "util.hpp"
-
-Config::Config()
-{
-
-}
 
 Config::Config(std::string filename)
 {

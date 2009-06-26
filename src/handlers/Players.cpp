@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Players)
 {
 	PacketBuilder reply;
@@ -10,7 +17,7 @@ CLIENT_F_FUNC(Players)
 			if (this->state < EOClient::PlayingModal) return false;
 
 			std::string name = reader.GetEndString();
-			Character *victim = the_world->GetCharacter(name);
+			Character *victim = this->server->world->GetCharacter(name);
 
 			if (victim)
 			{
@@ -38,9 +45,9 @@ CLIENT_F_FUNC(Players)
 
 			reply.SetID(0);
 			reply.AddChar(replycode);
-			reply.AddShort(the_world->characters.size());
+			reply.AddShort(this->server->world->characters.size());
 			reply.AddByte(255);
-			UTIL_VECTOR_FOREACH_ALL(the_world->characters, Character *, character)
+			UTIL_VECTOR_FOREACH_ALL(this->server->world->characters, Character *, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddBreakString(character->title);

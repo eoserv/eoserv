@@ -1,4 +1,12 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#ifndef NANOHTTP_HPP_INCLUDED
+#define NANOHTTP_HPP_INCLUDED
+
 #include "socket.hpp"
 
 /**
@@ -27,3 +35,5 @@ class HTTP
 
 		~HTTP();
 };
+
+#endif // NANOHTTP_HPP_INCLUDED

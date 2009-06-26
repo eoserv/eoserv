@@ -1,0 +1,8 @@
+
+CFLAGS += -DEOSERV_MAKEFILE_LNX -I"/usr/include/mysql/"
+CXXFLAGS += -DEOSERV_MAKEFILE_LNX -I"/usr/include/mysql/"
+LIBS += -lrt
+
+MYSQL_LIB = -lmysqlclient
+SQLITE_LIB = -lsqlite3
+PTHREAD_LIB = -lpthread

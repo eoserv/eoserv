@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Item)
 {
 	PacketBuilder reply;
@@ -13,7 +20,7 @@ CLIENT_F_FUNC(Item)
 
 			if (this->player->character->HasItem(id))
 			{
-				EIF_Data *item = eoserv_items->Get(id);
+				EIF_Data *item = this->server->world->eif->Get(id);
 				reply.SetID(PACKET_ITEM, PACKET_REPLY);
 				reply.AddChar(item->type); // ?
 				reply.AddShort(id);
@@ -30,7 +37,7 @@ CLIENT_F_FUNC(Item)
 							break;
 						}
 
-						if (this->player->character->mapid == static_cast<int>(eoserv_config["JailMap"]))
+						if (this->player->character->mapid == static_cast<int>(this->server->world->config["JailMap"]))
 						{
 							break;
 						}
@@ -92,7 +99,7 @@ CLIENT_F_FUNC(Item)
 			int id = reader.GetShort();
 			int amount;
 
-			if (eoserv_items->Get(id)->special == EIF::Lore)
+			if (this->server->world->eif->Get(id)->special == EIF::Lore)
 			{
 				return true;
 			}
@@ -108,7 +115,7 @@ CLIENT_F_FUNC(Item)
 			int x = reader.GetByte(); // ?
 			int y = reader.GetByte(); // ?
 
-			amount = std::min<int>(amount, eoserv_config["MaxDrop"]);
+			amount = std::min<int>(amount, this->server->world->config["MaxDrop"]);
 
 			if (amount == 0)
 			{
@@ -129,7 +136,7 @@ CLIENT_F_FUNC(Item)
 
 			int distance = std::abs(x + y - this->player->character->x - this->player->character->y);
 
-			if (distance > static_cast<int>(eoserv_config["DropDistance"]))
+			if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
 			{
 				return true;
 			}
@@ -139,13 +146,13 @@ CLIENT_F_FUNC(Item)
 				return true;
 			}
 
-			if (this->player->character->HasItem(id) >= amount && this->player->character->mapid != static_cast<int>(eoserv_config["JailMap"]))
+			if (this->player->character->HasItem(id) >= amount && this->player->character->mapid != static_cast<int>(this->server->world->config["JailMap"]))
 			{
 				Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
 				if (item)
 				{
 					item->owner = this->player->id;
-					item->unprotecttime = Timer::GetTime() + static_cast<double>(eoserv_config["ProctectPlayerDrop"]);
+					item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server->world->config["ProctectPlayerDrop"]);
 					this->player->character->DelItem(id, amount);
 
 					reply.SetID(PACKET_ITEM, PACKET_DROP);
@@ -197,7 +204,7 @@ CLIENT_F_FUNC(Item)
 				{
 					int distance = std::abs(item.x + item.y - this->player->character->x - this->player->character->y);
 
-					if (distance > static_cast<int>(eoserv_config["DropDistance"]))
+					if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
 					{
 						break;
 					}

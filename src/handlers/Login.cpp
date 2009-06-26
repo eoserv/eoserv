@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Login)
 {
 	PacketBuilder reply;
@@ -16,14 +23,14 @@ CLIENT_F_FUNC(Login)
 
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
 
-			if (Player::Online(username))
+			if (this->server->world->PlayerOnline(username))
 			{
 				reply.AddShort(LOGIN_LOGGEDIN);
 				CLIENT_SEND(reply);
 				return true;
 			}
 
-			if ((this->player = Player::Login(username, password)) == 0)
+			if ((this->player = this->server->world->Login(username, password)) == 0)
 			{
 				reply.AddShort(LOGIN_WRONG_USERPASS);
 				CLIENT_SEND(reply);
@@ -33,7 +40,7 @@ CLIENT_F_FUNC(Login)
 			this->player->client = this;
 			this->state = EOClient::LoggedIn;
 
-			if (the_world->server->UsernameBanned(username))
+			if (this->server->UsernameBanned(username))
 			{
 				this->Close();
 				return false;
@@ -53,11 +60,11 @@ CLIENT_F_FUNC(Login)
 				reply.AddChar(character->haircolor);
 				reply.AddChar(character->race);
 				reply.AddChar(character->admin);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddByte(255);
 			}
 			CLIENT_SEND(reply);

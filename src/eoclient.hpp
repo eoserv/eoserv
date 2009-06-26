@@ -1,3 +1,9 @@
+
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #ifndef EOCLIENT_HPP_INCLUDED
 #define EOCLIENT_HPP_INCLUDED
 
@@ -6,26 +12,18 @@
 #include <vector>
 #include <queue>
 
-class EOServer_Ban;
-class ActionQueue_Action;
-
-class EOServer;
 class EOClient;
 class ActionQueue;
 
+struct ActionQueue_Action;
+
+#include "eoserver.hpp"
+#include "util.hpp"
 #include "socket.hpp"
 #include "packet.hpp"
-#include "eoserv.hpp"
-#include "util.hpp"
-#include "config.hpp"
+#include "player.hpp"
 
 #define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(PacketFamily family, PacketAction action, PacketReader &reader, int act)
-
-void server_ping_all(void *server_void);
-void sln_request(void *server_void);
-void *real_sln_request(void *server_void);
-void sln_tick_request(void *server_void);
-void server_pump_queue(void *server_void);
 
 /**
  * An action the server will execute for the client
@@ -55,61 +53,11 @@ class ActionQueue : public std::queue<ActionQueue_Action *>
 };
 
 /**
- * Information about a temporary in-memory ban
- */
-struct EOServer_Ban
-{
-	std::string username;
-	IPAddress address;
-	std::string hdid;
-	double expires;
-};
-
-/**
- * A server which accepts connections and creates EOClient instances from them
- */
-class EOServer : public Server<EOClient>
-{
-	private:
-		void Initialize(util::array<std::string, 5> dbinfo, Config config);
-		EOServer(){};
-		std::vector<EOServer_Ban> bans;
-
-	public:
-		World *world;
-
-		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, Config config) : Server<EOClient>(addr, port)
-		{
-			this->Initialize(dbinfo, config);
-		}
-
-		void AddBan(std::string username, IPAddress address, std::string hdid, double duration);
-
-		bool UsernameBanned(std::string username);
-		bool AddressBanned(IPAddress address);
-		bool HDIDBanned(std::string hdid);
-
-		~EOServer();
-};
-
-/**
  * A connection between an EO Client and EOSERV
  */
 class EOClient : public Client
 {
-	private:
-		void Initialize();
-		EOClient();
-
 	public:
-		int version;
-		Player *player;
-		unsigned int id;
-		bool needpong;
-		std::string hdid;
-
-		ActionQueue queue;
-
 		enum PacketState
 		{
 			ReadLen1,
@@ -126,20 +74,34 @@ class EOClient : public Client
 			Playing
 		};
 
-		PacketState packet_state;
+	private:
+		void Initialize();
+		EOClient();
+
+	public:
+		EOServer *server;
+		int version;
+		Player *player;
+		unsigned int id;
+		bool needpong;
+		std::string hdid;
 		ClientState state;
+
+		ActionQueue queue;
+
+		PacketState packet_state;
 		unsigned char raw_length[2];
 		unsigned int length;
 		std::string data;
 
 		PacketProcessor processor;
 
-		EOClient(void *server) : Client(server)
+		EOClient(void *void_server) : Client(void_server), server(static_cast<EOServer *>(void_server))
 		{
 			this->Initialize();
 		}
 
-		EOClient(SOCKET s, sockaddr_in sa, void *server) : Client(s, sa, server)
+		EOClient(SOCKET s, sockaddr_in sa, void *void_server) : Client(s, sa, void_server), server(static_cast<EOServer *>(void_server))
 		{
 			this->Initialize();
 		}

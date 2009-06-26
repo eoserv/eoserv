@@ -1,4 +1,9 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include <cstdio>
 #include <ctime>
 
@@ -6,11 +11,11 @@
 
 #include "util.hpp"
 
-char ErrorBuf[1024];
+static char ErrorBuf[1024];
 
 #if defined(WIN32) || defined(WIN64)
-bool ws_init = false;
-WSADATA wsadata;
+bool socket_ws_init = false;
+WSADATA socket_wsadata;
 
 const char *OSErrorString()
 {
@@ -176,21 +181,21 @@ Client::Client(IPAddress addr, uint16_t port)
 	this->Connect(addr, port);
 }
 
-Client::Client(void *server)
+Client::Client(void *void_server)
 {
 	Socket_WSAStartup();
 	this->connected = false;
 	this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	this->server = server;
+	this->void_server = void_server;
 }
 
-Client::Client(SOCKET sock, sockaddr_in sin, void *server)
+Client::Client(SOCKET sock, sockaddr_in sin, void *void_server)
 {
 	Socket_WSAStartup();
 	this->connected = true;
 	this->sock = sock;
 	this->sin = sin;
-	this->server = server;
+	this->void_server = void_server;
 }
 
 bool Client::Connect(IPAddress addr, uint16_t port)
@@ -245,7 +250,7 @@ void Client::Send(const std::string &data)
 	}
 }
 
-#ifdef SOCKET_POLL
+#if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
 void Client::Tick(double timeout)
 {
 	pollfd fd;
@@ -306,7 +311,7 @@ void Client::Tick(double timeout)
 		}
 	}
 }
-#else // SOCKET_POLL
+#else // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
 void Client::Tick(double timeout)
 {
 	fd_set read_fds, write_fds, except_fds;
@@ -376,7 +381,7 @@ void Client::Tick(double timeout)
 		}
 	}
 }
-#endif // SOCKET_POLL
+#endif // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
 
 bool Client::Connected()
 {

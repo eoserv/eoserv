@@ -1,261 +1,307 @@
-/*
- *  FIPS-180-2 compliant SHA-256 implementation
- *
- *  Copyright (C) 2001-2003  Christophe Devine
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
-#include <string.h>
+/* sha256.c
+ * Copyright 2009 the EOSERV development team (http://eoserv.net/devs)
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ *
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ *
+ * 3. This notice may not be removed or altered from any source distribution.
+ */
 
 #include "sha256.h"
 
-#define GET_UINT32(n,b,i)                       \
-{                                               \
-    (n) = ( (uint32) (b)[(i)    ] << 24 )       \
-        | ( (uint32) (b)[(i) + 1] << 16 )       \
-        | ( (uint32) (b)[(i) + 2] <<  8 )       \
-        | ( (uint32) (b)[(i) + 3]       );      \
-}
+#define PACK_U32(dest, src) \
+(dest) = ((u32)(src)[0] << 24) | \
+		 ((u32)(src)[1] << 16) | \
+		 ((u32)(src)[2] << 8 ) | \
+		 ((u32)(src)[3]      );
 
-#define PUT_UINT32(n,b,i)                       \
-{                                               \
-    (b)[(i)    ] = (uint8) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (uint8) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (uint8) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (uint8) ( (n)       );       \
-}
+#define UNPACK_U32(dest, src) \
+(dest)[0] = (u8)((src) >> 24); \
+(dest)[1] = (u8)((src) >> 16); \
+(dest)[2] = (u8)((src) >> 8 ); \
+(dest)[3] = (u8)((src)      );
 
-void sha256_starts( sha256_context *ctx )
-{
-    ctx->total[0] = 0;
-    ctx->total[1] = 0;
+#define RR(x, y) \
+( ((u32)((x) & u32_max) >> (y)) | ((u32)((x) & u32_max) << (32 - (y))) )
 
-    ctx->state[0] = 0x6A09E667;
-    ctx->state[1] = 0xBB67AE85;
-    ctx->state[2] = 0x3C6EF372;
-    ctx->state[3] = 0xA54FF53A;
-    ctx->state[4] = 0x510E527F;
-    ctx->state[5] = 0x9B05688C;
-    ctx->state[6] = 0x1F83D9AB;
-    ctx->state[7] = 0x5BE0CD19;
-}
+#define BLOCK_SIZE 64
+#define HASH_SIZE 8
 
-void sha256_process( sha256_context *ctx, uint8 data[64] )
-{
-    uint32 temp1, temp2, W[64];
-    uint32 A, B, C, D, E, F, G, H;
-
-    GET_UINT32( W[0],  data,  0 );
-    GET_UINT32( W[1],  data,  4 );
-    GET_UINT32( W[2],  data,  8 );
-    GET_UINT32( W[3],  data, 12 );
-    GET_UINT32( W[4],  data, 16 );
-    GET_UINT32( W[5],  data, 20 );
-    GET_UINT32( W[6],  data, 24 );
-    GET_UINT32( W[7],  data, 28 );
-    GET_UINT32( W[8],  data, 32 );
-    GET_UINT32( W[9],  data, 36 );
-    GET_UINT32( W[10], data, 40 );
-    GET_UINT32( W[11], data, 44 );
-    GET_UINT32( W[12], data, 48 );
-    GET_UINT32( W[13], data, 52 );
-    GET_UINT32( W[14], data, 56 );
-    GET_UINT32( W[15], data, 60 );
-
-#define  SHR(x,n) ((x & 0xFFFFFFFF) >> n)
-#define ROTR(x,n) (SHR(x,n) | (x << (32 - n)))
-
-#define S0(x) (ROTR(x, 7) ^ ROTR(x,18) ^  SHR(x, 3))
-#define S1(x) (ROTR(x,17) ^ ROTR(x,19) ^  SHR(x,10))
-
-#define S2(x) (ROTR(x, 2) ^ ROTR(x,13) ^ ROTR(x,22))
-#define S3(x) (ROTR(x, 6) ^ ROTR(x,11) ^ ROTR(x,25))
-
-#define F0(x,y,z) ((x & y) | (z & (x | y)))
-#define F1(x,y,z) (z ^ (x & (y ^ z)))
-
-#define R(t)                                    \
-(                                               \
-    W[t] = S1(W[t -  2]) + W[t -  7] +          \
-           S0(W[t - 15]) + W[t - 16]            \
-)
-
-#define P(a,b,c,d,e,f,g,h,x,K)                  \
-{                                               \
-    temp1 = h + S3(e) + F1(e,f,g) + K + x;      \
-    temp2 = S2(a) + F0(a,b,c);                  \
-    d += temp1; h = temp1 + temp2;              \
-}
-
-    A = ctx->state[0];
-    B = ctx->state[1];
-    C = ctx->state[2];
-    D = ctx->state[3];
-    E = ctx->state[4];
-    F = ctx->state[5];
-    G = ctx->state[6];
-    H = ctx->state[7];
-
-    P( A, B, C, D, E, F, G, H, W[ 0], 0x428A2F98 );
-    P( H, A, B, C, D, E, F, G, W[ 1], 0x71374491 );
-    P( G, H, A, B, C, D, E, F, W[ 2], 0xB5C0FBCF );
-    P( F, G, H, A, B, C, D, E, W[ 3], 0xE9B5DBA5 );
-    P( E, F, G, H, A, B, C, D, W[ 4], 0x3956C25B );
-    P( D, E, F, G, H, A, B, C, W[ 5], 0x59F111F1 );
-    P( C, D, E, F, G, H, A, B, W[ 6], 0x923F82A4 );
-    P( B, C, D, E, F, G, H, A, W[ 7], 0xAB1C5ED5 );
-    P( A, B, C, D, E, F, G, H, W[ 8], 0xD807AA98 );
-    P( H, A, B, C, D, E, F, G, W[ 9], 0x12835B01 );
-    P( G, H, A, B, C, D, E, F, W[10], 0x243185BE );
-    P( F, G, H, A, B, C, D, E, W[11], 0x550C7DC3 );
-    P( E, F, G, H, A, B, C, D, W[12], 0x72BE5D74 );
-    P( D, E, F, G, H, A, B, C, W[13], 0x80DEB1FE );
-    P( C, D, E, F, G, H, A, B, W[14], 0x9BDC06A7 );
-    P( B, C, D, E, F, G, H, A, W[15], 0xC19BF174 );
-    P( A, B, C, D, E, F, G, H, R(16), 0xE49B69C1 );
-    P( H, A, B, C, D, E, F, G, R(17), 0xEFBE4786 );
-    P( G, H, A, B, C, D, E, F, R(18), 0x0FC19DC6 );
-    P( F, G, H, A, B, C, D, E, R(19), 0x240CA1CC );
-    P( E, F, G, H, A, B, C, D, R(20), 0x2DE92C6F );
-    P( D, E, F, G, H, A, B, C, R(21), 0x4A7484AA );
-    P( C, D, E, F, G, H, A, B, R(22), 0x5CB0A9DC );
-    P( B, C, D, E, F, G, H, A, R(23), 0x76F988DA );
-    P( A, B, C, D, E, F, G, H, R(24), 0x983E5152 );
-    P( H, A, B, C, D, E, F, G, R(25), 0xA831C66D );
-    P( G, H, A, B, C, D, E, F, R(26), 0xB00327C8 );
-    P( F, G, H, A, B, C, D, E, R(27), 0xBF597FC7 );
-    P( E, F, G, H, A, B, C, D, R(28), 0xC6E00BF3 );
-    P( D, E, F, G, H, A, B, C, R(29), 0xD5A79147 );
-    P( C, D, E, F, G, H, A, B, R(30), 0x06CA6351 );
-    P( B, C, D, E, F, G, H, A, R(31), 0x14292967 );
-    P( A, B, C, D, E, F, G, H, R(32), 0x27B70A85 );
-    P( H, A, B, C, D, E, F, G, R(33), 0x2E1B2138 );
-    P( G, H, A, B, C, D, E, F, R(34), 0x4D2C6DFC );
-    P( F, G, H, A, B, C, D, E, R(35), 0x53380D13 );
-    P( E, F, G, H, A, B, C, D, R(36), 0x650A7354 );
-    P( D, E, F, G, H, A, B, C, R(37), 0x766A0ABB );
-    P( C, D, E, F, G, H, A, B, R(38), 0x81C2C92E );
-    P( B, C, D, E, F, G, H, A, R(39), 0x92722C85 );
-    P( A, B, C, D, E, F, G, H, R(40), 0xA2BFE8A1 );
-    P( H, A, B, C, D, E, F, G, R(41), 0xA81A664B );
-    P( G, H, A, B, C, D, E, F, R(42), 0xC24B8B70 );
-    P( F, G, H, A, B, C, D, E, R(43), 0xC76C51A3 );
-    P( E, F, G, H, A, B, C, D, R(44), 0xD192E819 );
-    P( D, E, F, G, H, A, B, C, R(45), 0xD6990624 );
-    P( C, D, E, F, G, H, A, B, R(46), 0xF40E3585 );
-    P( B, C, D, E, F, G, H, A, R(47), 0x106AA070 );
-    P( A, B, C, D, E, F, G, H, R(48), 0x19A4C116 );
-    P( H, A, B, C, D, E, F, G, R(49), 0x1E376C08 );
-    P( G, H, A, B, C, D, E, F, R(50), 0x2748774C );
-    P( F, G, H, A, B, C, D, E, R(51), 0x34B0BCB5 );
-    P( E, F, G, H, A, B, C, D, R(52), 0x391C0CB3 );
-    P( D, E, F, G, H, A, B, C, R(53), 0x4ED8AA4A );
-    P( C, D, E, F, G, H, A, B, R(54), 0x5B9CCA4F );
-    P( B, C, D, E, F, G, H, A, R(55), 0x682E6FF3 );
-    P( A, B, C, D, E, F, G, H, R(56), 0x748F82EE );
-    P( H, A, B, C, D, E, F, G, R(57), 0x78A5636F );
-    P( G, H, A, B, C, D, E, F, R(58), 0x84C87814 );
-    P( F, G, H, A, B, C, D, E, R(59), 0x8CC70208 );
-    P( E, F, G, H, A, B, C, D, R(60), 0x90BEFFFA );
-    P( D, E, F, G, H, A, B, C, R(61), 0xA4506CEB );
-    P( C, D, E, F, G, H, A, B, R(62), 0xBEF9A3F7 );
-    P( B, C, D, E, F, G, H, A, R(63), 0xC67178F2 );
-
-    ctx->state[0] += A;
-    ctx->state[1] += B;
-    ctx->state[2] += C;
-    ctx->state[3] += D;
-    ctx->state[4] += E;
-    ctx->state[5] += F;
-    ctx->state[6] += G;
-    ctx->state[7] += H;
-}
-
-void sha256_update( sha256_context *ctx, uint8 *input, uint32 length )
-{
-    uint32 left, fill;
-
-    if( ! length ) return;
-
-    left = ctx->total[0] & 0x3F;
-    fill = 64 - left;
-
-    ctx->total[0] += length;
-    ctx->total[0] &= 0xFFFFFFFF;
-
-    if( ctx->total[0] < length )
-        ctx->total[1]++;
-
-    if( left && length >= fill )
-    {
-        memcpy( (void *) (ctx->buffer + left),
-                (void *) input, fill );
-        sha256_process( ctx, ctx->buffer );
-        length -= fill;
-        input  += fill;
-        left = 0;
-    }
-
-    while( length >= 64 )
-    {
-        sha256_process( ctx, input );
-        length -= 64;
-        input  += 64;
-    }
-
-    if( length )
-    {
-        memcpy( (void *) (ctx->buffer + left),
-                (void *) input, length );
-    }
-}
-
-static uint8 sha256_padding[64] =
-{
- 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+static const u32 k[BLOCK_SIZE] = {
+	0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B,
+	0x59F111F1, 0x923F82A4, 0xAB1C5ED5, 0xD807AA98, 0x12835B01,
+	0x243185BE, 0x550C7DC3, 0x72BE5D74, 0x80DEB1FE, 0x9BDC06A7,
+	0xC19BF174, 0xE49B69C1, 0xEFBE4786, 0x0FC19DC6, 0x240CA1CC,
+	0x2DE92C6F, 0x4A7484AA, 0x5CB0A9DC, 0x76F988DA, 0x983E5152,
+	0xA831C66D, 0xB00327C8, 0xBF597FC7, 0xC6E00BF3, 0xD5A79147,
+	0x06CA6351, 0x14292967, 0x27B70A85, 0x2E1B2138, 0x4D2C6DFC,
+	0x53380D13, 0x650A7354, 0x766A0ABB, 0x81C2C92E, 0x92722C85,
+	0xA2BFE8A1, 0xA81A664B, 0xC24B8B70, 0xC76C51A3, 0xD192E819,
+	0xD6990624, 0xF40E3585, 0x106AA070, 0x19A4C116, 0x1E376C08,
+	0x2748774C, 0x34B0BCB5, 0x391C0CB3, 0x4ED8AA4A, 0x5B9CCA4F,
+	0x682E6FF3, 0x748F82EE, 0x78A5636F, 0x84C87814, 0x8CC70208,
+	0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2
 };
 
-void sha256_finish( sha256_context *ctx, uint8 digest[32] )
+static const u32 h[HASH_SIZE] = {
+#ifndef SHA224
+	0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+	0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
+#else // SHA224
+	0xC1059ED8, 0x367CD507, 0x3070DD17, 0xF70E5939,
+	0xFFC00B31, 0x68581511, 0x64F98FA7, 0xBEFA4FA4
+#endif // SHA224
+};
+
+inline void sha256_memcpy_8(u8 *dest, const u8 *src, unsigned long count)
 {
-    uint32 last, padn;
-    uint32 high, low;
-    uint8 msglen[8];
+	unsigned long i = 0;
 
-    high = ( ctx->total[0] >> 29 )
-         | ( ctx->total[1] <<  3 );
-    low  = ( ctx->total[0] <<  3 );
+	for (; i < count; ++i)
+	{
+		dest[i] = src[i];
+	}
+}
 
-    PUT_UINT32( high, msglen, 0 );
-    PUT_UINT32( low,  msglen, 4 );
+void sha256_start(sha256_context *ctx)
+{
+#ifndef SHA256_FAST
+	int i;
+	for (i = 0; i < HASH_SIZE; ++i)
+	{
+		ctx->h[i] = h[i];
+	}
+#else // SHA256_FAST
+	ctx->h[0] = h[0]; ctx->h[1] = h[1];
+	ctx->h[2] = h[2]; ctx->h[3] = h[3];
+	ctx->h[4] = h[4]; ctx->h[5] = h[5];
+	ctx->h[6] = h[6]; ctx->h[7] = h[7];
+#endif // SHA256_FAST
 
-    last = ctx->total[0] & 0x3F;
-    padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
+	ctx->length[0] = 0;
+	ctx->length[1] = 0;
+}
 
-    sha256_update( ctx, sha256_padding, padn );
-    sha256_update( ctx, msglen, 8 );
+#define F1(i) \
+w[i] = w[i-16] + (RR(w[i-15], 7) ^ RR(w[i-15], 18) ^ (w[i-15] >> 3)) + \
+w[i-7] + (RR(w[i-2], 17) ^ RR(w[i-2], 19) ^ (w[i-2] >> 10))
 
-    PUT_UINT32( ctx->state[0], digest,  0 );
-    PUT_UINT32( ctx->state[1], digest,  4 );
-    PUT_UINT32( ctx->state[2], digest,  8 );
-    PUT_UINT32( ctx->state[3], digest, 12 );
-    PUT_UINT32( ctx->state[4], digest, 16 );
-    PUT_UINT32( ctx->state[5], digest, 20 );
-    PUT_UINT32( ctx->state[6], digest, 24 );
-    PUT_UINT32( ctx->state[7], digest, 28 );
+#define R1(i) PACK_U32(w[i], data + (i << 2))
+
+#define R2(a,b,c,d,e,f,g,h,i) \
+d += t = h + (RR(e, 6) ^ RR(e, 11) ^ RR(e, 25)) + \
+(g ^ (e & (f ^ g))) + k[i] + (i < 16 ? w[i] : (F1(i))); \
+h = t + (RR(a, 2) ^ RR(a, 13) ^ RR(a, 22)) + \
+((a & b) | (c & (a | b)));
+
+static void sha256_process(sha256_context *ctx, const u8 data[BLOCK_SIZE])
+{
+#ifndef SHA256_FAST
+	int i;
+#endif // SHA256_FAST
+	u32 t, w[BLOCK_SIZE];
+#ifndef SHA256_FAST
+	u32 s[HASH_SIZE];
+#else // SHA256_FAST
+	u32 a, b, c, d, e, f, g, h;
+#endif // SHA256_FAST
+
+#ifndef SHA256_FAST
+	for (i = 0; i < HASH_SIZE; ++i)
+	{
+		s[i] = ctx->h[i];
+	}
+#else // SHA256_FAST
+	a = ctx->h[0]; b = ctx->h[1];
+	c = ctx->h[2]; d = ctx->h[3];
+	e = ctx->h[4]; f = ctx->h[5];
+	g = ctx->h[6]; h = ctx->h[7];	
+#endif // SHA256_FAST
+
+#ifndef SHA256_FAST
+	for (i = 0; i < 16; ++i)
+	{
+		PACK_U32(w[i], data + (i << 2))
+	}
+#else // SHA256_FAST
+	R1(0) R1(1) R1(2)  R1(3)  R1(4)  R1(5)  R1(6)  R1(7)
+	R1(8) R1(9) R1(10) R1(11) R1(12) R1(13) R1(14) R1(15)
+#endif // SHA256_FAST
+
+#ifndef SHA256_FAST
+	for (i = 0; i < 64; ++i)
+	{
+		t = s[7] + (RR(s[4], 6) ^ RR(s[4], 11) ^ RR(s[4], 25)) + (s[6] ^ (s[4] & (s[5] ^ s[6]))) + \
+		k[i] + (i < 16 ? w[i] : (F1(i)));
+		s[7] = s[6]; s[6] = s[5]; s[5] = s[4];
+		s[4] = s[3] + t;
+		s[3] = s[2]; s[2] = s[1]; s[1] = s[0];
+		s[0] = t + (RR(s[1], 2) ^ RR(s[1], 13) ^ RR(s[1], 22)) + ((s[1] & s[2]) | (s[3] & (s[1] | s[2])));
+	}
+#else // SHA256_FAST
+	R2(a, b, c, d, e, f, g, h, 0)  R2(h, a, b, c, d, e, f, g, 1)
+	R2(g, h, a, b, c, d, e, f, 2)  R2(f, g, h, a, b, c, d, e, 3)
+	R2(e, f, g, h, a, b, c, d, 4)  R2(d, e, f, g, h, a, b, c, 5)
+	R2(c, d, e, f, g, h, a, b, 6)  R2(b, c, d, e, f, g, h, a, 7)
+	R2(a, b, c, d, e, f, g, h, 8)  R2(h, a, b, c, d, e, f, g, 9)
+	R2(g, h, a, b, c, d, e, f, 10) R2(f, g, h, a, b, c, d, e, 11)
+	R2(e, f, g, h, a, b, c, d, 12) R2(d, e, f, g, h, a, b, c, 13)
+	R2(c, d, e, f, g, h, a, b, 14) R2(b, c, d, e, f, g, h, a, 15)
+	R2(a, b, c, d, e, f, g, h, 16) R2(h, a, b, c, d, e, f, g, 17)
+	R2(g, h, a, b, c, d, e, f, 18) R2(f, g, h, a, b, c, d, e, 19)
+	R2(e, f, g, h, a, b, c, d, 20) R2(d, e, f, g, h, a, b, c, 21)
+	R2(c, d, e, f, g, h, a, b, 22) R2(b, c, d, e, f, g, h, a, 23)
+	R2(a, b, c, d, e, f, g, h, 24) R2(h, a, b, c, d, e, f, g, 25)
+	R2(g, h, a, b, c, d, e, f, 26) R2(f, g, h, a, b, c, d, e, 27)
+	R2(e, f, g, h, a, b, c, d, 28) R2(d, e, f, g, h, a, b, c, 29)
+	R2(c, d, e, f, g, h, a, b, 30) R2(b, c, d, e, f, g, h, a, 31)
+	R2(a, b, c, d, e, f, g, h, 32) R2(h, a, b, c, d, e, f, g, 33)
+	R2(g, h, a, b, c, d, e, f, 34) R2(f, g, h, a, b, c, d, e, 35)
+	R2(e, f, g, h, a, b, c, d, 36) R2(d, e, f, g, h, a, b, c, 37)
+	R2(c, d, e, f, g, h, a, b, 38) R2(b, c, d, e, f, g, h, a, 39)
+	R2(a, b, c, d, e, f, g, h, 40) R2(h, a, b, c, d, e, f, g, 41)
+	R2(g, h, a, b, c, d, e, f, 42) R2(f, g, h, a, b, c, d, e, 43)
+	R2(e, f, g, h, a, b, c, d, 44) R2(d, e, f, g, h, a, b, c, 45)
+	R2(c, d, e, f, g, h, a, b, 46) R2(b, c, d, e, f, g, h, a, 47)
+	R2(a, b, c, d, e, f, g, h, 48) R2(h, a, b, c, d, e, f, g, 49)
+	R2(g, h, a, b, c, d, e, f, 50) R2(f, g, h, a, b, c, d, e, 51)
+	R2(e, f, g, h, a, b, c, d, 52) R2(d, e, f, g, h, a, b, c, 53)
+	R2(c, d, e, f, g, h, a, b, 54) R2(b, c, d, e, f, g, h, a, 55)
+	R2(a, b, c, d, e, f, g, h, 56) R2(h, a, b, c, d, e, f, g, 57)
+	R2(g, h, a, b, c, d, e, f, 58) R2(f, g, h, a, b, c, d, e, 59)
+	R2(e, f, g, h, a, b, c, d, 60) R2(d, e, f, g, h, a, b, c, 61)
+	R2(c, d, e, f, g, h, a, b, 62) R2(b, c, d, e, f, g, h, a, 63)
+#endif // SHA256_FAST
+
+#ifndef SHA256_FAST
+	for (i = 0; i < 8; ++i)
+	{
+		ctx->h[i] += s[i];
+	}
+#else // SHA256_FAST
+	ctx->h[0] += a; ctx->h[1] += b;
+	ctx->h[2] += c; ctx->h[3] += d;
+	ctx->h[4] += e; ctx->h[5] += f;
+	ctx->h[6] += g; ctx->h[7] += h;
+#endif // SHA256_FAST
+}
+
+void sha256_update(sha256_context *ctx, const u8 *input, unsigned long length)
+{
+	unsigned long n;
+	int pos = ctx->length[0] & 0x3F;
+
+	ctx->length[0] += length;
+	ctx->length[0] &= u32_max;
+	
+	if (ctx->length[0] < length)
+	{
+		++ctx->length[1];
+	}
+
+	while (length > 0)
+	{
+		if (length >= BLOCK_SIZE && pos == 0)
+		{
+			sha256_process(ctx, input);
+			input += BLOCK_SIZE;
+			length -= BLOCK_SIZE;
+		}
+		else
+		{
+			n = (length < (BLOCK_SIZE - pos)) ? length : (BLOCK_SIZE - pos);
+			sha256_memcpy_8(ctx->buf + pos, input, n);
+			pos += n;
+			input += n;
+			length -= n;
+
+			if (pos == BLOCK_SIZE)
+			{
+				sha256_process(ctx, ctx->buf);
+			}
+		}
+	}
+}
+
+void sha256_finish(sha256_context *ctx, u8 digest[HASH_SIZE * 4])
+{
+#ifndef SHA256_FAST
+	int i;
+#endif // SHA256_FAST
+	u8 length[8];
+	u32 h = (ctx->length[0] >> 29) | (ctx->length[1] << 3);
+	u32 l = ctx->length[0] << 3;
+	int pos = ctx->length[0] & 0x3F;
+
+	ctx->buf[pos++] = 0x80;
+
+	if (pos > BLOCK_SIZE - 8)
+	{
+		while (pos < BLOCK_SIZE)
+		{
+			ctx->buf[pos++] = 0;
+		}
+		sha256_process(ctx, ctx->buf);
+		pos = 0;
+	}
+
+	while (pos < BLOCK_SIZE - 8)
+	{
+		ctx->buf[pos++] = 0;
+	}
+
+	UNPACK_U32(length, h)
+	UNPACK_U32(length + 4, l)
+
+	sha256_memcpy_8(ctx->buf + pos, length, 8);
+
+	sha256_process(ctx, ctx->buf);
+
+#ifndef SHA224
+#ifndef SHA256_FAST
+	for (i = 0; i < 8; ++i)
+	{
+		UNPACK_U32(digest + i * 4, ctx->h[i])
+	}
+#else // SHA256_FAST
+	UNPACK_U32(digest     , ctx->h[0])
+	UNPACK_U32(digest +  4, ctx->h[1])
+	UNPACK_U32(digest +  8, ctx->h[2])
+	UNPACK_U32(digest + 12, ctx->h[3])
+	UNPACK_U32(digest + 16, ctx->h[4])
+	UNPACK_U32(digest + 20, ctx->h[5])
+	UNPACK_U32(digest + 24, ctx->h[6])
+	UNPACK_U32(digest + 28, ctx->h[7])
+#endif // SHA256_FAST
+#else // SHA224
+	UNPACK_U32(digest, 0)
+#ifndef SHA256_FAST
+	for (i = 1; i < 8; ++i)
+	{
+		UNPACK_U32(digest + i * 4, ctx->h[i - 1])
+	}
+#else // SHA256_FAST
+	UNPACK_U32(digest +  4, ctx->h[0])
+	UNPACK_U32(digest +  8, ctx->h[1])
+	UNPACK_U32(digest + 12, ctx->h[2])
+	UNPACK_U32(digest + 16, ctx->h[3])
+	UNPACK_U32(digest + 20, ctx->h[4])
+	UNPACK_U32(digest + 24, ctx->h[5])
+	UNPACK_U32(digest + 28, ctx->h[6])
+#endif // SHA256_FAST
+#endif // SHA224
 }

@@ -1,0 +1,28 @@
+#!/bin/sh
+
+cat /dev/null > Makefile
+
+proc_help()
+{
+	echo Usage: configure \(platform\)
+	echo Valid platforms: linux
+}
+
+proc_done()
+{
+	echo include Makefile.all >> Makefile
+	echo Done.
+	cat makeflag.txt
+}
+
+proc_linux()
+{
+	echo Configuring for Linux...
+	echo MAKEFILE_INC = Makefile.lnx >> Makefile
+	proc_done
+}
+
+case "$1" in
+	"linux"  ) proc_linux ;;
+	*        ) proc_help  ;;
+esac

@@ -1,3 +1,9 @@
+
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #ifndef PACKET_HPP_INCLUDED
 #define PACKET_HPP_INCLUDED
 
@@ -98,12 +104,12 @@ class PacketProcessor
 		/**
 		 * "EMulti" variable for Encoding.
 		 */
-		unsigned int emulti_e;
+		unsigned char emulti_e;
 
 		/**
 		 * "EMulti" variable for Decoding.
 		 */
-		unsigned int emulti_d;
+		unsigned char emulti_d;
 
 		/**
 		 * Flag marking the first Decode call (which shouldn't be Decoded).

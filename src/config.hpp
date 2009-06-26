@@ -1,3 +1,9 @@
+
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #ifndef CONFIG_HPP_INCLUDED
 #define CONFIG_HPP_INCLUDED
 
@@ -31,7 +37,7 @@ class Config : public std::map<std::string, util::variant>
 		/**
 		 * Construct an empty Config object which should have Read() called on it
 		 */
-		Config();
+		Config() {};
 
 		/**
 		 * Reads all configuration data from the file to memory.

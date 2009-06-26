@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Trade)
 {
 	PacketBuilder reply;
@@ -188,7 +195,7 @@ CLIENT_F_FUNC(Trade)
 			int itemid = reader.GetShort();
 			int amount = reader.GetInt();
 
-			if (eoserv_items->Get(id)->special == EIF::Lore)
+			if (this->server->world->eif->Get(id)->special == EIF::Lore)
 			{
 				return true;
 			}

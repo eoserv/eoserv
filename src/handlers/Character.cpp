@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Character)
 {
 	PacketBuilder reply;
@@ -22,22 +29,22 @@ CLIENT_F_FUNC(Character)
 
 			reader.GetShort(); // CreateID?
 
-			int gender = reader.GetShort();
+			Gender gender = static_cast<Gender>(reader.GetShort());
 			int hairstyle = reader.GetShort();
 			int haircolor = reader.GetShort();
-			int race = reader.GetShort();
+			Skin race = static_cast<Skin>(reader.GetShort());
 			reader.GetByte();
 			std::string name = reader.GetBreakString();
 			util::lowercase(name);
 
-			if (gender < 0 || gender > 1) return false;
-			if (hairstyle < static_cast<int>(eoserv_config["CreateMinHairStyle"]) || hairstyle > static_cast<int>(eoserv_config["CreateMaxHairStyle"])) return false;
-			if (haircolor < static_cast<int>(eoserv_config["CreateMinHairColor"]) || haircolor > static_cast<int>(eoserv_config["CreateMaxHairColor"])) return false;
-			if (race < static_cast<int>(eoserv_config["CreateMinSkin"]) || race > static_cast<int>(eoserv_config["CreateMaxSkin"])) return false;
+			if (gender != GENDER_MALE && gender != GENDER_FEMALE) return false;
+			if (hairstyle < static_cast<int>(this->server->world->config["CreateMinHairStyle"]) || hairstyle > static_cast<int>(this->server->world->config["CreateMaxHairStyle"])) return false;
+			if (haircolor < static_cast<int>(this->server->world->config["CreateMinHairColor"]) || haircolor > static_cast<int>(this->server->world->config["CreateMaxHairColor"])) return false;
+			if (race < static_cast<int>(this->server->world->config["CreateMinSkin"]) || race > static_cast<int>(this->server->world->config["CreateMaxSkin"])) return false;
 
 			reply.SetID(PACKET_CHARACTER, PACKET_REPLY);
 
-			if (this->player->characters.size() >= static_cast<std::size_t>(static_cast<int>(eoserv_config["MaxCharacters"])))
+			if (this->player->characters.size() >= static_cast<std::size_t>(static_cast<int>(this->server->world->config["MaxCharacters"])))
 			{
 				reply.AddShort(CHARACTER_FULL); // Reply code
 			}
@@ -45,7 +52,7 @@ CLIENT_F_FUNC(Character)
 			{
 				reply.AddShort(CHARACTER_NOT_APPROVED); // Reply code
 			}
-			else if (Character::Exists(name))
+			else if (this->server->world->CharacterExists(name))
 			{
 				reply.AddShort(CHARACTER_EXISTS); // Reply code
 			}
@@ -67,11 +74,11 @@ CLIENT_F_FUNC(Character)
 					reply.AddChar(character->haircolor);
 					reply.AddChar(character->race);
 					reply.AddChar(character->admin);
-					reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
-					reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
-					reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
-					reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
-					reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+					reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+					reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+					reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+					reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+					reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 					reply.AddByte(255);
 				}
 			}
@@ -95,7 +102,7 @@ CLIENT_F_FUNC(Character)
 			{
 				if ((*character)->id == charid)
 				{
-					Character::Delete((*character)->name);
+					this->server->world->DeleteCharacter((*character)->name);
 					char_it = character;
 					yourchar = true;
 					break;
@@ -124,11 +131,11 @@ CLIENT_F_FUNC(Character)
 				reply.AddChar(character->haircolor);
 				reply.AddChar(character->race);
 				reply.AddChar(character->admin);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddByte(255);
 			}
 			CLIENT_SEND(reply);

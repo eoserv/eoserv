@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Warp)
 {
 	PacketBuilder reply;
@@ -76,15 +83,15 @@ CLIENT_F_FUNC(Warp)
 				reply.AddShort(character->maxtp);
 				reply.AddShort(character->tp);
 				// equipment
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 				reply.AddShort(0); // ??
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddChar(character->sitting);
 				reply.AddChar(0); // visible
 				reply.AddByte(255);

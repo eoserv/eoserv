@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Welcome)
 {
 	PacketBuilder reply;
@@ -40,35 +47,35 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(this->player->id);
 			reply.AddInt(this->player->character->id);
 			reply.AddShort(this->player->character->mapid); // Map ID
-			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[0]);
-			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[1]);
-			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[2]);
-			reply.AddByte(the_world->maps[this->player->character->mapid]->rid[3]);
-			reply.AddThree(the_world->maps[this->player->character->mapid]->filesize);
-			reply.AddByte(eoserv_items->rid[0]);
-			reply.AddByte(eoserv_items->rid[1]);
-			reply.AddByte(eoserv_items->rid[2]);
-			reply.AddByte(eoserv_items->rid[3]);
-			reply.AddByte(eoserv_items->len[0]);
-			reply.AddByte(eoserv_items->len[1]);
-			reply.AddByte(eoserv_npcs->rid[0]);
-			reply.AddByte(eoserv_npcs->rid[1]);
-			reply.AddByte(eoserv_npcs->rid[2]);
-			reply.AddByte(eoserv_npcs->rid[3]);
-			reply.AddByte(eoserv_npcs->len[0]);
-			reply.AddByte(eoserv_npcs->len[1]);
-			reply.AddByte(eoserv_spells->rid[0]);
-			reply.AddByte(eoserv_spells->rid[1]);
-			reply.AddByte(eoserv_spells->rid[2]);
-			reply.AddByte(eoserv_spells->rid[3]);
-			reply.AddByte(eoserv_spells->len[0]);
-			reply.AddByte(eoserv_spells->len[1]);
-			reply.AddByte(eoserv_classes->rid[0]);
-			reply.AddByte(eoserv_classes->rid[1]);
-			reply.AddByte(eoserv_classes->rid[2]);
-			reply.AddByte(eoserv_classes->rid[3]);
-			reply.AddByte(eoserv_classes->len[0]);
-			reply.AddByte(eoserv_classes->len[1]);
+			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[0]);
+			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[1]);
+			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[2]);
+			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[3]);
+			reply.AddThree(this->server->world->maps[this->player->character->mapid]->filesize);
+			reply.AddByte(this->server->world->eif->rid[0]);
+			reply.AddByte(this->server->world->eif->rid[1]);
+			reply.AddByte(this->server->world->eif->rid[2]);
+			reply.AddByte(this->server->world->eif->rid[3]);
+			reply.AddByte(this->server->world->eif->len[0]);
+			reply.AddByte(this->server->world->eif->len[1]);
+			reply.AddByte(this->server->world->enf->rid[0]);
+			reply.AddByte(this->server->world->enf->rid[1]);
+			reply.AddByte(this->server->world->enf->rid[2]);
+			reply.AddByte(this->server->world->enf->rid[3]);
+			reply.AddByte(this->server->world->enf->len[0]);
+			reply.AddByte(this->server->world->enf->len[1]);
+			reply.AddByte(this->server->world->esf->rid[0]);
+			reply.AddByte(this->server->world->esf->rid[1]);
+			reply.AddByte(this->server->world->esf->rid[2]);
+			reply.AddByte(this->server->world->esf->rid[3]);
+			reply.AddByte(this->server->world->esf->len[0]);
+			reply.AddByte(this->server->world->esf->len[1]);
+			reply.AddByte(this->server->world->ecf->rid[0]);
+			reply.AddByte(this->server->world->ecf->rid[1]);
+			reply.AddByte(this->server->world->ecf->rid[2]);
+			reply.AddByte(this->server->world->ecf->rid[3]);
+			reply.AddByte(this->server->world->ecf->len[0]);
+			reply.AddByte(this->server->world->ecf->len[1]);
 			reply.AddBreakString(this->player->character->name);
 			reply.AddBreakString(this->player->character->title);
 			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Name
@@ -123,7 +130,7 @@ CLIENT_F_FUNC(Welcome)
 			reader.GetThree(); // ??
 			id = reader.GetInt(); // Character ID
 
-			the_world->Login(this->player->character);
+			this->server->world->Login(this->player->character);
 
 			this->state = EOClient::Playing;
 
@@ -134,12 +141,12 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddByte(255);
 
 			char newsbuf[4096] = "";
-			std::FILE *newsfh = std::fopen(static_cast<std::string>(eoserv_config["NewsFile"]).c_str(), "rt");
+			std::FILE *newsfh = std::fopen(static_cast<std::string>(this->server->world->config["NewsFile"]).c_str(), "rt");
 			bool newseof = (newsfh == 0);
 
 			if (newseof)
 			{
-				std::fprintf(stderr, "WARNING: Could not load news file '%s'\n", static_cast<std::string>(eoserv_config["NewsFile"]).c_str());
+				std::fprintf(stderr, "WARNING: Could not load news file '%s'\n", static_cast<std::string>(this->server->world->config["NewsFile"]).c_str());
 			}
 
 			for (int i = 0; i < 9; ++i)
@@ -233,15 +240,15 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(character->maxtp);
 				reply.AddShort(character->tp);
 				// equipment
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 				reply.AddShort(0); // ??
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
-				reply.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddChar(character->sitting);
 				reply.AddChar(0); // visible
 				reply.AddByte(255);

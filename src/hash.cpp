@@ -1,4 +1,9 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include "hash.hpp"
 
 #include <string>
@@ -12,13 +17,11 @@ extern "C"
 void sha256(std::string &str)
 {
 	sha256_context ctx;
-	unsigned char *data = new unsigned char[str.length()];
 	unsigned char digest[32];
 	char cdigest[64];
-	std::memcpy(static_cast<void *>(data), static_cast<const void *>(str.c_str()), str.length());
 
-	sha256_starts(&ctx);
-	sha256_update(&ctx, data, str.length());
+	sha256_start(&ctx);
+	sha256_update(&ctx, reinterpret_cast<u8 *>(const_cast<char *>(str.c_str())), str.length());
 	sha256_finish(&ctx, digest);
 
 	for (int i = 0; i < 32; ++i)
@@ -28,6 +31,4 @@ void sha256(std::string &str)
 	}
 
 	str.assign(cdigest, 64);
-
-	delete[] data;
 }

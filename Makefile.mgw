@@ -1,0 +1,13 @@
+
+DEBUG_BIN = eoserv-debug.exe
+RELEASE_BIN = eoserv.exe
+
+CFLAGS += -DEOSERV_MAKEFILE_MGW
+CXXFLAGS += -DEOSERV_MAKEFILE_MGW
+LIBS += -lws2_32 -lwinmm
+
+MYSQL_LIB = -lmysql
+SQLITE_LIB = -lsqlite3
+PTHREAD_LIB = -lpthreadGC2
+
+OBJ += $(OBJDIR)/extra/ntservice.o

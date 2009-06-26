@@ -1,3 +1,9 @@
+
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #ifndef EODATA_HPP_INCLUDED
 #define EODATA_HPP_INCLUDED
 

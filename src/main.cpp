@@ -1,4 +1,9 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include <limits>
 #include <cstdio>
 #include <cstring>
@@ -8,6 +13,7 @@
 
 #include "config.hpp"
 #include "socket.hpp"
+#include "eoserver.hpp"
 #include "eoclient.hpp"
 #include "packet.hpp"
 #include "util.hpp"
@@ -17,17 +23,19 @@
 #include "extra/ntservice.hpp"
 #endif // defined(WIN32) || defined(WIN64)
 
-extern Database eoserv_db;
+volatile bool eoserv_running = true;
 
-volatile bool running = true;
+static EOServer *eoserv_rehash_server = 0;
 
-void eoserv_rehash(int signal)
+static void eoserv_rehash(int signal)
 {
+	if (eoserv_rehash_server == 0) return;
+
 	std::puts("Reloading config");
 	try
 	{
-		eoserv_config.Read("config.ini");
-		admin_config.Read("admin.ini");
+		eoserv_rehash_server->world->config.Read("config.ini");
+		eoserv_rehash_server->world->admin_config.Read("admin.ini");
 	}
 	catch (std::runtime_error)
 	{
@@ -35,8 +43,28 @@ void eoserv_rehash(int signal)
 	}
 }
 
+template <typename T> static void eoserv_config_default(Config &config, const char *key, T value)
+{
+	if (config.find(key) == config.end())
+	{
+		config[key] = util::variant(value);
+		std::fprintf(stderr, "WARNING: Could not load config value '%s' - using default (%s)\n", key, static_cast<std::string>(config[key]).c_str());
+	}
+}
+
 int main(int argc, char *argv[])
 {
+	// Type checks
+	if (std::numeric_limits<unsigned char>::digits < 8){ std::fputs("You cannot run this program (uchar is less than 8 bits)\n", stderr); std::exit(1); }
+	if (std::numeric_limits<unsigned short>::digits < 16){ std::fputs("You cannot run this program (ushort is less than 16 bits)\n", stderr); std::exit(1); }
+	if (std::numeric_limits<unsigned int>::digits < 32){ std::fputs("You cannot run this program (uint is less than 32 bits)\n", stderr); std::exit(1); }
+
+	if (std::numeric_limits<char>::digits < 7){ std::fputs("You cannot run this program (char is less than 8 bits)\n", stderr); std::exit(1); }
+	if (std::numeric_limits<short>::digits < 15){ std::fputs("You cannot run this program (short is less than 16 bits)\n", stderr); std::exit(1); }
+	if (std::numeric_limits<int>::digits < 31){ std::fputs("You cannot run this program (int is less than 32 bits)\n", stderr); std::exit(1); }
+
+	if (!std::numeric_limits<char>::is_signed) std::fputs("WARNING: char is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
+
 #if defined(WIN32) || defined(WIN64)
 	if (argc >= 2)
 	{
@@ -117,7 +145,8 @@ int main(int argc, char *argv[])
 
 	try
 	{
-		Config config;
+		Config config, aconfig;
+
 		try
 		{
 			config.Read("config.ini");
@@ -127,138 +156,171 @@ int main(int argc, char *argv[])
 			std::fputs("WARNING: Could not load config.ini - using defaults\n", stderr);
 		}
 
-#define CONFIG_DEFAULT(key, value) if (config.find(key) == config.end()){config[key] = util::variant(value); std::fprintf(stderr, "WARNING: Could not load config value '%s' - using default (%s)\n", key, static_cast<std::string>(config[key]).c_str());}
-		CONFIG_DEFAULT("LogOut"             , "-")
-		CONFIG_DEFAULT("LogErr"             , "error.log")
-		CONFIG_DEFAULT("Host"               , "0.0.0.0")
-		CONFIG_DEFAULT("Port"               , 8078)
-		CONFIG_DEFAULT("MaxConnections"     , 300)
-		CONFIG_DEFAULT("ListenBacklog"      , 50)
-		CONFIG_DEFAULT("MaxPlayers"         , 200)
-		CONFIG_DEFAULT("MaxConnectionsPerIP", 3)
-		CONFIG_DEFAULT("MaxConnectionsPerPC", 1)
-		CONFIG_DEFAULT("IPReconnectLimit"   , 10)
-		CONFIG_DEFAULT("PasswordSalt"       , "ChangeMe")
-		CONFIG_DEFAULT("DBType"             , "mysql")
-		CONFIG_DEFAULT("DBHost"             , "localhost")
-		CONFIG_DEFAULT("DBUser"             , "eoserv")
-		CONFIG_DEFAULT("DBPass"             , "eoserv")
-		CONFIG_DEFAULT("DBName"             , "eoserv")
-		CONFIG_DEFAULT("EIF"                , "./data/pub/dat001.eif")
-		CONFIG_DEFAULT("ENF"                , "./data/pub/dtn001.enf")
-		CONFIG_DEFAULT("ESF"                , "./data/pub/dsl001.esf")
-		CONFIG_DEFAULT("ECF"                , "./data/pub/dat001.ecf")
-		CONFIG_DEFAULT("NewsFile"           , "./data/news.txt")
-		CONFIG_DEFAULT("DropsFile"          , "./data/drops.ini")
-		CONFIG_DEFAULT("ShopsFile"          , "./data/shops.ini")
-		CONFIG_DEFAULT("MapDir"             , "./data/maps/")
-		CONFIG_DEFAULT("Maps"               , 278)
-		CONFIG_DEFAULT("QuestDir"           , "./data/quests/")
-		CONFIG_DEFAULT("ScriptDir"          , "./data/scripts/")
-		CONFIG_DEFAULT("SLN"                , 1)
-		CONFIG_DEFAULT("SLNURL"             , "http://eoserv.net/SLN/")
-		CONFIG_DEFAULT("SLNSite"            , "")
-		CONFIG_DEFAULT("ServerName"         , "Untitled Server")
-		CONFIG_DEFAULT("SLNPeriod"          , 600)
-		CONFIG_DEFAULT("SLNZone"            , "")
-		CONFIG_DEFAULT("SLNBind"            , "1")
-		CONFIG_DEFAULT("GuildPrice"         , 50000)
-		CONFIG_DEFAULT("RecruitCost"        , 1000)
-		CONFIG_DEFAULT("GuildMaxMembers"    , 5000)
-		CONFIG_DEFAULT("GuildBankMax"       , 10000000)
-		CONFIG_DEFAULT("NPCChaseMode"       , 0)
-		CONFIG_DEFAULT("NPCChaseDistance"   , 18)
-		CONFIG_DEFAULT("NPCBoredTimer"      , 30)
-		CONFIG_DEFAULT("NPCAdjustMaxDam"    , 3)
-		CONFIG_DEFAULT("ShowLevel"          , 0)
-		CONFIG_DEFAULT("PKServer"           , 0)
-		CONFIG_DEFAULT("PKRestrict"         , 5)
-		CONFIG_DEFAULT("WarpBubbles"        , 1)
-		CONFIG_DEFAULT("HideGlobal"         , 0)
-		CONFIG_DEFAULT("GlobalBuffer"       , 0)
-		CONFIG_DEFAULT("AdminPrefix"        , "$")
-		CONFIG_DEFAULT("StatPerLevel"       , 3)
-		CONFIG_DEFAULT("SkillPerLevel"      , 3)
-		CONFIG_DEFAULT("EnforceWeight"      , 2)
-		CONFIG_DEFAULT("MaxWeight"          , 250)
-		CONFIG_DEFAULT("MaxLevel"           , 250)
-		CONFIG_DEFAULT("MaxExp"             , 2000000000)
-		CONFIG_DEFAULT("MaxStat"            , 1000)
-		CONFIG_DEFAULT("MaxSkillLevel"      , 100)
-		CONFIG_DEFAULT("MaxSkills"          , 48)
-		CONFIG_DEFAULT("MaxMessageLength"   , 128)
-		CONFIG_DEFAULT("MaxCharacters"      , 3)
-		CONFIG_DEFAULT("GhostTimer"         , 4)
-		CONFIG_DEFAULT("AttackLimit"        , 251)
-		CONFIG_DEFAULT("DropTimer"          , 120)
-		CONFIG_DEFAULT("DropAmount"         , 15)
-		CONFIG_DEFAULT("ProctectPlayerDrop" , 5)
-		CONFIG_DEFAULT("ProtectNPCDrop"     , 30)
-		CONFIG_DEFAULT("SeeDistance"        , 11)
-		CONFIG_DEFAULT("DropDistance"       , 2)
-		CONFIG_DEFAULT("RangedDistance"     , 5)
-		CONFIG_DEFAULT("ChatLength"         , 128)
-		CONFIG_DEFAULT("ShareMode"          , 2)
-		CONFIG_DEFAULT("PartyShareMode"     , 3)
-		CONFIG_DEFAULT("GhostNPC"           , 0)
-		CONFIG_DEFAULT("AllowStats"         , 1)
-		CONFIG_DEFAULT("StartMap"           , 0)
-		CONFIG_DEFAULT("StartX"             , 0)
-		CONFIG_DEFAULT("StartY"             , 0)
-		CONFIG_DEFAULT("SpawnMap"           , 0)
-		CONFIG_DEFAULT("SpawnX"             , 0)
-		CONFIG_DEFAULT("SpawnY"             , 0)
-		CONFIG_DEFAULT("JailMap"            , 76)
-		CONFIG_DEFAULT("JailX"              , 6)
-		CONFIG_DEFAULT("JailY"              , 5)
-		CONFIG_DEFAULT("StartItems"         , "")
-		CONFIG_DEFAULT("StartSpells"        , "")
-		CONFIG_DEFAULT("StartEquipMale"     , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,")
-		CONFIG_DEFAULT("StartEquipFemale"   , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,")
-		CONFIG_DEFAULT("MaxHairStyle"       , 20)
-		CONFIG_DEFAULT("MaxHairColor"       , 9)
-		CONFIG_DEFAULT("MaxSkin"            , 6)
-		CONFIG_DEFAULT("CreateMinHairStyle" , 1)
-		CONFIG_DEFAULT("CreateMaxHairStyle" , 20)
-		CONFIG_DEFAULT("CreateMinHairColor" , 0)
-		CONFIG_DEFAULT("CreateMaxHairColor" , 9)
-		CONFIG_DEFAULT("CreateMinSkin"      , 0)
-		CONFIG_DEFAULT("CreateMaxSkin"      , 3)
-		CONFIG_DEFAULT("DefaultBanLength"   , "2h")
-		CONFIG_DEFAULT("ExpRate"            , 100)
-		CONFIG_DEFAULT("DropRate"           , 100)
-		CONFIG_DEFAULT("MobRate"            , 100)
-		CONFIG_DEFAULT("SpawnRate"          , 100)
-		CONFIG_DEFAULT("MaxBankGold"        , 2000000000)
-		CONFIG_DEFAULT("MaxItem"            , 10000000)
-		CONFIG_DEFAULT("MaxDrop"            , 10000000)
-		CONFIG_DEFAULT("MaxChest"           , 10000000)
-		CONFIG_DEFAULT("MaxBank"            , 200)
-		CONFIG_DEFAULT("MaxTile"            , 8)
-		CONFIG_DEFAULT("MaxMap"             , 400)
-		CONFIG_DEFAULT("MaxTrade"           , 10000000)
-#undef CONFIG_DEFAULT
+		try
+		{
+			aconfig.Read("admin.ini");
+		}
+		catch (std::runtime_error)
+		{
+			std::fputs("WARNING: Could not load admin.ini - using defaults\n", stderr);
+		}
 
-		// Type checks
-		if (std::numeric_limits<unsigned char>::digits < 8){ std::fputs("You cannot run this program (uchar is less than 8 bits)\n", stderr); std::exit(1); }
-		if (std::numeric_limits<unsigned short>::digits < 16){ std::fputs("You cannot run this program (ushort is less than 16 bits)\n", stderr); std::exit(1); }
-		if (std::numeric_limits<unsigned int>::digits < 32){ std::fputs("You cannot run this program (uint is less than 32 bits)\n", stderr); std::exit(1); }
+		eoserv_config_default(config, "LogOut"             , "-");
+		eoserv_config_default(config, "LogErr"             , "error.log");
+		eoserv_config_default(config, "Host"               , "0.0.0.0");
+		eoserv_config_default(config, "Port"               , 8078);
+		eoserv_config_default(config, "MaxConnections"     , 300);
+		eoserv_config_default(config, "ListenBacklog"      , 50);
+		eoserv_config_default(config, "MaxPlayers"         , 200);
+		eoserv_config_default(config, "MaxConnectionsPerIP", 3);
+		eoserv_config_default(config, "MaxConnectionsPerPC", 1);
+		eoserv_config_default(config, "IPReconnectLimit"   , 10);
+		eoserv_config_default(config, "PasswordSalt"       , "ChangeMe");
+		eoserv_config_default(config, "DBType"             , "mysql");
+		eoserv_config_default(config, "DBHost"             , "localhost");
+		eoserv_config_default(config, "DBUser"             , "eoserv");
+		eoserv_config_default(config, "DBPass"             , "eoserv");
+		eoserv_config_default(config, "DBName"             , "eoserv");
+		eoserv_config_default(config, "EIF"                , "./data/pub/dat001.eif");
+		eoserv_config_default(config, "ENF"                , "./data/pub/dtn001.enf");
+		eoserv_config_default(config, "ESF"                , "./data/pub/dsl001.esf");
+		eoserv_config_default(config, "ECF"                , "./data/pub/dat001.ecf");
+		eoserv_config_default(config, "NewsFile"           , "./data/news.txt");
+		eoserv_config_default(config, "DropsFile"          , "./data/drops.ini");
+		eoserv_config_default(config, "ShopsFile"          , "./data/shops.ini");
+		eoserv_config_default(config, "MapDir"             , "./data/maps/");
+		eoserv_config_default(config, "Maps"               , 278);
+		eoserv_config_default(config, "QuestDir"           , "./data/quests/");
+		eoserv_config_default(config, "ScriptDir"          , "./data/scripts/");
+		eoserv_config_default(config, "SLN"                , 1);
+		eoserv_config_default(config, "SLNURL"             , "http://eoserv.net/SLN/");
+		eoserv_config_default(config, "SLNSite"            , "");
+		eoserv_config_default(config, "ServerName"         , "Untitled Server");
+		eoserv_config_default(config, "SLNPeriod"          , 600);
+		eoserv_config_default(config, "SLNZone"            , "");
+		eoserv_config_default(config, "SLNBind"            , "1");
+		eoserv_config_default(config, "GuildPrice"         , 50000);
+		eoserv_config_default(config, "RecruitCost"        , 1000);
+		eoserv_config_default(config, "GuildMaxMembers"    , 5000);
+		eoserv_config_default(config, "GuildBankMax"       , 10000000);
+		eoserv_config_default(config, "NPCChaseMode"       , 0);
+		eoserv_config_default(config, "NPCChaseDistance"   , 18);
+		eoserv_config_default(config, "NPCBoredTimer"      , 30);
+		eoserv_config_default(config, "NPCAdjustMaxDam"    , 3);
+		eoserv_config_default(config, "ShowLevel"          , 0);
+		eoserv_config_default(config, "PKServer"           , 0);
+		eoserv_config_default(config, "PKRestrict"         , 5);
+		eoserv_config_default(config, "WarpBubbles"        , 1);
+		eoserv_config_default(config, "HideGlobal"         , 0);
+		eoserv_config_default(config, "GlobalBuffer"       , 0);
+		eoserv_config_default(config, "AdminPrefix"        , "$");
+		eoserv_config_default(config, "StatPerLevel"       , 3);
+		eoserv_config_default(config, "SkillPerLevel"      , 3);
+		eoserv_config_default(config, "EnforceWeight"      , 2);
+		eoserv_config_default(config, "MaxWeight"          , 250);
+		eoserv_config_default(config, "MaxLevel"           , 250);
+		eoserv_config_default(config, "MaxExp"             , 2000000000);
+		eoserv_config_default(config, "MaxStat"            , 1000);
+		eoserv_config_default(config, "MaxSkillLevel"      , 100);
+		eoserv_config_default(config, "MaxSkills"          , 48);
+		eoserv_config_default(config, "MaxMessageLength"   , 128);
+		eoserv_config_default(config, "MaxCharacters"      , 3);
+		eoserv_config_default(config, "GhostTimer"         , 4);
+		eoserv_config_default(config, "AttackLimit"        , 251);
+		eoserv_config_default(config, "DropTimer"          , 120);
+		eoserv_config_default(config, "DropAmount"         , 15);
+		eoserv_config_default(config, "ProctectPlayerDrop" , 5);
+		eoserv_config_default(config, "ProtectNPCDrop"     , 30);
+		eoserv_config_default(config, "SeeDistance"        , 11);
+		eoserv_config_default(config, "DropDistance"       , 2);
+		eoserv_config_default(config, "RangedDistance"     , 5);
+		eoserv_config_default(config, "ChatLength"         , 128);
+		eoserv_config_default(config, "ShareMode"          , 2);
+		eoserv_config_default(config, "PartyShareMode"     , 3);
+		eoserv_config_default(config, "GhostNPC"           , 0);
+		eoserv_config_default(config, "AllowStats"         , 1);
+		eoserv_config_default(config, "StartMap"           , 0);
+		eoserv_config_default(config, "StartX"             , 0);
+		eoserv_config_default(config, "StartY"             , 0);
+		eoserv_config_default(config, "SpawnMap"           , 0);
+		eoserv_config_default(config, "SpawnX"             , 0);
+		eoserv_config_default(config, "SpawnY"             , 0);
+		eoserv_config_default(config, "JailMap"            , 76);
+		eoserv_config_default(config, "JailX"              , 6);
+		eoserv_config_default(config, "JailY"              , 5);
+		eoserv_config_default(config, "StartItems"         , "");
+		eoserv_config_default(config, "StartSpells"        , "");
+		eoserv_config_default(config, "StartEquipMale"     , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,");
+		eoserv_config_default(config, "StartEquipFemale"   , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,");
+		eoserv_config_default(config, "MaxHairStyle"       , 20);
+		eoserv_config_default(config, "MaxHairColor"       , 9);
+		eoserv_config_default(config, "MaxSkin"            , 6);
+		eoserv_config_default(config, "CreateMinHairStyle" , 1);
+		eoserv_config_default(config, "CreateMaxHairStyle" , 20);
+		eoserv_config_default(config, "CreateMinHairColor" , 0);
+		eoserv_config_default(config, "CreateMaxHairColor" , 9);
+		eoserv_config_default(config, "CreateMinSkin"      , 0);
+		eoserv_config_default(config, "CreateMaxSkin"      , 3);
+		eoserv_config_default(config, "DefaultBanLength"   , "2h");
+		eoserv_config_default(config, "ExpRate"            , 100);
+		eoserv_config_default(config, "DropRate"           , 100);
+		eoserv_config_default(config, "MobRate"            , 100);
+		eoserv_config_default(config, "SpawnRate"          , 100);
+		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
+		eoserv_config_default(config, "MaxItem"            , 10000000);
+		eoserv_config_default(config, "MaxDrop"            , 10000000);
+		eoserv_config_default(config, "MaxChest"           , 10000000);
+		eoserv_config_default(config, "MaxBank"            , 200);
+		eoserv_config_default(config, "MaxTile"            , 8);
+		eoserv_config_default(config, "MaxMap"             , 400);
+		eoserv_config_default(config, "MaxTrade"           , 10000000);
 
-		if (std::numeric_limits<char>::digits < 7){ std::fputs("You cannot run this program (char is less than 8 bits)\n", stderr); std::exit(1); }
-		if (std::numeric_limits<short>::digits < 15){ std::fputs("You cannot run this program (short is less than 16 bits)\n", stderr); std::exit(1); }
-		if (std::numeric_limits<int>::digits < 31){ std::fputs("You cannot run this program (int is less than 32 bits)\n", stderr); std::exit(1); }
-
-		if (std::numeric_limits<unsigned char>::digits != 8) std::fputs("WARNING: uchar is over 8 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-		if (std::numeric_limits<unsigned short>::digits != 16) std::fputs("WARNING: ushort is over 16 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-		if (std::numeric_limits<unsigned int>::digits != 32) std::fputs("WARNING: uint is over 32 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-
-		if (std::numeric_limits<char>::digits > 8) std::fputs("WARNING: char is over 8 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-		if (std::numeric_limits<short>::digits > 15) std::fputs("WARNING: short is over 16 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-		if (std::numeric_limits<int>::digits > 31) std::fputs("WARNING: int is over 32 bytes, correct operation of the server cannot be guaranteed.\n", stderr);
-
-		if (!std::numeric_limits<char>::is_signed) std::fputs("WARNING: char is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
-		if (!std::numeric_limits<short>::is_signed) std::fputs("WARNING: short is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
-		if (!std::numeric_limits<int>::is_signed) std::fputs("WARNING: int is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
+		eoserv_config_default(aconfig, "item"          , 1);
+		eoserv_config_default(aconfig, "npc"           , 1);
+		eoserv_config_default(aconfig, "spell"         , 1);
+		eoserv_config_default(aconfig, "class"         , 1);
+		eoserv_config_default(aconfig, "info"          , 1);
+		eoserv_config_default(aconfig, "kick"          , 1);
+		eoserv_config_default(aconfig, "skick"         , 3);
+		eoserv_config_default(aconfig, "jail"          , 1);
+		eoserv_config_default(aconfig, "sjail"         , 3);
+		eoserv_config_default(aconfig, "ban"           , 2);
+		eoserv_config_default(aconfig, "sban"          , 3);
+		eoserv_config_default(aconfig, "warp"          , 2);
+		eoserv_config_default(aconfig, "warptome"      , 2);
+		eoserv_config_default(aconfig, "warpmeto"      , 2);
+		eoserv_config_default(aconfig, "evacuate"      , 2);
+		eoserv_config_default(aconfig, "shutdown"      , 4);
+		eoserv_config_default(aconfig, "rehash"        , 4);
+		eoserv_config_default(aconfig, "sitem"         , 3);
+		eoserv_config_default(aconfig, "ditem"         , 3);
+		eoserv_config_default(aconfig, "learn"         , 3);
+		eoserv_config_default(aconfig, "quake"         , 2);
+		eoserv_config_default(aconfig, "setlevel"      , 3);
+		eoserv_config_default(aconfig, "setexp"        , 3);
+		eoserv_config_default(aconfig, "setstr"        , 3);
+		eoserv_config_default(aconfig, "setint"        , 3);
+		eoserv_config_default(aconfig, "setwis"        , 3);
+		eoserv_config_default(aconfig, "setagi"        , 3);
+		eoserv_config_default(aconfig, "setcon"        , 3);
+		eoserv_config_default(aconfig, "setcha"        , 3);
+		eoserv_config_default(aconfig, "setstatpoints" , 3);
+		eoserv_config_default(aconfig, "setskillpoints", 3);
+		eoserv_config_default(aconfig, "settitle"      , 3);
+		eoserv_config_default(aconfig, "setpartner"    , 3);
+		eoserv_config_default(aconfig, "sethome"       , 3);
+		eoserv_config_default(aconfig, "sethomemap"    , 3);
+		eoserv_config_default(aconfig, "sethomex"      , 3);
+		eoserv_config_default(aconfig, "sethomey"      , 3);
+		eoserv_config_default(aconfig, "setgender"     , 3);
+		eoserv_config_default(aconfig, "sethairstyle"  , 3);
+		eoserv_config_default(aconfig, "sethaircolor"  , 3);
+		eoserv_config_default(aconfig, "setrace"       , 3);
+		eoserv_config_default(aconfig, "setguild"      , 3);
+		eoserv_config_default(aconfig, "setguildrank"  , 3);
+		eoserv_config_default(aconfig, "setkarma"      , 3);
+		eoserv_config_default(aconfig, "strip"         , 3);
+		eoserv_config_default(aconfig, "killnpc"       , 2);
 
 		std::puts("\
                           ___ ___  ___ ___ _____   __\n\
@@ -309,17 +371,18 @@ EO Version Support: .27 .28\n\
 		dbinfo[3] = static_cast<std::string>(config["DBPass"]);
 		dbinfo[4] = static_cast<std::string>(config["DBName"]);
 
-		EOServer server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config);
+		EOServer server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config, aconfig);
+		eoserv_rehash_server = &server;
 		server.Listen(static_cast<int>(config["MaxConnections"]), static_cast<int>(config["ListenBacklog"]));
 		std::printf("Listening on %s:%i (0/%i connections)\n", static_cast<std::string>(config["Host"]).c_str(), static_cast<int>(config["Port"]), static_cast<int>(config["MaxConnections"]));
 
 		// This also doubles as a check for table existance :P
 		try
 		{
-			Database_Result acc_count = eoserv_db.Query("SELECT COUNT(1) AS `count` FROM `accounts`");
-			Database_Result character_count = eoserv_db.Query("SELECT COUNT(1) AS `count` FROM `characters`");
-			Database_Result admin_character_count = eoserv_db.Query("SELECT COUNT(1) AS `count` FROM `characters` WHERE `admin` > 0");
-			Database_Result guild_count = eoserv_db.Query("SELECT COUNT(1) AS `count` FROM `guilds`");
+			Database_Result acc_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `accounts`");
+			Database_Result character_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `characters`");
+			Database_Result admin_character_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `characters` WHERE `admin` > 0");
+			Database_Result guild_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `guilds`");
 
 			printf("\nDatabase info:\n\
   Accounts:   %i\n\
@@ -336,7 +399,7 @@ EO Version Support: .27 .28\n\
 
 		std::vector<EOClient *> active_clients;
 		Client *newclient;
-		while (running)
+		while (eoserv_running)
 		{
 			if ((newclient = server.Poll()) != 0)
 			{

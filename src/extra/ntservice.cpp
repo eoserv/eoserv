@@ -1,4 +1,9 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include <windows.h>
 #include <cstdlib>
 #include <cstdio>
@@ -16,7 +21,7 @@ const char *service_name;
 int service_state = SERVICE_RUNNING;
 
 extern int main(int argc, char *argv[]);
-extern volatile bool running;
+extern volatile bool eoserv_running;
 
 void service_update_status(int state, int winexitcode, int servexitcode, int checkpoint, int waithint)
 {
@@ -62,7 +67,7 @@ void service_handler(int code)
 		case SERVICE_CONTROL_SHUTDOWN:
 		case SERVICE_CONTROL_STOP:
 			service_update_status(SERVICE_STOPPED, NO_ERROR, 0, 0, 0);
-			running = false;
+			eoserv_running = false;
 			return;
 	}
 

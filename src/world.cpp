@@ -1,9 +1,34 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "world.hpp"
+
+#include <map>
+#include <string>
+#include <cmath>
+
+#include "character.hpp"
+#include "guild.hpp"
+#include "party.hpp"
+#include "map.hpp"
+
+#include "eoserver.hpp"
+#include "eoconst.hpp"
+#include "timer.hpp"
+#include "util.hpp"
+#include "database.hpp"
+#include "eodata.hpp"
+#include "config.hpp"
+#include "hash.hpp"
+
 void world_spawn_npcs(void *world_void)
 {
 	World *world = static_cast<World *>(world_void);
 
-	double spawnrate = static_cast<double>(eoserv_config["SpawnRate"]) / 100.0;
+	double spawnrate = static_cast<double>(world->config["SpawnRate"]) / 100.0;
 	double current_time = Timer::GetTime();
 	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
 	{
@@ -59,12 +84,15 @@ void world_recover(void *world_void)
 	}
 }
 
-World::World(util::array<std::string, 5> dbinfo, Config config)
+World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	if (int(this->timer.resolution * 1000.0) < 1)
 	{
 		std::printf("Timers set at approx. %i ms resolution\n", int(this->timer.resolution * 1000.0));
 	}
+
+	this->config = eoserv_config;
+	this->admin_config = admin_config;
 
 	Database::Engine engine;
 	if (dbinfo[0].compare("sqlite") == 0)
@@ -75,102 +103,38 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	{
 		engine = Database::MySQL;
 	}
-	eoserv_db.Connect(engine, dbinfo[1], dbinfo[2], dbinfo[3], dbinfo[4]);
-
-
-	Config aconfig;
+	this->db.Connect(engine, dbinfo[1], dbinfo[2], dbinfo[3], dbinfo[4]);
 
 	try
 	{
-		aconfig.Read("admin.ini");
+		this->drops_config.Read(static_cast<std::string>(this->config["DropsFile"]));
 	}
 	catch (std::runtime_error)
 	{
-		std::fputs("WARNING: Could not load admin.ini - using defaults\n", stderr);
-	}
-
-#define CONFIG_DEFAULT(key, value) if (aconfig.find(key) == aconfig.end()){aconfig[key] = util::variant(value); std::fprintf(stderr, "WARNING: Could not load admin config value '%s' - using default (%s)\n", key, static_cast<std::string>(aconfig[key]).c_str());}
-	CONFIG_DEFAULT("item"          , 1)
-	CONFIG_DEFAULT("npc"           , 1)
-	CONFIG_DEFAULT("spell"         , 1)
-	CONFIG_DEFAULT("class"         , 1)
-	CONFIG_DEFAULT("info"          , 1)
-	CONFIG_DEFAULT("kick"          , 1)
-	CONFIG_DEFAULT("skick"         , 3)
-	CONFIG_DEFAULT("jail"          , 1)
-	CONFIG_DEFAULT("sjail"         , 3)
-	CONFIG_DEFAULT("ban"           , 2)
-	CONFIG_DEFAULT("sban"          , 3)
-	CONFIG_DEFAULT("warp"          , 2)
-	CONFIG_DEFAULT("warptome"      , 2)
-	CONFIG_DEFAULT("warpmeto"      , 2)
-	CONFIG_DEFAULT("evacuate"      , 2)
-	CONFIG_DEFAULT("shutdown"      , 4)
-	CONFIG_DEFAULT("rehash"        , 4)
-	CONFIG_DEFAULT("sitem"         , 3)
-	CONFIG_DEFAULT("ditem"         , 3)
-	CONFIG_DEFAULT("learn"         , 3)
-	CONFIG_DEFAULT("quake"         , 2)
-	CONFIG_DEFAULT("setlevel"      , 3)
-	CONFIG_DEFAULT("setexp"        , 3)
-	CONFIG_DEFAULT("setstr"        , 3)
-	CONFIG_DEFAULT("setint"        , 3)
-	CONFIG_DEFAULT("setwis"        , 3)
-	CONFIG_DEFAULT("setagi"        , 3)
-	CONFIG_DEFAULT("setcon"        , 3)
-	CONFIG_DEFAULT("setcha"        , 3)
-	CONFIG_DEFAULT("setstatpoints" , 3)
-	CONFIG_DEFAULT("setskillpoints", 3)
-	CONFIG_DEFAULT("settitle"      , 3)
-	CONFIG_DEFAULT("setpartner"    , 3)
-	CONFIG_DEFAULT("sethome"       , 3)
-	CONFIG_DEFAULT("sethomemap"    , 3)
-	CONFIG_DEFAULT("sethomex"      , 3)
-	CONFIG_DEFAULT("sethomey"      , 3)
-	CONFIG_DEFAULT("setgender"     , 3)
-	CONFIG_DEFAULT("sethairstyle"  , 3)
-	CONFIG_DEFAULT("sethaircolor"  , 3)
-	CONFIG_DEFAULT("setrace"       , 3)
-	CONFIG_DEFAULT("setguild"      , 3)
-	CONFIG_DEFAULT("setguildrank"  , 3)
-	CONFIG_DEFAULT("setkarma"      , 3)
-	CONFIG_DEFAULT("strip"         , 3)
-	CONFIG_DEFAULT("killnpc"       , 2)
-#undef CONFIG_DEFAULT
-
-	eoserv_config = config;
-	admin_config = aconfig;
-
-	try
-	{
-		drops_config.Read(static_cast<std::string>(eoserv_config["DropsFile"]));
-	}
-	catch (std::runtime_error)
-	{
-		std::fprintf(stderr, "WARNING: Could not load %s\n", static_cast<std::string>(eoserv_config["DropsFile"]).c_str());
+		std::fprintf(stderr, "WARNING: Could not load %s\n", static_cast<std::string>(this->config["DropsFile"]).c_str());
 	}
 
 	try
 	{
-		shops_config.Read(static_cast<std::string>(eoserv_config["ShopsFile"]));
+		this->shops_config.Read(static_cast<std::string>(this->config["ShopsFile"]));
 	}
 	catch (std::runtime_error)
 	{
-		std::fprintf(stderr, "WARNING: Could not load %s\n", static_cast<std::string>(eoserv_config["ShopsFile"]).c_str());
+		std::fprintf(stderr, "WARNING: Could not load %s\n", static_cast<std::string>(this->config["ShopsFile"]).c_str());
 	}
 
-	eoserv_items = new EIF(static_cast<std::string>(eoserv_config["EIF"]));
-	eoserv_npcs = new ENF(static_cast<std::string>(eoserv_config["ENF"]));
-	eoserv_spells = new ESF(static_cast<std::string>(eoserv_config["ESF"]));
-	eoserv_classes = new ECF(static_cast<std::string>(eoserv_config["ECF"]));
+	this->eif = new EIF(static_cast<std::string>(this->config["EIF"]));
+	this->enf = new ENF(static_cast<std::string>(this->config["ENF"]));
+	this->esf = new ESF(static_cast<std::string>(this->config["ESF"]));
+	this->ecf = new ECF(static_cast<std::string>(this->config["ECF"]));
 
-	this->maps.resize(static_cast<int>(eoserv_config["Maps"])+1);
-	this->maps[0] = new Map(1); // Just in case
+	this->maps.resize(static_cast<int>(this->config["Maps"])+1);
+	this->maps[0] = new Map(1, this); // Just in case
 	int loaded = 0;
 	int npcs = 0;
-	for (int i = 1; i <= static_cast<int>(eoserv_config["Maps"]); ++i)
+	for (int i = 1; i <= static_cast<int>(this->config["Maps"]); ++i)
 	{
-		this->maps[i] = new Map(i);
+		this->maps[i] = new Map(i, this);
 		if (this->maps[i]->exists)
 		{
 			npcs += this->maps[i]->npcs.size();
@@ -179,7 +143,6 @@ World::World(util::array<std::string, 5> dbinfo, Config config)
 	}
 	std::printf("%i/%i maps loaded.\n", loaded, this->maps.size()-1);
 	std::printf("%i NPCs loaded.\n", npcs);
-	the_world = this;
 
 	this->last_character_id = 0;
 
@@ -359,6 +322,96 @@ Character *World::GetCharacterCID(unsigned int id)
 	}
 
 	return selected;
+}
+
+bool World::CharacterExists(std::string name)
+{
+	Database_Result res = this->db.Query("SELECT 1 FROM `characters` WHERE `name` = '$'", name.c_str());
+	return !res.empty();
+}
+
+Character *World::CreateCharacter(Player *player, std::string name, Gender gender, int hairstyle, int haircolor, Skin race)
+{
+	char buffer[1024];
+	std::string startmapinfo;
+	std::string startmapval;
+	std::string spawnmapinfo;
+	std::string spawnmapval;
+
+	if (static_cast<int>(this->config["StartMap"]))
+	{
+		startmapinfo = ", `map`, `x`, `y`";
+		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(this->config["StartMap"]), static_cast<int>(this->config["StartX"]), static_cast<int>(this->config["StartY"]));
+		startmapval = buffer;
+	}
+
+	if (static_cast<int>(this->config["SpawnMap"]))
+	{
+		spawnmapinfo = ", `spawnmap`, `spawnx`, `spawny`";
+		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(this->config["SpawnMap"]), static_cast<int>(this->config["SpawnX"]), static_cast<int>(this->config["SpawnY"]));
+		spawnmapval = buffer;
+	}
+
+	this->db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`@@) VALUES ('$','$',#,#,#,#,'$','','$','$'@@)",
+		startmapinfo.c_str(), spawnmapinfo.c_str(), name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race,
+		static_cast<std::string>(this->config["StartItems"]).c_str(), static_cast<std::string>(gender?this->config["StartEquipMale"]:this->config["StartEquipFemale"]).c_str(),
+		static_cast<std::string>(this->config["StartSpells"]).c_str(), startmapval.c_str(), spawnmapval.c_str());
+
+	return new Character(name, this);
+}
+
+void World::DeleteCharacter(std::string name)
+{
+	this->db.Query("DELETE FROM `characters` WHERE name = '$'", name.c_str());
+}
+
+Player *World::Login(std::string username, std::string password)
+{
+	password = static_cast<std::string>(this->config["PasswordSalt"]) + username + password;
+	sha256(password);
+	Database_Result res = this->db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.c_str());
+	if (res.empty())
+	{
+		return 0;
+	}
+	std::map<std::string, util::variant> row = res.front();
+
+	return new Player(username, this);
+}
+
+bool World::CreatePlayer(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid, std::string ip)
+{
+	password = static_cast<std::string>(this->config["PasswordSalt"]) + username + password;
+	sha256(password);
+	Database_Result result = this->db.Query("INSERT INTO `accounts` (`username`, `password`, `fullname`, `location`, `email`, `computer`, `hdid`, `regip`, `created`) VALUES ('$','$','$','$','$','$','$','$',#)", username.c_str(), password.c_str(), fullname.c_str(), location.c_str(), email.c_str(), computer.c_str(), hdid.c_str(), ip.c_str(), std::time(0));
+	return !result.Error();
+}
+
+bool World::PlayerExists(std::string username)
+{
+	Database_Result res = this->db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$'", username.c_str());
+	return !res.empty();
+}
+
+bool World::PlayerOnline(std::string username)
+{
+	if (!Player::ValidName(username))
+	{
+		return false;
+	}
+
+	UTIL_LIST_FOREACH_ALL(this->server->clients, EOClient *, connection)
+	{
+		if (connection->player)
+		{
+			if (connection->player->username.compare(username) == 0)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void World::Kick(Character *from, Character *victim, bool announce)

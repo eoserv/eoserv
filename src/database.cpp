@@ -1,7 +1,13 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include "database.hpp"
 
 #include <string>
+#include <map>
 #include <stdexcept>
 #include <cstdarg>
 #include <cstdio>

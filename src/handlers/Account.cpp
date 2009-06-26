@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Account)
 {
 	PacketBuilder reply;
@@ -18,7 +25,7 @@ CLIENT_F_FUNC(Account)
 				reply.AddShort(ACCOUNT_NOT_APPROVED);
 				reply.AddString("NO");
 			}
-			else if (Player::Exists(username))
+			else if (this->server->world->PlayerExists(username))
 			{
 				reply.AddShort(ACCOUNT_EXISTS);
 				reply.AddString("NO");
@@ -55,7 +62,7 @@ CLIENT_F_FUNC(Account)
 				reply.AddShort(ACCOUNT_NOT_APPROVED);
 				reply.AddString("NO");
 			}
-			else if (Player::Exists(username))
+			else if (this->server->world->PlayerExists(username))
 			{
 				reply.AddShort(ACCOUNT_EXISTS);
 				reply.AddString("NO");
@@ -64,7 +71,7 @@ CLIENT_F_FUNC(Account)
 			{
 				util::lowercase(username);
 
-				Player::Create(username, password, fullname, location, email, computer, hdid, static_cast<std::string>(this->GetRemoteAddr()));
+				this->server->world->CreatePlayer(username, password, fullname, location, email, computer, hdid, static_cast<std::string>(this->GetRemoteAddr()));
 				reply.AddShort(ACCOUNT_CREATED);
 				reply.AddString("OK");
 			}
@@ -89,12 +96,12 @@ CLIENT_F_FUNC(Account)
 				CLIENT_SEND(reply);
 				return true;
 			}
-			else if (!Player::Exists(username))
+			else if (!this->server->world->PlayerExists(username))
 			{
 				return true;
 			}
 
-			Player *changepass = Player::Login(username, oldpassword);
+			Player *changepass = this->server->world->Login(username, oldpassword);
 
 			if (!changepass)
 			{

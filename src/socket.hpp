@@ -1,3 +1,9 @@
+
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #ifndef SOCKET_HPP_INCLUDED
 #define SOCKET_HPP_INCLUDED
 
@@ -32,12 +38,12 @@ const char *OSErrorString();
 /**
  * Stores the initialization state of WinSock.
  */
-extern bool ws_init;
+extern bool socket_ws_init;
 
 /**
  * Stores internal WinSock information.
  */
-extern WSADATA wsadata;
+extern WSADATA socket_wsadata;
 
 /**
  * Type for storing the size of a POSIX sockaddr_in struct.
@@ -137,13 +143,13 @@ class Socket_SelectFailed : public Socket_Exception
 #if defined(WIN32) || defined(WIN64)
 inline void _Socket_WSAStartup()
 {
-	if (!ws_init)
+	if (!socket_ws_init)
 	{
-		if (WSAStartup(MAKEWORD(2,0), &wsadata) != 0)
+		if (WSAStartup(MAKEWORD(2,0), &socket_wsadata) != 0)
 		{
 			throw Socket_InitFailed(OSErrorString());
 		}
-		ws_init = true;
+		socket_ws_init = true;
 	}
 }
 #define Socket_WSAStartup() _Socket_WSAStartup()
@@ -252,7 +258,7 @@ class Client
 		sockaddr_in sin;
 		std::string send_buffer;
 		std::string recv_buffer;
-		void *server;
+		void *void_server;
 		std::size_t recv_buffer_max;
 		std::size_t send_buffer_max;
 		time_t connect_time;
@@ -344,14 +350,14 @@ template <class T = Client> class Server
 		void Initialize()
 		{
 #if defined(WIN32) || defined(WIN64)
-			if (!ws_init)
+			if (!socket_ws_init)
 			{
-				if (WSAStartup(MAKEWORD(2,0), &wsadata) != 0)
+				if (WSAStartup(MAKEWORD(2,0), &socket_wsadata) != 0)
 				{
 					this->state = Invalid;
 					throw Socket_InitFailed(OSErrorString());
 				}
-				ws_init = true;
+				socket_ws_init = true;
 			}
 #endif // defined(WIN32) || defined(WIN64)
 			this->server = socket(AF_INET, SOCK_STREAM, 0);
@@ -526,7 +532,7 @@ template <class T = Client> class Server
 		 * @throw Socket_Exception
 		 * @return Returns a list of clients that have data in their recv_buffer.
 		 */
-#ifdef SOCKET_POLL
+#if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
 		std::vector<T *> Select(double timeout)
 		{
 			class std::vector<T *> selected;
@@ -630,7 +636,7 @@ template <class T = Client> class Server
 
 			return selected;
 		}
-#else // SOCKET_POLL
+#else // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
 		std::vector<T *> Select(double timeout)
 		{
 			long tsecs = long(timeout);
@@ -734,7 +740,7 @@ template <class T = Client> class Server
 
 			return selected;
 		}
-#endif // SOCKET_POLL
+#endif // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
 
 		/**
 		 * Destroys any dead clients, should be called periodically.

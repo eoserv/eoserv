@@ -1,5 +1,17 @@
 
-double npc_speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "npc.hpp"
+
+#include <cstdio>
+#include <cmath>
+
+#include "util.hpp"
+
+static const double speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
 
 NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index)
 {
@@ -21,7 +33,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 	this->spawn_time = spawn_time;
 	this->walk_idle_for = 0;
 
-	this->data = eoserv_npcs->Get(id);
+	this->data = map->world->enf->Get(id);
 
 	if (spawn_type == 7)
 	{
@@ -29,8 +41,8 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		this->spawn_time = 0;
 	}
 
-	Config::iterator drops = drops_config.find(util::to_string(this->id));
-	if (drops != drops_config.end())
+	Config::iterator drops = map->world->drops_config.find(util::to_string(this->id));
+	if (drops != map->world->drops_config.end())
 	{
 		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*drops).second));
 
@@ -58,9 +70,9 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		}
 	}
 
-	this->shop_name = static_cast<std::string>(shops_config[util::to_string(this->id) + ".name"]);
-	Config::iterator shops = shops_config.find(util::to_string(this->id) + ".trade");
-	if (shops != shops_config.end())
+	this->shop_name = static_cast<std::string>(map->world->shops_config[util::to_string(this->id) + ".name"]);
+	Config::iterator shops = map->world->shops_config.find(util::to_string(this->id) + ".trade");
+	if (shops != map->world->shops_config.end())
 	{
 		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
 
@@ -91,8 +103,8 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		}
 	}
 
-	shops = shops_config.find(util::to_string(this->id) + ".craft");
-	if (shops != shops_config.end())
+	shops = this->map->world->shops_config.find(util::to_string(this->id) + ".craft");
+	if (shops != this->map->world->shops_config.end())
 	{
 		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
 
@@ -174,7 +186,7 @@ void NPC::Spawn()
 	this->alive = true;
 	this->hp = this->data->hp;
 	this->last_act = Timer::GetTime();
-	this->act_speed = npc_speed_table[this->spawn_type];
+	this->act_speed = speed_table[this->spawn_type];
 
 	PacketBuilder builder(PACKET_APPEAR, PACKET_REPLY);
 	builder.AddChar(0);
@@ -204,13 +216,13 @@ void NPC::Act()
 	}
 
 	Character *attacker = 0;
-	unsigned char attacker_distance = static_cast<int>(eoserv_config["NPCChaseDistance"]);
+	unsigned char attacker_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 	unsigned short attacker_damage = 0;
 	int npccoordsum = this->x + this->y;
 
 	UTIL_LIST_IFOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
 	{
-		if (opponent->attacker->map != this->map || opponent->last_hit < Timer::GetTime() - static_cast<double>(eoserv_config["NPCBoredTimer"]))
+		if (opponent->attacker->map != this->map || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
 		{
 			continue;
 		}
@@ -228,7 +240,7 @@ void NPC::Act()
 	if (this->data->type == ENF::Aggressive && !attacker)
 	{
 		Character *closest = 0;
-		unsigned char closest_distance = static_cast<int>(eoserv_config["SeeDistance"]);
+		unsigned char closest_distance = static_cast<int>(this->map->world->config["SeeDistance"]);
 
 		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
 		{
@@ -326,9 +338,9 @@ bool NPC::Walk(Direction direction)
 
 void NPC::Damage(Character *from, int amount)
 {
-	double droprate = static_cast<double>(eoserv_config["DropRate"]) / 100.0;
-	double exprate = static_cast<double>(eoserv_config["ExpRate"]) / 100.0;
-	int sharemode = static_cast<int>(eoserv_config["ShareMode"]);
+	double droprate = static_cast<double>(this->map->world->config["DropRate"]) / 100.0;
+	double exprate = static_cast<double>(this->map->world->config["ExpRate"]) / 100.0;
+	int sharemode = static_cast<int>(this->map->world->config["ShareMode"]);
 	PacketBuilder builder;
 
 	amount = std::min(this->hp, amount);
@@ -417,7 +429,7 @@ void NPC::Damage(Character *from, int amount)
 			dropuid = this->map->GenerateItemID();
 			dropid = drop->id;
 			dropamount = util::rand(drop->min, drop->max);
-			Map_Item newitem = {dropuid, dropid, dropamount, this->x, this->y, 0, static_cast<int>(eoserv_config["ProtectNPCDrop"])};
+			Map_Item newitem = {dropuid, dropid, dropamount, this->x, this->y, 0, static_cast<int>(this->map->world->config["ProtectNPCDrop"])};
 			this->map->items.push_back(newitem);
 
 			// Selects a random number between 0 and maxhp, and decides the winner based on that
@@ -542,14 +554,14 @@ void NPC::Damage(Character *from, int amount)
 								break;
 						}
 
-						character->exp = std::min(character->exp, static_cast<int>(eoserv_config["MaxExp"]));
+						character->exp = std::min(character->exp, static_cast<int>(this->map->world->config["MaxExp"]));
 
-						if (character->level < static_cast<int>(eoserv_config["MaxLevel"]) && character->exp >= the_world->exp_table[character->level+1])
+						if (character->level < static_cast<int>(this->map->world->config["MaxLevel"]) && character->exp >= this->map->world->exp_table[character->level+1])
 						{
 							level_up = true;
 							++character->level;
-							character->statpoints += static_cast<int>(eoserv_config["StatPerLevel"]);
-							character->skillpoints += static_cast<int>(eoserv_config["SkillPerLevel"]);
+							character->statpoints += static_cast<int>(this->map->world->config["StatPerLevel"]);
+							character->skillpoints += static_cast<int>(this->map->world->config["SkillPerLevel"]);
 							character->CalculateStats();
 						}
 
@@ -606,9 +618,9 @@ void NPC::Damage(Character *from, int amount)
 
 void NPC::Attack(Character *target)
 {
-	double mobrate = static_cast<double>(eoserv_config["MobRate"]) / 100.0;
+	double mobrate = static_cast<double>(this->map->world->config["MobRate"]) / 100.0;
 
-	int amount = util::rand(this->data->mindam, this->data->maxdam + static_cast<int>(eoserv_config["NPCAdjustMaxDam"]));
+	int amount = util::rand(this->data->mindam, this->data->maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
 
 	int hit_rate = 120;
 	bool critical = true;

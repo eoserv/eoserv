@@ -40,6 +40,7 @@
 			<Add option="-DDATABASE_SQLITE" />
 			<Add directory="..\src\" />
 			<Add directory="..\src\extra\" />
+			<Add directory="..\src\handlers\" />
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />
@@ -48,6 +49,8 @@
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
 		</Linker>
+		<Unit filename="..\src\character.cpp" />
+		<Unit filename="..\src\character.hpp" />
 		<Unit filename="..\src\config.cpp" />
 		<Unit filename="..\src\config.hpp" />
 		<Unit filename="..\src\database.cpp" />
@@ -57,192 +60,76 @@
 		<Unit filename="..\src\eoconst.hpp" />
 		<Unit filename="..\src\eodata.cpp" />
 		<Unit filename="..\src\eodata.hpp" />
-		<Unit filename="..\src\eoserv.cpp" />
-		<Unit filename="..\src\eoserv.hpp" />
-		<Unit filename="..\src\eoserv\character.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\eoserv\guild.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\eoserv\map.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\eoserv\npc.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\eoserv\party.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\eoserv\player.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\eoserv\world.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
+		<Unit filename="..\src\eoserver.cpp" />
+		<Unit filename="..\src\eoserver.hpp" />
 		<Unit filename="..\src\extra\ntservice.cpp" />
 		<Unit filename="..\src\extra\ntservice.hpp" />
-		<Unit filename="..\src\handlers.cpp" />
-		<Unit filename="..\src\handlers\Account.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\AdminInteract.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Attack.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Bank.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Board.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Book.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Chair.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Character.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Chest.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Citizen.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Connection.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Door.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Emote.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Face.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Global.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Guild.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Init.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Item.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Jukebox.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Locker.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Login.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Paperdoll.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Party.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Ping.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Players.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Refresh.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Shop.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Sit.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\StatSkill.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Talk.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Trade.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Walk.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Warp.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
-		<Unit filename="..\src\handlers\Welcome.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
+		<Unit filename="..\src\guild.cpp" />
+		<Unit filename="..\src\guild.hpp" />
+		<Unit filename="..\src\handlers\Account.cpp" />
+		<Unit filename="..\src\handlers\AdminInteract.cpp" />
+		<Unit filename="..\src\handlers\Attack.cpp" />
+		<Unit filename="..\src\handlers\Bank.cpp" />
+		<Unit filename="..\src\handlers\Board.cpp" />
+		<Unit filename="..\src\handlers\Book.cpp" />
+		<Unit filename="..\src\handlers\Chair.cpp" />
+		<Unit filename="..\src\handlers\Character.cpp" />
+		<Unit filename="..\src\handlers\Chest.cpp" />
+		<Unit filename="..\src\handlers\Citizen.cpp" />
+		<Unit filename="..\src\handlers\Connection.cpp" />
+		<Unit filename="..\src\handlers\Door.cpp" />
+		<Unit filename="..\src\handlers\Emote.cpp" />
+		<Unit filename="..\src\handlers\Face.cpp" />
+		<Unit filename="..\src\handlers\Global.cpp" />
+		<Unit filename="..\src\handlers\Guild.cpp" />
+		<Unit filename="..\src\handlers\Init.cpp" />
+		<Unit filename="..\src\handlers\Item.cpp" />
+		<Unit filename="..\src\handlers\Jukebox.cpp" />
+		<Unit filename="..\src\handlers\Locker.cpp" />
+		<Unit filename="..\src\handlers\Login.cpp" />
+		<Unit filename="..\src\handlers\Paperdoll.cpp" />
+		<Unit filename="..\src\handlers\Party.cpp" />
+		<Unit filename="..\src\handlers\Ping.cpp" />
+		<Unit filename="..\src\handlers\Players.cpp" />
+		<Unit filename="..\src\handlers\Refresh.cpp" />
+		<Unit filename="..\src\handlers\Shop.cpp" />
+		<Unit filename="..\src\handlers\Sit.cpp" />
+		<Unit filename="..\src\handlers\StatSkill.cpp" />
+		<Unit filename="..\src\handlers\Talk.cpp" />
+		<Unit filename="..\src\handlers\Trade.cpp" />
+		<Unit filename="..\src\handlers\Walk.cpp" />
+		<Unit filename="..\src\handlers\Warp.cpp" />
+		<Unit filename="..\src\handlers\Welcome.cpp" />
+		<Unit filename="..\src\handlers\handlers.hpp" />
 		<Unit filename="..\src\hash.cpp" />
 		<Unit filename="..\src\hash.hpp" />
 		<Unit filename="..\src\main.cpp" />
+		<Unit filename="..\src\map.cpp" />
+		<Unit filename="..\src\map.hpp" />
 		<Unit filename="..\src\nanohttp.cpp" />
 		<Unit filename="..\src\nanohttp.hpp" />
+		<Unit filename="..\src\npc.cpp" />
+		<Unit filename="..\src\npc.hpp" />
 		<Unit filename="..\src\packet.cpp" />
 		<Unit filename="..\src\packet.hpp" />
+		<Unit filename="..\src\party.cpp" />
+		<Unit filename="..\src\party.hpp" />
+		<Unit filename="..\src\player.cpp" />
+		<Unit filename="..\src\player.hpp" />
 		<Unit filename="..\src\sha256.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\sha256.h" />
+		<Unit filename="..\src\sln.cpp" />
+		<Unit filename="..\src\sln.hpp" />
 		<Unit filename="..\src\socket.cpp" />
 		<Unit filename="..\src\socket.hpp" />
 		<Unit filename="..\src\timer.cpp" />
 		<Unit filename="..\src\timer.hpp" />
 		<Unit filename="..\src\util.cpp" />
 		<Unit filename="..\src\util.hpp" />
+		<Unit filename="..\src\world.cpp" />
+		<Unit filename="..\src\world.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

@@ -1,4 +1,11 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "handlers.hpp"
+
 CLIENT_F_FUNC(Sit)
 {
 	PacketBuilder reply;
@@ -28,7 +35,7 @@ CLIENT_F_FUNC(Sit)
 
 				if (this->player->character->x != x || this->player->character->y != y)
 				{
-					// TODO: refresh out-of-sync players
+					this->player->character->Refresh();
 				}
 			}
 			else if (this->player->character->sitting == SIT_FLOOR)

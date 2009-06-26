@@ -1,7 +1,98 @@
 
-Character::Character(std::string name)
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
+#include "character.hpp"
+
+#include <string>
+#include <list>
+#include <vector>
+#include <limits>
+
+#include "database.hpp"
+#include "util.hpp"
+
+// TODO: Clean up these functions
+std::string ItemSerialize(std::list<Character_Item> list)
 {
-	Database_Result res = eoserv_db.Query("SELECT `name`, `title`, `home`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`, `map`,"
+	std::string serialized;
+	serialized.reserve(list.size()*10); // Reserve some space to stop some mass-reallocations
+	UTIL_LIST_FOREACH_ALL(list, Character_Item, item)
+	{
+		serialized.append(util::to_string(item.id));
+		serialized.append(",");
+		serialized.append(util::to_string(item.amount));
+		serialized.append(";");
+	}
+	serialized.reserve(0); // Clean up the reserve to save memory
+	return serialized;
+}
+
+std::list<Character_Item> ItemUnserialize(std::string serialized)
+{
+	std::list<Character_Item> list;
+	std::size_t p = 0;
+	std::size_t lastp = std::numeric_limits<std::size_t>::max();
+	Character_Item newitem;
+
+	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
+	{
+		std::string part = serialized.substr(lastp+1, p-lastp-1);
+		std::size_t pp = 0;
+		pp = part.find_first_of(',', 0);
+		if (pp == std::string::npos)
+		{
+			continue;
+		}
+		newitem.id = util::to_int(part.substr(0, pp));
+		newitem.amount = util::to_int(part.substr(pp+1));
+
+		list.push_back(newitem);
+
+		lastp = p;
+	}
+
+	return list;
+}
+
+std::string DollSerialize(util::array<int, 15> list)
+{
+	std::string serialized;
+
+	serialized.reserve(15*5); // Reserve some space to stop some mass-reallocations
+
+	UTIL_ARRAY_FOREACH_ALL(list, int, 15, item)
+	{
+		serialized.append(util::to_string(item));
+		serialized.append(",");
+	}
+
+	serialized.reserve(0); // Clean up the reserve to save memory
+
+	return serialized;
+}
+
+util::array<int, 15> DollUnserialize(std::string serialized)
+{
+	util::array<int, 15> list(0);
+	std::size_t p = 0;
+	std::size_t lastp = std::numeric_limits<std::size_t>::max();
+	int i = 0;
+	while ((p = serialized.find_first_of(',', p+1)) != std::string::npos)
+	{
+		list[i++] = util::to_int(serialized.substr(lastp+1, p-lastp-1));
+		lastp = p;
+	}
+	return list;
+}
+
+Character::Character(std::string name, World *world)
+{
+	this->world = world;
+
+	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`, `map`,"
 	"`x`, `y`, `direction`, `spawnmap`, `spawnx`, `spawny`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
 	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank` FROM `characters` WHERE `name` = '$'", name.c_str());
 	std::map<std::string, util::variant> row = res.front();
@@ -9,7 +100,7 @@ Character::Character(std::string name)
 	this->login_time = std::time(0);
 
 	this->online = true;
-	this->id = the_world->GenerateCharacterID();
+	this->id = this->world->GenerateCharacterID();
 
 	this->admin = static_cast<AdminLevel>(static_cast<int>(row["admin"]));
 	this->name = static_cast<std::string>(row["name"]);
@@ -85,7 +176,7 @@ Character::Character(std::string name)
 	this->guild_tag = util::trim(static_cast<std::string>(row["guild"]));
 	this->guild_rank = static_cast<int>(row["guild_rank"]);
 	this->party = 0;
-	this->map = the_world->maps[0];
+	this->map = this->world->maps[0];
 }
 
 bool Character::ValidName(std::string name)
@@ -109,46 +200,6 @@ bool Character::ValidName(std::string name)
 	}
 
 	return true;
-}
-
-bool Character::Exists(std::string name)
-{
-	Database_Result res = eoserv_db.Query("SELECT 1 FROM `characters` WHERE `name` = '$'", name.c_str());
-	return !res.empty();
-}
-
-Character *Character::Create(Player *player, std::string name, int gender, int hairstyle, int haircolor, int race)
-{
-	char buffer[1024];
-	std::string startmapinfo;
-	std::string startmapval;
-	std::string spawnmapinfo;
-	std::string spawnmapval;
-
-	if (static_cast<int>(eoserv_config["StartMap"]))
-	{
-		startmapinfo = ", `map`, `x`, `y`";
-		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["StartMap"]), static_cast<int>(eoserv_config["StartX"]), static_cast<int>(eoserv_config["StartY"]));
-		startmapval = buffer;
-	}
-
-	if (static_cast<int>(eoserv_config["SpawnMap"]))
-	{
-		spawnmapinfo = ", `spawnmap`, `spawnx`, `spawny`";
-		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(eoserv_config["SpawnMap"]), static_cast<int>(eoserv_config["SpawnX"]), static_cast<int>(eoserv_config["SpawnY"]));
-		spawnmapval = buffer;
-	}
-
-	eoserv_db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`@@) VALUES ('$','$',#,#,#,#,'$','','$','$'@@)",
-		startmapinfo.c_str(), spawnmapinfo.c_str(), name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race,
-		static_cast<std::string>(eoserv_config["StartItems"]).c_str(), static_cast<std::string>(gender?eoserv_config["StartEquipMale"]:eoserv_config["StartEquipFemale"]).c_str(),
-		static_cast<std::string>(eoserv_config["StartSpells"]).c_str(), startmapval.c_str(), spawnmapval.c_str());
-	return new Character(name);
-}
-
-void Character::Delete(std::string name)
-{
-	eoserv_db.Query("DELETE FROM `characters` WHERE name = '$'", name.c_str());
 }
 
 void Character::Msg(Character *from, std::string message)
@@ -228,7 +279,7 @@ bool Character::AddItem(short item, int amount)
 		return false;
 	}
 
-	if (item <= 0 || static_cast<std::size_t>(item) >= eoserv_items->data.size())
+	if (item <= 0 || static_cast<std::size_t>(item) >= this->world->eif->data.size())
 	{
 		return false;
 	}
@@ -243,7 +294,7 @@ bool Character::AddItem(short item, int amount)
 			}
 			it->amount += amount;
 
-			it->amount = std::min<int>(it->amount, eoserv_config["MaxItem"]);
+			it->amount = std::min<int>(it->amount, this->world->config["MaxItem"]);
 
 			this->CalculateStats();
 			return true;
@@ -295,7 +346,7 @@ bool Character::AddTradeItem(short item, int amount)
 		return false;
 	}
 
-	if (item <= 0 || static_cast<std::size_t>(item) >= eoserv_items->data.size())
+	if (item <= 0 || static_cast<std::size_t>(item) >= this->world->eif->data.size())
 	{
 		return false;
 	}
@@ -368,7 +419,7 @@ bool Character::Equip(short item, unsigned char subloc)
 		return false;
 	}
 
-	switch (eoserv_items->Get(item)->type)
+	switch (this->world->eif->Get(item)->type)
 	{
 		case EIF::Weapon:
 			if (this->paperdoll[Character::Weapon] != 0)
@@ -389,7 +440,7 @@ bool Character::Equip(short item, unsigned char subloc)
 			break;
 
 		case EIF::Armor:
-			if (eoserv_items->Get(item)->gender != this->gender)
+			if (this->world->eif->Get(item)->gender != this->gender)
 			{
 				return false;
 			}
@@ -554,7 +605,7 @@ bool Character::InRange(Map_Item other)
 
 void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation)
 {
-	if (map <= 0 || static_cast<std::size_t>(map) > the_world->maps.size() || !the_world->maps[map]->exists)
+	if (map <= 0 || static_cast<std::size_t>(map) > this->world->maps.size() || !this->world->maps[map]->exists)
 	{
 		return;
 	}
@@ -573,17 +624,17 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	{
 		builder.AddChar(WARP_SWITCH);
 		builder.AddShort(map);
-		builder.AddByte(the_world->maps[map]->rid[0]);
-		builder.AddByte(the_world->maps[map]->rid[1]);
-		builder.AddByte(the_world->maps[map]->rid[2]);
-		builder.AddByte(the_world->maps[map]->rid[3]);
-		builder.AddThree(the_world->maps[map]->filesize);
+		builder.AddByte(this->world->maps[map]->rid[0]);
+		builder.AddByte(this->world->maps[map]->rid[1]);
+		builder.AddByte(this->world->maps[map]->rid[2]);
+		builder.AddByte(this->world->maps[map]->rid[3]);
+		builder.AddThree(this->world->maps[map]->filesize);
 		builder.AddChar(0); // ?
 		builder.AddChar(0); // ?
 	}
 
 	this->map->Leave(this, animation);
-	this->map = the_world->maps[map];
+	this->map = this->world->maps[map];
 	this->mapid = map;
 	this->x = x;
 	this->y = y;
@@ -651,15 +702,15 @@ void Character::Refresh()
 		builder.AddShort(character->maxtp);
 		builder.AddShort(character->tp);
 		// equipment
-		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Boots])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 		builder.AddShort(0); // ??
 		builder.AddShort(0); // ??
 		builder.AddShort(0); // ??
-		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Armor])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 		builder.AddShort(0); // ??
-		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Hat])->dollgraphic);
-		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Shield])->dollgraphic);
-		builder.AddShort(eoserv_items->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 		builder.AddChar(character->sitting);
 		builder.AddChar(0); // visible
 		builder.AddByte(255);
@@ -695,7 +746,7 @@ std::string Character::PaddedGuildTag()
 {
 	std::string tag;
 
-	if (static_cast<int>(eoserv_config["ShowLevel"]))
+	if (static_cast<int>(this->world->config["ShowLevel"]))
 	{
 		tag = util::to_string(this->level);
 		if (tag.length() < 3)
@@ -748,13 +799,13 @@ void Character::CalculateStats()
 	this->maxsp = 0;
 	UTIL_LIST_FOREACH_ALL(this->inventory, Character_Item, item)
 	{
-		this->weight += eoserv_items->Get(item.id)->weight * item.amount;
+		this->weight += this->world->eif->Get(item.id)->weight * item.amount;
 	}
 	UTIL_ARRAY_FOREACH_ALL(this->paperdoll, int, 15, i)
 	{
 		if (i)
 		{
-			EIF_Data *item = eoserv_items->Get(i);
+			EIF_Data *item = this->world->eif->Get(i);
 			this->weight += item->weight;
 			this->maxhp += item->hp;
 			this->maxtp += item->tp;
@@ -787,16 +838,16 @@ void Character::Save()
 #ifdef DEBUG
 	std::printf("Saving character '%s' (session lasted %i minutes)\n", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
-	eoserv_db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
-	                "`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
-	                "`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, "
-	                "`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
-	                "`spells` = '$', `guild` = '$', guild_rank = # WHERE `name` = '$'",
-                    this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
-	                this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
-	                this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
-	                this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), "", DollSerialize(this->paperdoll).c_str(),
-	                "", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
+	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
+		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
+		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, "
+		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
+		"`spells` = '$', `guild` = '$', guild_rank = # WHERE `name` = '$'",
+		this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
+		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
+		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
+		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), "", DollSerialize(this->paperdoll).c_str(),
+		"", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
 }
 
 Character::~Character()
@@ -836,7 +887,7 @@ Character::~Character()
 
 	if (this->player)
 	{
-		the_world->Logout(this);
+		this->world->Logout(this);
 	}
 
 	this->Save();
