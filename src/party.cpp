@@ -76,7 +76,7 @@ void Party::Join(Character *character)
 
 void Party::Leave(Character *character)
 {
-	if (this->members.size() > 2)
+	if (this->members.size() > 2 && character != this->leader)
 	{
 		UTIL_VECTOR_IFOREACH_ALL(this->members, Character *, checkcharacter)
 		{

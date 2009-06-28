@@ -51,10 +51,10 @@ CLIENT_F_FUNC(Trade)
 			if (victim && victim->mapid == this->player->character->mapid && victim->trade_partner == this->player->character && (victim->player->client->state > EOClient::PlayingModal))
 			{
 				PacketBuilder builder(PACKET_TRADE, PACKET_OPEN);
-				builder.AddShort(this->player->character->id);
-				builder.AddBreakString(this->player->character->name);
 				builder.AddShort(victim->id);
 				builder.AddBreakString(victim->name);
+				builder.AddShort(this->player->character->id);
+				builder.AddBreakString(this->player->character->name);
 				CLIENT_SEND(builder);
 				victim->player->client->SendBuilder(builder);
 
