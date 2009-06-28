@@ -58,19 +58,25 @@ CLIENT_F_FUNC(Shop)
 
 		case PACKET_BUY: // Purchasing an item from a store
 		{
-			if (this->state < EOClient::Playing) return false;
+			if (this->state < EOClient::Playing) return true;
 
 			short item = reader.GetShort();
 			int amount = reader.GetInt();
 			/*int shopid = reader.GetInt();*/
 
+			if (amount <= 0 || amount > static_cast<int>(this->server->world->config["MaxShopBuy"])) return false;
+
 			if (this->player->character->shop_npc)
 			{
 				UTIL_VECTOR_FOREACH_ALL(this->player->character->shop_npc->shop_trade, NPC_Shop_Trade_Item, checkitem)
 				{
-					if (checkitem.id == item && checkitem.buy != 0 && this->player->character->HasItem(1) >= amount * checkitem.buy)
+					int cost = amount * checkitem.buy;
+
+					if (cost <= 0) return true;
+
+					if (checkitem.id == item && checkitem.buy != 0 && this->player->character->HasItem(1) >= cost)
 					{
-						this->player->character->DelItem(1, amount * checkitem.buy);
+						this->player->character->DelItem(1, cost);
 						this->player->character->AddItem(item, amount);
 
 						reply.SetID(PACKET_SHOP, PACKET_BUY);
@@ -94,6 +100,8 @@ CLIENT_F_FUNC(Shop)
 			short item = reader.GetShort();
 			int amount = reader.GetInt();
 			/*int shopid = reader.GetInt();*/
+
+			if (amount <= 0) return true;
 
 			if (this->player->character->shop_npc)
 			{
@@ -140,7 +148,7 @@ CLIENT_F_FUNC(Shop)
 						reply.AddShort(item.id);
 						reply.AddThree(item.buy);
 						reply.AddThree(item.sell);
-						reply.AddChar(4); // ?
+						reply.AddChar(static_cast<int>(this->server->world->config["MaxShopBuy"]));
 					}
 					reply.AddByte(255);
 

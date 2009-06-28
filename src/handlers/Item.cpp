@@ -89,7 +89,7 @@ CLIENT_F_FUNC(Item)
 					break;
 
 					default:
-						break;
+						return true;
 				}
 
 				CLIENT_SEND(reply);

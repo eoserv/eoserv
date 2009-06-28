@@ -214,7 +214,7 @@ CLIENT_F_FUNC(Talk)
 
 					this->player->character->Warp(map, x, y, WARP_ANIMATION_ADMIN);
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["rehash"]))
+				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["rehash"]))
 				{
 					std::printf("Config reloaded by %s\n", this->player->character->name.c_str());
 					try

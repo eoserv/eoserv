@@ -225,6 +225,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "MaxSkills"          , 48);
 		eoserv_config_default(config, "MaxMessageLength"   , 128);
 		eoserv_config_default(config, "MaxCharacters"      , 3);
+		eoserv_config_default(config, "MaxShopBuy"         , 4);
 		eoserv_config_default(config, "GhostTimer"         , 4);
 		eoserv_config_default(config, "AttackLimit"        , 251);
 		eoserv_config_default(config, "DropTimer"          , 120);
