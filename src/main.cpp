@@ -234,6 +234,9 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "SeeDistance"        , 11);
 		eoserv_config_default(config, "DropDistance"       , 2);
 		eoserv_config_default(config, "RangedDistance"     , 5);
+		eoserv_config_default(config, "ItemDespawn"        , 0);
+		eoserv_config_default(config, "ItemDespawnCheck"   , 60);
+		eoserv_config_default(config, "ItemDespawnRate"    , 600);
 		eoserv_config_default(config, "ChatLength"         , 128);
 		eoserv_config_default(config, "ShareMode"          , 2);
 		eoserv_config_default(config, "PartyShareMode"     , 2);

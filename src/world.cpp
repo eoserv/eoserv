@@ -103,6 +103,24 @@ void world_recover(void *world_void)
 	}
 }
 
+void world_despawn_items(void *world_void)
+{
+	World *world = static_cast<World *>(world_void);
+
+	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
+	{
+restart_loop:
+		UTIL_VECTOR_IFOREACH_ALL(map->items, Map_Item, item)
+		{
+			if (item->unprotecttime < (Timer::GetTime() - static_cast<double>(world->config["ItemDespawnRate"])))
+			{
+				map->DelItem(item->uid, 0);
+				goto restart_loop;
+			}
+		}
+	}
+}
+
 World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	if (int(this->timer.resolution * 1000.0) > 1)
@@ -172,6 +190,11 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	this->timer.Register(new TimeEvent(world_spawn_npcs, this, 1.0, Timer::FOREVER, true));
 	this->timer.Register(new TimeEvent(world_act_npcs, this, 0.05, Timer::FOREVER, true));
 	this->timer.Register(new TimeEvent(world_recover, this, 90.0, Timer::FOREVER, true));
+
+	if (static_cast<int>(this->config["ItemDespawn"]))
+	{
+		this->timer.Register(new TimeEvent(world_despawn_items, this, static_cast<double>(this->config["ItemDespawnCheck"]), Timer::FOREVER, true));
+	}
 
 	exp_table[0] = 0;
 	for (std::size_t i = 1; i < sizeof(this->exp_table)/sizeof(int); ++i)
