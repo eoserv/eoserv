@@ -103,6 +103,10 @@ class Character
 		bool trade_agree;
 		std::list<Character_Item> trade_inventory;
 
+		Character *party_trust_send;
+		Character *party_trust_recv;
+		PartyRequestType party_send_type;
+
 		NPC *shop_npc;
 
 		WarpAnimation warp_anim;

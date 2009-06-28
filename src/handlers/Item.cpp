@@ -80,6 +80,11 @@ CLIENT_F_FUNC(Item)
 						}
 
 						this->player->character->DelItem(id, 1);
+
+						if (this->player->character->party)
+						{
+							this->player->character->party->UpdateHP(this->player->character);
+						}
 					}
 					break;
 

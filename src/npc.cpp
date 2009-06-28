@@ -6,6 +6,9 @@
 
 #include "npc.hpp"
 
+#include <string>
+#include <vector>
+#include <set>
 #include <cstdio>
 #include <cmath>
 
@@ -341,6 +344,8 @@ void NPC::Damage(Character *from, int amount)
 	double droprate = static_cast<double>(this->map->world->config["DropRate"]) / 100.0;
 	double exprate = static_cast<double>(this->map->world->config["ExpRate"]) / 100.0;
 	int sharemode = static_cast<int>(this->map->world->config["ShareMode"]);
+	int partysharemode = static_cast<int>(this->map->world->config["PartyShareMode"]);
+	std::set<Party *> parties;
 	PacketBuilder builder;
 
 	amount = std::min(this->hp, amount);
@@ -518,7 +523,21 @@ void NPC::Damage(Character *from, int amount)
 
 									if (reward > 0)
 									{
-										character->exp += reward;
+										if (partysharemode)
+										{
+											if (character->party)
+											{
+												character->party->ShareEXP(reward, partysharemode, this->map);
+											}
+											else
+											{
+												character->exp += reward;
+											}
+										}
+										else
+										{
+											character->exp += reward;
+										}
 									}
 								}
 								break;
@@ -530,7 +549,21 @@ void NPC::Damage(Character *from, int amount)
 
 									if (reward > 0)
 									{
-										character->exp += reward;
+										if (partysharemode)
+										{
+											if (character->party)
+											{
+												character->party->ShareEXP(reward, partysharemode, this->map);
+											}
+											else
+											{
+												character->exp += reward;
+											}
+										}
+										else
+										{
+											character->exp += reward;
+										}
 									}
 								}
 								break;
@@ -540,7 +573,22 @@ void NPC::Damage(Character *from, int amount)
 
 								if (reward > 0)
 								{
-									character->exp += reward;
+									if (partysharemode)
+									{
+										if (character->party)
+										{
+											character->party->temp_expsum += reward;
+											parties.insert(character->party);
+										}
+										else
+										{
+											character->exp += reward;
+										}
+									}
+									else
+									{
+										character->exp += reward;
+									}
 								}
 								break;
 
@@ -549,7 +597,21 @@ void NPC::Damage(Character *from, int amount)
 
 								if (reward > 0)
 								{
-									character->exp += reward;
+									if (partysharemode)
+									{
+										if (character->party)
+										{
+											character->party->temp_expsum += reward;
+										}
+										else
+										{
+											character->exp += reward;
+										}
+									}
+									else
+									{
+										character->exp += reward;
+									}
 								}
 								break;
 						}
@@ -599,6 +661,12 @@ void NPC::Damage(Character *from, int amount)
 
 				character->player->client->SendBuilder(builder);
 			}
+		}
+
+		UTIL_SET_FOREACH_ALL(parties, Party *, party)
+		{
+			party->ShareEXP(party->temp_expsum, partysharemode, this->map);
+			party->temp_expsum = 0;
 		}
 
 		UTIL_LIST_FOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
@@ -665,6 +733,10 @@ void NPC::Attack(Character *target)
 	amount = std::min(amount, int(target->hp));
 
 	target->hp -= amount;
+	if (target->party)
+	{
+		target->party->UpdateHP(target);
+	}
 
 	int xdiff = this->x - target->x;
 	int ydiff = this->y - target->y;

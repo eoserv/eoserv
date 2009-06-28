@@ -6,7 +6,7 @@
 		<Option platforms="Windows;" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
+			<Target title="DEBUG+MYSQL+SQLITE">
 				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
 				<Option working_dir=".." />
 				<Option object_output="..\obj\Debug\" />
@@ -16,9 +16,47 @@
 					<Add option="-g" />
 					<Add option="-DDEBUG" />
 					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_MYSQL" />
+					<Add option="-DDATABASE_SQLITE" />
 				</Compiler>
+				<Linker>
+					<Add library="mysql" />
+					<Add library="sqlite3" />
+				</Linker>
 			</Target>
-			<Target title="Release">
+			<Target title="DEBUG+MYSQL">
+				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_MYSQL" />
+				</Compiler>
+				<Linker>
+					<Add library="mysql" />
+				</Linker>
+			</Target>
+			<Target title="DEBUG+SQLITE">
+				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_SQLITE" />
+				</Compiler>
+				<Linker>
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="MYSQL+SQLITE">
 				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
 				<Option working_dir=".." />
 				<Option object_output="..\obj\Release\" />
@@ -26,9 +64,43 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-DDATABASE_MYSQL" />
+					<Add option="-DDATABASE_SQLITE" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="mysql" />
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="MYSQL">
+				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Release\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-DDATABASE_MYSQL" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="mysql" />
+				</Linker>
+			</Target>
+			<Target title="SQLITE">
+				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Release\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-DDATABASE_SQLITE" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="sqlite3" />
 				</Linker>
 			</Target>
 		</Build>
@@ -36,16 +108,12 @@
 			<Add option="-Wall" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
-			<Add option="-DDATABASE_MYSQL" />
-			<Add option="-DDATABASE_SQLITE" />
 			<Add directory="..\src\" />
 			<Add directory="..\src\extra\" />
 			<Add directory="..\src\handlers\" />
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />
-			<Add library="sqlite3" />
-			<Add library="mysql" />
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
 		</Linker>

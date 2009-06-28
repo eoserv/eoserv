@@ -13,6 +13,7 @@
 class Party;
 
 #include "character.hpp"
+#include "map.hpp"
 
 /**
  * A temporary group of Characters
@@ -20,14 +21,23 @@ class Party;
 class Party
 {
 	public:
-		Party(Character *host, Character *other);
+		World *world;
 
-		Character *host;
+		Character *leader;
 		std::vector<Character *> members;
+
+		int temp_expsum;
+
+		Party(World *world, Character *leader, Character *other);
 
 		void Msg(Character *from, std::string message);
 		void Join(Character *);
-		void Part(Character *);
+		void Leave(Character *);
+		void RefreshMembers(Character *);
+		void UpdateHP(Character *);
+		void ShareEXP(int exp, int sharemode, Map *map);
+
+		~Party();
 };
 
 #endif // PARTY_HPP_INCLUDED

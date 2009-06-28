@@ -52,7 +52,7 @@ class World
 
 		std::vector<Character *> characters;
 		std::vector<Guild *> guilds;
-		std::vector<Party *> partys;
+		std::vector<Party *> parties;
 		std::vector<Map *> maps;
 
 		util::array<int, 254> exp_table;
@@ -87,6 +87,8 @@ class World
 		bool CreatePlayer(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid, std::string ip);
 		bool PlayerExists(std::string username);
 		bool PlayerOnline(std::string username);
+
+		~World();
 };
 
 #endif // WORLD_HPP_INCLUDED

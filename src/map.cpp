@@ -225,14 +225,7 @@ void Map::Leave(Character *character, WarpAnimation animation)
 {
 	PacketBuilder builder;
 
-	if (animation == WARP_ANIMATION_NONE)
-	{
-		builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
-	}
-	else
-	{
-		builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
-	}
+	builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
 	builder.AddShort(character->player->id);
 	if (animation != WARP_ANIMATION_NONE)
 	{
@@ -474,13 +467,13 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 	from->direction = direction;
 
-	builder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
+	builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
 	builder.AddShort(from->player->id);
 
 	UTIL_VECTOR_FOREACH_ALL(oldchars, Character *, character)
 	{
 		PacketBuilder rbuilder;
-		rbuilder.SetID(PACKET_PLAYERS, PACKET_REMOVE);
+		rbuilder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
 		rbuilder.AddShort(character->player->id);
 
 		character->player->client->SendBuilder(builder);

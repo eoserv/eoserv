@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <cmath>
+#include <ctime>
 
 #include "character.hpp"
 #include "guild.hpp"
@@ -70,25 +71,47 @@ void world_recover(void *world_void)
 
 	UTIL_VECTOR_FOREACH_ALL(world->characters, Character *, character)
 	{
-		character->hp += character->maxhp / 10;
-		character->tp += character->maxtp / 10;
+		bool updated = false;
 
-		character->hp = std::min(character->hp, character->maxhp);
-		character->tp = std::min(character->tp, character->maxtp);
+		if (character->hp < character->maxhp)
+		{
+			character->hp += character->maxhp / 10;
+			character->hp = std::min(character->hp, character->maxhp);
+			updated = true;
 
-		builder.Reset();
-		builder.AddShort(character->hp);
-		builder.AddShort(character->tp);
-		builder.AddShort(0); // ?
-		character->player->client->SendBuilder(builder);
+			if (character->party)
+			{
+				character->party->UpdateHP(character);
+			}
+		}
+
+		if (character->tp < character->maxtp)
+		{
+			character->tp += character->maxtp / 10;
+			character->tp = std::min(character->tp, character->maxtp);
+			updated = true;
+		}
+
+		if (updated)
+		{
+			builder.Reset();
+			builder.AddShort(character->hp);
+			builder.AddShort(character->tp);
+			builder.AddShort(0); // ?
+			character->player->client->SendBuilder(builder);
+		}
 	}
 }
 
 World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
-	if (int(this->timer.resolution * 1000.0) < 1)
+	if (int(this->timer.resolution * 1000.0) > 0)
 	{
 		std::printf("Timers set at approx. %i ms resolution\n", int(this->timer.resolution * 1000.0));
+	}
+	else
+	{
+		std::puts("Timers set at < 1 ms resolution");
 	}
 
 	this->config = eoserv_config;
@@ -423,4 +446,17 @@ void World::Ban(Character *from, Character *victim, double duration, bool announ
 {
 	this->server->AddBan(victim->player->username, victim->player->client->GetRemoteAddr(), victim->player->client->hdid, duration);
 	victim->player->client->Close();
+}
+
+World::~World()
+{
+	delete this->eif;
+	delete this->enf;
+	delete this->esf;
+	delete this->ecf;
+
+	UTIL_VECTOR_FOREACH_ALL(this->maps, Map *, map)
+	{
+		delete map;
+	}
 }

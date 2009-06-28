@@ -30,7 +30,14 @@ CLIENT_F_FUNC(Talk)
 
 		case PACKET_OPEN: // Party chat messagea
 		{
+			if (this->state < EOClient::PlayingModal) return false;
 
+			if (!this->player->character->party) return false;
+
+			message = reader.GetEndString(); // message
+			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
+
+			this->player->character->party->Msg(this->player->character, message);
 		}
 		break;
 

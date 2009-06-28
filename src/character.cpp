@@ -162,16 +162,19 @@ Character::Character(std::string name, World *world)
 	this->trade_partner = 0;
 	this->trade_agree = false;
 
+	this->party_trust_send = 0;
+	this->party_trust_recv = 0;
+
 	this->shop_npc = 0;
 
 	this->warp_anim = WARP_ANIMATION_INVALID;
 
-	this->sitting = static_cast<SitAction>(static_cast<int>(row["sitting"]));
+	this->sitting = static_cast<SitAction>(GetRow<int>(row, "sitting"));
 
-	this->bankmax = static_cast<int>(row["bankmax"]);
-	this->goldbank = static_cast<int>(row["goldbank"]);
+	this->bankmax = GetRow<int>(row, "bankmax");
+	this->goldbank = GetRow<int>(row, "goldbank");
 
-	this->usage = static_cast<int>(row["usage"]);
+	this->usage = GetRow<int>(row, "usage");
 
 	this->inventory = ItemUnserialize(row["inventory"]);
 	this->paperdoll = DollUnserialize(row["paperdoll"]);
@@ -835,6 +838,11 @@ void Character::CalculateStats()
 	this->evade += 0 + calcagi/2;
 	this->armor += 0 + calccon/2;
 	this->maxsp += std::min(20 + this->level*2, 100);
+
+	if (this->party)
+	{
+		this->party->UpdateHP(this);
+	}
 }
 
 void Character::Save()
@@ -877,6 +885,11 @@ Character::~Character()
 		this->trade_partner = 0;
 	}
 
+	if (this->party)
+	{
+		this->party->Leave(this);
+	}
+
 	UTIL_LIST_FOREACH_ALL(this->unregister_npc, NPC *, npc)
 	{
 		UTIL_LIST_IFOREACH_ALL(npc->damagelist, NPC_Opponent, checkopp)
@@ -890,7 +903,7 @@ Character::~Character()
 		}
 	}
 
-	if (this->player)
+	if (this->world && this->player)
 	{
 		this->world->Logout(this);
 	}

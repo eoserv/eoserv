@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "RangedDistance"     , 5);
 		eoserv_config_default(config, "ChatLength"         , 128);
 		eoserv_config_default(config, "ShareMode"          , 2);
-		eoserv_config_default(config, "PartyShareMode"     , 3);
+		eoserv_config_default(config, "PartyShareMode"     , 2);
 		eoserv_config_default(config, "GhostNPC"           , 0);
 		eoserv_config_default(config, "AllowStats"         , 1);
 		eoserv_config_default(config, "StartMap"           , 0);
@@ -334,6 +334,11 @@ EO Version Support: .27 .28\n\
 		std::puts("WARNING: This is a debug build and shouldn't be used for live servers.");
 #endif
 
+		std::time_t rawtime;
+		char timestr[256];
+		std::time(&rawtime);
+		std::strftime(timestr, 256, "%c", std::localtime(&rawtime));
+
 		std::string logerr = static_cast<std::string>(config["LogErr"]);
 		if (!logerr.empty() && logerr.compare("-") != 0)
 		{
@@ -342,8 +347,12 @@ EO Version Support: .27 .28\n\
 			{
 				std::fputs("Failed to redirect output.\n", stderr);
 			}
+			else
+			{
+				std::fprintf(stderr, "\n\n--- %s ---\n\n", timestr);
+			}
 
-			if (!std::setvbuf(stderr, 0, _IOLBF, 1024) == 0)
+			if (!std::setvbuf(stderr, 0, _IONBF, 0) == 0)
 			{
 				std::fputs("Failed to change stderr buffer settings\n", stderr);
 			}
@@ -357,8 +366,12 @@ EO Version Support: .27 .28\n\
 			{
 				std::fputs("Failed to redirect output.\n", stderr);
 			}
+			else
+			{
+				std::printf("\n\n--- %s ---\n\n", timestr);
+			}
 
-			if (!std::setvbuf(stdout, 0, _IOLBF, 1024) == 0)
+			if (!std::setvbuf(stdout, 0, _IONBF, 0) == 0)
 			{
 				std::fputs("Failed to change stdout buffer settings\n", stderr);
 			}

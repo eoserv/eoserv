@@ -92,7 +92,13 @@ enum PaperdollIcon UTIL_EXTEND_ENUM(unsigned char)
 	ICON_HGM_PARTY = 10
 };
 
-enum AccountReply UTIL_EXTEND_ENUM(unsigned char)
+enum PartyRequestType UTIL_EXTEND_ENUM(unsigned char)
+{
+	PARTY_REQUEST_JOIN = 0,
+	PARTY_REQUEST_INVITE = 1,
+};
+
+enum AccountReply UTIL_EXTEND_ENUM(unsigned short)
 {
 	ACCOUNT_EXISTS = 1,
 	ACCOUNT_NOT_APPROVED = 2,
