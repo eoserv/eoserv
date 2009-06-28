@@ -85,7 +85,7 @@ HTTP *HTTP::RequestURL(std::string url, IPAddress outgoing)
 	return new HTTP(host, port, path, outgoing);
 }
 
-void HTTP::Tick(int timeout)
+void HTTP::Tick(double timeout)
 {
 	this->client->Tick(timeout);
 

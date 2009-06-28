@@ -91,7 +91,7 @@ void *SLN::RequestThread(void *void_sln)
 
 	while (!http->Done())
 	{
-		util::sleep(10);
+		http->Tick(0.01);
 	}
 
 	std::vector<std::string> lines = util::explode("\r\n", http->Response());

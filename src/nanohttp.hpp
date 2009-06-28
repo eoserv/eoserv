@@ -25,7 +25,7 @@ class HTTP
 
 		static HTTP *RequestURL(std::string url, IPAddress outgoing = 0U);
 
-		void Tick(int timeout);
+		void Tick(double timeout);
 
 		bool Done();
 		int StatusCode();
