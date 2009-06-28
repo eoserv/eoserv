@@ -409,7 +409,8 @@ void sleep(double seconds)
 #else // defined(WIN32) || defined(WIN64)
 	unsigned long sec = seconds;
 	unsigned long nsec = (seconds - double(sec)) * 1000000000.0;
-	nanosleep({sec, nsec});
+	timespec ts = {sec, nsec};
+	nanosleep(&ts, 0);
 #endif // defined(WIN32) || defined(WIN64)
 }
 

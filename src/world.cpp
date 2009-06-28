@@ -105,7 +105,7 @@ void world_recover(void *world_void)
 
 World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
-	if (int(this->timer.resolution * 1000.0) > 0)
+	if (int(this->timer.resolution * 1000.0) > 1)
 	{
 		std::printf("Timers set at approx. %i ms resolution\n", int(this->timer.resolution * 1000.0));
 	}
