@@ -434,7 +434,7 @@ void NPC::Damage(Character *from, int amount)
 			dropuid = this->map->GenerateItemID();
 			dropid = drop->id;
 			dropamount = util::rand(drop->min, drop->max);
-			Map_Item newitem = {dropuid, dropid, dropamount, this->x, this->y, 0, Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])};
+			Map_Item newitem = {dropuid, dropid, dropamount, this->x, this->y, from, Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])};
 			this->map->items.push_back(newitem);
 
 			// Selects a random number between 0 and maxhp, and decides the winner based on that
