@@ -25,21 +25,27 @@ variant::variant()
 {
 	this->type = type_int;
 	this->val_int = 0;
+	this->cache_val[type_int] = true;
+	this->cache_val[type_float] = false;
+	this->cache_val[type_string] = false;
 }
 
 variant::variant(int i)
 {
 	this->SetInt(i);
+	this->cache_val[type_int] = true;
 }
 
 variant::variant(double d)
 {
 	this->SetFloat(d);
+	this->cache_val[type_float] = true;
 }
 
 variant::variant(const std::string &s)
 {
 	this->SetString(s);
+	this->cache_val[type_string] = true;
 }
 
 int variant::int_length(int x)
@@ -58,11 +64,11 @@ int variant::int_length(int x)
 
 int variant::GetInt()
 {
-	if (cache_val[type_int])
+	if (this->cache_val[type_int])
 	{
 		return this->val_int;
 	}
-	cache_val[type_int] = true;
+	this->cache_val[type_int] = true;
 
 	switch (this->type)
 	{
@@ -81,11 +87,11 @@ int variant::GetInt()
 
 double variant::GetFloat()
 {
-	if (cache_val[type_float])
+	if (this->cache_val[type_float])
 	{
 		return this->val_float;
 	}
-	cache_val[type_float] = true;
+	this->cache_val[type_float] = true;
 
 	switch (this->type)
 	{
@@ -104,11 +110,11 @@ double variant::GetFloat()
 
 std::string variant::GetString()
 {
-	if (cache_val[type_string])
+	if (this->cache_val[type_string])
 	{
 		return this->val_string;
 	}
-	cache_val[type_string] = true;
+	this->cache_val[type_string] = true;
 
 	char buf[1024];
 
@@ -132,8 +138,8 @@ variant &variant::SetInt(int i)
 {
 	this->val_int = i;
 	this->type = type_int;
-	cache_val[type_float] = false;
-	cache_val[type_string] = false;
+	this->cache_val[type_float] = false;
+	this->cache_val[type_string] = false;
 	return *this;
 }
 
@@ -141,8 +147,8 @@ variant &variant::SetFloat(double d)
 {
 	this->val_float = d;
 	this->type = type_float;
-	cache_val[type_int] = false;
-	cache_val[type_string] = false;
+	this->cache_val[type_int] = false;
+	this->cache_val[type_string] = false;
 	return *this;
 }
 
@@ -150,8 +156,8 @@ variant &variant::SetString(const std::string &s)
 {
 	this->val_string = s;
 	this->type = type_string;
-	cache_val[type_int] = false;
-	cache_val[type_float] = false;
+	this->cache_val[type_int] = false;
+	this->cache_val[type_float] = false;
 	return *this;
 }
 

@@ -43,6 +43,10 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		this->direction = static_cast<Direction>(spawn_time & 0x03);
 		this->spawn_time = 0;
 	}
+	else
+	{
+		this->direction = DIRECTION_DOWN;
+	}
 
 	Config::iterator drops = map->world->drops_config.find(util::to_string(this->id));
 	if (drops != map->world->drops_config.end())

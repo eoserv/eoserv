@@ -21,16 +21,13 @@
 SLN::SLN(EOServer *server)
 {
 	this->server = server;
-	this->thread = 0;
 
 	this->Request();
 }
 
 void SLN::Request()
 {
-	this->thread = new pthread_t;
-
-	if (pthread_create(this->thread, 0, SLN::RequestThread, this) != 0)
+	if (pthread_create(&this->thread, 0, SLN::RequestThread, this) != 0)
 	{
 		throw std::exception();
 	}
@@ -246,10 +243,5 @@ void SLN::TimedRequest(void *void_sln)
 
 SLN::~SLN()
 {
-	if (this->thread)
-	{
-		pthread_cancel(*this->thread);
-		pthread_join(*this->thread, 0);
-		delete this->thread;
-	}
+	pthread_join(this->thread, 0);
 }

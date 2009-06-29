@@ -21,9 +21,6 @@ CLIENT_F_FUNC(Sit)
 
 			if (action == SIT_SITTING && this->player->character->sitting == SIT_STAND)
 			{
-				int x = reader.GetChar();
-				int y = reader.GetChar();
-
 				reply.SetID(PACKET_SIT, PACKET_PLAYER);
 				reply.AddShort(this->player->id);
 				reply.AddChar(this->player->character->x);
@@ -32,11 +29,6 @@ CLIENT_F_FUNC(Sit)
 				reply.AddChar(0); // ?
 				CLIENT_SEND(reply);
 				this->player->character->Sit(SIT_FLOOR);
-
-				if (this->player->character->x != x || this->player->character->y != y)
-				{
-					this->player->character->Refresh();
-				}
 			}
 			else if (this->player->character->sitting == SIT_FLOOR)
 			{

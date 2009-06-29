@@ -220,8 +220,14 @@ ESF::ESF(std::string filename)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
-		std::fread(namebuf, sizeof(char), namesize, fh);
-		name.assign(namebuf,namesize);
+		if (std::fread(namebuf, sizeof(char), namesize, fh) == namesize)
+		{
+			name.assign(namebuf,namesize);
+		}
+		else
+		{
+			name.assign("ERROR");
+		}
 		delete[] namebuf;
 		std::fread(buf, sizeof(char), ESF::DATA_SIZE, fh);
 
@@ -233,7 +239,7 @@ ESF::ESF(std::string filename)
 		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	}
 
-	if (newdata.name.compare("eof") == 0)
+	if (this->data[numobj-1].name.compare("eof") == 0)
 	{
 		this->data.pop_back();
 	}

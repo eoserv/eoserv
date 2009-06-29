@@ -19,7 +19,7 @@ class SLN;
 class SLN
 {
 	private:
-		pthread_t *thread;
+		pthread_t thread;
 		EOServer *server;
 
 		void RequestTick();
