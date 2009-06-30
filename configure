@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cat /dev/null > Makefile
+cat /dev/null > Makefile.local
 
 proc_help()
 {
@@ -10,7 +10,7 @@ proc_help()
 
 proc_done()
 {
-	echo include Makefile.all >> Makefile
+	echo include Makefile.all >> Makefile.local
 	echo Done.
 	cat makeflag.txt
 }
@@ -18,7 +18,7 @@ proc_done()
 proc_linux()
 {
 	echo Configuring for Linux...
-	echo MAKEFILE_INC = Makefile.lnx >> Makefile
+	echo MAKEFILE_INC = Makefile.lnx >> Makefile.local
 	proc_done
 }
 

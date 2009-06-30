@@ -103,7 +103,7 @@ ifeq ($(POLL),1)
 	CXXFLAGS += -DSOCKET_POLL
 endif
 
-.PHONY: all clean
+.PHONY: all clean create-build-dirs
 
 all: eoserv
 

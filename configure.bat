@@ -1,6 +1,6 @@
 @echo off
 
-type NUL > Makefile
+type NUL > Makefile.local
 echo.
 
 if [%1] == [mingw] goto mingw
@@ -13,11 +13,11 @@ goto help
 
 :mingw
 	echo Configuring for MinGW...
-	echo MAKEFILE_INC = Makefile.mgw >> Makefile
+	echo MAKEFILE_INC = Makefile.mgw >> Makefile.local
 	goto okay
 
 :okay
-	echo include Makefile.all >> Makefile
+	echo include Makefile.all >> Makefile.local
 	echo Done.
 	type makeflag.txt
 	set ERRORLEVEL=0
