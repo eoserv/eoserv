@@ -7,8 +7,6 @@
 #ifndef SLN_HPP_INCLUDED
 #define SLN_HPP_INCLUDED
 
-#include <pthread.h>
-
 class SLN;
 
 #include "eoserver.hpp"
@@ -19,7 +17,6 @@ class SLN;
 class SLN
 {
 	private:
-		pthread_t thread;
 		EOServer *server;
 
 		void RequestTick();
@@ -29,7 +26,6 @@ class SLN
 	public:
 		SLN(EOServer *server);
 		void Request();
-		~SLN();
 };
 
 #endif //SLN_HPP_INCLUDED
