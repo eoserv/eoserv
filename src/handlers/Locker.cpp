@@ -103,14 +103,15 @@ Locker_Add_Common:
 							reply.AddThree(it->amount);
 							reply.AddChar(this->player->character->weight);
 							reply.AddChar(this->player->character->maxweight);
+
+							this->player->character->bank.erase(it);
+
 							UTIL_LIST_FOREACH_ALL(this->player->character->bank, Character_Item, item)
 							{
 								reply.AddShort(item.id);
 								reply.AddThree(item.amount);
 							}
 							CLIENT_SEND(reply);
-
-							this->player->character->bank.erase(it);
 
 							break;
 						}
