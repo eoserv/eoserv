@@ -270,11 +270,16 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "DropRate"           , 100);
 		eoserv_config_default(config, "MobRate"            , 100);
 		eoserv_config_default(config, "SpawnRate"          , 100);
+		eoserv_config_default(config, "BankUpgradeBase"    , 1000);
+		eoserv_config_default(config, "BankUpgradeStep"    , 1000);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
 		eoserv_config_default(config, "MaxItem"            , 10000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);
 		eoserv_config_default(config, "MaxChest"           , 10000000);
 		eoserv_config_default(config, "MaxBank"            , 200);
+		eoserv_config_default(config, "BaseBankSize"       , 25);
+		eoserv_config_default(config, "BankSizeStep"       , 5);
+		eoserv_config_default(config, "MaxBankUpgrades"    , 7);
 		eoserv_config_default(config, "MaxTile"            , 8);
 		eoserv_config_default(config, "MaxMap"             , 400);
 		eoserv_config_default(config, "MaxTrade"           , 10000000);

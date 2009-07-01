@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`skillpoints` INTEGER     NOT NULL DEFAULT 0,
 	`karma`       INTEGER     NOT NULL DEFAULT 1000,
 	`sitting`     INTEGER     NOT NULL DEFAULT 0,
-	`bankmax`     INTEGER     NOT NULL DEFAULT 20,
+	`bankmax`     INTEGER     NOT NULL DEFAULT 0,
 	`goldbank`    INTEGER     NOT NULL DEFAULT 0,
 	`usage`       INTEGER     NOT NULL DEFAULT 0,
 	`inventory`   TEXT        NOT NULL,

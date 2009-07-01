@@ -166,17 +166,26 @@ Character::Character(std::string name, World *world)
 	this->party_trust_recv = 0;
 
 	this->shop_npc = 0;
+	this->bank_npc = 0;
 
 	this->warp_anim = WARP_ANIMATION_INVALID;
 
 	this->sitting = static_cast<SitAction>(GetRow<int>(row, "sitting"));
 
 	this->bankmax = GetRow<int>(row, "bankmax");
+
+	// EOSERV originally set the default bankmax to 20
+	if (this->bankmax > static_cast<int>(world->config["MaxBankUpgrades"]))
+	{
+		this->bankmax = 0;
+	}
+
 	this->goldbank = GetRow<int>(row, "goldbank");
 
 	this->usage = GetRow<int>(row, "usage");
 
 	this->inventory = ItemUnserialize(row["inventory"]);
+	this->bank = ItemUnserialize(row["bank"]);
 	this->paperdoll = DollUnserialize(row["paperdoll"]);
 
 	this->player = 0;
@@ -859,8 +868,8 @@ void Character::Save()
 		this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
 		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
-		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), "", DollSerialize(this->paperdoll).c_str(),
-		"", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
+		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
+		DollSerialize(this->paperdoll).c_str(), "", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
 }
 
 Character::~Character()

@@ -108,6 +108,7 @@ class Character
 		PartyRequestType party_send_type;
 
 		NPC *shop_npc;
+		NPC *bank_npc;
 
 		WarpAnimation warp_anim;
 
