@@ -14,6 +14,8 @@ CLIENT_F_FUNC(Locker)
 	{
 		case PACKET_ADD: // Placing an item in a bank locker
 		{
+			if (this->state < EOClient::Playing) return false;
+
 			unsigned char x = reader.GetChar();
 			unsigned char y = reader.GetChar();
 			short item = reader.GetShort();
@@ -82,6 +84,8 @@ Locker_Add_Common:
 
 		case PACKET_TAKE: // Taking an item from a bank locker
 		{
+			if (this->state < EOClient::Playing) return false;
+
 			unsigned char x = reader.GetChar();
 			unsigned char y = reader.GetChar();
 			short item = reader.GetShort();
@@ -123,6 +127,8 @@ Locker_Add_Common:
 
 		case PACKET_OPEN: // Opening a bank locker
 		{
+			if (this->state < EOClient::Playing) return false;
+
 			unsigned char x = reader.GetChar();
 			unsigned char y = reader.GetChar();
 
