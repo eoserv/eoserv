@@ -36,38 +36,68 @@ CLIENT_F_FUNC(Init)
 	this->version = reader.GetChar();
 	reader.GetChar(); // ?
 	reader.GetChar(); // ?
-	this->hdid = reader.GetEndString();
+	this->hdid = util::to_int(reader.GetEndString());
 
-	if (this->server->AddressBanned(this->GetRemoteAddr()))
+	int ban_expires;
+	IPAddress remote_addr = this->GetRemoteAddr();
+	if ((ban_expires = this->server->world->CheckBan(0, &remote_addr, &this->hdid)) != -1)
 	{
+		reply.AddByte(INIT_BANNED);
+		if (ban_expires == 0)
+		{
+			reply.AddByte(INIT_BAN_PERM);
+		}
+		else
+		{
+			int mins_remaining = std::min(255.0, std::ceil(double(ban_expires - std::time(0)) / 60.0));
+			reply.AddByte(INIT_BAN_TEMP);
+			reply.AddByte(mins_remaining);
+		}
+		CLIENT_SENDRAW(reply);
 		this->Close();
-	}
-
-	if (this->server->HDIDBanned(this->hdid))
-	{
-		this->Close();
-	}
-
-	/*if (this->version < 27 || this->version > 28)
-	{
-		// insert "wrong version code" here
 		return false;
-	}*/
+	}
+
+	int minversion = static_cast<int>(this->server->world->config["MinVersion"]);
+	if (!minversion)
+	{
+		minversion = 27;
+	}
+
+	int maxversion = static_cast<int>(this->server->world->config["MaxVersion"]);
+	if (!maxversion)
+	{
+		maxversion = 28;
+	}
+
+	if (static_cast<int>(this->server->world->config["CheckVersion"]) && (this->version < minversion || this->version > maxversion))
+	{
+		reply.AddByte(INIT_OUT_OF_DATE);
+		reply.AddChar(0);
+		reply.AddChar(0);
+		reply.AddChar(minversion);
+		CLIENT_SENDRAW(reply);
+		this->Close();
+		return false;
+	}
 #ifdef DEBUG
 	std::printf("Client version: v%i\n", this->version);
 #endif // DEBUG
 
 	response = stupid_hash(challenge);
 
-	reply.AddByte(2); // ? (changing breaks EO)
+	int emulti_e = util::rand(6,12);
+	int emulti_d = util::rand(6,12);
+
+	reply.AddByte(INIT_OK);
 	reply.AddByte(10); // "eID" starting value (1 = +7)
 	reply.AddByte(10); // "eID" starting value (1 = +1)
-	reply.AddByte(10); // dickwinder multiple
-	reply.AddByte(8); // dickwinder multiple
+	reply.AddByte(emulti_e); // dickwinder multiple
+	reply.AddByte(emulti_d); // dickwinder multiple
 	reply.AddShort(this->id); // player id
 	reply.AddThree(response); // hash result
 
-	this->processor.SetEMulti(10,8);
+	this->processor.SetEMulti(emulti_e, emulti_d);
 
 	CLIENT_SENDRAW(reply);
 

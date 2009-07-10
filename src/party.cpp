@@ -140,7 +140,7 @@ void Party::UpdateHP(Character *character)
 
 void Party::ShareEXP(int exp, int sharemode, Map *map)
 {
-	int reward;
+	int reward = 0;
 	double sumlevel = 0;
 	double members = 0;
 

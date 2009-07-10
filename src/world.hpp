@@ -24,6 +24,7 @@ class World;
 #include "database.hpp"
 #include "eodata.hpp"
 #include "config.hpp"
+#include "socket.hpp"
 
 /**
  * Object which holds and manages all maps and characters on the server, as well as timed events
@@ -68,12 +69,16 @@ class World
 		void Msg(Character *from, std::string message);
 		void AdminMsg(Character *from, std::string message, int minlevel = ADMIN_GUARDIAN);
 		void AnnounceMsg(Character *from, std::string message);
+		void ServerMsg(std::string message);
 
 		void Reboot();
 		void Reboot(int seconds, std::string reason);
 
 		void Kick(Character *from, Character *victim, bool announce = true);
-		void Ban(Character *from, Character *victim, double duration, bool announce = true);
+		void Jail(Character *from, Character *victim, bool announce = true);
+		void Ban(Character *from, Character *victim, int duration, bool announce = true);
+
+		int CheckBan(const std::string *username, const IPAddress *address, const int *hdid);
 
 		Character *GetCharacter(std::string name);
 		Character *GetCharacterPID(unsigned int id);

@@ -108,37 +108,58 @@ CLIENT_F_FUNC(Talk)
 				command = arguments.front().substr(1);
 				arguments.erase(arguments.begin());
 
-				if (command.length() >= 1 && command.compare(0,1,"k") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["kick"]))
+				if ((command.length() >= 1 && command.compare(0,1,"k") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["kick"]))
+				 || (command.length() >= 2 && command.compare(0,2,"sk") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["skick"])))
 				{
 					Character *victim = this->server->world->GetCharacter(arguments[0]);
+
 					if (victim)
 					{
 						if (victim->admin < this->player->character->admin)
 						{
-							this->server->world->Kick(this->player->character, victim);
+							this->server->world->Ban(this->player->character, victim, command[0] != 's');
 						}
 					}
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"b") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["ban"]))
+				else if ((command.length() >= 1 && command.compare(0,1,"b") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["ban"]))
+				 || (command.length() >= 2 && command.compare(0,2,"sb") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["sban"])))
 				{
 					Character *victim = this->server->world->GetCharacter(arguments[0]);
-					double duration = (arguments.size() >= 2)?util::tdparse(arguments[1]):util::tdparse(this->server->world->config["DefaultBanLength"]);
+					int duration;
+					if (arguments.size() >= 2)
+					{
+						util::lowercase(arguments[1]);
+						if (arguments[1] == "forever")
+						{
+							duration = -1;
+						}
+						else
+						{
+							duration = util::tdparse(arguments[1]);
+						}
+					}
+					else
+					{
+						duration = util::tdparse(this->server->world->config["DefaultBanLength"]);
+					}
+
 					if (victim)
 					{
 						if (victim->admin < this->player->character->admin)
 						{
-							this->server->world->Ban(this->player->character, victim, duration);
+							this->server->world->Ban(this->player->character, victim, duration, command[0] != 's');
 						}
 					}
 				}
-				else if (command.length() >= 1 && command.compare(0,1,"j") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["jail"]))
+				else if ((command.length() >= 1 && command.compare(0,1,"j") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["jail"]))
+				 || (command.length() >= 2 && command.compare(0,2,"sj") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["sjail"])))
 				{
 					Character *victim = this->server->world->GetCharacter(arguments[0]);
 					if (victim)
 					{
 						if (victim->admin < this->player->character->admin)
 						{
-							victim->Warp(static_cast<int>(this->server->world->config["JailMap"]), static_cast<int>(this->server->world->config["JailX"]), static_cast<int>(this->server->world->config["JailY"]), WARP_ANIMATION_ADMIN);
+							this->server->world->Jail(this->player->character, victim, command[0] != 's');
 						}
 					}
 				}

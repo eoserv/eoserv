@@ -52,7 +52,7 @@ CLIENT_F_FUNC(Account)
 			std::string location = reader.GetBreakString();
 			std::string email = reader.GetBreakString();
 			std::string computer = reader.GetBreakString();
-			std::string hdid = reader.GetBreakString();
+			int hdid = util::to_int(reader.GetBreakString());
 
 			util::lowercase(username);
 
@@ -71,7 +71,7 @@ CLIENT_F_FUNC(Account)
 			{
 				util::lowercase(username);
 
-				this->server->world->CreatePlayer(username, password, fullname, location, email, computer, hdid, static_cast<std::string>(this->GetRemoteAddr()));
+				this->server->world->CreatePlayer(username, password, fullname, location, email, computer, util::to_string(hdid), static_cast<std::string>(this->GetRemoteAddr()));
 				reply.AddShort(ACCOUNT_CREATED);
 				reply.AddString("OK");
 			}

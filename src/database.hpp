@@ -157,6 +157,11 @@ class Database
 		Database_Result Query(const char *format, ...);
 
 		/**
+		 * Escapes a piece of text (including Query replacement tokens)
+		 */
+		std::string Escape(std::string);
+
+		/**
 		 * Closes the database connection if one is active
 		 */
 		~Database();

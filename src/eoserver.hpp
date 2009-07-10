@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <ctime>
 
 class EOServer;
 
@@ -25,24 +26,12 @@ void server_ping_all(void *server_void);
 void server_pump_queue(void *server_void);
 
 /**
- * Information about a temporary in-memory ban
- */
-struct EOServer_Ban
-{
-	std::string username;
-	IPAddress address;
-	std::string hdid;
-	double expires;
-};
-
-/**
  * A server which accepts connections and creates EOClient instances from them
  */
 class EOServer : public Server<EOClient>
 {
 	private:
 		void Initialize(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config);
-		std::vector<EOServer_Ban> bans;
 		SLN *sln;
 
 	public:
@@ -52,12 +41,6 @@ class EOServer : public Server<EOClient>
 		{
 			this->Initialize(dbinfo, eoserv_config, admin_config);
 		}
-
-		void AddBan(std::string username, IPAddress address, std::string hdid, double duration);
-
-		bool UsernameBanned(std::string username);
-		bool AddressBanned(IPAddress address);
-		bool HDIDBanned(std::string hdid);
 
 		~EOServer();
 };

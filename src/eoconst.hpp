@@ -98,6 +98,20 @@ enum PartyRequestType UTIL_EXTEND_ENUM(unsigned char)
 	PARTY_REQUEST_INVITE = 1,
 };
 
+enum InitReply UTIL_EXTEND_ENUM(unsigned char)
+{
+	INIT_OUT_OF_DATE = 1,
+	INIT_OK = 2,
+	INIT_BANNED = 3,
+	INIT_NOISE = 10
+};
+
+enum InitBanType UTIL_EXTEND_ENUM(unsigned char)
+{
+	INIT_BAN_TEMP = 0,
+	INIT_BAN_PERM = 2
+};
+
 enum AccountReply UTIL_EXTEND_ENUM(unsigned short)
 {
 	ACCOUNT_EXISTS = 1,

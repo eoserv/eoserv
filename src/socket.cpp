@@ -388,20 +388,12 @@ bool Client::Connected()
 	return this->connected;
 }
 
-bool Client::Close()
+void Client::Close()
 {
 	if (this->connected)
 	{
 		this->connected = false;
-#if defined(WIN32) || defined(WIN64)
-		return closesocket(this->sock) == 0;
-#else // defined(WIN32) || defined(WIN64)
-		return close(this->sock) == 0;
-#endif // defined(WIN32) || defined(WIN64)
-	}
-	else
-	{
-		return false;
+		this->closed_time = std::time(0);
 	}
 }
 

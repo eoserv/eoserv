@@ -320,6 +320,19 @@ void World::AnnounceMsg(Character *from, std::string message)
 	}
 }
 
+void World::ServerMsg(std::string message)
+{
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_TALK, PACKET_SERVER);
+	builder.AddString(message);
+
+	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	{
+		character->player->client->SendBuilder(builder);
+	}
+}
+
 Character *World::GetCharacter(std::string name)
 {
 	Character *selected = 0;
@@ -462,13 +475,103 @@ bool World::PlayerOnline(std::string username)
 
 void World::Kick(Character *from, Character *victim, bool announce)
 {
+	if (announce)
+	{
+		std::string msg("Attention!! ");
+		msg += victim->name + " has been removed from the game ";
+		if (from) msg += "-" + from->name + " ";
+		msg += "[kicked]";
+		this->ServerMsg(msg);
+	}
+
 	victim->player->client->Close();
 }
 
-void World::Ban(Character *from, Character *victim, double duration, bool announce)
+void World::Jail(Character *from, Character *victim, bool announce)
 {
-	this->server->AddBan(victim->player->username, victim->player->client->GetRemoteAddr(), victim->player->client->hdid, duration);
+	if (announce)
+	{
+		std::string msg("Attention!! ");
+		msg += victim->name + " has been removed from the game ";
+		if (from) msg += "-" + from->name + " ";
+		msg += "[jailed]";
+		this->ServerMsg(msg);
+	}
+
+	victim->Warp(static_cast<int>(this->server->world->config["JailMap"]), static_cast<int>(this->server->world->config["JailX"]), static_cast<int>(this->server->world->config["JailY"]), WARP_ANIMATION_ADMIN);
+}
+
+void World::Ban(Character *from, Character *victim, int duration, bool announce)
+{
+	if (announce)
+	{
+		std::string msg("Attention!! ");
+		msg += victim->name + " has been removed from the game ";
+		if (from) msg += "-" + from->name + " ";
+		msg += "[banned]";
+		this->ServerMsg(msg);
+	}
+
+	std::string query("INSERT INTO bans (username, ip, hdid, expires, setter) VALUES ");
+
+	query += "('" + db.Escape(victim->player->username) + "', ";
+	query += util::to_string(static_cast<int>(victim->player->client->GetRemoteAddr())) + ", ";
+	query += util::to_string(victim->player->client->hdid) + ", ";
+	if (duration == -1)
+	{
+		query += "0";
+	}
+	else
+	{
+		query += util::to_string(int(std::time(0) + duration));
+	}
+	if (from)
+	{
+		query += ", '" + db.Escape(from->name) + "')";
+	}
+	else
+	{
+		query += ")";
+	}
+
+	db.Query(query.c_str(), std::time(0));
+
 	victim->player->client->Close();
+}
+
+int World::CheckBan(const std::string *username, const IPAddress *address, const int *hdid)
+{
+	std::string query("SELECT COALESCE(MAX(expires),-1) AS expires FROM bans WHERE (");
+
+	if (!username && !address && !hdid)
+	{
+		return -1;
+	}
+
+	if (username)
+	{
+		query += "username = '";
+		query += db.Escape(*username);
+		query += "' OR ";
+	}
+
+	if (address)
+	{
+		query += "ip = ";
+		query += util::to_string(static_cast<int>(*const_cast<IPAddress *>(address)));
+		query += " OR ";
+	}
+
+	if (hdid)
+	{
+		query += "hdid = ";
+		query += util::to_string(*hdid);
+		query += " OR ";
+	}
+
+	Database_Result res = db.Query((query.substr(0, query.length()-4) + ") AND (expires > # OR expires = 0)").c_str(), std::time(0));
+
+	return static_cast<int>(res[0]["expires"]);
 }
 
 World::~World()

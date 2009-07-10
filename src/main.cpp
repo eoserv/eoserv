@@ -173,8 +173,11 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "ListenBacklog"      , 50);
 		eoserv_config_default(config, "MaxPlayers"         , 200);
 		eoserv_config_default(config, "MaxConnectionsPerIP", 3);
-		eoserv_config_default(config, "MaxConnectionsPerPC", 1);
 		eoserv_config_default(config, "IPReconnectLimit"   , 10);
+		eoserv_config_default(config, "MaxConnectionsPerPC", 1);
+		eoserv_config_default(config, "CheckVersion"       , 1);
+		eoserv_config_default(config, "MinVersion"         , 0);
+		eoserv_config_default(config, "MaxVersion"         , 0);
 		eoserv_config_default(config, "PasswordSalt"       , "ChangeMe");
 		eoserv_config_default(config, "DBType"             , "mysql");
 		eoserv_config_default(config, "DBHost"             , "localhost");

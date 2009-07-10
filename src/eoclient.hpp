@@ -84,7 +84,7 @@ class EOClient : public Client
 		Player *player;
 		unsigned int id;
 		bool needpong;
-		std::string hdid;
+		int hdid;
 		ClientState state;
 
 		ActionQueue queue;

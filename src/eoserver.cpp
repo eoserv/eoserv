@@ -145,68 +145,6 @@ void EOServer::Initialize(util::array<std::string, 5> dbinfo, const Config &eose
 	}
 }
 
-void EOServer::AddBan(std::string username, IPAddress address, std::string hdid, double duration)
-{
-	double now = Timer::GetTime();
-	restart_loop:
-	UTIL_VECTOR_IFOREACH(this->bans.begin(), this->bans.end(), EOServer_Ban, ban)
-	{
-		if (ban->expires < now)
-		{
-			this->bans.erase(ban);
-			goto restart_loop;
-		}
-	}
-	EOServer_Ban newban;
-	newban.username = username;
-	newban.address = address;
-	newban.hdid = hdid;
-	newban.expires = now + duration;
-	bans.push_back(newban);
-}
-
-bool EOServer::UsernameBanned(std::string username)
-{
-	double now = Timer::GetTime();
-	UTIL_VECTOR_FOREACH_ALL(this->bans, EOServer_Ban, ban)
-	{
-		if (ban.expires > now && ban.username == username)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool EOServer::AddressBanned(IPAddress address)
-{
-	double now = Timer::GetTime();
-	UTIL_VECTOR_FOREACH_ALL(this->bans, EOServer_Ban, ban)
-	{
-		if (ban.expires > now && ban.address == address)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool EOServer::HDIDBanned(std::string hdid)
-{
-	double now = Timer::GetTime();
-	UTIL_VECTOR_FOREACH_ALL(this->bans, EOServer_Ban, ban)
-	{
-		if (ban.expires > now && ban.hdid == hdid)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 EOServer::~EOServer()
 {
 	if (this->sln)

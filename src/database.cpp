@@ -304,6 +304,41 @@ Database_Result Database::Query(const char *format, ...)
 	return result;
 }
 
+std::string Database::Escape(std::string raw)
+{
+	char *escret;
+
+	switch (this->engine)
+	{
+#ifdef DATABASE_MYSQL
+		case MySQL:
+			escret = new char[raw.length()*2+1];
+			mysql_real_escape_string(this->mysql_handle, escret, raw.c_str(), raw.length());
+			raw = escret;
+			delete[] escret;
+			break;
+#endif // DATABASE_MYSQL
+
+#ifdef DATABASE_SQLITE
+		case SQLite:
+			escret = sqlite3_mprintf("%q", raw.c_str());
+			raw = escret;
+			sqlite3_free(escret);
+			break;
+#endif // DATABASE_SQLITE
+	}
+
+	for (std::string::iterator it = raw.begin(); it != raw.end(); ++it)
+	{
+		if (*it == '@' || *it == '#' || *it == '%')
+		{
+			*it = '?';
+		}
+	}
+
+	return raw;
+}
+
 Database::~Database()
 {
 	this->Close();

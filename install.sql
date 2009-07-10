@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `accounts`
 	`location`   VARCHAR(64) NOT NULL,
 	`email`      VARCHAR(64) NOT NULL,
 	`computer`   VARCHAR(64) NOT NULL,
-	`hdid`       CHAR(10)    NOT NULL,
+	`hdid`       INTEGER     NOT NULL,
 	`regip`      VARCHAR(15) NOT NULL,
 	`lastip`     VARCHAR(15)          DEFAULT NULL,
 	`created`    INTEGER     NOT NULL,
@@ -76,5 +76,17 @@ CREATE TABLE IF NOT EXISTS `guilds`
 	UNIQUE      (`name`)
 );
 
+CREATE TABLE IF NOT EXISTS `bans`
+(
+	`ip`       INTEGER              DEFAULT NULL,
+	`hdid`     INTEGER              DEFAULT NULL,
+	`username` VARCHAR(16)          DEFAULT NULL,
+	`setter`   VARCHAR(16)          DEFAULT NULL,
+	`expires`  INTEGER     NOT NULL DEFAULT 0
+);
+
 CREATE INDEX `character_account_index` ON `characters` (`account`);
 CREATE INDEX `character_guild_index` ON `characters` (`guild`);
+CREATE INDEX `ban_ip_index` ON `bans` (`ip`);
+CREATE INDEX `ban_hdid_index` ON `bans` (`hdid`);
+CREATE INDEX `ban_username_index` ON `bans` (`username`);

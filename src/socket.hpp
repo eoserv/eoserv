@@ -254,6 +254,7 @@ class Client
 {
 	protected:
 		bool connected;
+		time_t closed_time;
 		SOCKET sock;
 		sockaddr_in sin;
 		std::string send_buffer;
@@ -275,7 +276,7 @@ class Client
 		void Tick(double timeout);
 		bool Connected();
 		IPAddress GetRemoteAddr();
-		bool Close();
+		void Close();
 		time_t ConnectTime();
 		virtual ~Client();
 
@@ -548,24 +549,21 @@ template <class T = Client> class Server
 
 			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 			{
-				if (client->connected)
+				fd.fd = client->sock;
+
+				fd.events = 0;
+
+				if (client->recv_buffer.length() < client->recv_buffer_max)
 				{
-					fd.fd = client->sock;
-
-					fd.events = 0;
-
-					if (client->recv_buffer.length() < client->recv_buffer_max)
-					{
-						fd.events |= POLLIN;
-					}
-
-					if (client->send_buffer.length() > 0)
-					{
-						fd.events |= POLLOUT;
-					}
-
-					fds.push_back(fd);
+					fd.events |= POLLIN;
 				}
+
+				if (client->send_buffer.length() > 0)
+				{
+					fd.events |= POLLOUT;
+				}
+
+				fds.push_back(fd);
 			}
 
 			result = poll(&fds[0], fds.size(), long(timeout * 1000));
@@ -651,24 +649,21 @@ template <class T = Client> class Server
 
 			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
 			{
-				if (client->connected)
+				if (client->recv_buffer.length() < client->recv_buffer_max)
 				{
-					if (client->recv_buffer.length() < client->recv_buffer_max)
-					{
-						FD_SET(client->sock, &this->read_fds);
-					}
+					FD_SET(client->sock, &this->read_fds);
+				}
 
-					if (client->send_buffer.length() > 0)
-					{
-						FD_SET(client->sock, &this->write_fds);
-					}
+				if (client->send_buffer.length() > 0)
+				{
+					FD_SET(client->sock, &this->write_fds);
+				}
 
-					FD_SET(client->sock, &this->except_fds);
+				FD_SET(client->sock, &this->except_fds);
 
-					if (client->sock > nfds)
-					{
-						nfds = client->sock;
-					}
+				if (client->sock > nfds)
+				{
+					nfds = client->sock;
 				}
 			}
 
@@ -750,8 +745,13 @@ template <class T = Client> class Server
 		{
 			UTIL_TPL_LIST_IFOREACH_ALL(this->clients, T *, it)
 			{
-				if (!(*it)->Connected())
+				if (!(*it)->Connected() && (((*it)->send_buffer.length() == 0 && (*it)->recv_buffer.length() == 0) || (*it)->closed_time - 5 > std::time(0)))
 				{
+#if defined(WIN32) || defined(WIN64)
+					closesocket((*it)->sock);
+#else // defined(WIN32) || defined(WIN64)
+					close((*it)->sock);
+#endif // defined(WIN32) || defined(WIN64)
 					delete *it;
 					it = this->clients.erase(it);
 				}

@@ -21,6 +21,17 @@ CLIENT_F_FUNC(Login)
 
 			util::lowercase(username);
 
+			int ban_expires = -1;
+			if (this->server->world->CheckBan(&username, 0, 0) != -1)
+			{
+				reply.SetID(0);
+				reply.AddByte(INIT_BANNED);
+				reply.AddByte(INIT_BAN_PERM);
+				CLIENT_SENDRAW(reply);
+				this->Close();
+				return false;
+			}
+
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
 
 			if (this->server->world->PlayerOnline(username))
@@ -40,15 +51,9 @@ CLIENT_F_FUNC(Login)
 			this->player->client = this;
 			this->state = EOClient::LoggedIn;
 
-			if (this->server->UsernameBanned(username))
-			{
-				this->Close();
-				return false;
-			}
-
 			reply.AddShort(LOGIN_OK);
 			reply.AddChar(this->player->characters.size());
-			reply.AddByte(1); // ??
+			reply.AddByte(2);
 			reply.AddByte(255);
 			UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
 			{
