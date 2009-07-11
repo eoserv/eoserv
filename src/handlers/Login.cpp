@@ -21,7 +21,6 @@ CLIENT_F_FUNC(Login)
 
 			util::lowercase(username);
 
-			int ban_expires = -1;
 			if (this->server->world->CheckBan(&username, 0, 0) != -1)
 			{
 				reply.SetID(0);

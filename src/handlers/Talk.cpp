@@ -117,7 +117,7 @@ CLIENT_F_FUNC(Talk)
 					{
 						if (victim->admin < this->player->character->admin)
 						{
-							this->server->world->Ban(this->player->character, victim, command[0] != 's');
+							this->server->world->Kick(this->player->character, victim, command[0] != 's');
 						}
 					}
 				}
