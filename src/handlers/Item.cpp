@@ -24,9 +24,6 @@ CLIENT_F_FUNC(Item)
 				reply.SetID(PACKET_ITEM, PACKET_REPLY);
 				reply.AddChar(item->type); // ?
 				reply.AddShort(id);
-				reply.AddInt(this->player->character->HasItem(id)-1);
-				reply.AddChar(this->player->character->weight);
-				reply.AddChar(this->player->character->maxweight);
 
 				switch (item->type)
 				{
@@ -37,10 +34,15 @@ CLIENT_F_FUNC(Item)
 							break;
 						}
 
-						if (this->player->character->mapid == static_cast<int>(this->server->world->config["JailMap"]))
+						if (!this->player->character->map->scroll)
 						{
 							break;
 						}
+
+						this->player->character->DelItem(id, 1);
+						reply.AddInt(this->player->character->HasItem(id));
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
 
 						if (item->scrollmap == 0)
 						{
@@ -51,7 +53,7 @@ CLIENT_F_FUNC(Item)
 							this->player->character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_SCROLL);
 						}
 
-						this->player->character->DelItem(id, 1);
+						CLIENT_SEND(reply);
 					}
 					break;
 
@@ -61,6 +63,11 @@ CLIENT_F_FUNC(Item)
 						int tpgain = std::min(int(item->tp), this->player->character->maxtp - this->player->character->tp);
 						this->player->character->hp += hpgain;
 						this->player->character->tp += tpgain;
+
+						this->player->character->DelItem(id, 1);
+						reply.AddInt(this->player->character->HasItem(id));
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
 
 						reply.AddInt(hpgain);
 						reply.AddShort(this->player->character->hp);
@@ -85,14 +92,14 @@ CLIENT_F_FUNC(Item)
 						{
 							this->player->character->party->UpdateHP(this->player->character);
 						}
+
+						CLIENT_SEND(reply);
 					}
 					break;
 
 					default:
 						return true;
 				}
-
-				CLIENT_SEND(reply);
 			}
 		}
 		break;

@@ -41,10 +41,8 @@ CLIENT_F_FUNC(Players)
 
 		case PACKET_REQUEST: // Requested a list of online players
 		{
-			int replycode = 8;
-
 			reply.SetID(0);
-			reply.AddChar(replycode);
+			reply.AddChar(INIT_PLAYERS);
 			reply.AddShort(this->server->world->characters.size());
 			reply.AddByte(255);
 			UTIL_VECTOR_FOREACH_ALL(this->server->world->characters, Character *, character)

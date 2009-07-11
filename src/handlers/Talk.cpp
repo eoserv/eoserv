@@ -235,6 +235,10 @@ CLIENT_F_FUNC(Talk)
 
 					this->player->character->Warp(map, x, y, WARP_ANIMATION_ADMIN);
 				}
+				else if (command.length() >= 3 && command.compare(0,3,"rem") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["remap"]))
+				{
+					this->player->character->map->Reload();
+				}
 				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["rehash"]))
 				{
 					std::printf("Config reloaded by %s\n", this->player->character->name.c_str());
@@ -324,10 +328,6 @@ CLIENT_F_FUNC(Talk)
 					int strength = (arguments.size() >= 1)?std::min(8,std::max(1,util::to_int(arguments[0]))):5;
 					this->player->character->map->Effect(MAP_EFFECT_QUAKE, strength);
 				}
-			}
-			else
-			{
-				this->player->character->map->Msg(this->player->character, message);
 			}
 		}
 		break;

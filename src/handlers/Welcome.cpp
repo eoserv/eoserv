@@ -286,8 +286,8 @@ CLIENT_F_FUNC(Welcome)
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
 			std::string filename = "./data/maps/";
 			std::FILE *fh;
-			int replycode = 4;
-			int subreplycode = 0;
+			InitReply replycode = INIT_FILE_MAP;
+			char fileid = 0;
 
 			filename += mapbuf;
 			filename += ".emf";
@@ -297,10 +297,10 @@ CLIENT_F_FUNC(Welcome)
 			switch (file)
 			{
 				case FILE_MAP: break; // Map file is pre-loaded in to the variable
-				case FILE_ITEM: filename = "./data/pub/dat001.eif"; replycode = 5; subreplycode = 1; break;
-				case FILE_NPC: filename = "./data/pub/dtn001.enf"; replycode = 6; subreplycode = 1; break;
-				case FILE_SPELL: filename = "./data/pub/dsl001.esf"; replycode = 7; subreplycode = 1; break;
-				case FILE_CLASS: filename = "./data/pub/dat001.ecf"; replycode = 11; subreplycode = 1; break;
+				case FILE_ITEM: filename = "./data/pub/dat001.eif"; replycode = INIT_FILE_EIF; fileid = 1; break;
+				case FILE_NPC: filename = "./data/pub/dtn001.enf"; replycode = INIT_FILE_ENF; fileid = 1; break;
+				case FILE_SPELL: filename = "./data/pub/dsl001.esf"; replycode = INIT_FILE_ESF; fileid = 1; break;
+				case FILE_CLASS: filename = "./data/pub/dat001.ecf"; replycode = INIT_FILE_ECF; fileid = 1; break;
 				default: return false;
 			}
 
@@ -322,9 +322,9 @@ CLIENT_F_FUNC(Welcome)
 
 			reply.SetID(0);
 			reply.AddChar(replycode);
-			if (subreplycode != 0)
+			if (fileid != 0)
 			{
-				reply.AddChar(1);
+				reply.AddChar(fileid);
 			}
 			reply.AddString(content);
 			CLIENT_SENDRAW(reply);

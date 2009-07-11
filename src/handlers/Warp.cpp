@@ -130,7 +130,6 @@ CLIENT_F_FUNC(Warp)
 			std::string filename = "./data/maps/";
 			std::string content;
 			std::FILE *fh;
-			int replycode = 3;
 
 			filename += mapbuf;
 			filename += ".emf";
@@ -152,7 +151,7 @@ CLIENT_F_FUNC(Warp)
 			std::fclose(fh);
 
 			reply.SetID(0);
-			reply.AddChar(replycode);
+			reply.AddChar(INIT_BANNED); // wtf? When in Rome...
 			reply.AddString(content);
 			CLIENT_SENDRAW(reply);
 		}

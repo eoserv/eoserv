@@ -163,6 +163,10 @@ struct Map_Tile
  */
 class Map
 {
+	private:
+		void Load();
+		void Unload();
+
 	public:
 		World *world;
 		short id;
@@ -171,6 +175,9 @@ class Map
 		int filesize;
 		unsigned char width;
 		unsigned char height;
+		bool scroll;
+		unsigned char relog_x;
+		unsigned char relog_y;
 		std::string filename;
 		std::vector<Character *> characters;
 		std::vector<NPC *> npcs;
@@ -205,6 +212,8 @@ class Map
 		Map_Warp *GetWarp(unsigned char x, unsigned char y);
 
 		void Effect(int effect, int param);
+
+		void Reload();
 
 		Character *GetCharacter(std::string name);
 		Character *GetCharacterPID(unsigned int id);

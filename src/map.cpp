@@ -20,13 +20,20 @@ Map::Map(int id, World *world)
 	this->id = id;
 	this->world = world;
 
+	this->Load();
+}
+
+void Map::Load()
+{
 	char namebuf[6];
-	if (id < 0)
+
+	if (this->id < 0)
 	{
 		return;
 	}
-	std::string filename = world->config["MapDir"];
-	std::sprintf(namebuf, "%05i", id);
+
+	std::string filename = this->world->config["MapDir"];
+	std::sprintf(namebuf, "%05i", this->id);
 	this->filename = filename;
 	filename.append(namebuf);
 	filename.append(".emf");
@@ -62,6 +69,12 @@ Map::Map(int id, World *world)
 	{
 		this->tiles[i].resize(width);
 	}
+
+	std::fseek(fh, 0x2A, SEEK_SET);
+	std::fread(buf, sizeof(char), 3, fh);
+	this->scroll = PacketProcessor::Number(buf[0]);
+	this->relog_x = PacketProcessor::Number(buf[1]);
+	this->relog_y = PacketProcessor::Number(buf[2]);
 
 	std::fseek(fh, 0x2E, SEEK_SET);
 	std::fread(buf, sizeof(char), 1, fh);
@@ -151,6 +164,29 @@ Map::Map(int id, World *world)
 	this->filesize = std::ftell(fh);
 
 	std::fclose(fh);
+}
+
+void Map::Unload()
+{
+	UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
+	{
+		UTIL_LIST_FOREACH_ALL(npc->damagelist, NPC_Opponent, opponent)
+		{
+			std::list<NPC *>::iterator findnpc = std::find(opponent.attacker->unregister_npc.begin(), opponent.attacker->unregister_npc.end(), npc);
+
+			if (findnpc != opponent.attacker->unregister_npc.end())
+			{
+				opponent.attacker->unregister_npc.erase(findnpc);
+			}
+		}
+	}
+
+	UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
+	{
+		delete npc;
+	}
+
+	this->npcs.clear();
 }
 
 int Map::GenerateItemID()
@@ -1030,10 +1066,7 @@ bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
 
 Map::~Map()
 {
-	UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
-	{
-		delete npc;
-	}
+	this->Unload();
 }
 
 bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
@@ -1181,6 +1214,64 @@ void Map::Effect(int effect, int param)
 	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
 	{
 		character->player->client->SendBuilder(builder);
+	}
+}
+
+void Map::Reload()
+{
+	char namebuf[6];
+	char checkrid[4];
+
+	std::string filename = this->world->config["MapDir"];
+	std::sprintf(namebuf, "%05i", this->id);
+	this->filename = filename;
+	filename.append(namebuf);
+	filename.append(".emf");
+
+	std::FILE *fh = std::fopen(filename.c_str(), "rb");
+
+	this->exists = true;
+	if (!fh)
+	{
+		this->exists = false;
+		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+		return;
+	}
+
+	std::fseek(fh, 0x03, SEEK_SET);
+	std::fread(checkrid, sizeof(char), 4, fh);
+
+	if (this->rid[0] == checkrid[0] && this->rid[1] == checkrid[1]
+	 && this->rid[2] == checkrid[2] && this->rid[3] == checkrid[3])
+	{
+		return;
+	}
+
+	std::vector<Character *> temp = this->characters;
+
+	this->Unload();
+	this->Load();
+
+	this->characters = temp;
+
+	PacketBuilder builder(0);
+	builder.AddChar(INIT_MAP_MUTATION);
+
+	std::string content;
+	std::fseek(fh, 0, SEEK_SET);
+	do {
+		char buf[4096];
+		int len = std::fread(buf, sizeof(char), 4096, fh);
+		content.append(buf, len);
+	} while (!std::feof(fh));
+	std::fclose(fh);
+
+	builder.AddString(content);
+
+	UTIL_VECTOR_FOREACH_ALL(temp, Character *, character)
+	{
+		character->player->client->Send(builder.Get());
+		character->Refresh(); // TODO: Find a better way to reload NPCs
 	}
 }
 

@@ -27,7 +27,7 @@ CLIENT_F_FUNC(Init)
 	unsigned int challenge;
 	unsigned int response;
 
-	reply.SetID(0); // 0 is a special case which sends the connection data
+	reply.SetID(0); // 0 is a special case which sends un-encrypted data
 
 	challenge = reader.GetThree();
 

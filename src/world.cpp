@@ -227,6 +227,11 @@ void World::Login(Character *character)
 {
 	this->characters.push_back(character);
 	this->maps[character->mapid]->Enter(character);
+	if (character->map->relog_x || character->map->relog_y)
+	{
+		character->x = character->map->relog_x;
+		character->y = character->map->relog_y;
+	}
 }
 
 void World::Logout(Character *character)
