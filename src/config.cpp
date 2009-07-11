@@ -11,6 +11,7 @@
 #include <stdexcept>
 
 #include "util.hpp"
+#include "console.hpp"
 
 Config::Config(std::string filename)
 {
@@ -86,7 +87,7 @@ void Config::Read(std::string filename)
 			}
 			catch (std::runtime_error)
 			{
-				fprintf(stderr, "INCLUDEd configuration file not found: %s\n", val.c_str());
+				Console::Wrn("INCLUDEd configuration file not found: %s", val.c_str());
 			}
 		}
 		else

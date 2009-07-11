@@ -17,6 +17,7 @@
 #include "eoclient.hpp"
 #include "packet.hpp"
 #include "util.hpp"
+#include "console.hpp"
 
 #if defined(WIN32) || defined(WIN64)
 #include <windows.h>
@@ -31,7 +32,7 @@ static void eoserv_rehash(int signal)
 {
 	if (eoserv_rehash_server == 0) return;
 
-	std::puts("Reloading config");
+	Console::Out("Reloading config");
 	try
 	{
 		eoserv_rehash_server->world->config.Read("config.ini");
@@ -43,27 +44,86 @@ static void eoserv_rehash(int signal)
 	}
 }
 
+static void eoserv_terminate(int signal)
+{
+	if (eoserv_rehash_server == 0) return;
+
+	Console::Out("Exiting EOSERV");
+
+	UTIL_VECTOR_FOREACH_ALL(eoserv_rehash_server->world->characters, Character *, character)
+	{
+		character->Save();
+		character->player->client->Close();
+	}
+
+	raise(signal);
+}
+
+static void eoserv_crash(int signal)
+{
+	if (eoserv_rehash_server == 0) return;
+
+	const char *extype = "Unknown error";
+
+	switch (signal)
+	{
+		case SIGSEGV: extype = "Segmentation fault"; break;
+		case SIGFPE: extype = "Floating point exception"; break;
+#ifdef SIGBUS
+		case SIGBUS: extype = "Dereferenced invalid pointer"; break;
+#endif // SIGBUS
+		case SIGILL: extype = "Illegal instruction"; break;
+	}
+
+	Console::Err("EOSERV is dying! %s", extype);
+
+	UTIL_VECTOR_FOREACH_ALL(eoserv_rehash_server->world->characters, Character *, character)
+	{
+		character->Save();
+		character->player->client->Close();
+	}
+
+	raise(signal);
+}
+
+#if defined(WIN32) || defined(WIN64)
+static BOOL WINAPI eoserv_win_event_handler(DWORD event)
+{
+	if (eoserv_rehash_server == 0) std::exit(0);
+
+	Console::Out("Exiting EOSERV");
+
+	UTIL_VECTOR_FOREACH_ALL(eoserv_rehash_server->world->characters, Character *, character)
+	{
+		character->Save();
+		character->player->client->Close();
+	}
+
+	std::exit(0);
+}
+#endif // defined(WIN32) || defined(WIN64)
+
 template <typename T> static void eoserv_config_default(Config &config, const char *key, T value)
 {
 	if (config.find(key) == config.end())
 	{
 		config[key] = util::variant(value);
-		std::fprintf(stderr, "WARNING: Could not load config value '%s' - using default (%s)\n", key, static_cast<std::string>(config[key]).c_str());
+		Console::Wrn("Could not load config value '%s' - using default (%s)", key, static_cast<std::string>(config[key]).c_str());
 	}
 }
 
 int main(int argc, char *argv[])
 {
 	// Type checks
-	if (std::numeric_limits<unsigned char>::digits < 8){ std::fputs("You cannot run this program (uchar is less than 8 bits)\n", stderr); std::exit(1); }
-	if (std::numeric_limits<unsigned short>::digits < 16){ std::fputs("You cannot run this program (ushort is less than 16 bits)\n", stderr); std::exit(1); }
-	if (std::numeric_limits<unsigned int>::digits < 32){ std::fputs("You cannot run this program (uint is less than 32 bits)\n", stderr); std::exit(1); }
+	if (std::numeric_limits<unsigned char>::digits < 8){ Console::Err("You cannot run this program (uchar is less than 8 bits)"); std::exit(1); }
+	if (std::numeric_limits<unsigned short>::digits < 16){ Console::Err("You cannot run this program (ushort is less than 16 bits)"); std::exit(1); }
+	if (std::numeric_limits<unsigned int>::digits < 32){ Console::Err("You cannot run this program (uint is less than 32 bits)"); std::exit(1); }
 
-	if (std::numeric_limits<char>::digits < 7){ std::fputs("You cannot run this program (char is less than 8 bits)\n", stderr); std::exit(1); }
-	if (std::numeric_limits<short>::digits < 15){ std::fputs("You cannot run this program (short is less than 16 bits)\n", stderr); std::exit(1); }
-	if (std::numeric_limits<int>::digits < 31){ std::fputs("You cannot run this program (int is less than 32 bits)\n", stderr); std::exit(1); }
+	if (std::numeric_limits<char>::digits < 7){ Console::Err("You cannot run this program (char is less than 8 bits)"); std::exit(1); }
+	if (std::numeric_limits<short>::digits < 15){ Console::Err("You cannot run this program (short is less than 16 bits)"); std::exit(1); }
+	if (std::numeric_limits<int>::digits < 31){ Console::Err("You cannot run this program (int is less than 32 bits)"); std::exit(1); }
 
-	if (!std::numeric_limits<char>::is_signed) std::fputs("WARNING: char is not signed, correct operation of the server cannot be guaranteed.\n", stderr);
+	if (!std::numeric_limits<char>::is_signed) Console::Wrn("char is not signed, correct operation of the server cannot be guaranteed.");
 
 #if defined(WIN32) || defined(WIN64)
 	if (argc >= 2)
@@ -143,6 +203,27 @@ int main(int argc, char *argv[])
 	signal(SIGHUP, eoserv_rehash);
 #endif // SIGHUP
 
+	signal(SIGABRT, eoserv_terminate);
+	signal(SIGTERM, eoserv_terminate);
+	signal(SIGINT, eoserv_terminate);
+
+#ifndef DEBUG
+	signal(SIGSEGV, eoserv_crash);
+	signal(SIGFPE, eoserv_crash);
+#ifdef SIGBUS
+	signal(SIGBUS, eoserv_crash);
+#endif // SIGBUS
+	signal(SIGILL, eoserv_crash);
+#endif // DEBUG
+
+#if defined(WIN32) || defined(WIN64)
+	if (!SetConsoleCtrlHandler(static_cast<PHANDLER_ROUTINE>(eoserv_win_event_handler), TRUE))
+	{
+		Console::Err("Could not install Windows console event handler");
+		Console::Err("$shutdown must be used to exit the server cleanly");
+	}
+#endif // defined(WIN32) || defined(WIN64)
+
 	try
 	{
 		Config config, aconfig;
@@ -153,7 +234,7 @@ int main(int argc, char *argv[])
 		}
 		catch (std::runtime_error)
 		{
-			std::fputs("WARNING: Could not load config.ini - using defaults\n", stderr);
+			Console::Wrn("Could not load config.ini - using defaults");
 		}
 
 		try
@@ -162,11 +243,12 @@ int main(int argc, char *argv[])
 		}
 		catch (std::runtime_error)
 		{
-			std::fputs("WARNING: Could not load admin.ini - using defaults\n", stderr);
+			Console::Err("Could not load admin.ini - using defaults");
 		}
 
 		eoserv_config_default(config, "LogOut"             , "-");
 		eoserv_config_default(config, "LogErr"             , "error.log");
+		eoserv_config_default(config, "StyleConsole"       , 1);
 		eoserv_config_default(config, "Host"               , "0.0.0.0");
 		eoserv_config_default(config, "Port"               , 8078);
 		eoserv_config_default(config, "MaxConnections"     , 300);
@@ -269,6 +351,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "CreateMinSkin"      , 0);
 		eoserv_config_default(config, "CreateMaxSkin"      , 3);
 		eoserv_config_default(config, "DefaultBanLength"   , "2h");
+		eoserv_config_default(config, "LimitDamage"        , 1);
 		eoserv_config_default(config, "ExpRate"            , 100);
 		eoserv_config_default(config, "DropRate"           , 100);
 		eoserv_config_default(config, "MobRate"            , 100);
@@ -335,6 +418,8 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "strip"         , 3);
 		eoserv_config_default(aconfig, "killnpc"       , 2);
 
+		Console::Styled[1] = Console::Styled[0] = static_cast<int>(config["StyleConsole"]);
+
 		std::puts("\
                           ___ ___  ___ ___ _____   __\n\
    EOSERV Version 0.4.0  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
@@ -344,7 +429,7 @@ int main(int argc, char *argv[])
 EO Version Support: .27 .28\n\
 \n");
 #ifdef DEBUG
-		std::puts("WARNING: This is a debug build and shouldn't be used for live servers.");
+		Console::Wrn("This is a debug build and shouldn't be used for live servers.");
 #endif
 
 		std::time_t rawtime;
@@ -355,38 +440,40 @@ EO Version Support: .27 .28\n\
 		std::string logerr = static_cast<std::string>(config["LogErr"]);
 		if (!logerr.empty() && logerr.compare("-") != 0)
 		{
-			std::printf("Redirecting errors to '%s'...\n", logerr.c_str());
+			Console::Out("Redirecting errors to '%s'...", logerr.c_str());
 			if (!std::freopen(logerr.c_str(), "a", stderr))
 			{
-				std::fputs("Failed to redirect output.\n", stderr);
+				Console::Err("Failed to redirect errors.");
 			}
 			else
 			{
+				Console::Styled[Console::STREAM_ERR] = false;
 				std::fprintf(stderr, "\n\n--- %s ---\n\n", timestr);
 			}
 
 			if (!std::setvbuf(stderr, 0, _IONBF, 0) == 0)
 			{
-				std::fputs("Failed to change stderr buffer settings\n", stderr);
+				Console::Wrn("Failed to change stderr buffer settings");
 			}
 		}
 
 		std::string logout = static_cast<std::string>(config["LogOut"]);
 		if (!logout.empty() && logout.compare("-") != 0)
 		{
-			std::printf("Redirecting output to '%s'...\n", logout.c_str());
+			Console::Out("Redirecting output to '%s'...", logout.c_str());
 			if (!std::freopen(logout.c_str(), "a", stdout))
 			{
-				std::fputs("Failed to redirect output.\n", stderr);
+				Console::Err("Failed to redirect output.");
 			}
 			else
 			{
+				Console::Styled[Console::STREAM_OUT] = false;
 				std::printf("\n\n--- %s ---\n\n", timestr);
 			}
 
 			if (!std::setvbuf(stdout, 0, _IONBF, 0) == 0)
 			{
-				std::fputs("Failed to change stdout buffer settings\n", stderr);
+				Console::Wrn("Failed to change stdout buffer settings");
 			}
 		}
 
@@ -400,7 +487,7 @@ EO Version Support: .27 .28\n\
 		EOServer server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config, aconfig);
 		eoserv_rehash_server = &server;
 		server.Listen(static_cast<int>(config["MaxConnections"]), static_cast<int>(config["ListenBacklog"]));
-		std::printf("Listening on %s:%i (0/%i connections)\n", static_cast<std::string>(config["Host"]).c_str(), static_cast<int>(config["Port"]), static_cast<int>(config["MaxConnections"]));
+		Console::Out("Listening on %s:%i (0/%i connections)", static_cast<std::string>(config["Host"]).c_str(), static_cast<int>(config["Port"]), static_cast<int>(config["MaxConnections"]));
 
 		// This also doubles as a check for table existance :P
 		try
@@ -410,16 +497,15 @@ EO Version Support: .27 .28\n\
 			Database_Result admin_character_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `characters` WHERE `admin` > 0");
 			Database_Result guild_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `guilds`");
 
-			printf("\nDatabase info:\n\
-  Accounts:   %i\n\
-  Characters: %i (%i staff)\n\
-  Guilds:     %i\n\
-\n", static_cast<int>(acc_count.front()["count"]), static_cast<int>(character_count.front()["count"]), static_cast<int>(admin_character_count.front()["count"]), static_cast<int>(guild_count.front()["count"]));
+			Console::Out("Database info:");
+			Console::Out("  Accounts:   %i", static_cast<int>(acc_count.front()["count"]));
+			Console::Out("  Characters: %i (%i staff)", static_cast<int>(character_count.front()["count"]), static_cast<int>(admin_character_count.front()["count"]));
+			Console::Out("  Guilds:     %i", static_cast<int>(guild_count.front()["count"]));
 		}
 		catch (Database_Exception &e)
 		{
-			std::fputs("A required table is missing. (Have you executed install.sql?)\n", stderr);
-			std::fputs(e.error(), stderr);
+			Console::Err("A required table is missing. (Have you executed install.sql?)");
+			Console::Err(e.error());
 			std::exit(1);
 		}
 
@@ -442,17 +528,17 @@ EO Version Support: .27 .28\n\
 
 				/*if (throttle)
 				{
-					std::printf("Connection from %s was rejected (reconnecting too fast)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
+					Console::Wrn("Connection from %s was rejected (reconnecting too fast)", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
 					newclient->Close();
 				}
 				else */if (ip_connections > static_cast<int>(config["MaxConnectionsPerIP"]))
 				{
-					std::printf("Connection from %s was rejected (too many connections from this address)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
+					Console::Wrn("Connection from %s was rejected (too many connections from this address)", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
 					newclient->Close();
 				}
 				else
 				{
-					std::printf("New connection from %s (%i/%i connections)\n", static_cast<std::string>(newclient->GetRemoteAddr()).c_str(), server.Connections(), server.MaxConnections());
+					Console::Out("New connection from %s (%i/%i connections)", static_cast<std::string>(newclient->GetRemoteAddr()).c_str(), server.Connections(), server.MaxConnections());
 				}
 			}
 
@@ -506,37 +592,37 @@ EO Version Support: .27 .28\n\
 								}
 								catch (Socket_Exception &e)
 								{
-									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
-									std::fprintf(stderr, "%s: %s\n", e.what(), e.error());
+									Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									Console::Err("%s: %s", e.what(), e.error());
 									cl->Close();
 								}
 								catch (Database_Exception &e)
 								{
-									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
-									std::fprintf(stderr, "%s: %s\n", e.what(), e.error());
+									Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									Console::Err("%s: %s", e.what(), e.error());
 									cl->Close();
 								}
 								catch (std::runtime_error &e)
 								{
-									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
-									std::fprintf(stderr, "Runtime Error: %s\n", e.what());
+									Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									Console::Err("Runtime Error: %s", e.what());
 									cl->Close();
 								}
 								catch (std::logic_error &e)
 								{
-									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
-									std::fprintf(stderr, "Logic Error: %s\n", e.what());
+									Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									Console::Err("Logic Error: %s", e.what());
 									cl->Close();
 								}
 								catch (std::exception &e)
 								{
-									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
-									std::fprintf(stderr, "Uncaught Exception: %s\n", e.what());
+									Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									Console::Err("Uncaught Exception: %s", e.what());
 									cl->Close();
 								}
 								catch (...)
 								{
-									std::fprintf(stderr, "Client caused an exception and was closed: %s.\n", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
+									Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(cl->GetRemoteAddr()).c_str());
 									cl->Close();
 								}
 
@@ -563,32 +649,32 @@ EO Version Support: .27 .28\n\
 	}
 	catch (Socket_Exception &e)
 	{
-		std::fprintf(stderr, "%s: %s\n", e.what(), e.error());
+		Console::Err("%s: %s", e.what(), e.error());
 		return 1;
 	}
 	catch (Database_Exception &e)
 	{
-		std::fprintf(stderr, "%s: %s\n", e.what(), e.error());
+		Console::Err("%s: %s", e.what(), e.error());
 		return 1;
 	}
 	catch (std::runtime_error &e)
 	{
-		std::fprintf(stderr, "Runtime Error: %s\n", e.what());
+		Console::Err("Runtime Error: %s", e.what());
 		return 1;
 	}
 	catch (std::logic_error &e)
 	{
-		std::fprintf(stderr, "Logic Error: %s\n", e.what());
+		Console::Err("Logic Error: %s", e.what());
 		return 1;
 	}
 	catch (std::exception &e)
 	{
-		std::fprintf(stderr, "Uncaught Exception: %s\n", e.what());
+		Console::Err("Uncaught Exception: %s", e.what());
 		return 1;
 	}
 	catch (...)
 	{
-		std::fprintf(stderr, "Uncaught Exception\n");
+		Console::Err("Uncaught Exception");
 		return 1;
 	}
 

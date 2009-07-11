@@ -15,6 +15,7 @@
 #include "nanohttp.hpp"
 #include "timer.hpp"
 #include "util.hpp"
+#include "console.hpp"
 
 // TODO: Make this safe (race conditions)
 
@@ -81,12 +82,12 @@ void *SLN::RequestThread(void *void_sln)
 	}
 	catch (Socket_Exception &e)
 	{
-		std::fputs(e.error(), stderr);
+		Console::Err(e.error());
 		return 0;
 	}
 	catch (...)
 	{
-		std::fputs("There was a problem trying to make the HTTP request...", stderr);
+		Console::Err("There was a problem trying to make the HTTP request...");
 		return 0;
 	}
 
@@ -156,8 +157,7 @@ void *SLN::RequestThread(void *void_sln)
 						break;
 				}
 
-				fputs(errmsg.c_str(), stderr);
-				fputs("\n", stderr);
+				Console::Wrn(errmsg);
 				sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 				if (resolved)
 				{
@@ -200,8 +200,7 @@ void *SLN::RequestThread(void *void_sln)
 						break;
 				}
 
-				fputs(errmsg.c_str(), stderr);
-				fputs("\n", stderr);
+				Console::Wrn(errmsg);
 				sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 				if (resolved)
 				{
@@ -224,8 +223,7 @@ void *SLN::RequestThread(void *void_sln)
 
 				}
 
-				fputs(errmsg.c_str(), stderr);
-				fputs("\n", stderr);
+				Console::Wrn(errmsg);
 				sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 				break;
 		}

@@ -16,6 +16,7 @@
 #include "timer.hpp"
 #include "nanohttp.hpp"
 #include "util.hpp"
+#include "console.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
@@ -69,9 +70,7 @@ void EOClient::Execute(std::string data)
 
 	if (this->state < EOClient::Initialized && family != PACKET_F_INIT && family != PACKET_PLAYERS)
 	{
-#ifdef DEBUG
-		std::puts("Closing client connection sending a non-init packet before init.");
-#endif // DEBUG
+		Console::Wrn("Closing client connection sending a non-init packet before init.");
 		this->Close();
 		return;
 	}
@@ -120,7 +119,7 @@ void EOClient::Execute(std::string data)
 #ifdef DEBUG
 	//if (family != PACKET_CONNECTION || action != PACKET_NET)
 	{
-		std::printf("Packet %s[%i]_%s[%i] from %s\n", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
+		Console::Dbg("Packet %s[%i]_%s[%i] from %s", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
 	}
 #endif
 }

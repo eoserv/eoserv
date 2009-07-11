@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "hash.hpp"
+#include "console.hpp"
 
 Player::Player(std::string username, World *world)
 {
@@ -98,7 +99,7 @@ Player::~Player()
 	if (this->client)
 	{
 #ifdef DEBUG
-		std::printf("Saving player '%s' (session lasted %i minutes)\n", this->username.c_str(), int(std::time(0) - this->login_time) / 60);
+		Console::Dbg("Saving player '%s' (session lasted %i minutes)", this->username.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
 		this->world->db.Query("UPDATE `accounts` SET `lastused` = #, `lastip` = '$' WHERE username = '$'", std::time(0), static_cast<std::string>(this->client->GetRemoteAddr()).c_str(), this->username.c_str());
 

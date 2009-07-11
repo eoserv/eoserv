@@ -13,6 +13,7 @@
 
 #include "database.hpp"
 #include "util.hpp"
+#include "console.hpp"
 
 // TODO: Clean up these functions
 std::string ItemSerialize(std::list<Character_Item> list)
@@ -858,7 +859,7 @@ void Character::Save()
 {
 
 #ifdef DEBUG
-	std::printf("Saving character '%s' (session lasted %i minutes)\n", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
+	Console::Out("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
 	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
 		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "

@@ -24,6 +24,7 @@
 #include "eodata.hpp"
 #include "config.hpp"
 #include "hash.hpp"
+#include "console.hpp"
 
 void world_spawn_npcs(void *world_void)
 {
@@ -38,7 +39,7 @@ void world_spawn_npcs(void *world_void)
 			if (!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time)
 			{
 #ifdef DEBUG
-				std::printf("Spawning NPC %i on map %i\n", npc->id, map->id);
+				Console::Dbg("Spawning NPC %i on map %i", npc->id, map->id);
 #endif // DEBUG
 				npc->Spawn();
 			}
@@ -125,11 +126,11 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 {
 	if (int(this->timer.resolution * 1000.0) > 1)
 	{
-		std::printf("Timers set at approx. %i ms resolution\n", int(this->timer.resolution * 1000.0));
+		Console::Out("Timers set at approx. %i ms resolution", int(this->timer.resolution * 1000.0));
 	}
 	else
 	{
-		std::puts("Timers set at < 1 ms resolution");
+		Console::Out("Timers set at < 1 ms resolution");
 	}
 
 	this->config = eoserv_config;
@@ -152,7 +153,7 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	}
 	catch (std::runtime_error)
 	{
-		std::fprintf(stderr, "WARNING: Could not load %s\n", static_cast<std::string>(this->config["DropsFile"]).c_str());
+		Console::Err("Could not load %s", static_cast<std::string>(this->config["DropsFile"]).c_str());
 	}
 
 	try
@@ -161,7 +162,7 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	}
 	catch (std::runtime_error)
 	{
-		std::fprintf(stderr, "WARNING: Could not load %s\n", static_cast<std::string>(this->config["ShopsFile"]).c_str());
+		Console::Err("Could not load %s", static_cast<std::string>(this->config["ShopsFile"]).c_str());
 	}
 
 	this->eif = new EIF(static_cast<std::string>(this->config["EIF"]));
@@ -182,8 +183,8 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 			++loaded;
 		}
 	}
-	std::printf("%i/%i maps loaded.\n", loaded, this->maps.size()-1);
-	std::printf("%i NPCs loaded.\n", npcs);
+	Console::Out("%i/%i maps loaded.", loaded, this->maps.size()-1);
+	Console::Out("%i NPCs loaded.", npcs);
 
 	this->last_character_id = 0;
 

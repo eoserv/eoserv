@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "packet.hpp"
+#include "console.hpp"
 
 EIF::EIF(std::string filename)
 {
@@ -16,7 +17,7 @@ EIF::EIF(std::string filename)
 
 	if (!fh)
 	{
-		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+		Console::Err("Could not load file: %s", filename.c_str());
 		std::exit(1);
 	}
 
@@ -90,7 +91,7 @@ EIF::EIF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i items loaded.\n", this->data.size()-1);
+	Console::Out("%i items loaded.", this->data.size()-1);
 
 	std::fclose(fh);
 }
@@ -113,7 +114,7 @@ ENF::ENF(std::string filename)
 
 	if (!fh)
 	{
-		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+		Console::Err("Could not load file: %s", filename.c_str());
 		std::exit(1);
 	}
 
@@ -172,7 +173,7 @@ ENF::ENF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i npc types loaded.\n", this->data.size()-1);
+	Console::Out("%i npc types loaded.", this->data.size()-1);
 
 	std::fclose(fh);
 }
@@ -195,7 +196,7 @@ ESF::ESF(std::string filename)
 
 	if (!fh)
 	{
-		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+		Console::Err("Could not load file: %s", filename.c_str());
 		std::exit(1);
 	}
 
@@ -244,7 +245,7 @@ ESF::ESF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i spells loaded.\n", this->data.size()-1);
+	Console::Out("%i spells loaded.", this->data.size()-1);
 
 	std::fclose(fh);
 }
@@ -255,7 +256,7 @@ ECF::ECF(std::string filename)
 
 	if (!fh)
 	{
-		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+		Console::Err("Could not load file: %s", filename.c_str());
 		std::exit(1);
 	}
 
@@ -298,7 +299,7 @@ ECF::ECF(std::string filename)
 		this->data.pop_back();
 	}
 
-	std::printf("%i classes loaded.\n", this->data.size()-1);
+	Console::Out("%i classes loaded.", this->data.size()-1);
 
 	std::fclose(fh);
 }

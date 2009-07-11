@@ -121,6 +121,8 @@
 		<Unit filename="..\src\character.hpp" />
 		<Unit filename="..\src\config.cpp" />
 		<Unit filename="..\src\config.hpp" />
+		<Unit filename="..\src\console.cpp" />
+		<Unit filename="..\src\console.hpp" />
 		<Unit filename="..\src\database.cpp" />
 		<Unit filename="..\src\database.hpp" />
 		<Unit filename="..\src\eoclient.cpp" />

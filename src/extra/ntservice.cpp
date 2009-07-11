@@ -12,6 +12,7 @@
 #include "ntservice.hpp"
 
 #include "../socket.hpp" // OSErrorString
+#include "../console.hpp"
 
 SERVICE_STATUS_HANDLE service_handle;
 HANDLE service_event;
@@ -53,7 +54,7 @@ void service_update_status(int state, int winexitcode, int servexitcode, int che
 
 	if (!SetServiceStatus(service_handle, &service_status))
 	{
-		std::fprintf(stderr, "Could not update service status: %s\n", OSErrorString());
+		Console::Err("Could not update service status: %s", OSErrorString());
 		std::exit(1);
 	}
 }
@@ -78,7 +79,7 @@ void service_main(int argc, char *argv[])
 {
 	if (!(service_handle = RegisterServiceCtrlHandler(service_name, reinterpret_cast<LPHANDLER_FUNCTION>(service_handler))))
 	{
-		std::fprintf(stderr, "Could not register service handle: %s\n", OSErrorString());
+		Console::Err("Could not register service handle: %s", OSErrorString());
 		std::exit(1);
 	}
 

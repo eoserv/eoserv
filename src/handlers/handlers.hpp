@@ -22,6 +22,7 @@
 #include "eoconst.hpp"
 #include "eodata.hpp"
 #include "util.hpp"
+#include "console.hpp"
 
 #ifdef CLIENT_F_FUNC
 #undef CLIENT_F_FUNC

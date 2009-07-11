@@ -13,6 +13,7 @@
 #include <cmath>
 
 #include "util.hpp"
+#include "console.hpp"
 
 static const double speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
 
@@ -57,7 +58,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		{
 			if (parts.size() % 4 != 0)
 			{
-				std::fprintf(stderr, "WARNING: skipping invalid drop data for NPC #%i\n", id);
+				Console::Err("WARNING: skipping invalid drop data for NPC #%i", id);
 				return;
 			}
 
@@ -87,7 +88,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		{
 			if (parts.size() % 3 != 0)
 			{
-				std::fprintf(stderr, "WARNING: skipping invalid trade shop data for NPC #%i\n", id);
+				Console::Err("WARNING: skipping invalid trade shop data for NPC #%i", id);
 				return;
 			}
 
@@ -102,7 +103,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 
 				if (item.buy != 0 && item.sell != 0 && item.sell > item.buy)
 				{
-					std::fprintf(stderr, "WARNING: item #%i (NPC #%i) has a higher sell price than buy price.\n", item.id, id);
+					Console::Err("WARNING: item #%i (NPC #%i) has a higher sell price than buy price.", item.id, id);
 				}
 
 				this->shop_trade[i/3] = item;
@@ -119,7 +120,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		{
 			if (parts.size() % 9 != 0)
 			{
-				std::fprintf(stderr, "WARNING: skipping invalid craft shop data for NPC #%i\n", id);
+				Console::Err("WARNING: skipping invalid craft shop data for NPC #%i", id);
 				return;
 			}
 
@@ -168,14 +169,14 @@ void NPC::Spawn()
 
 		if (!found)
 		{
-			std::fprintf(stderr, "Warning: An NPC on map %i at %i,%i is being placed by linear scan of spawn area\n", this->map->id, this->spawn_x, this->spawn_y);
+			Console::Wrn("An NPC on map %i at %i,%i is being placed by linear scan of spawn area", this->map->id, this->spawn_x, this->spawn_y);
 			for (this->x = this->spawn_x-2; this->x <= spawn_x+2; ++this->x)
 			{
 				for (this->y = this->spawn_y-2; this->y <= this->spawn_y+2; ++this->y)
 				{
 					if (this->map->Walkable(this->x, this->y, true))
 					{
-						std::fprintf(stderr, "Placed at valid location: %i,%i\n", this->x, this->y);
+						Console::Wrn("Placed at valid location: %i,%i", this->x, this->y);
 						found = true;
 						goto end_linear_scan;
 					}
@@ -186,7 +187,7 @@ void NPC::Spawn()
 
 		if (!found)
 		{
-			std::fputs("Error: NPC couldn't spawn anywhere valid!\n", stderr);
+			Console::Err("NPC couldn't spawn anywhere valid!");
 		}
 	}
 
@@ -352,9 +353,15 @@ void NPC::Damage(Character *from, int amount)
 	std::set<Party *> parties;
 	PacketBuilder builder;
 
-	amount = std::min(this->hp, amount);
+	int limitamount = std::min(this->hp, amount);
+
+	if (static_cast<int>(this->map->world->config["LimitDamage"]))
+	{
+		amount = limitamount;
+	}
+
 	this->hp -= amount;
-	this->totaldamage += amount;
+	this->totaldamage += limitamount;
 
 	NPC_Opponent opponent;
 	bool found = false;
@@ -364,7 +371,7 @@ void NPC::Damage(Character *from, int amount)
 		if (checkopp->attacker == from)
 		{
 			found = true;
-			checkopp->damage += amount;
+			checkopp->damage += limitamount;
 			checkopp->last_hit = Timer::GetTime();
 		}
 	}
@@ -372,7 +379,7 @@ void NPC::Damage(Character *from, int amount)
 	if (!found)
 	{
 		opponent.attacker = from;
-		opponent.damage = amount;
+		opponent.damage = limitamount;
 		opponent.last_hit = Timer::GetTime();
 		this->damagelist.push_back(opponent);
 		opponent.attacker->unregister_npc.push_back(this);

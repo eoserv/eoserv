@@ -13,6 +13,7 @@
 #include <cstdio>
 
 #include "util.hpp"
+#include "console.hpp"
 
 int sqlite_callback(void *data, int num, char *fields[], char *columns[])
 {
@@ -204,7 +205,7 @@ Database_Result Database::Query(const char *format, ...)
 	va_end(ap);
 
 #ifdef DATABASE_DEBUG
-	std::puts(finalquery.c_str());
+	Console::Dbg(finalquery.c_str());
 #endif // DATABASE_DEBUG
 
 	switch (this->engine)
@@ -330,7 +331,7 @@ std::string Database::Escape(std::string raw)
 
 	for (std::string::iterator it = raw.begin(); it != raw.end(); ++it)
 	{
-		if (*it == '@' || *it == '#' || *it == '%')
+		if (*it == '@' || *it == '#' || *it == '$')
 		{
 			*it = '?';
 		}

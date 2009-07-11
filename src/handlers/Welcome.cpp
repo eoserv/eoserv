@@ -36,7 +36,7 @@ CLIENT_F_FUNC(Welcome)
 			if (!this->player->character)
 			{
 #ifdef DEBUG
-				std::puts("Selected character not found");
+				Console::Wrn("Selected character not found");
 #endif
 				return false;
 			}
@@ -146,7 +146,7 @@ CLIENT_F_FUNC(Welcome)
 
 			if (newseof)
 			{
-				std::fprintf(stderr, "WARNING: Could not load news file '%s'\n", static_cast<std::string>(this->server->world->config["NewsFile"]).c_str());
+				Console::Err("WARNING: Could not load news file '%s'", static_cast<std::string>(this->server->world->config["NewsFile"]).c_str());
 			}
 
 			for (int i = 0; i < 9; ++i)
@@ -308,7 +308,7 @@ CLIENT_F_FUNC(Welcome)
 
 			if (!fh)
 			{
-				std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+				Console::Err("Could not load file: %s", filename.c_str());
 				return false;
 			}
 

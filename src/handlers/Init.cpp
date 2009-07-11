@@ -80,9 +80,6 @@ CLIENT_F_FUNC(Init)
 		this->Close();
 		return false;
 	}
-#ifdef DEBUG
-	std::printf("Client version: v%i\n", this->version);
-#endif // DEBUG
 
 	response = stupid_hash(challenge);
 

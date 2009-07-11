@@ -14,6 +14,7 @@
 #include "util.hpp"
 #include "eoserver.hpp"
 #include "packet.hpp"
+#include "console.hpp"
 
 Map::Map(int id, World *world)
 {
@@ -44,7 +45,7 @@ void Map::Load()
 	if (!fh)
 	{
 		this->exists = false;
-		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+		Console::Err("Could not load file: %s", filename.c_str());
 		return;
 	}
 
@@ -916,7 +917,6 @@ void Map::Attack(Character *from, Direction direction)
 				amount -= int(double(npc->data->armor) / 3.0 * mobrate);
 
 				amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
-				amount = std::min(amount, npc->hp);
 
 				int rand = util::rand(0, 100);
 
@@ -934,9 +934,6 @@ void Map::Attack(Character *from, Direction direction)
 				{
 					amount = int(double(amount) * 1.5);
 				}
-
-				amount = std::max(amount, 0);
-				amount = std::min(amount, npc->hp);
 
 				npc->Damage(from, amount);
 
@@ -1234,7 +1231,7 @@ void Map::Reload()
 	if (!fh)
 	{
 		this->exists = false;
-		std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+		Console::Err("Could not load file: %s", filename.c_str());
 		return;
 	}
 

@@ -19,6 +19,7 @@
 #include "nanohttp.hpp"
 #include "util.hpp"
 #include "sln.hpp"
+#include "console.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
@@ -66,7 +67,7 @@ void server_pump_queue(void *server_void)
 		if (size > 40)
 		{
 #ifdef DEBUG
-			std::puts("Client was disconnected for filling up the action queue");
+			Console::Wrn("Client was disconnected for filling up the action queue");
 #endif // DEBUG
 			client->Close();
 			continue;

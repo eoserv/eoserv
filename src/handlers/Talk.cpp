@@ -241,7 +241,7 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["rehash"]))
 				{
-					std::printf("Config reloaded by %s\n", this->player->character->name.c_str());
+					Console::Out("Config reloaded by %s", this->player->character->name.c_str());
 					try
 					{
 						this->server->world->config.Read("config.ini");
@@ -320,7 +320,7 @@ CLIENT_F_FUNC(Talk)
 						character->Save();
 						character->player->client->Close();
 					}
-					std::printf("Server shut down by %s\n", this->player->character->name.c_str());
+					Console::Wrn("Server shut down by %s", this->player->character->name.c_str());
 					std::exit(0);
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"q") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["quake"]))
@@ -328,6 +328,10 @@ CLIENT_F_FUNC(Talk)
 					int strength = (arguments.size() >= 1)?std::min(8,std::max(1,util::to_int(arguments[0]))):5;
 					this->player->character->map->Effect(MAP_EFFECT_QUAKE, strength);
 				}
+			}
+			else
+			{
+				this->player->character->map->Msg(this->player->character, message);
 			}
 		}
 		break;

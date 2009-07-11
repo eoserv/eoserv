@@ -138,7 +138,7 @@ CLIENT_F_FUNC(Warp)
 
 			if (!fh)
 			{
-				std::fprintf(stderr, "Could not load file: %s\n", filename.c_str());
+				Console::Err("Could not load file: %s", filename.c_str());
 				return false;
 			}
 

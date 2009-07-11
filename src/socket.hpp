@@ -745,7 +745,7 @@ template <class T = Client> class Server
 		{
 			UTIL_TPL_LIST_IFOREACH_ALL(this->clients, T *, it)
 			{
-				if (!(*it)->Connected() && (((*it)->send_buffer.length() == 0 && (*it)->recv_buffer.length() == 0) || (*it)->closed_time - 5 > std::time(0)))
+				if (!(*it)->Connected() && (((*it)->send_buffer.length() == 0 && (*it)->recv_buffer.length() == 0) || (*it)->closed_time + 5 < std::time(0)))
 				{
 #if defined(WIN32) || defined(WIN64)
 					closesocket((*it)->sock);

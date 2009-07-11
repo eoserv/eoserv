@@ -29,6 +29,7 @@ else
 endif
 
 OBJ += $(OBJDIR)/character.o \
+       $(OBJDIR)/console.o \
        $(OBJDIR)/config.o \
        $(OBJDIR)/database.o \
        $(OBJDIR)/eoclient.o \

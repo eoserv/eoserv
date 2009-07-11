@@ -59,10 +59,23 @@ CLIENT_F_FUNC(Item)
 
 					case EIF::Heal:
 					{
-						int hpgain = std::min(int(item->hp), this->player->character->maxhp - this->player->character->hp);
-						int tpgain = std::min(int(item->tp), this->player->character->maxtp - this->player->character->tp);
+						int hpgain = item->hp;
+						int tpgain = item->tp;
+
+						if (static_cast<int>(this->server->world->config["LimitDamage"]))
+						{
+							hpgain = std::min(hpgain, this->player->character->maxhp - this->player->character->hp);
+							tpgain = std::min(tpgain, this->player->character->maxtp - this->player->character->tp);
+						}
+
 						this->player->character->hp += hpgain;
 						this->player->character->tp += tpgain;
+
+						if (!static_cast<int>(this->server->world->config["LimitDamage"]))
+						{
+							this->player->character->hp = std::min(this->player->character->hp, this->player->character->maxhp);
+							this->player->character->tp = std::min(this->player->character->tp, this->player->character->maxtp);
+						}
 
 						this->player->character->DelItem(id, 1);
 						reply.AddInt(this->player->character->HasItem(id));
@@ -85,8 +98,6 @@ CLIENT_F_FUNC(Item)
 								character->player->client->SendBuilder(builder);
 							}
 						}
-
-						this->player->character->DelItem(id, 1);
 
 						if (this->player->character->party)
 						{
