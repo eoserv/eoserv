@@ -231,8 +231,15 @@ void Map::Unload()
 		}
 	}
 
+	restart_loop:
 	UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
 	{
+		if (npc->temporary)
+		{
+			delete npc;
+			goto restart_loop;
+		}
+
 		delete npc;
 	}
 
