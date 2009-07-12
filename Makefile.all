@@ -28,7 +28,8 @@ else
 	LDFLAGS += -s
 endif
 
-OBJ += $(OBJDIR)/character.o \
+OBJ += $(OBJDIR)/arena.o \
+       $(OBJDIR)/character.o \
        $(OBJDIR)/console.o \
        $(OBJDIR)/config.o \
        $(OBJDIR)/database.o \
