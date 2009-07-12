@@ -904,7 +904,6 @@ void Map::Attack(Character *from, Direction direction)
 	if (from->arena)
 	{
 		from->arena->Attack(from, direction);
-		return;
 	}
 
 	builder.SetID(PACKET_ATTACK, PACKET_PLAYER);

@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
 
 		std::puts("\
                           ___ ___  ___ ___ _____   __\n\
-   EOSERV Version 0.4.0  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
+   EOSERV Version 0.5.0  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
                          |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
 \n\
