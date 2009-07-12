@@ -273,6 +273,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "NewsFile"           , "./data/news.txt");
 		eoserv_config_default(config, "DropsFile"          , "./data/drops.ini");
 		eoserv_config_default(config, "ShopsFile"          , "./data/shops.ini");
+		eoserv_config_default(config, "ArenasFile"         , "./data/arenas.ini");
 		eoserv_config_default(config, "MapDir"             , "./data/maps/");
 		eoserv_config_default(config, "Maps"               , 278);
 		eoserv_config_default(config, "QuestDir"           , "./data/quests/");
@@ -386,6 +387,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "warpmeto"      , 2);
 		eoserv_config_default(aconfig, "evacuate"      , 2);
 		eoserv_config_default(aconfig, "remap"         , 4);
+		eoserv_config_default(aconfig, "arena"         , 1);
 		eoserv_config_default(aconfig, "shutdown"      , 4);
 		eoserv_config_default(aconfig, "rehash"        , 4);
 		eoserv_config_default(aconfig, "sitem"         , 3);

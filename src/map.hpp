@@ -20,6 +20,7 @@ struct Map_Tile;
 #include "eoconst.hpp"
 #include "character.hpp"
 #include "npc.hpp"
+#include "arena.hpp"
 
 /**
  * Object representing an item on the floor of a map
@@ -184,6 +185,8 @@ class Map
 		std::vector<Map_Item> items;
 		std::vector<std::vector<Map_Tile> > tiles;
 		bool exists;
+
+		Arena *arena;
 
 		Map(int id, World *server);
 

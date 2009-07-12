@@ -21,6 +21,56 @@ Map::Map(int id, World *world)
 	this->id = id;
 	this->world = world;
 
+	if (static_cast<int>(world->arenas_config[util::to_string(id) + ".enabled"]))
+	{
+		std::vector<std::string> spawns = util::explode(',', static_cast<std::string>(world->arenas_config[util::to_string(id) + ".spawns"]));
+
+		if (spawns.size() % 4 != 0)
+		{
+			Console::Err("Invalid arena spawn data for map %i", id);
+			this->arena = 0;
+		}
+		else
+		{
+			this->arena = new Arena(this, static_cast<int>(world->arenas_config[util::to_string(id) + ".time"]), static_cast<int>(world->arenas_config[util::to_string(id) + ".block"]));
+
+			int i = 1;
+			int dx, dy, sx, sy;
+			dx = dy = sx = sy = 0;
+			UTIL_VECTOR_FOREACH_ALL(spawns, std::string, spawn)
+			{
+				util::trim(spawn);
+
+				switch (i % 4)
+				{
+					case 1:
+						dx = util::to_int(spawn);
+						break;
+
+					case 2:
+						dy = util::to_int(spawn);
+						break;
+
+					case 3:
+						sx = util::to_int(spawn);
+						break;
+
+					case 0:
+						sy = util::to_int(spawn);
+						this->arena->spawns.push_back({dx, dy, sx, sy});
+						break;
+
+				}
+
+				++i;
+			}
+		}
+	}
+	else
+	{
+		this->arena = 0;
+	}
+
 	this->Load();
 }
 
@@ -836,6 +886,12 @@ void Map::Attack(Character *from, Direction direction)
 	PacketBuilder builder;
 
 	from->direction = direction;
+
+	if (from->arena)
+	{
+		from->arena->Attack(from, direction);
+		return;
+	}
 
 	builder.SetID(PACKET_ATTACK, PACKET_PLAYER);
 	builder.AddShort(from->player->id);

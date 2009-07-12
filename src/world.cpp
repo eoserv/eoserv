@@ -165,6 +165,15 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 		Console::Err("Could not load %s", static_cast<std::string>(this->config["ShopsFile"]).c_str());
 	}
 
+	try
+	{
+		this->arenas_config.Read(static_cast<std::string>(this->config["ArenasFile"]));
+	}
+	catch (std::runtime_error)
+	{
+		Console::Err("Could not load %s", static_cast<std::string>(this->config["ArenasFile"]).c_str());
+	}
+
 	this->eif = new EIF(static_cast<std::string>(this->config["EIF"]));
 	this->enf = new ENF(static_cast<std::string>(this->config["ENF"]));
 	this->esf = new ESF(static_cast<std::string>(this->config["ESF"]));
@@ -227,12 +236,12 @@ int World::GeneratePlayerID()
 void World::Login(Character *character)
 {
 	this->characters.push_back(character);
-	this->maps[character->mapid]->Enter(character);
-	if (character->map->relog_x || character->map->relog_y)
+	if (this->maps[character->mapid]->relog_x || this->maps[character->mapid]->relog_y)
 	{
-		character->x = character->map->relog_x;
-		character->y = character->map->relog_y;
+		character->x = this->maps[character->mapid]->relog_x;
+		character->y = this->maps[character->mapid]->relog_y;
 	}
+	this->maps[character->mapid]->Enter(character);
 }
 
 void World::Logout(Character *character)

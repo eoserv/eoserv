@@ -110,7 +110,7 @@ enum InitReply UTIL_EXTEND_ENUM(unsigned char)
 	INIT_PLAYERS = 8,
 	INIT_MAP_MUTATION = 9,
 	INIT_NOISE = 10,
-	INIT_FILE_ECF = 10
+	INIT_FILE_ECF = 11
 };
 
 enum InitBanType UTIL_EXTEND_ENUM(unsigned char)

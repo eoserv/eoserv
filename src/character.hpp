@@ -20,6 +20,7 @@ struct Character_Spell;
 #include "player.hpp"
 #include "party.hpp"
 #include "guild.hpp"
+#include "arena.hpp"
 
 #include "eoconst.hpp"
 
@@ -92,6 +93,10 @@ class Character
 		int bankmax;
 		int goldbank;
 		int usage;
+
+		Arena *next_arena;
+		Arena *arena;
+		char arena_kills;
 
 		short maxsp;
 		short maxhp, maxtp;

@@ -252,6 +252,13 @@ CLIENT_F_FUNC(Talk)
 
 					}
 				}
+				else if (command.length() >= 1 && command.compare(0,1,"a") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["arena"]))
+				{
+					if (this->player->character->map->arena)
+					{
+						this->player->character->map->arena->Spawn(true);
+					}
+				}
 				else if (command.length() >= 2 && command.compare(0,2,"in") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["info"]))
 				{
 					Character *victim = this->server->world->GetCharacter(arguments[0]);

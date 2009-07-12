@@ -46,13 +46,13 @@ void SetTextColor(Stream stream, Color color, bool bold)
 {
 	char command[6] = {27, '[', '3', '0', 'm', 0};
 	command[4] += (color - 30);
-	fputs((i == STREAM_OUT) ? stdout : stderr, command);
+	fputs((stream == STREAM_OUT) ? stdout : stderr, command);
 }
 
-void ResetTextColor(Stream stream, Color color, bool bold)
+void ResetTextColor(Stream stream)
 {
 	char command[5] = {27, '[', '0', 'm', 0};
-	fputs((i == STREAM_OUT) ? stdout : stderr, command);
+	fputs((stream == STREAM_OUT) ? stdout : stderr, command);
 }
 #endif // defined(WIN32) || defined(WIN64)
 

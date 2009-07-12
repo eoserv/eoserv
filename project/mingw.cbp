@@ -117,6 +117,8 @@
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
 		</Linker>
+		<Unit filename="..\src\arena.cpp" />
+		<Unit filename="..\src\arena.hpp" />
 		<Unit filename="..\src\character.cpp" />
 		<Unit filename="..\src\character.hpp" />
 		<Unit filename="..\src\config.cpp" />

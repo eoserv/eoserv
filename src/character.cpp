@@ -169,6 +169,9 @@ Character::Character(std::string name, World *world)
 	this->shop_npc = 0;
 	this->bank_npc = 0;
 
+	this->next_arena = 0;
+	this->arena = 0;
+
 	this->warp_anim = WARP_ANIMATION_INVALID;
 
 	this->sitting = static_cast<SitAction>(GetRow<int>(row, "sitting"));
@@ -662,6 +665,19 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	this->warp_anim = animation;
 
 	this->player->client->SendBuilder(builder);
+
+	if (this->arena)
+	{
+		--this->arena->occupants;
+		this->arena = 0;
+	}
+
+	if (this->next_arena)
+	{
+		this->arena = this->next_arena;
+		++this->arena->occupants;
+		this->next_arena = 0;
+	}
 }
 
 void Character::Refresh()
@@ -859,7 +875,7 @@ void Character::Save()
 {
 
 #ifdef DEBUG
-	Console::Out("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
+	Console::Dbg("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
 	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
 		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
@@ -898,6 +914,11 @@ Character::~Character()
 	if (this->party)
 	{
 		this->party->Leave(this);
+	}
+
+	if (this->arena)
+	{
+		--this->arena->occupants;
 	}
 
 	UTIL_LIST_FOREACH_ALL(this->unregister_npc, NPC *, npc)

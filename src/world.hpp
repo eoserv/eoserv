@@ -50,6 +50,7 @@ class World
 		Config admin_config;
 		Config drops_config;
 		Config shops_config;
+		Config arenas_config;
 
 		std::vector<Character *> characters;
 		std::vector<Guild *> guilds;
