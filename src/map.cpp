@@ -39,25 +39,26 @@ Map::Map(int id, World *world)
 			dx = dy = sx = sy = 0;
 			UTIL_VECTOR_FOREACH_ALL(spawns, std::string, spawn)
 			{
+				Arena_Spawn s;
 				util::trim(spawn);
 
 				switch (i % 4)
 				{
 					case 1:
-						dx = util::to_int(spawn);
+						s.dx = util::to_int(spawn);
 						break;
 
 					case 2:
-						dy = util::to_int(spawn);
+						s.dy = util::to_int(spawn);
 						break;
 
 					case 3:
-						sx = util::to_int(spawn);
+						s.sx = util::to_int(spawn);
 						break;
 
 					case 0:
-						sy = util::to_int(spawn);
-						this->arena->spawns.push_back({dx, dy, sx, sy});
+						s.sy = util::to_int(spawn);
+						this->arena->spawns.push_back(s);
 						break;
 
 				}

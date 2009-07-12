@@ -46,13 +46,13 @@ void SetTextColor(Stream stream, Color color, bool bold)
 {
 	char command[6] = {27, '[', '3', '0', 'm', 0};
 	command[4] += (color - 30);
-	fputs((stream == STREAM_OUT) ? stdout : stderr, command);
+	fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
 }
 
 void ResetTextColor(Stream stream)
 {
 	char command[5] = {27, '[', '0', 'm', 0};
-	fputs((stream == STREAM_OUT) ? stdout : stderr, command);
+	fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
 }
 #endif // defined(WIN32) || defined(WIN64)
 
@@ -85,3 +85,4 @@ void Dbg(std::string f, ...)
 }
 
 }
+
