@@ -56,7 +56,7 @@ static void eoserv_terminate(int signal)
 		character->player->client->Close();
 	}
 
-	raise(signal);
+	std::exit(0);
 }
 
 static void eoserv_crash(int signal)
@@ -83,7 +83,7 @@ static void eoserv_crash(int signal)
 		character->player->client->Close();
 	}
 
-	raise(signal);
+	std::exit(1);
 }
 
 #if defined(WIN32) || defined(WIN64)

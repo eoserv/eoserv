@@ -35,8 +35,6 @@ Map::Map(int id, World *world)
 			this->arena = new Arena(this, static_cast<int>(world->arenas_config[util::to_string(id) + ".time"]), static_cast<int>(world->arenas_config[util::to_string(id) + ".block"]));
 
 			int i = 1;
-			int dx, dy, sx, sy;
-			dx = dy = sx = sy = 0;
 			UTIL_VECTOR_FOREACH_ALL(spawns, std::string, spawn)
 			{
 				Arena_Spawn s;
@@ -45,19 +43,19 @@ Map::Map(int id, World *world)
 				switch (i % 4)
 				{
 					case 1:
-						s.dx = util::to_int(spawn);
-						break;
-
-					case 2:
-						s.dy = util::to_int(spawn);
-						break;
-
-					case 3:
 						s.sx = util::to_int(spawn);
 						break;
 
-					case 0:
+					case 2:
 						s.sy = util::to_int(spawn);
+						break;
+
+					case 3:
+						s.dx = util::to_int(spawn);
+						break;
+
+					case 0:
+						s.dy = util::to_int(spawn);
 						this->arena->spawns.push_back(s);
 						break;
 
