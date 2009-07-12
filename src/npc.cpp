@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <algorithm>
 #include <cstdio>
 #include <cmath>
 
@@ -17,9 +18,10 @@
 
 static const double speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
 
-NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index)
+NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index, bool temporary)
 {
 	this->map = map;
+	this->temporary = temporary;
 	this->index = index;
 	this->id = id;
 	this->spawn_x = this->x = x;
@@ -156,8 +158,16 @@ void NPC::Spawn()
 		bool found = false;
 		for (int i = 0; i < 200; ++i)
 		{
-			this->x = util::rand(this->spawn_x-2, this->spawn_x+2);
-			this->y = util::rand(this->spawn_y-2, this->spawn_y+2);
+			if (this->temporary && i == 0)
+			{
+				this->x = this->spawn_x;
+				this->y = this->spawn_y;
+			}
+			else
+			{
+				this->x = util::rand(this->spawn_x-2, this->spawn_x+2);
+				this->y = util::rand(this->spawn_y-2, this->spawn_y+2);
+			}
 
 			if (this->map->Walkable(this->x, this->y, true) && (i > 100 || !this->map->Occupied(this->x, this->y, Map::NPCOnly)))
 			{
@@ -408,6 +418,7 @@ void NPC::Damage(Character *from, int amount)
 		int most_damage_counter = 0;
 		Character *most_damage = 0;
 		this->alive = false;
+
 		this->dead_since = int(Timer::GetTime());
 
 		std::vector<NPC_Drop> drops;
@@ -692,6 +703,11 @@ void NPC::Damage(Character *from, int amount)
 
 		this->damagelist.clear();
 		this->totaldamage = 0;
+
+		if (this->temporary)
+		{
+			delete this;
+		}
 	}
 }
 
@@ -806,3 +822,12 @@ void NPC::Attack(Character *target)
 		target->Warp(target->spawnmap, target->spawnx, target->spawny);
 	}
 }
+
+NPC::~NPC()
+{
+	if (this->temporary)
+	{
+		this->map->npcs.erase(std::find(this->map->npcs.begin(), this->map->npcs.end(), this));
+	}
+}
+

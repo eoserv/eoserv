@@ -77,6 +77,7 @@ struct NPC_Shop_Craft_Item
 class NPC
 {
 	public:
+		bool temporary;
 		short id;
 		ENF_Data *data;
 		unsigned char x, y;
@@ -103,7 +104,7 @@ class NPC
 		Map *map;
 		unsigned char index;
 
-		NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index);
+		NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index, bool temporary = false);
 
 		bool SpawnReady();
 
@@ -114,6 +115,8 @@ class NPC
 		void Damage(Character *from, int amount);
 
 		void Attack(Character *target);
+
+		~NPC();
 };
 
 #endif // NPC_HPP_INCLUDED

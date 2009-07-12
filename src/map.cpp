@@ -254,6 +254,21 @@ int Map::GenerateItemID()
 	return lowest_free_id;
 }
 
+unsigned char Map::GenerateNPCIndex()
+{
+	unsigned char lowest_free_id = 1;
+	restart_loop:
+	UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
+	{
+		if (npc->index == lowest_free_id)
+		{
+			lowest_free_id = npc->index + 1;
+			goto restart_loop;
+		}
+	}
+	return lowest_free_id;
+}
+
 void Map::Enter(Character *character, WarpAnimation animation)
 {
 	PacketBuilder builder;

@@ -206,6 +206,30 @@ CLIENT_F_FUNC(Talk)
 						}
 					}
 				}
+				else if (command.length() >= 2 && command.compare(0,2,"sn") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["snpc"]))
+				{
+					int id = util::to_int(arguments[0]);
+					int amount = (arguments.size() >= 2)?util::to_int(arguments[1]):1;
+
+					if (id < 0 || static_cast<std::size_t>(id) > this->player->character->world->enf->data.size())
+					{
+						return true;
+					}
+
+					for (int i = 0; i < amount; ++i)
+					{
+						unsigned char index = this->player->character->map->GenerateNPCIndex();
+
+						if (index > 250)
+						{
+							break;
+						}
+
+						NPC *npc = new NPC(this->player->character->map, id, this->player->character->x, this->player->character->y, 1, 1, index, true);
+						this->player->character->map->npcs.push_back(npc);
+						npc->Spawn();
+					}
+				}
 				else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["warpmeto"]))
 				{
 					Character *victim = this->server->world->GetCharacter(arguments[0]);

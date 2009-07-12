@@ -83,7 +83,12 @@ static void eoserv_crash(int signal)
 		character->player->client->Close();
 	}
 
+#ifdef DEBUG
+	std::signal(signal, SIG_DFL);
+	std::raise(signal);
+#else // DEBUG
 	std::exit(1);
+#endif // DEBUG
 }
 
 #if defined(WIN32) || defined(WIN64)
@@ -200,21 +205,19 @@ int main(int argc, char *argv[])
 #endif // defined(WIN32) || defined(WIN64)
 
 #ifdef SIGHUP
-	signal(SIGHUP, eoserv_rehash);
+	std::signal(SIGHUP, eoserv_rehash);
 #endif // SIGHUP
 
-	signal(SIGABRT, eoserv_terminate);
-	signal(SIGTERM, eoserv_terminate);
-	signal(SIGINT, eoserv_terminate);
+	std::signal(SIGABRT, eoserv_terminate);
+	std::signal(SIGTERM, eoserv_terminate);
+	std::signal(SIGINT, eoserv_terminate);
 
-#ifndef DEBUG
-	signal(SIGSEGV, eoserv_crash);
-	signal(SIGFPE, eoserv_crash);
+	std::signal(SIGSEGV, eoserv_crash);
+	std::signal(SIGFPE, eoserv_crash);
 #ifdef SIGBUS
-	signal(SIGBUS, eoserv_crash);
+	std::signal(SIGBUS, eoserv_crash);
 #endif // SIGBUS
-	signal(SIGILL, eoserv_crash);
-#endif // DEBUG
+	std::signal(SIGILL, eoserv_crash);
 
 #if defined(WIN32) || defined(WIN64)
 	if (!SetConsoleCtrlHandler(static_cast<PHANDLER_ROUTINE>(eoserv_win_event_handler), TRUE))
@@ -392,6 +395,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "rehash"        , 4);
 		eoserv_config_default(aconfig, "sitem"         , 3);
 		eoserv_config_default(aconfig, "ditem"         , 3);
+		eoserv_config_default(aconfig, "snpc"          , 3);
 		eoserv_config_default(aconfig, "learn"         , 3);
 		eoserv_config_default(aconfig, "quake"         , 2);
 		eoserv_config_default(aconfig, "setlevel"      , 3);

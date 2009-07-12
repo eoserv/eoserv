@@ -74,6 +74,7 @@ CLIENT_F_FUNC(Account)
 				this->server->world->CreatePlayer(username, password, fullname, location, email, computer, util::to_string(hdid), static_cast<std::string>(this->GetRemoteAddr()));
 				reply.AddShort(ACCOUNT_CREATED);
 				reply.AddString("OK");
+				Console::Out("New account: %s", username.c_str());
 			}
 
 			CLIENT_SEND(reply);

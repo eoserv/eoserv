@@ -59,6 +59,7 @@ CLIENT_F_FUNC(Character)
 			else
 			{
 				this->player->AddCharacter(name, gender, hairstyle, haircolor, race);
+				Console::Out("New character: %s (%s)", name.c_str(), this->player->username.c_str());
 
 				reply.AddShort(CHARACTER_OK);
 				reply.AddChar(this->player->characters.size());
@@ -102,6 +103,7 @@ CLIENT_F_FUNC(Character)
 			{
 				if ((*character)->id == charid)
 				{
+					Console::Out("Deleted character: %s (%s)", (*character)->name.c_str(), this->player->username.c_str());
 					this->server->world->DeleteCharacter((*character)->name);
 					char_it = character;
 					yourchar = true;

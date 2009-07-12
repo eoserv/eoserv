@@ -191,6 +191,7 @@ class Map
 		Map(int id, World *server);
 
 		int GenerateItemID();
+		unsigned char GenerateNPCIndex();
 
 		void Enter(Character *, WarpAnimation animation = WARP_ANIMATION_NONE);
 		void Leave(Character *, WarpAnimation animation = WARP_ANIMATION_NONE);
