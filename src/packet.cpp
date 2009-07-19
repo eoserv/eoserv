@@ -302,7 +302,7 @@ util::quadchar PacketProcessor::ENumber(unsigned int number, std::size_t &size)
 
 	bytes[0] = number + 1;
 
-	for (int i = 3; i >= 0; ++i)
+	for (int i = 3; i >= 0; --i)
 	{
 		if (i == 0)
 		{

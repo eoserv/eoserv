@@ -46,6 +46,8 @@ CLIENT_F_FUNC(Bank)
 
 			if (amount <= 0) return true;
 
+			amount = std::min(amount, this->player->character->HasItem(1));
+
 			if (this->player->character->bank_npc)
 			{
 				int newgold = this->player->character->goldbank + amount;

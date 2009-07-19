@@ -655,7 +655,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	}
 
 	this->map->Leave(this, animation);
-	this->map = this->world->maps[map];
+	this->map = this->world->maps.at(map);
 	this->mapid = map;
 	this->x = x;
 	this->y = y;
