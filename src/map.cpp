@@ -1341,10 +1341,18 @@ void Map::Reload()
 
 	builder.AddString(content);
 
+	PacketBuilder protect_builder(0);
+	protect_builder.AddChar(INIT_BANNED);
+
 	UTIL_VECTOR_FOREACH_ALL(temp, Character *, character)
 	{
 		character->player->client->Send(builder.Get());
 		character->Refresh(); // TODO: Find a better way to reload NPCs
+
+		if (static_cast<int>(this->world->config["ProtectMaps"]))
+		{
+			character->player->client->Send(protect_builder.Get());
+		}
 	}
 }
 

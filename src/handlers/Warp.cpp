@@ -154,6 +154,13 @@ CLIENT_F_FUNC(Warp)
 			reply.AddChar(INIT_BANNED); // wtf? When in Rome...
 			reply.AddString(content);
 			CLIENT_SENDRAW(reply);
+
+			if (static_cast<int>(this->server->world->config["ProtectMaps"]))
+			{
+				reply.Reset();
+				reply.AddChar(INIT_BANNED);
+				CLIENT_SENDRAW(reply);
+			}
 		}
 		break;
 
