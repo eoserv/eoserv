@@ -9,6 +9,7 @@
 #ifdef WIN32
 #include <windows.h>
 #else // WIN32
+#include <sys/time.h>
 #include <sys/types.h>
 #endif // WIN32
 
@@ -69,9 +70,15 @@ double Timer::GetTime()
 #endif // TIMER_GETTICKCOUNT
 	double ms = double(ticks) / 1000.0;
 #else // WIN32
-	timespec gettime;
+#ifdef CLOCK_MONOTONIC
+	struct timespec gettime;
 	clock_gettime(CLOCK_MONOTONIC, &gettime);
 	double ms = double(gettime.tv_sec) + double(gettime.tv_nsec) / 1000000000.0;
+#else // CLOCK_MONOTONIC
+	struct timeval gettime;
+	gettimeofday(gettime, 0);
+	double ms = double(gettime.tv_sec) + double(gettime.tv_usec) / 1000000.0;
+#endif // CLOCK_MONOTONIC
 #endif // WIN32
 	if (!gettime_init)
 	{

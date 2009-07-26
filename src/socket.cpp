@@ -37,7 +37,8 @@ const char *OSErrorString()
 #include <string.h>
 const char *OSErrorString()
 {
-	return strerror_r(errno, ErrorBuf, 1024);
+	strerror_r(errno, ErrorBuf, 1024);
+	return ErrorBuf;
 }
 #endif // defined(WIN32) || defined(WIN64)
 
