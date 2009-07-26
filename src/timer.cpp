@@ -76,7 +76,7 @@ double Timer::GetTime()
 	double ms = double(gettime.tv_sec) + double(gettime.tv_nsec) / 1000000000.0;
 #else // CLOCK_MONOTONIC
 	struct timeval gettime;
-	gettimeofday(gettime, 0);
+	gettimeofday(&gettime, 0);
 	double ms = double(gettime.tv_sec) + double(gettime.tv_usec) / 1000000.0;
 #endif // CLOCK_MONOTONIC
 #endif // WIN32
