@@ -913,6 +913,14 @@ void Map::Attack(Character *from, Direction direction)
 		from->arena->Attack(from, direction);
 	}
 
+	if (this->pk || (static_cast<int>(this->world->config["GlobalPK"]) && !this->world->PKExcept(this->id)))
+	{
+		if (this->AttackPK(from, direction))
+		{
+			return;
+		}
+	}
+
 	builder.SetID(PACKET_ATTACK, PACKET_PLAYER);
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
@@ -1017,6 +1025,140 @@ void Map::Attack(Character *from, Direction direction)
 			}
 		}
 	}
+}
+
+bool Map::AttackPK(Character *from, Direction direction)
+{
+	int target_x = from->x;
+	int target_y = from->y;
+
+	int range = 1;
+
+	if (this->world->eif->Get(from->paperdoll[Character::Weapon])->subtype == EIF::Ranged)
+	{
+		range = static_cast<int>(this->world->config["RangedDistance"]);
+	}
+
+	for (int i = 0; i < range; ++i)
+	{
+		switch (from->direction)
+		{
+			case DIRECTION_UP:
+				target_y -= 1;
+				break;
+
+			case DIRECTION_RIGHT:
+				target_x += 1;
+				break;
+
+			case DIRECTION_DOWN:
+				target_y += 1;
+				break;
+
+			case DIRECTION_LEFT:
+				target_x -= 1;
+				break;
+		}
+
+		if (!this->Walkable(target_x, target_y, true))
+		{
+			return false;
+		}
+
+		double pkrate = static_cast<double>(this->world->config["PKRate"]) / 100.0;
+		UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+		{
+			if (character->mapid == this->id && character->x == target_x && character->y == target_y)
+			{
+				int amount = util::rand(from->mindam, from->maxdam);
+
+				// TODO: Revise these stat effects
+
+				int hit_rate = 120;
+				bool critical = true;
+
+				if ((character->direction == DIRECTION_UP && from->direction == DIRECTION_DOWN)
+				 || (character->direction == DIRECTION_RIGHT && from->direction == DIRECTION_LEFT)
+				 || (character->direction == DIRECTION_DOWN && from->direction == DIRECTION_UP)
+				 || (character->direction == DIRECTION_LEFT && from->direction == DIRECTION_RIGHT))
+				{
+					critical = false;
+					hit_rate -= 40;
+				}
+
+				hit_rate += int(from->accuracy / 2.0);
+				hit_rate -= int(double(character->evade) / 2.0);
+				hit_rate = std::min(std::max(hit_rate, 20), 100);
+
+				int origamount = amount;
+				amount -= int(double(character->armor) / 3.0);
+
+				amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
+
+				int rand = util::rand(0, 100);
+
+				if (rand > hit_rate)
+				{
+					amount = 0;
+				}
+
+				if (rand > 92)
+				{
+					critical = true;
+				}
+
+				if (critical)
+				{
+					amount = int(double(amount) * 1.5);
+				}
+
+				amount *= pkrate;
+
+				amount = std::max(amount, 0);
+
+				int limitamount = std::min(amount, int(character->hp));
+
+				if (static_cast<int>(this->world->config["LimitDamage"]))
+				{
+					amount = limitamount;
+				}
+
+				character->hp -= limitamount;
+
+				PacketBuilder builder(PACKET_CLOTHES, PACKET_REPLY);
+				builder.AddShort(from->player->id);
+				builder.AddShort(character->player->id);
+				builder.AddThree(amount);
+				builder.AddChar(from->direction);
+				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+				builder.AddChar(character->hp == 0);
+
+				UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+				{
+					if (character->InRange(character))
+					{
+						character->player->client->SendBuilder(builder);
+					}
+				}
+
+				if (character->hp == 0)
+				{
+					character->hp = character->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0;
+					character->Warp(character->spawnmap, character->spawnx, character->spawny);
+				}
+
+				builder.Reset();
+				builder.SetID(PACKET_RECOVER, PACKET_PLAYER);
+				builder.AddShort(character->hp);
+				builder.AddShort(character->tp);
+				character->player->client->SendBuilder(builder);
+
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void Map::Face(Character *from, Direction direction)

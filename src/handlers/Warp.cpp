@@ -142,9 +142,19 @@ CLIENT_F_FUNC(Warp)
 				return false;
 			}
 
+			int p = 0;
 			do {
 				char buf[4096];
 				int len = std::fread(buf, sizeof(char), 4096, fh);
+
+				if (static_cast<int>(this->server->world->config["GlobalPK"]) && !this->server->world->PKExcept(this->player->character->mapid))
+				{
+					if (p + len >= 0x04 && 0x03 - p > 0) buf[0x03 - p] = 0xFF;
+					if (p + len >= 0x05 && 0x04 - p > 0) buf[0x04 - p] = 0x01;
+					if (p + len >= 0x20 && 0x1F - p > 0) buf[0x1F - p] = 0x04;
+				}
+
+				p += len;
 				content.append(buf, len);
 			} while (!std::feof(fh));
 

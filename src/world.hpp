@@ -94,6 +94,9 @@ class World
 		bool PlayerExists(std::string username);
 		bool PlayerOnline(std::string username);
 
+		bool PKExcept(const Map *map);
+		bool PKExcept(int mapid);
+
 		~World();
 };
 

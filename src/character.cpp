@@ -604,9 +604,7 @@ bool Character::Equip(short item, unsigned char subloc)
 
 bool Character::InRange(unsigned char x, unsigned char y)
 {
-	unsigned char xdistance = std::abs(this->x - x);
-	unsigned char ydistance = std::abs(this->y - y);
-	return (xdistance + ydistance) <= 11;
+	return util::distance(this->x, this->y, x, y) <= static_cast<int>(this->world->config["SeeDistance"]);
 }
 
 bool Character::InRange(Character *other)
@@ -645,8 +643,18 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	{
 		builder.AddChar(WARP_SWITCH);
 		builder.AddShort(map);
-		builder.AddByte(this->world->maps[map]->rid[0]);
-		builder.AddByte(this->world->maps[map]->rid[1]);
+
+		if (static_cast<int>(this->world->config["GlobalPK"]) && !this->world->PKExcept(map))
+		{
+			builder.AddByte(0xFF);
+			builder.AddByte(0x01);
+		}
+		else
+		{
+			builder.AddByte(this->world->maps[map]->rid[0]);
+			builder.AddByte(this->world->maps[map]->rid[1]);
+		}
+
 		builder.AddByte(this->world->maps[map]->rid[2]);
 		builder.AddByte(this->world->maps[map]->rid[3]);
 		builder.AddThree(this->world->maps[map]->filesize);

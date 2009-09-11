@@ -6,8 +6,10 @@
 
 #include "world.hpp"
 
+#include <algorithm>
 #include <map>
 #include <string>
+#include <limits>
 #include <cmath>
 #include <ctime>
 
@@ -587,6 +589,34 @@ int World::CheckBan(const std::string *username, const IPAddress *address, const
 	Database_Result res = db.Query((query.substr(0, query.length()-4) + ") AND (expires > # OR expires = 0)").c_str(), std::time(0));
 
 	return static_cast<int>(res[0]["expires"]);
+}
+
+static std::list<int> PKExceptUnserialize(std::string serialized)
+{
+	std::list<int> list;
+	std::size_t p = 0;
+	std::size_t lastp = std::numeric_limits<std::size_t>::max();
+
+	while ((p = serialized.find_first_of(',', p+1)) != std::string::npos)
+	{
+		list.push_back(util::to_int(serialized.substr(lastp+1, p-lastp-1)));
+		lastp = p;
+	}
+
+	return list;
+}
+
+bool World::PKExcept(const Map *map)
+{
+	return this->PKExcept(map->id);
+}
+
+bool World::PKExcept(int mapid)
+{
+	// Because this is static it saves unserializing it every time, but breaks $reload
+	static std::list<int> except_list = PKExceptUnserialize(this->config["PKExcept"]);
+
+	return std::find(except_list.begin(), except_list.end(), mapid) != except_list.end();
 }
 
 World::~World()

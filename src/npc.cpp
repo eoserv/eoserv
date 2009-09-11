@@ -236,7 +236,6 @@ void NPC::Act()
 	Character *attacker = 0;
 	unsigned char attacker_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 	unsigned short attacker_damage = 0;
-	int npccoordsum = this->x + this->y;
 
 	UTIL_LIST_IFOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
 	{
@@ -245,7 +244,7 @@ void NPC::Act()
 			continue;
 		}
 
-		int distance = std::abs(opponent->attacker->x + opponent->attacker->y - npccoordsum);
+		int distance = util::distance(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
 
 		if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
 		{
@@ -258,11 +257,11 @@ void NPC::Act()
 	if (this->data->type == ENF::Aggressive && !attacker)
 	{
 		Character *closest = 0;
-		unsigned char closest_distance = static_cast<int>(this->map->world->config["SeeDistance"]);
+		unsigned char closest_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 
 		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
 		{
-			int distance = std::abs(character->x + character->y - npccoordsum);
+			int distance = util::distance(character->x, character->y, this->x, this->y);
 
 			if (distance < closest_distance)
 			{
@@ -737,7 +736,6 @@ void NPC::Attack(Character *target)
 	amount -= int(double(target->armor) / 3.0);
 
 	amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
-	amount = std::min(amount, this->hp);
 
 	int rand = util::rand(0, 100);
 
@@ -757,9 +755,15 @@ void NPC::Attack(Character *target)
 	}
 
 	amount = std::max(amount, 0);
-	amount = std::min(amount, int(target->hp));
 
-	target->hp -= amount;
+	int limitamount = std::min(amount, int(target->hp));
+
+	if (static_cast<int>(this->map->world->config["LimitDamage"]))
+	{
+		amount = limitamount;
+	}
+
+	target->hp -= limitamount;
 	if (target->party)
 	{
 		target->party->UpdateHP(target);
@@ -812,13 +816,23 @@ void NPC::Attack(Character *target)
 		character->player->client->SendBuilder(builder);
 	}
 
-	builder.AddShort(target->hp);
+	int rechp = target->maxhp * static_cast<double>(this->map->world->config["DeathRecover"]) / 100.0;
+
+	if (target->hp == 0)
+	{
+		builder.AddShort(rechp);
+	}
+	else
+	{
+		builder.AddShort(target->hp);
+	}
 	builder.AddShort(target->tp);
 
 	target->player->client->SendBuilder(builder);
 
 	if (target->hp == 0)
 	{
+		target->hp = rechp;
 		target->Warp(target->spawnmap, target->spawnx, target->spawny);
 	}
 }

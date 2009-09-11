@@ -18,6 +18,7 @@
 #include <cstring>
 #include <cstddef>
 #include <cstdarg>
+#include <cmath>
 #include <stdexcept>
 #include <algorithm>
 #include <iterator>
@@ -519,6 +520,22 @@ double rand(double min, double max);
 double round(double);
 
 void sleep(double seconds);
+
+/**
+ * Finds the distance between a pair of x,y coordinates
+ */
+inline int distance(int x1, int y1, int x2, int y2)
+{
+	return std::sqrt(std::abs((x2 - x1) * (x2 - x1)) + std::abs((y2 - y1) * (y2 - y1)));
+}
+
+/**
+ * Finds the distance between a pair of x,y coordinates
+ */
+inline double distance(double x1, double y1, double x2, double y2)
+{
+	return std::sqrt(std::abs((x2 - x1) * (x2 - x1)) + std::abs((y2 - y1) * (y2 - y1)));
+}
 
 }
 

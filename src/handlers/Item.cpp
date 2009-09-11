@@ -135,8 +135,8 @@ CLIENT_F_FUNC(Item)
 			{
 				amount = reader.GetInt();
 			}
-			int x = reader.GetByte(); // ?
-			int y = reader.GetByte(); // ?
+			unsigned char x = reader.GetByte(); // ?
+			unsigned char y = reader.GetByte(); // ?
 
 			amount = std::min<int>(amount, this->server->world->config["MaxDrop"]);
 
@@ -157,7 +157,7 @@ CLIENT_F_FUNC(Item)
 				y = PacketProcessor::Number(y);
 			}
 
-			int distance = std::abs(x + y - this->player->character->x - this->player->character->y);
+			int distance = util::distance(x, y, this->player->character->x, this->player->character->y);
 
 			if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
 			{
@@ -225,7 +225,7 @@ CLIENT_F_FUNC(Item)
 			{
 				if (item.uid == uid)
 				{
-					int distance = std::abs(item.x + item.y - this->player->character->x - this->player->character->y);
+					int distance = util::distance(item.x, item.y, this->player->character->x, this->player->character->y);
 
 					if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
 					{

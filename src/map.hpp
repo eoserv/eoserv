@@ -199,6 +199,7 @@ class Map
 		void Msg(Character *from, std::string message);
 		bool Walk(Character *from, Direction direction, bool admin = false);
 		void Attack(Character *from, Direction direction);
+		bool AttackPK(Character *from, Direction direction);
 		void Face(Character *from, Direction direction);
 		void Sit(Character *from, SitAction sit_type);
 		void Stand(Character *from);

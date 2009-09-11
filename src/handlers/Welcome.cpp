@@ -47,8 +47,18 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(this->player->id);
 			reply.AddInt(this->player->character->id);
 			reply.AddShort(this->player->character->mapid); // Map ID
-			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[0]);
-			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[1]);
+
+			if (static_cast<int>(this->server->world->config["GlobalPK"]) && !this->server->world->PKExcept(this->player->character->mapid))
+			{
+				reply.AddByte(0xFF);
+				reply.AddByte(0x01);
+			}
+			else
+			{
+				reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[0]);
+				reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[1]);
+			}
+
 			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[2]);
 			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[3]);
 			reply.AddThree(this->server->world->maps[this->player->character->mapid]->filesize);
@@ -312,9 +322,19 @@ CLIENT_F_FUNC(Welcome)
 				return false;
 			}
 
+			int p = 0;
 			do {
 				char buf[4096];
 				int len = std::fread(buf, sizeof(char), 4096, fh);
+
+				if (static_cast<int>(this->server->world->config["GlobalPK"]) && !this->server->world->PKExcept(this->player->character->mapid))
+				{
+					if (p + len >= 0x04 && 0x03 - p > 0) buf[0x03 - p] = 0xFF;
+					if (p + len >= 0x05 && 0x04 - p > 0) buf[0x04 - p] = 0x01;
+					if (p + len >= 0x20 && 0x1F - p > 0) buf[0x1F - p] = 0x04;
+				}
+
+				p += len;
 				content.append(buf, len);
 			} while (!std::feof(fh));
 
