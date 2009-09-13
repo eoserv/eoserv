@@ -179,7 +179,7 @@ void NPC::Spawn()
 
 		if (!found)
 		{
-			Console::Wrn("An NPC on map %i at %i,%i is being placed by linear scan of spawn area", this->map->id, this->spawn_x, this->spawn_y);
+			Console::Wrn("An NPC on map %i at %i,%i is being placed by linear scan of spawn area (%s)", this->map->id, this->spawn_x, this->spawn_y, this->map->world->enf->Get(this->id)->name.c_str());
 			for (this->x = this->spawn_x-2; this->x <= spawn_x+2; ++this->x)
 			{
 				for (this->y = this->spawn_y-2; this->y <= this->spawn_y+2; ++this->y)
@@ -244,7 +244,7 @@ void NPC::Act()
 			continue;
 		}
 
-		int distance = util::distance(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
+		int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
 
 		if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
 		{
@@ -261,7 +261,7 @@ void NPC::Act()
 
 		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
 		{
-			int distance = util::distance(character->x, character->y, this->x, this->y);
+			int distance = util::path_length(character->x, character->y, this->x, this->y);
 
 			if (distance < closest_distance)
 			{

@@ -238,24 +238,32 @@ int World::GeneratePlayerID()
 void World::Login(Character *character)
 {
 	this->characters.push_back(character);
-	if (this->maps[character->mapid]->relog_x || this->maps[character->mapid]->relog_y)
+	if (this->maps[character->mapid]->relog_x || this->maps.at(character->mapid)->relog_y)
 	{
-		character->x = this->maps[character->mapid]->relog_x;
-		character->y = this->maps[character->mapid]->relog_y;
+		character->x = this->maps.at(character->mapid)->relog_x;
+		character->y = this->maps.at(character->mapid)->relog_y;
 	}
 	this->maps[character->mapid]->Enter(character);
 }
 
 void World::Logout(Character *character)
 {
-	this->maps[character->mapid]->Leave(character);
-	UTIL_VECTOR_IFOREACH(this->characters.begin(), this->characters.end(), Character *, checkcharacter)
+	try
 	{
-		if (*checkcharacter == character)
+		this->maps.at(character->mapid)->Leave(character);
+
+		UTIL_VECTOR_IFOREACH(this->characters.begin(), this->characters.end(), Character *, checkcharacter)
 		{
-			this->characters.erase(checkcharacter);
-			break;
+			if (*checkcharacter == character)
+			{
+				this->characters.erase(checkcharacter);
+				break;
+			}
 		}
+	}
+	catch (...)
+	{
+
 	}
 }
 
@@ -613,8 +621,12 @@ bool World::PKExcept(const Map *map)
 
 bool World::PKExcept(int mapid)
 {
-	// Because this is static it saves unserializing it every time, but breaks $reload
-	static std::list<int> except_list = PKExceptUnserialize(this->config["PKExcept"]);
+	if (mapid == static_cast<int>(this->config["JailMap"]))
+	{
+		return true;
+	}
+
+	std::list<int> except_list = PKExceptUnserialize(this->config["PKExcept"]);
 
 	return std::find(except_list.begin(), except_list.end(), mapid) != except_list.end();
 }

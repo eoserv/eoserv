@@ -108,6 +108,34 @@ CLIENT_F_FUNC(Item)
 					}
 					break;
 
+					case EIF::HairDye:
+					{
+						this->player->character->haircolor = item->haircolor;
+
+						this->player->character->DelItem(id, 1);
+						reply.AddInt(this->player->character->HasItem(id));
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
+						reply.AddChar(item->haircolor);
+
+						PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE);
+						builder.AddShort(this->player->id);
+						builder.AddChar(SLOT_HAIRCOLOR);
+						builder.AddChar(0); // subloc
+						builder.AddChar(item->haircolor);
+
+						UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+						{
+							if (character != this->player->character && this->player->character->InRange(character))
+							{
+								character->player->client->SendBuilder(builder);
+							}
+						}
+
+						CLIENT_SEND(reply);
+					}
+					break;
+
 					default:
 						return true;
 				}
@@ -157,7 +185,7 @@ CLIENT_F_FUNC(Item)
 				y = PacketProcessor::Number(y);
 			}
 
-			int distance = util::distance(x, y, this->player->character->x, this->player->character->y);
+			int distance = util::path_length(x, y, this->player->character->x, this->player->character->y);
 
 			if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
 			{
@@ -225,7 +253,7 @@ CLIENT_F_FUNC(Item)
 			{
 				if (item.uid == uid)
 				{
-					int distance = util::distance(item.x, item.y, this->player->character->x, this->player->character->y);
+					int distance = util::path_length(item.x, item.y, this->player->character->x, this->player->character->y);
 
 					if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
 					{

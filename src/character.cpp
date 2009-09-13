@@ -197,7 +197,7 @@ Character::Character(std::string name, World *world)
 	this->guild_tag = util::trim(static_cast<std::string>(row["guild"]));
 	this->guild_rank = static_cast<int>(row["guild_rank"]);
 	this->party = 0;
-	this->map = this->world->maps[0];
+	this->map = this->world->maps.at(0);
 }
 
 bool Character::ValidName(std::string name)
@@ -604,7 +604,7 @@ bool Character::Equip(short item, unsigned char subloc)
 
 bool Character::InRange(unsigned char x, unsigned char y)
 {
-	return util::distance(this->x, this->y, x, y) <= static_cast<int>(this->world->config["SeeDistance"]);
+	return util::path_length(this->x, this->y, x, y) <= static_cast<int>(this->world->config["SeeDistance"]);
 }
 
 bool Character::InRange(Character *other)
@@ -624,7 +624,7 @@ bool Character::InRange(Map_Item other)
 
 void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation)
 {
-	if (map <= 0 || static_cast<std::size_t>(map) > this->world->maps.size() || !this->world->maps[map]->exists)
+	if (map <= 0 || static_cast<std::size_t>(map) > this->world->maps.size() || !this->world->maps.at(map)->exists)
 	{
 		return;
 	}
@@ -651,18 +651,22 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 		}
 		else
 		{
-			builder.AddByte(this->world->maps[map]->rid[0]);
-			builder.AddByte(this->world->maps[map]->rid[1]);
+			builder.AddByte(this->world->maps.at(map)->rid[0]);
+			builder.AddByte(this->world->maps.at(map)->rid[1]);
 		}
 
-		builder.AddByte(this->world->maps[map]->rid[2]);
-		builder.AddByte(this->world->maps[map]->rid[3]);
-		builder.AddThree(this->world->maps[map]->filesize);
+		builder.AddByte(this->world->maps.at(map)->rid[2]);
+		builder.AddByte(this->world->maps.at(map)->rid[3]);
+		builder.AddThree(this->world->maps.at(map)->filesize);
 		builder.AddChar(0); // ?
 		builder.AddChar(0); // ?
 	}
 
-	this->map->Leave(this, animation);
+	if (this->map->exists)
+	{
+		this->map->Leave(this, animation);
+	}
+
 	this->map = this->world->maps.at(map);
 	this->mapid = map;
 	this->x = x;

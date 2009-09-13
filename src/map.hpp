@@ -15,12 +15,16 @@ class Map;
 struct Map_Item;
 struct Map_Warp;
 struct Map_Tile;
+struct Map_Chest_Item;
+struct Map_Chest_Spawn;
+struct Map_Chest;
 
 #include "world.hpp"
 #include "eoconst.hpp"
 #include "character.hpp"
 #include "npc.hpp"
 #include "arena.hpp"
+#include "timer.hpp"
 
 /**
  * Object representing an item on the floor of a map
@@ -160,6 +164,49 @@ struct Map_Tile
 };
 
 /**
+ * Object representing an item in a chest on a map
+ */
+struct Map_Chest_Item
+{
+	short id;
+	int amount;
+	int slot;
+};
+
+/**
+ * Object representing an item spawn in a chest on a map
+ */
+struct Map_Chest_Spawn
+{
+	int spawnid;
+	Map_Chest_Item item;
+	int slot;
+	short time;
+	double last_taken;
+};
+
+/**
+ * Object representing a chest on a map
+ */
+struct Map_Chest
+{
+	unsigned char x;
+	unsigned char y;
+
+	std::list<Map_Chest_Item> items;
+	std::list<Map_Chest_Spawn> spawns;
+	int slots;
+
+	int maxchest;
+	int chestslots;
+
+	int AddItem(short item, int amount, int slot = 0);
+	int DelItem(short item);
+
+	void Update(Map *map, Character *exclude);
+};
+
+/**
  * Contains all information about a map, holds reference to contained Characters and manages NPCs on it
  */
 class Map
@@ -182,6 +229,7 @@ class Map
 		std::string filename;
 		std::vector<Character *> characters;
 		std::vector<NPC *> npcs;
+		std::vector<Map_Chest *> chests;
 		std::vector<Map_Item> items;
 		std::vector<std::vector<Map_Tile> > tiles;
 		bool exists;

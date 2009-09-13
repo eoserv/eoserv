@@ -38,7 +38,7 @@ std::string PacketProcessor::GetFamilyName(PacketFamily family)
 		case PACKET_WARP: return "Warp";
 		case PACKET_JUKEBOX: return "Jukebox";
 		case PACKET_PLAYERS: return "Players";
-		case PACKET_CLOTHES: return "Character";
+		case PACKET_CLOTHES: return "Clothes";
 		case PACKET_PARTY: return "Party";
 		case PACKET_REFRESH: return "Refresh";
 		case PACKET_NPC: return "NPC";

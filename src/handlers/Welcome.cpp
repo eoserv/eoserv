@@ -55,13 +55,13 @@ CLIENT_F_FUNC(Welcome)
 			}
 			else
 			{
-				reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[0]);
-				reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[1]);
+				reply.AddByte(this->server->world->maps.at(this->player->character->mapid)->rid[0]);
+				reply.AddByte(this->server->world->maps.at(this->player->character->mapid)->rid[1]);
 			}
 
-			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[2]);
-			reply.AddByte(this->server->world->maps[this->player->character->mapid]->rid[3]);
-			reply.AddThree(this->server->world->maps[this->player->character->mapid]->filesize);
+			reply.AddByte(this->server->world->maps.at(this->player->character->mapid)->rid[2]);
+			reply.AddByte(this->server->world->maps.at(this->player->character->mapid)->rid[3]);
+			reply.AddThree(this->server->world->maps.at(this->player->character->mapid)->filesize);
 			reply.AddByte(this->server->world->eif->rid[0]);
 			reply.AddByte(this->server->world->eif->rid[1]);
 			reply.AddByte(this->server->world->eif->rid[2]);

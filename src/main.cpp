@@ -293,13 +293,13 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "RecruitCost"        , 1000);
 		eoserv_config_default(config, "GuildMaxMembers"    , 5000);
 		eoserv_config_default(config, "GuildBankMax"       , 10000000);
+		eoserv_config_default(config, "GlobalPK"           , 0);
+		eoserv_config_default(config, "PKExcept"           , "");
 		eoserv_config_default(config, "NPCChaseMode"       , 0);
 		eoserv_config_default(config, "NPCChaseDistance"   , 18);
 		eoserv_config_default(config, "NPCBoredTimer"      , 30);
 		eoserv_config_default(config, "NPCAdjustMaxDam"    , 3);
 		eoserv_config_default(config, "ShowLevel"          , 0);
-		eoserv_config_default(config, "PKServer"           , 0);
-		eoserv_config_default(config, "PKRestrict"         , 5);
 		eoserv_config_default(config, "WarpBubbles"        , 1);
 		eoserv_config_default(config, "HideGlobal"         , 0);
 		eoserv_config_default(config, "GlobalBuffer"       , 0);
@@ -357,9 +357,11 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "CreateMaxSkin"      , 3);
 		eoserv_config_default(config, "DefaultBanLength"   , "2h");
 		eoserv_config_default(config, "LimitDamage"        , 1);
+		eoserv_config_default(config, "DeathRecover"       , 50);
 		eoserv_config_default(config, "ExpRate"            , 100);
 		eoserv_config_default(config, "DropRate"           , 100);
 		eoserv_config_default(config, "MobRate"            , 100);
+		eoserv_config_default(config, "PKRate"             , 75);
 		eoserv_config_default(config, "SpawnRate"          , 100);
 		eoserv_config_default(config, "BankUpgradeBase"    , 1000);
 		eoserv_config_default(config, "BankUpgradeStep"    , 1000);
@@ -367,6 +369,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "MaxItem"            , 10000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);
 		eoserv_config_default(config, "MaxChest"           , 10000000);
+		eoserv_config_default(config, "ChestSlots"         , 5);
 		eoserv_config_default(config, "MaxBank"            , 200);
 		eoserv_config_default(config, "BaseBankSize"       , 25);
 		eoserv_config_default(config, "BankSizeStep"       , 5);

@@ -98,6 +98,13 @@ enum PartyRequestType UTIL_EXTEND_ENUM(unsigned char)
 	PARTY_REQUEST_INVITE = 1,
 };
 
+enum ClothesSlot UTIL_EXTEND_ENUM(unsigned char)
+{
+	SLOT_CLOTHES = 1,
+	SLOT_HAIR = 2,
+	SLOT_HAIRCOLOR = 3
+};
+
 enum InitReply UTIL_EXTEND_ENUM(unsigned char)
 {
 	INIT_OUT_OF_DATE = 1,

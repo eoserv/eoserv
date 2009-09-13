@@ -522,19 +522,11 @@ double round(double);
 void sleep(double seconds);
 
 /**
- * Finds the distance between a pair of x,y coordinates
+ * Finds the distance IN TILES between a pair of x,y coordinates
  */
-inline int distance(int x1, int y1, int x2, int y2)
+inline int path_length(int x1, int y1, int x2, int y2)
 {
-	return std::sqrt(std::abs((x2 - x1) * (x2 - x1)) + std::abs((y2 - y1) * (y2 - y1)));
-}
-
-/**
- * Finds the distance between a pair of x,y coordinates
- */
-inline double distance(double x1, double y1, double x2, double y2)
-{
-	return std::sqrt(std::abs((x2 - x1) * (x2 - x1)) + std::abs((y2 - y1) * (y2 - y1)));
+	return std::abs(x1 - x2) + std::abs(y1 - y2);
 }
 
 }

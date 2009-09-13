@@ -26,7 +26,7 @@ CLIENT_F_FUNC(Locker)
 
 			std::size_t lockermax = static_cast<int>(this->server->world->config["BaseBankSize"]) + this->player->character->bankmax * static_cast<int>(this->server->world->config["BankSizeStep"]);
 
-			if (std::abs((this->player->character->x + this->player->character->y) - (x + y)) <= 1)
+			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
 				{
@@ -90,7 +90,7 @@ Locker_Add_Common:
 			unsigned char y = reader.GetChar();
 			short item = reader.GetShort();
 
-			if (std::abs((this->player->character->x + this->player->character->y) - (x + y)) <= 1)
+			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
 				{
@@ -132,7 +132,7 @@ Locker_Add_Common:
 			unsigned char x = reader.GetChar();
 			unsigned char y = reader.GetChar();
 
-			if (std::abs((this->player->character->x + this->player->character->y) - (x + y)) <= 1)
+			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
 				{

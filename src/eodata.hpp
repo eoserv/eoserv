@@ -123,13 +123,19 @@ struct EIF_Data
 		short scrollmap;
 		short dollgraphic;
 		short expreward;
+		short haircolor;
 	};
+
 	union
 	{
 		short gender;
 		short scrollx;
 	};
-	short scrolly;
+
+	union
+	{
+		short scrolly;
+	};
 
 	short classreq;
 

@@ -36,7 +36,7 @@ enum PacketFamily UTIL_EXTEND_ENUM(unsigned char)
 	PACKET_WARP = 19,
 	PACKET_JUKEBOX = 21,
 	PACKET_PLAYERS = 22,
-	PACKET_CLOTHES = 23,
+	PACKET_CLOTHES = 23, // Should really be called something like PACKET_CHARACTER
 	PACKET_PARTY = 24,
 	PACKET_REFRESH = 25,
 	PACKET_NPC = 26,

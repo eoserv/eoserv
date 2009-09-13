@@ -6,6 +6,7 @@
 
 #include "map.hpp"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <cstdio>
@@ -15,6 +16,177 @@
 #include "eoserver.hpp"
 #include "packet.hpp"
 #include "console.hpp"
+
+void map_spawn_chests(void *map_void)
+{
+	Map *map = static_cast<Map *>(map_void);
+
+	double current_time = Timer::GetTime();
+	UTIL_VECTOR_FOREACH_ALL(map->chests, Map_Chest *, chest)
+	{
+		bool needs_update = false;
+
+		for (int slot = 1; slot <= chest->slots; ++slot)
+		{
+			std::list<Map_Chest_Spawn *> spawns;
+
+			UTIL_LIST_IFOREACH_ALL(chest->spawns, Map_Chest_Spawn, spawn)
+			{
+				if (spawn->last_taken + spawn->time*60.0 < current_time)
+				{
+					bool slot_used = false;
+
+					UTIL_LIST_FOREACH_ALL(chest->items, Map_Chest_Item, item)
+					{
+						if (item.slot == spawn->slot)
+						{
+							slot_used = true;
+						}
+					}
+
+					if (!slot_used)
+					{
+						spawns.push_back(&*spawn);
+					}
+				}
+			}
+
+			if (!spawns.empty())
+			{
+				std::list<Map_Chest_Spawn *>::iterator it(spawns.begin());
+				int r = util::rand(0, spawns.size()-1);
+
+				for (int i = 0; i < r; ++i)
+				{
+					++it;
+				}
+
+				Map_Chest_Spawn *spawn(*it);
+
+				chest->AddItem(spawn->item.id, spawn->item.amount, spawn->slot);
+				needs_update = true;
+
+	#ifdef DEBUG
+				Console::Dbg("Spawning chest item %i (x%i) on map %i", spawn->item.id, spawn->item.amount, map->id);
+	#endif // DEBUG
+			}
+		}
+
+		chest->Update(map, 0);
+	}
+}
+
+int Map_Chest::AddItem(short item, int amount, int slot)
+{
+	if (slot == 0)
+	{
+		UTIL_LIST_IFOREACH_ALL(this->items, Map_Chest_Item, it)
+		{
+			if (it->id == item)
+			{
+				if (it->amount + amount < 0 || it->amount + amount > this->maxchest)
+				{
+					return 0;
+				}
+
+				it->amount += amount;
+				return amount;
+			}
+		}
+	}
+
+	if (this->items.size() >= static_cast<std::size_t>(this->chestslots) || amount > this->maxchest)
+	{
+		return 0;
+	}
+
+	if (slot == 0)
+	{
+		int user_items = 0;
+
+		UTIL_LIST_FOREACH_ALL(this->items, Map_Chest_Item, item)
+		{
+			if (item.slot == 0)
+			{
+				++user_items;
+			}
+		}
+
+		if (user_items + this->slots >= this->chestslots)
+		{
+			return 0;
+		}
+	}
+
+	Map_Chest_Item chestitem;
+	chestitem.id = item;
+	chestitem.amount = amount;
+	chestitem.slot = slot;
+
+	if (slot == 0)
+	{
+		this->items.push_back(chestitem);
+	}
+	else
+	{
+		this->items.push_front(chestitem);
+	}
+
+	return amount;
+}
+
+int Map_Chest::DelItem(short item)
+{
+	UTIL_LIST_IFOREACH_ALL(this->items, Map_Chest_Item, it)
+	{
+		if (it->id == item)
+		{
+			int amount = it->amount;
+
+			if (it->slot)
+			{
+				double current_time = Timer::GetTime();
+
+				UTIL_LIST_IFOREACH_ALL(this->spawns, Map_Chest_Spawn, spawn)
+				{
+					if (spawn->slot == it->slot)
+					{
+						spawn->last_taken = current_time;
+					}
+				}
+			}
+
+			this->items.erase(it);
+			return amount;
+		}
+	}
+
+	return false;
+}
+
+void Map_Chest::Update(Map *map, Character *exclude)
+{
+	PacketBuilder builder(PACKET_CHEST, PACKET_AGREE);
+
+	UTIL_LIST_FOREACH_ALL(this->items, Map_Chest_Item, item)
+	{
+		builder.AddShort(item.id);
+		builder.AddThree(item.amount);
+	}
+
+	UTIL_VECTOR_FOREACH_ALL(map->characters, Character *, character)
+	{
+		if (character == exclude)
+		{
+			continue;
+		}
+
+		if (util::path_length(character->x, character->y, this->x, this->y) <= 1)
+		{
+			character->player->client->SendBuilder(builder);
+		}
+	}
+}
 
 Map::Map(int id, World *world)
 {
@@ -71,6 +243,11 @@ Map::Map(int id, World *world)
 	}
 
 	this->Load();
+
+	if (!this->chests.empty())
+	{
+		this->world->timer.Register(new TimeEvent(map_spawn_chests, this, 60.0, Timer::FOREVER, true));
+	}
 }
 
 void Map::Load()
@@ -101,7 +278,7 @@ void Map::Load()
 	std::fseek(fh, 0x03, SEEK_SET);
 	std::fread(this->rid, sizeof(char), 4, fh);
 
-	char buf[8];
+	char buf[12];
 	int outersize;
 	int innersize;
 
@@ -162,6 +339,18 @@ void Map::Load()
 			unsigned char xloc = PacketProcessor::Number(buf[0]);
 			unsigned char spec = PacketProcessor::Number(buf[1]);
 			newtile.tilespec = static_cast<Map_Tile::TileSpec>(spec);
+
+			if (spec == Map_Tile::Chest)
+			{
+				Map_Chest *chest = new Map_Chest;
+				chest->maxchest = static_cast<int>(this->world->config["MaxChest"]);
+				chest->chestslots = static_cast<int>(this->world->config["ChestSlots"]);
+				chest->x = xloc;
+				chest->y = yloc;
+				chest->slots = 0;
+				this->chests.push_back(chest);
+			}
+
 			this->tiles[yloc][xloc] = newtile;
 		}
 	}
@@ -201,13 +390,73 @@ void Map::Load()
 		short spawntime = PacketProcessor::Number(buf[5], buf[6]);
 		unsigned char amount = PacketProcessor::Number(buf[7]);
 
+		if (npc_id != this->world->enf->Get(npc_id)->id)
+		{
+			Console::Wrn("An NPC spawn on map %i uses a non-existant NPC (#%i at %ix%i)", this->id, npc_id, x, y);
+		}
+
 		for (int ii = 0; ii < amount; ++ii)
 		{
+			if (x < 0 || x > this->width || y < 0 || y > this->height)
+			{
+				Console::Wrn("An NPC spawn on map %i is outside of map bounds (%s at %ix%i)", this->id, this->world->enf->Get(npc_id)->name.c_str(), x, y);
+				continue;
+			}
+
 			NPC *newnpc = new NPC(this, npc_id, x, y, spawntype, spawntime, index++);
 			this->npcs.push_back(newnpc);
 
 			newnpc->Spawn();
 		}
+	}
+
+	std::fread(buf, sizeof(char), 1, fh);
+	outersize = PacketProcessor::Number(buf[0]);
+	if (outersize)
+	{
+		std::fseek(fh, 4 * outersize, SEEK_CUR);
+	}
+
+	std::fread(buf, sizeof(char), 1, fh);
+	outersize = PacketProcessor::Number(buf[0]);
+	for (int i = 0; i < outersize; ++i)
+	{
+		std::fread(buf, sizeof(char), 12, fh);
+		unsigned char x = PacketProcessor::Number(buf[0]);
+		unsigned char y = PacketProcessor::Number(buf[1]);
+		short slot = PacketProcessor::Number(buf[4]);
+		short itemid = PacketProcessor::Number(buf[5], buf[6]);
+		short time = PacketProcessor::Number(buf[7], buf[8]);
+		int amount = PacketProcessor::Number(buf[9], buf[10], buf[11]);
+
+		if (itemid != this->world->eif->Get(itemid)->id)
+		{
+			Console::Wrn("A chest spawn on map %i uses a non-existant item (#%i at %ix%i)", this->id, itemid, x, y);
+		}
+
+		UTIL_VECTOR_FOREACH_ALL(this->chests, Map_Chest *, chest)
+		{
+			if (chest->x == x && chest->y == y)
+			{
+				Map_Chest_Item item;
+				Map_Chest_Spawn spawn;
+
+				item.id = itemid;
+				item.amount = amount;
+
+				spawn.slot = slot+1;
+				spawn.time = time;
+				spawn.last_taken = Timer::GetTime();
+				spawn.item = item;
+
+				chest->spawns.push_back(spawn);
+				chest->slots = std::max(chest->slots, slot+1);
+				goto skip_warning;
+			}
+		}
+		Console::Wrn("A chest spawn on map %i points to a non-chest (%s x%i at %ix%i)", this->id, this->world->eif->Get(itemid)->name.c_str(), amount, x, y);
+		skip_warning:
+		;
 	}
 
 	std::fseek(fh, 0x00, SEEK_END);
@@ -218,6 +467,13 @@ void Map::Load()
 
 void Map::Unload()
 {
+	UTIL_VECTOR_FOREACH_ALL(this->chests, Map_Chest *, chest)
+	{
+		delete chest;
+	}
+
+	this->chests.clear();
+
 	UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
 	{
 		UTIL_LIST_FOREACH_ALL(npc->damagelist, NPC_Opponent, opponent)
@@ -231,15 +487,8 @@ void Map::Unload()
 		}
 	}
 
-	restart_loop:
 	UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
 	{
-		if (npc->temporary)
-		{
-			delete npc;
-			goto restart_loop;
-		}
-
 		delete npc;
 	}
 

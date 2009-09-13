@@ -60,7 +60,7 @@ CLIENT_F_FUNC(Paperdoll)
 			{
 				reply.SetID(PACKET_PAPERDOLL, PACKET_REMOVE);
 				reply.AddShort(this->player->id);
-				reply.AddChar(1); // ?
+				reply.AddChar(SLOT_CLOTHES);
 				reply.AddChar(0); // ?
 				reply.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
@@ -89,7 +89,7 @@ CLIENT_F_FUNC(Paperdoll)
 			PacketBuilder builder;
 			builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
 			builder.AddShort(this->player->id);
-			builder.AddChar(1); // ?
+			builder.AddChar(SLOT_CLOTHES);
 			builder.AddChar(subloc);
 			builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
 			builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
@@ -121,7 +121,7 @@ CLIENT_F_FUNC(Paperdoll)
 			{
 				reply.SetID(PACKET_PAPERDOLL, PACKET_AGREE);
 				reply.AddShort(this->player->id);
-				reply.AddChar(1); // ?
+				reply.AddChar(SLOT_CLOTHES);
 				reply.AddChar(0); // ?
 				reply.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
@@ -152,7 +152,7 @@ CLIENT_F_FUNC(Paperdoll)
 			PacketBuilder builder;
 			builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
 			builder.AddShort(this->player->id);
-			builder.AddChar(1); // ?
+			builder.AddChar(SLOT_CLOTHES);
 			builder.AddChar(subloc);
 			builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
 			builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
