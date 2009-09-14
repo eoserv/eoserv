@@ -17,6 +17,16 @@
 #include "packet.hpp"
 #include "console.hpp"
 
+static const char *safe_fail_filename;
+
+static void safe_fail(int line)
+{
+	Console::Err("Invalid file / failed read/seek: %s -- %i", safe_fail_filename, line);
+}
+
+#define SAFE_SEEK(fh, offset, from) if (std::fseek(fh, offset, from) != 0) { std::fclose(fh); safe_fail(__LINE__); return false; }
+#define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<int>(count)) {  std::fclose(fh); safe_fail(__LINE__);return false; }
+
 void map_spawn_chests(void *map_void)
 {
 	Map *map = static_cast<Map *>(map_void);
@@ -174,7 +184,7 @@ void Map_Chest::Update(Map *map, Character *exclude)
 		builder.AddThree(item.amount);
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(map->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(map->characters, Character *, character)
 	{
 		if (character == exclude)
 		{
@@ -192,6 +202,7 @@ Map::Map(int id, World *world)
 {
 	this->id = id;
 	this->world = world;
+	this->exists = false;
 
 	if (static_cast<int>(world->arenas_config[util::to_string(id) + ".enabled"]))
 	{
@@ -199,7 +210,7 @@ Map::Map(int id, World *world)
 
 		if (spawns.size() % 4 != 0)
 		{
-			Console::Err("Invalid arena spawn data for map %i", id);
+			Console::Wrn("Invalid arena spawn data for map %i", id);
 			this->arena = 0;
 		}
 		else
@@ -250,13 +261,13 @@ Map::Map(int id, World *world)
 	}
 }
 
-void Map::Load()
+bool Map::Load()
 {
 	char namebuf[6];
 
 	if (this->id < 0)
 	{
-		return;
+		return false;
 	}
 
 	std::string filename = this->world->config["MapDir"];
@@ -265,29 +276,29 @@ void Map::Load()
 	filename.append(namebuf);
 	filename.append(".emf");
 
+	safe_fail_filename = filename.c_str();
+
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 
-	this->exists = true;
 	if (!fh)
 	{
-		this->exists = false;
 		Console::Err("Could not load file: %s", filename.c_str());
-		return;
+		return false;
 	}
 
-	std::fseek(fh, 0x03, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 4, fh);
+	SAFE_SEEK(fh, 0x03, SEEK_SET);
+	SAFE_READ(this->rid, sizeof(char), 4, fh);
 
 	char buf[12];
 	int outersize;
 	int innersize;
 
-	std::fseek(fh, 0x1F, SEEK_SET);
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_SEEK(fh, 0x1F, SEEK_SET);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	this->pk = PacketProcessor::Number(buf[0]) == 3;
 
-	std::fseek(fh, 0x25, SEEK_SET);
-	std::fread(buf, sizeof(char), 2, fh);
+	SAFE_SEEK(fh, 0x25, SEEK_SET);
+	SAFE_READ(buf, sizeof(char), 2, fh);
 	this->width = PacketProcessor::Number(buf[0]) + 1;
 	this->height = PacketProcessor::Number(buf[1]) + 1;
 
@@ -297,45 +308,45 @@ void Map::Load()
 		this->tiles[i].resize(width);
 	}
 
-	std::fseek(fh, 0x2A, SEEK_SET);
-	std::fread(buf, sizeof(char), 3, fh);
+	SAFE_SEEK(fh, 0x2A, SEEK_SET);
+	SAFE_READ(buf, sizeof(char), 3, fh);
 	this->scroll = PacketProcessor::Number(buf[0]);
 	this->relog_x = PacketProcessor::Number(buf[1]);
 	this->relog_y = PacketProcessor::Number(buf[2]);
 
-	std::fseek(fh, 0x2E, SEEK_SET);
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_SEEK(fh, 0x2E, SEEK_SET);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
 	if (outersize)
 	{
-		std::fseek(fh, 8 * outersize, SEEK_CUR);
+		SAFE_SEEK(fh, 8 * outersize, SEEK_CUR);
 	}
 
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
 	if (outersize)
 	{
-		std::fseek(fh, 4 * outersize, SEEK_CUR);
+		SAFE_SEEK(fh, 4 * outersize, SEEK_CUR);
 	}
 
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
 	if (outersize)
 	{
-		std::fseek(fh, 12 * outersize, SEEK_CUR);
+		SAFE_SEEK(fh, 12 * outersize, SEEK_CUR);
 	}
 
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
 	for (int i = 0; i < outersize; ++i)
 	{
-		std::fread(buf, sizeof(char), 2, fh);
+		SAFE_READ(buf, sizeof(char), 2, fh);
 		unsigned char yloc = PacketProcessor::Number(buf[0]);
 		innersize = PacketProcessor::Number(buf[1]);
 		for (int ii = 0; ii < innersize; ++ii)
 		{
 			Map_Tile newtile;
-			std::fread(buf, sizeof(char), 2, fh);
+			SAFE_READ(buf, sizeof(char), 2, fh);
 			unsigned char xloc = PacketProcessor::Number(buf[0]);
 			unsigned char spec = PacketProcessor::Number(buf[1]);
 			newtile.tilespec = static_cast<Map_Tile::TileSpec>(spec);
@@ -351,38 +362,57 @@ void Map::Load()
 				this->chests.push_back(chest);
 			}
 
-			this->tiles[yloc][xloc] = newtile;
+			try
+			{
+				this->tiles.at(yloc).at(xloc) = newtile;
+			}
+			catch (...)
+			{
+				std::fclose(fh);
+				safe_fail(__LINE__);
+				return false;
+			}
 		}
 	}
 
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
 	for (int i = 0; i < outersize; ++i)
 	{
-		std::fread(buf, sizeof(char), 2, fh);
+		SAFE_READ(buf, sizeof(char), 2, fh);
 		unsigned char yloc = PacketProcessor::Number(buf[0]);
 		innersize = PacketProcessor::Number(buf[1]);
 		for (int ii = 0; ii < innersize; ++ii)
 		{
 			Map_Warp *newwarp = new Map_Warp;
-			std::fread(buf, sizeof(char), 8, fh);
+			SAFE_READ(buf, sizeof(char), 8, fh);
 			unsigned char xloc = PacketProcessor::Number(buf[0]);
 			newwarp->map = PacketProcessor::Number(buf[1], buf[2]);
 			newwarp->x = PacketProcessor::Number(buf[3]);
 			newwarp->y = PacketProcessor::Number(buf[4]);
 			newwarp->levelreq = PacketProcessor::Number(buf[5]);
 			newwarp->spec = static_cast<Map_Warp::WarpSpec>(PacketProcessor::Number(buf[6], buf[7]));
-			this->tiles[yloc][xloc].warp = newwarp;
+
+			try
+			{
+				this->tiles.at(yloc).at(xloc).warp = newwarp;
+			}
+			catch (...)
+			{
+				std::fclose(fh);
+				safe_fail(__LINE__);
+				return false;
+			}
 		}
 	}
 
-	std::fseek(fh, 0x2E, SEEK_SET);
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_SEEK(fh, 0x2E, SEEK_SET);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
 	int index = 0;
 	for (int i = 0; i < outersize; ++i)
 	{
-		std::fread(buf, sizeof(char), 8, fh);
+		SAFE_READ(buf, sizeof(char), 8, fh);
 		unsigned char x = PacketProcessor::Number(buf[0]);
 		unsigned char y = PacketProcessor::Number(buf[1]);
 		short npc_id = PacketProcessor::Number(buf[2], buf[3]);
@@ -392,7 +422,7 @@ void Map::Load()
 
 		if (npc_id != this->world->enf->Get(npc_id)->id)
 		{
-			Console::Wrn("An NPC spawn on map %i uses a non-existant NPC (#%i at %ix%i)", this->id, npc_id, x, y);
+			Console::Wrn("An NPC spawn on map %i uses a non-existent NPC (#%i at %ix%i)", this->id, npc_id, x, y);
 		}
 
 		for (int ii = 0; ii < amount; ++ii)
@@ -410,18 +440,18 @@ void Map::Load()
 		}
 	}
 
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
 	if (outersize)
 	{
-		std::fseek(fh, 4 * outersize, SEEK_CUR);
+		SAFE_SEEK(fh, 4 * outersize, SEEK_CUR);
 	}
 
-	std::fread(buf, sizeof(char), 1, fh);
+	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
 	for (int i = 0; i < outersize; ++i)
 	{
-		std::fread(buf, sizeof(char), 12, fh);
+		SAFE_READ(buf, sizeof(char), 12, fh);
 		unsigned char x = PacketProcessor::Number(buf[0]);
 		unsigned char y = PacketProcessor::Number(buf[1]);
 		short slot = PacketProcessor::Number(buf[4]);
@@ -431,7 +461,7 @@ void Map::Load()
 
 		if (itemid != this->world->eif->Get(itemid)->id)
 		{
-			Console::Wrn("A chest spawn on map %i uses a non-existant item (#%i at %ix%i)", this->id, itemid, x, y);
+			Console::Wrn("A chest spawn on map %i uses a non-existent item (#%i at %ix%i)", this->id, itemid, x, y);
 		}
 
 		UTIL_VECTOR_FOREACH_ALL(this->chests, Map_Chest *, chest)
@@ -459,14 +489,20 @@ void Map::Load()
 		;
 	}
 
-	std::fseek(fh, 0x00, SEEK_END);
+	SAFE_SEEK(fh, 0x00, SEEK_END);
 	this->filesize = std::ftell(fh);
 
 	std::fclose(fh);
+
+	this->exists = true;
+
+	return true;
 }
 
 void Map::Unload()
 {
+	this->exists = false;
+
 	UTIL_VECTOR_FOREACH_ALL(this->chests, Map_Chest *, chest)
 	{
 		delete chest;
@@ -499,7 +535,7 @@ int Map::GenerateItemID()
 {
 	int lowest_free_id = 1;
 	restart_loop:
-	UTIL_VECTOR_FOREACH_ALL(this->items, Map_Item, item)
+	UTIL_LIST_FOREACH_ALL(this->items, Map_Item, item)
 	{
 		if (item.uid == lowest_free_id)
 		{
@@ -567,7 +603,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, checkcharacter)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkcharacter)
 	{
 		if (checkcharacter == character || !character->InRange(checkcharacter))
 		{
@@ -589,7 +625,7 @@ void Map::Leave(Character *character, WarpAnimation animation)
 		builder.AddChar(animation);
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, checkcharacter)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkcharacter)
 	{
 		if (checkcharacter == character || !character->InRange(checkcharacter))
 		{
@@ -599,7 +635,7 @@ void Map::Leave(Character *character, WarpAnimation animation)
 		checkcharacter->player->client->SendBuilder(builder);
 	}
 
-	UTIL_VECTOR_IFOREACH_ALL(this->characters, Character *, checkcharacter)
+	UTIL_LIST_IFOREACH_ALL(this->characters, Character *, checkcharacter)
 	{
 		if (*(checkcharacter) == character)
 		{
@@ -618,7 +654,7 @@ void Map::Msg(Character *from, std::string message)
 	builder.AddShort(from->player->id);
 	builder.AddString(message);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -771,7 +807,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, checkchar)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkchar)
 	{
 		if (checkchar == from)
 		{
@@ -811,7 +847,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		}
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(this->items, Map_Item, checkitem)
+	UTIL_LIST_FOREACH_ALL(this->items, Map_Item, checkitem)
 	{
 		for (std::size_t i = 0; i < oldcoords.size(); ++i)
 		{
@@ -922,7 +958,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -1098,7 +1134,7 @@ bool Map::Walk(NPC *from, Direction direction)
 
 	from->direction = direction;
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, checkchar)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkchar)
 	{
 		for (std::size_t i = 0; i < oldcoords.size(); ++i)
 		{
@@ -1138,7 +1174,7 @@ bool Map::Walk(NPC *from, Direction direction)
 	builder.AddByte(255);
 	builder.AddByte(255);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (!character->InRange(from))
 		{
@@ -1174,7 +1210,7 @@ void Map::Attack(Character *from, Direction direction)
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -1315,7 +1351,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 		}
 
 		double pkrate = static_cast<double>(this->world->config["PKRate"]) / 100.0;
-		UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 		{
 			if (character->mapid == this->id && character->x == target_x && character->y == target_y)
 			{
@@ -1382,7 +1418,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
 				builder.AddChar(character->hp == 0);
 
-				UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+				UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 				{
 					if (character->InRange(character))
 					{
@@ -1393,6 +1429,12 @@ bool Map::AttackPK(Character *from, Direction direction)
 				if (character->hp == 0)
 				{
 					character->hp = character->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0;
+
+					if (static_cast<int>(this->world->config["Deadly"]))
+					{
+						character->DropAll();
+					}
+
 					character->Warp(character->spawnmap, character->spawnx, character->spawny);
 				}
 
@@ -1420,7 +1462,7 @@ void Map::Face(Character *from, Direction direction)
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -1444,7 +1486,7 @@ void Map::Sit(Character *from, SitAction sit_type)
 	builder.AddChar(from->direction);
 	builder.AddChar(0); // ?
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -1466,7 +1508,7 @@ void Map::Stand(Character *from)
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character == from || !from->InRange(character))
 		{
@@ -1485,7 +1527,7 @@ void Map::Emote(Character *from, enum Emote emote, bool relay)
 	builder.AddShort(from->player->id);
 	builder.AddChar(emote);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (!relay && (character == from || !from->InRange(character)))
 		{
@@ -1505,7 +1547,7 @@ bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
 
 	if (target != Map::NPCOnly)
 	{
-		UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 		{
 			if (character->x == x && character->y == y)
 			{
@@ -1555,7 +1597,7 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 		builder.AddChar(x);
 		builder.AddShort(y);
 
-		UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 		{
 			if (character->InRange(x, y))
 			{
@@ -1587,7 +1629,7 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 		int ontile = 0;
 		int onmap = 0;
 
-		UTIL_VECTOR_FOREACH_ALL(this->items, Map_Item, item)
+		UTIL_LIST_FOREACH_ALL(this->items, Map_Item, item)
 		{
 			++onmap;
 			if (item.x == x && item.y == y)
@@ -1602,7 +1644,7 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 		}
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if ((from && character == from) || !character->InRange(newitem))
 		{
@@ -1617,7 +1659,7 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 
 void Map::DelItem(short uid, Character *from)
 {
-	UTIL_VECTOR_IFOREACH_ALL(this->items, Map_Item, item)
+	UTIL_LIST_IFOREACH_ALL(this->items, Map_Item, item)
 	{
 		if (item->uid == uid)
 		{
@@ -1625,7 +1667,7 @@ void Map::DelItem(short uid, Character *from)
 			PacketBuilder builder;
 			builder.SetID(PACKET_ITEM, PACKET_REMOVE);
 			builder.AddShort(uid);
-			UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+			UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 			{
 				if ((from && character == from) || !character->InRange(*item))
 				{
@@ -1675,13 +1717,13 @@ void Map::Effect(int effect, int param)
 	builder.AddChar(effect);
 	builder.AddChar(param);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
 }
 
-void Map::Reload()
+bool Map::Reload()
 {
 	char namebuf[6];
 	char checkrid[4];
@@ -1694,27 +1736,29 @@ void Map::Reload()
 
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 
-	this->exists = true;
 	if (!fh)
 	{
-		this->exists = false;
 		Console::Err("Could not load file: %s", filename.c_str());
-		return;
+		return false;
 	}
 
-	std::fseek(fh, 0x03, SEEK_SET);
-	std::fread(checkrid, sizeof(char), 4, fh);
+	SAFE_SEEK(fh, 0x03, SEEK_SET);
+	SAFE_READ(checkrid, sizeof(char), 4, fh);
 
 	if (this->rid[0] == checkrid[0] && this->rid[1] == checkrid[1]
 	 && this->rid[2] == checkrid[2] && this->rid[3] == checkrid[3])
 	{
-		return;
+		return true;
 	}
 
-	std::vector<Character *> temp = this->characters;
+	std::list<Character *> temp = this->characters;
 
 	this->Unload();
-	this->Load();
+
+	if (!this->Load())
+	{
+		return false;
+	}
 
 	this->characters = temp;
 
@@ -1735,7 +1779,7 @@ void Map::Reload()
 	PacketBuilder protect_builder(0);
 	protect_builder.AddChar(INIT_BANNED);
 
-	UTIL_VECTOR_FOREACH_ALL(temp, Character *, character)
+	UTIL_LIST_FOREACH_ALL(temp, Character *, character)
 	{
 		character->player->client->Send(builder.Get());
 		character->Refresh(); // TODO: Find a better way to reload NPCs
@@ -1745,6 +1789,10 @@ void Map::Reload()
 			character->player->client->Send(protect_builder.Get());
 		}
 	}
+
+	this->exists = true;
+
+	return true;
 }
 
 Character *Map::GetCharacter(std::string name)
@@ -1753,7 +1801,7 @@ Character *Map::GetCharacter(std::string name)
 
 	util::lowercase(name);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character->name.compare(name) == 0)
 		{
@@ -1769,7 +1817,7 @@ Character *Map::GetCharacterPID(unsigned int id)
 {
 	Character *selected = 0;
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character->player->id == id)
 		{
@@ -1785,7 +1833,7 @@ Character *Map::GetCharacterCID(unsigned int id)
 {
 	Character *selected = 0;
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 	{
 		if (character->id == id)
 		{

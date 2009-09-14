@@ -11,9 +11,21 @@
 #include "packet.hpp"
 #include "console.hpp"
 
+static const char *safe_fail_filename;
+
+static void safe_fail(int line)
+{
+	Console::Err("Invalid file / failed read/seek: %s -- %i", safe_fail_filename, line);
+	std::exit(1);
+}
+
+#define SAFE_SEEK(fh, offset, from) if (std::fseek(fh, offset, from) != 0) { std::fclose(fh); safe_fail(__LINE__); }
+#define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<int>(count)) { std::fclose(fh); safe_fail(__LINE__); }
+
 EIF::EIF(std::string filename)
 {
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
+	safe_fail_filename = filename.c_str();
 
 	if (!fh)
 	{
@@ -21,11 +33,11 @@ EIF::EIF(std::string filename)
 		std::exit(1);
 	}
 
-	std::fseek(fh, 3, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 4, fh);
-	std::fread(this->len, sizeof(char), 2, fh);
+	SAFE_SEEK(fh, 3, SEEK_SET);
+	SAFE_READ(this->rid, sizeof(char), 4, fh);
+	SAFE_READ(this->len, sizeof(char), 2, fh);
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
-	std::fseek(fh, 1, SEEK_CUR);
+	SAFE_SEEK(fh, 1, SEEK_CUR);
 
 	unsigned char namesize;
 	char *namebuf;
@@ -37,15 +49,15 @@ EIF::EIF(std::string filename)
 
 	this->data[0] = newdata;
 
-	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+	SAFE_READ(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	for (int i = 1; i <= numobj; ++i)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
-		std::fread(namebuf, sizeof(char), namesize, fh);
+		SAFE_READ(namebuf, sizeof(char), namesize, fh);
 		name.assign(namebuf,namesize);
 		delete[] namebuf;
-		std::fread(buf, sizeof(char), EIF::DATA_SIZE, fh);
+		SAFE_READ(buf, sizeof(char), EIF::DATA_SIZE, fh);
 
 		newdata.id = i;
 		newdata.name = name;
@@ -83,7 +95,10 @@ EIF::EIF(std::string filename)
 
 		this->data[i] = newdata;
 
-		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
+		{
+			break;
+		}
 	}
 
 	if (newdata.name.compare("eof") == 0)
@@ -111,6 +126,7 @@ EIF_Data *EIF::Get(unsigned int id)
 ENF::ENF(std::string filename)
 {
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
+	safe_fail_filename = filename.c_str();
 
 	if (!fh)
 	{
@@ -118,11 +134,11 @@ ENF::ENF(std::string filename)
 		std::exit(1);
 	}
 
-	std::fseek(fh, 3, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 4, fh);
-	std::fread(this->len, sizeof(char), 2, fh);
+	SAFE_SEEK(fh, 3, SEEK_SET);
+	SAFE_READ(this->rid, sizeof(char), 4, fh);
+	SAFE_READ(this->len, sizeof(char), 2, fh);
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
-	std::fseek(fh, 1, SEEK_CUR);
+	SAFE_SEEK(fh, 1, SEEK_CUR);
 
 	unsigned char namesize;
 	char *namebuf;
@@ -134,15 +150,15 @@ ENF::ENF(std::string filename)
 
 	this->data[0] = newdata;
 
-	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+	SAFE_READ(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	for (int i = 1; i <= numobj; ++i)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
-		std::fread(namebuf, sizeof(char), namesize, fh);
+		SAFE_READ(namebuf, sizeof(char), namesize, fh);
 		name.assign(namebuf,namesize);
 		delete[] namebuf;
-		std::fread(buf, sizeof(char), ENF::DATA_SIZE, fh);
+		SAFE_READ(buf, sizeof(char), ENF::DATA_SIZE, fh);
 
 		newdata.id = i;
 		newdata.name = name;
@@ -165,7 +181,10 @@ ENF::ENF(std::string filename)
 
 		this->data[i] = newdata;
 
-		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
+		{
+			break;
+		}
 	}
 
 	if (newdata.name.compare("eof") == 0)
@@ -193,6 +212,7 @@ ENF_Data *ENF::Get(unsigned int id)
 ESF::ESF(std::string filename)
 {
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
+	safe_fail_filename = filename.c_str();
 
 	if (!fh)
 	{
@@ -200,15 +220,15 @@ ESF::ESF(std::string filename)
 		std::exit(1);
 	}
 
-	std::fseek(fh, 3, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 4, fh);
-	std::fread(this->len, sizeof(char), 2, fh);
+	SAFE_SEEK(fh, 3, SEEK_SET);
+	SAFE_READ(this->rid, sizeof(char), 4, fh);
+	SAFE_READ(this->len, sizeof(char), 2, fh);
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
-	std::fseek(fh, 1, SEEK_CUR);
+	SAFE_SEEK(fh, 1, SEEK_CUR);
 
-	unsigned char namesize;
-	char *namebuf;
-	std::string name;
+	unsigned char namesize, shoutsize;
+	char *namebuf, *shoutbuf;
+	std::string name, shout;
 	char buf[ESF::DATA_SIZE] = {0};
 	ESF_Data newdata;
 
@@ -216,28 +236,39 @@ ESF::ESF(std::string filename)
 
 	this->data[0] = newdata;
 
-	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+	SAFE_READ(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+	SAFE_READ(static_cast<void *>(&shoutsize), sizeof(char), 1, fh);
 	for (int i = 1; i <= numobj; ++i)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
-		if (std::fread(namebuf, sizeof(char), namesize, fh) == namesize)
-		{
-			name.assign(namebuf,namesize);
-		}
-		else
-		{
-			name.assign("ERROR");
-		}
+		SAFE_READ(namebuf, sizeof(char), namesize, fh);
+		name.assign(namebuf, namesize);
 		delete[] namebuf;
-		std::fread(buf, sizeof(char), ESF::DATA_SIZE, fh);
+
+		shoutsize = PacketProcessor::Number(shoutsize);
+		shoutbuf = new char[shoutsize];
+		SAFE_READ(shoutbuf, sizeof(char), shoutsize, fh);
+		shout.assign(shoutbuf, shoutsize);
+		delete[] shoutbuf;
+
+		SAFE_READ(buf, sizeof(char), ESF::DATA_SIZE, fh);
 
 		newdata.id = i;
 		newdata.name = name;
+		newdata.shout = shout;
 
 		this->data[i] = newdata;
 
-		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
+		{
+			break;
+		}
+
+		if (std::fread(static_cast<void *>(&shoutsize), sizeof(char), 1, fh) != 1)
+		{
+			break;
+		}
 	}
 
 	if (this->data[numobj-1].name.compare("eof") == 0)
@@ -253,6 +284,7 @@ ESF::ESF(std::string filename)
 ECF::ECF(std::string filename)
 {
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
+	safe_fail_filename = filename.c_str();
 
 	if (!fh)
 	{
@@ -260,11 +292,11 @@ ECF::ECF(std::string filename)
 		std::exit(1);
 	}
 
-	std::fseek(fh, 3, SEEK_SET);
-	std::fread(this->rid, sizeof(char), 4, fh);
-	std::fread(this->len, sizeof(char), 2, fh);
+	SAFE_SEEK(fh, 3, SEEK_SET);
+	SAFE_READ(this->rid, sizeof(char), 4, fh);
+	SAFE_READ(this->len, sizeof(char), 2, fh);
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
-	std::fseek(fh, 1, SEEK_CUR);
+	SAFE_SEEK(fh, 1, SEEK_CUR);
 
 	unsigned char namesize;
 	char *namebuf;
@@ -276,22 +308,25 @@ ECF::ECF(std::string filename)
 
 	this->data[0] = newdata;
 
-	std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+	SAFE_READ(static_cast<void *>(&namesize), sizeof(char), 1, fh);
 	for (int i = 1; i <= numobj; ++i)
 	{
 		namesize = PacketProcessor::Number(namesize);
 		namebuf = new char[namesize];
-		std::fread(namebuf, sizeof(char), namesize, fh);
+		SAFE_READ(namebuf, sizeof(char), namesize, fh);
 		name.assign(namebuf,namesize);
 		delete[] namebuf;
-		std::fread(buf, sizeof(char), ECF::DATA_SIZE, fh);
+		SAFE_READ(buf, sizeof(char), ECF::DATA_SIZE, fh);
 
 		newdata.id = i;
 		newdata.name = name;
 
 		this->data[i] = newdata;
 
-		std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh);
+		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
+		{
+			break;
+		}
 	}
 
 	if (newdata.name.compare("eof") == 0)

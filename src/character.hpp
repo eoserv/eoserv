@@ -169,6 +169,7 @@ class Character
 		std::string PaddedGuildTag();
 		int Usage();
 		void CalculateStats();
+		void DropAll();
 
 		void Save();
 

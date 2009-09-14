@@ -32,7 +32,7 @@ void Arena::Spawn(bool force)
 
 	UTIL_VECTOR_FOREACH_ALL(this->spawns, Arena_Spawn, spawn)
 	{
-		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 		{
 			if (character->x == spawn.sx && character->y == spawn.sy)
 			{
@@ -50,7 +50,7 @@ void Arena::Spawn(bool force)
 	{
 		PacketBuilder builder(PACKET_ARENA, PACKET_DROP);
 
-		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 		{
 			character->player->client->SendBuilder(builder);
 		}
@@ -60,7 +60,7 @@ void Arena::Spawn(bool force)
 
 	UTIL_VECTOR_FOREACH_ALL(this->spawns, Arena_Spawn, spawn)
 	{
-		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 		{
 			if (character->x == spawn.sx && character->y == spawn.sy)
 			{
@@ -75,7 +75,7 @@ void Arena::Spawn(bool force)
 	PacketBuilder builder(PACKET_ARENA, PACKET_USE);
 	builder.AddChar(newplayers);
 
-	UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
@@ -105,7 +105,7 @@ void Arena::Attack(Character *from, Direction direction)
 			break;
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 	{
 		if (character->arena == this && character->x == target_x && character->y == target_y)
 		{
@@ -123,7 +123,7 @@ void Arena::Attack(Character *from, Direction direction)
 			builder.AddBreakString(from->name);
 			builder.AddBreakString(character->name);
 
-			UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+			UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 			{
 				character->player->client->SendBuilder(builder);
 			}
@@ -136,7 +136,7 @@ void Arena::Attack(Character *from, Direction direction)
 				builder.SetID(PACKET_ARENA, PACKET_ACCEPT);
 				builder.AddBreakString(from->name);
 
-				UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+				UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 				{
 					character->player->client->SendBuilder(builder);
 				}

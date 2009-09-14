@@ -358,6 +358,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "DefaultBanLength"   , "2h");
 		eoserv_config_default(config, "LimitDamage"        , 1);
 		eoserv_config_default(config, "DeathRecover"       , 50);
+		eoserv_config_default(config, "Deadly"             , 0);
 		eoserv_config_default(config, "ExpRate"            , 100);
 		eoserv_config_default(config, "DropRate"           , 100);
 		eoserv_config_default(config, "MobRate"            , 100);

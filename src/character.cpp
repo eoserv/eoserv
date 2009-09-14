@@ -105,7 +105,7 @@ Character::Character(std::string name, World *world)
 
 	this->login_time = std::time(0);
 
-	this->online = true;
+	this->online = false;
 	this->id = this->world->GenerateCharacterID();
 
 	this->admin = static_cast<AdminLevel>(GetRow<int>(row, "admin"));
@@ -197,7 +197,7 @@ Character::Character(std::string name, World *world)
 	this->guild_tag = util::trim(static_cast<std::string>(row["guild"]));
 	this->guild_rank = static_cast<int>(row["guild_rank"]);
 	this->party = 0;
-	this->map = this->world->maps.at(0);
+	this->map = this->world->GetMap(0);
 }
 
 bool Character::ValidName(std::string name)
@@ -624,7 +624,7 @@ bool Character::InRange(Map_Item other)
 
 void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation)
 {
-	if (map <= 0 || static_cast<std::size_t>(map) > this->world->maps.size() || !this->world->maps.at(map)->exists)
+	if (!this->world->GetMap(map)->exists)
 	{
 		return;
 	}
@@ -651,13 +651,13 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 		}
 		else
 		{
-			builder.AddByte(this->world->maps.at(map)->rid[0]);
-			builder.AddByte(this->world->maps.at(map)->rid[1]);
+			builder.AddByte(this->world->GetMap(map)->rid[0]);
+			builder.AddByte(this->world->GetMap(map)->rid[1]);
 		}
 
-		builder.AddByte(this->world->maps.at(map)->rid[2]);
-		builder.AddByte(this->world->maps.at(map)->rid[3]);
-		builder.AddThree(this->world->maps.at(map)->filesize);
+		builder.AddByte(this->world->GetMap(map)->rid[2]);
+		builder.AddByte(this->world->GetMap(map)->rid[3]);
+		builder.AddThree(this->world->GetMap(map)->filesize);
 		builder.AddChar(0); // ?
 		builder.AddChar(0); // ?
 	}
@@ -667,7 +667,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 		this->map->Leave(this, animation);
 	}
 
-	this->map = this->world->maps.at(map);
+	this->map = this->world->GetMap(map);
 	this->mapid = map;
 	this->x = x;
 	this->y = y;
@@ -700,7 +700,7 @@ void Character::Refresh()
 	std::vector<NPC *> updatenpcs;
 	std::vector<Map_Item> updateitems;
 
-	UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 	{
 		if (this->InRange(character))
 		{
@@ -716,7 +716,7 @@ void Character::Refresh()
 		}
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(this->map->items, Map_Item, item)
+	UTIL_LIST_FOREACH_ALL(this->map->items, Map_Item, item)
 	{
 		if (this->InRange(item))
 		{
@@ -883,6 +883,110 @@ void Character::CalculateStats()
 	}
 }
 
+void Character::DropAll()
+{
+	// TODO: This could be more efficient
+	restart_loop:
+	UTIL_LIST_FOREACH_ALL(this->inventory, Character_Item, item)
+	{
+		if (this->world->eif->Get(item.id)->special == EIF::Lore)
+		{
+			continue;
+		}
+
+		Map_Item *map_item = this->player->character->map->AddItem(item.id, item.amount, this->x, this->y, this);
+		this->DelItem(item.id, item.amount);
+
+		if (map_item)
+		{
+			map_item->owner = this->player->id;
+			map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProctectPlayerDrop"]);
+
+			PacketBuilder builder(PACKET_ITEM, PACKET_DROP);
+			builder.AddShort(item.id);
+			builder.AddThree(item.amount);
+			builder.AddInt(0);
+			builder.AddShort(map_item->uid);
+			builder.AddChar(this->x);
+			builder.AddChar(this->y);
+			builder.AddChar(this->weight);
+			builder.AddChar(this->maxweight);
+			this->player->client->SendBuilder(builder);
+		}
+
+		goto restart_loop;
+	}
+
+	int i = 0;
+	UTIL_ARRAY_FOREACH_ALL(this->paperdoll, int, 15, id)
+	{
+		if (id == 0 || this->world->eif->Get(id)->special == EIF::Lore)
+		{
+			++i;
+			continue;
+		}
+
+		Map_Item *map_item = this->player->character->map->AddItem(id, 1, this->x, this->y, this);
+
+		if (map_item)
+		{
+			map_item->owner = this->player->id;
+			map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProctectPlayerDrop"]);
+
+			int subloc = 0;
+
+			if (i == Ring2 || i == Armlet2 || i == Bracer2)
+			{
+				subloc = 1;
+			}
+
+			if (this->player->character->Unequip(id, subloc))
+			{
+				PacketBuilder builder(PACKET_PAPERDOLL, PACKET_REMOVE);
+				builder.AddShort(this->player->id);
+				builder.AddChar(SLOT_CLOTHES);
+				builder.AddChar(0); // ?
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Boots])->dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Armor])->dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Hat])->dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Weapon])->dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Shield])->dollgraphic);
+				builder.AddShort(id);
+				builder.AddChar(subloc);
+				builder.AddShort(this->maxhp);
+				builder.AddShort(this->maxtp);
+				builder.AddShort(this->str);
+				builder.AddShort(this->intl);
+				builder.AddShort(this->wis);
+				builder.AddShort(this->agi);
+				builder.AddShort(this->con);
+				builder.AddShort(this->cha);
+				builder.AddShort(this->mindam);
+				builder.AddShort(this->maxdam);
+				builder.AddShort(this->accuracy);
+				builder.AddShort(this->evade);
+				builder.AddShort(this->armor);
+				this->player->client->SendBuilder(builder);
+			}
+
+			this->player->character->DelItem(id, 1);
+
+			PacketBuilder builder(PACKET_ITEM, PACKET_DROP);
+			builder.AddShort(id);
+			builder.AddThree(1);
+			builder.AddInt(0);
+			builder.AddShort(map_item->uid);
+			builder.AddChar(this->x);
+			builder.AddChar(this->y);
+			builder.AddChar(this->weight);
+			builder.AddChar(this->maxweight);
+			this->player->client->SendBuilder(builder);
+		}
+
+		++i;
+	}
+}
+
 void Character::Save()
 {
 
@@ -903,6 +1007,11 @@ void Character::Save()
 
 Character::~Character()
 {
+	if (!this->online)
+	{
+		return;
+	}
+
 	if (this->trading)
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
@@ -946,10 +1055,7 @@ Character::~Character()
 		}
 	}
 
-	if (this->world && this->player)
-	{
-		this->world->Logout(this);
-	}
+	this->world->Logout(this);
 
 	this->Save();
 }

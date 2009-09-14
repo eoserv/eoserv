@@ -21,6 +21,11 @@ CLIENT_F_FUNC(Chest)
 			int id = reader.GetShort();
 			int amount = reader.GetThree();
 
+			if (this->server->world->eif->Get(id)->special == EIF::Lore)
+			{
+				return true;
+			}
+
 			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::Chest)

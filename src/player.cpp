@@ -108,8 +108,9 @@ Player::~Player()
 		this->client->player = 0;
 	}
 
-	if (this->character)
+	while (!this->characters.empty())
 	{
-		delete this->character;
+		delete this->characters.back();
+		this->characters.pop_back();
 	}
 }

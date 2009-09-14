@@ -41,6 +41,8 @@ CLIENT_F_FUNC(Welcome)
 				return false;
 			}
 
+			this->player->character->online = true;
+
 			this->player->character->CalculateStats();
 
 			reply.AddShort(1); // REPLY_WELCOME sub-id
@@ -55,13 +57,13 @@ CLIENT_F_FUNC(Welcome)
 			}
 			else
 			{
-				reply.AddByte(this->server->world->maps.at(this->player->character->mapid)->rid[0]);
-				reply.AddByte(this->server->world->maps.at(this->player->character->mapid)->rid[1]);
+				reply.AddByte(this->server->world->GetMap(this->player->character->mapid)->rid[0]);
+				reply.AddByte(this->server->world->GetMap(this->player->character->mapid)->rid[1]);
 			}
 
-			reply.AddByte(this->server->world->maps.at(this->player->character->mapid)->rid[2]);
-			reply.AddByte(this->server->world->maps.at(this->player->character->mapid)->rid[3]);
-			reply.AddThree(this->server->world->maps.at(this->player->character->mapid)->filesize);
+			reply.AddByte(this->server->world->GetMap(this->player->character->mapid)->rid[2]);
+			reply.AddByte(this->server->world->GetMap(this->player->character->mapid)->rid[3]);
+			reply.AddThree(this->server->world->GetMap(this->player->character->mapid)->filesize);
 			reply.AddByte(this->server->world->eif->rid[0]);
 			reply.AddByte(this->server->world->eif->rid[1]);
 			reply.AddByte(this->server->world->eif->rid[2]);
@@ -140,6 +142,21 @@ CLIENT_F_FUNC(Welcome)
 			reader.GetThree(); // ??
 			id = reader.GetInt(); // Character ID
 
+			if (!this->player->character->world->GetMap(this->player->character->mapid)->exists)
+			{
+				if (this->player->character->world->GetMap(this->player->character->spawnmap)->exists)
+				{
+					Console::Wrn("Player logged in to non-existent map (%s, map %i) - Position reset", this->player->character->name.c_str(), this->player->character->mapid);
+					this->player->character->Warp(this->player->character->spawnmap, this->player->character->spawnx, this->player->character->spawny);
+				}
+				else
+				{
+					Console::Wrn("Player logged in to non-existent map (%s, map %i) - Disconnected", this->player->character->name.c_str(), this->player->character->mapid);
+					this->Close();
+					return true;
+				}
+			}
+
 			this->server->world->Login(this->player->character);
 
 			this->state = EOClient::Playing;
@@ -156,7 +173,7 @@ CLIENT_F_FUNC(Welcome)
 
 			if (newseof)
 			{
-				Console::Err("WARNING: Could not load news file '%s'", static_cast<std::string>(this->server->world->config["NewsFile"]).c_str());
+				Console::Wrn("Could not load news file '%s'", static_cast<std::string>(this->server->world->config["NewsFile"]).c_str());
 			}
 
 			for (int i = 0; i < 9; ++i)
@@ -207,13 +224,15 @@ CLIENT_F_FUNC(Welcome)
 			std::vector<Character *> updatecharacters;
 			std::vector<NPC *> updatenpcs;
 			std::vector<Map_Item> updateitems;
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (this->player->character->InRange(character))
 				{
 					updatecharacters.push_back(character);
 				}
 			}
+
 			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->npcs, NPC *, npc)
 			{
 				if (this->player->character->InRange(npc))
@@ -221,13 +240,15 @@ CLIENT_F_FUNC(Welcome)
 					updatenpcs.push_back(npc);
 				}
 			}
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
+
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
 			{
 				if (this->player->character->InRange(item))
 				{
 					updateitems.push_back(item);
 				}
 			}
+
 			reply.AddChar(updatecharacters.size()); // Number of players
 			reply.AddByte(255);
 			UTIL_VECTOR_FOREACH_ALL(updatecharacters, Character *, character)
@@ -314,6 +335,19 @@ CLIENT_F_FUNC(Welcome)
 				default: return false;
 			}
 
+			if (file == FILE_MAP && !this->player->character->world->GetMap(this->player->character->mapid)->exists)
+			{
+				reply.SetID(0);
+				reply.AddChar(replycode);
+				if (fileid != 0)
+				{
+					reply.AddChar(fileid);
+				}
+				reply.AddString(content);
+				CLIENT_SENDRAW(reply);
+				return true;
+			}
+
 			fh = std::fopen(filename.c_str(), "rb");
 
 			if (!fh)
@@ -327,7 +361,7 @@ CLIENT_F_FUNC(Welcome)
 				char buf[4096];
 				int len = std::fread(buf, sizeof(char), 4096, fh);
 
-				if (static_cast<int>(this->server->world->config["GlobalPK"]) && !this->server->world->PKExcept(this->player->character->mapid))
+				if (file == FILE_MAP && static_cast<int>(this->server->world->config["GlobalPK"]) && !this->server->world->PKExcept(this->player->character->mapid))
 				{
 					if (p + len >= 0x04 && 0x03 - p > 0) buf[0x03 - p] = 0xFF;
 					if (p + len >= 0x05 && 0x04 - p > 0) buf[0x04 - p] = 0x01;

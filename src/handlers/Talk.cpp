@@ -261,7 +261,14 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() >= 3 && command.compare(0,3,"rem") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["remap"]))
 				{
-					this->player->character->map->Reload();
+					if (!(this->player->character->map->Reload()))
+					{
+						while (!this->player->character->map->characters.empty())
+						{
+							this->player->character->map->characters.back()->player->client->Close();
+							this->player->character->map->characters.pop_back();
+						}
+					}
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["rehash"]))
 				{

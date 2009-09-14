@@ -33,7 +33,7 @@ CLIENT_F_FUNC(Warp)
 			std::vector<NPC *> updatenpcs;
 			std::vector<Map_Item> updateitems;
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (this->player->character->InRange(character))
 				{
@@ -49,7 +49,7 @@ CLIENT_F_FUNC(Warp)
 				}
 			}
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
 			{
 				if (this->player->character->InRange(item))
 				{

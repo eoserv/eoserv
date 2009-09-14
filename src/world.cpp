@@ -113,7 +113,7 @@ void world_despawn_items(void *world_void)
 	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
 	{
 restart_loop:
-		UTIL_VECTOR_IFOREACH_ALL(map->items, Map_Item, item)
+		UTIL_LIST_IFOREACH_ALL(map->items, Map_Item, item)
 		{
 			if (item->unprotecttime < (Timer::GetTime() - static_cast<double>(world->config["ItemDespawnRate"])))
 			{
@@ -238,19 +238,21 @@ int World::GeneratePlayerID()
 void World::Login(Character *character)
 {
 	this->characters.push_back(character);
-	if (this->maps[character->mapid]->relog_x || this->maps.at(character->mapid)->relog_y)
+
+	if (this->GetMap(character->mapid)->relog_x || this->GetMap(character->mapid)->relog_y)
 	{
-		character->x = this->maps.at(character->mapid)->relog_x;
-		character->y = this->maps.at(character->mapid)->relog_y;
+		character->x = this->GetMap(character->mapid)->relog_x;
+		character->y = this->GetMap(character->mapid)->relog_y;
 	}
-	this->maps[character->mapid]->Enter(character);
+
+	this->GetMap(character->mapid)->Enter(character);
 }
 
 void World::Logout(Character *character)
 {
-	try
+	if (this->GetMap(character->mapid)->exists)
 	{
-		this->maps.at(character->mapid)->Leave(character);
+		this->GetMap(character->mapid)->Leave(character);
 
 		UTIL_VECTOR_IFOREACH(this->characters.begin(), this->characters.end(), Character *, checkcharacter)
 		{
@@ -260,10 +262,6 @@ void World::Logout(Character *character)
 				break;
 			}
 		}
-	}
-	catch (...)
-	{
-
 	}
 }
 
@@ -406,6 +404,18 @@ Character *World::GetCharacterCID(unsigned int id)
 	}
 
 	return selected;
+}
+
+Map *World::GetMap(short id)
+{
+	try
+	{
+		return this->maps.at(id);
+	}
+	catch (...)
+	{
+		return this->maps.at(0);
+	}
 }
 
 bool World::CharacterExists(std::string name)
@@ -622,6 +632,11 @@ bool World::PKExcept(const Map *map)
 bool World::PKExcept(int mapid)
 {
 	if (mapid == static_cast<int>(this->config["JailMap"]))
+	{
+		return true;
+	}
+
+	if (this->GetMap(mapid)->arena)
 	{
 		return true;
 	}

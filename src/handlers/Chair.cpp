@@ -28,7 +28,7 @@ CLIENT_F_FUNC(Chair)
 					return false;
 				}
 
-				UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+				UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 				{
 					if (character->x == x && character->y == y)
 					{

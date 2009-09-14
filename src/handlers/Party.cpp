@@ -24,7 +24,7 @@ CLIENT_F_FUNC(Party)
 				return false;
 			}
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (character->player->id == invitee && this->player->character->InRange(character))
 				{
@@ -52,7 +52,7 @@ CLIENT_F_FUNC(Party)
 			unsigned short inviter_id = reader.GetShort();
 			Character *inviter = 0;
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 			{
 				if (character->player->id == inviter_id && this->player->character->InRange(character))
 				{

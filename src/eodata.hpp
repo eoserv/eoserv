@@ -226,6 +226,7 @@ struct ESF_Data
 {
 	int id;
 	std::string name;
+	std::string shout;
 
 	ESF_Data() : id(0) {}
 };

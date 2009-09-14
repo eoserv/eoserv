@@ -45,7 +45,7 @@ void *SLN::RequestThread(void *void_sln)
 
 	std::string url = sln->server->world->config["SLNURL"];
 	url += "check?software=EOSERV";
-	url += std::string("&retry=") + static_cast<std::string>(sln->server->world->config["SLNPeriod"]);
+	url += std::string("&retry=") + HTTP::URLEncode(sln->server->world->config["SLNPeriod"]);
 
 	if (static_cast<std::string>(sln->server->world->config["SLNHost"]).length() > 0)
 	{
@@ -64,6 +64,9 @@ void *SLN::RequestThread(void *void_sln)
 	{
 		url += std::string("&zone=") + HTTP::URLEncode(sln->server->world->config["SLNZone"]);
 	}
+
+	url += std::string("&pk=") + HTTP::URLEncode(sln->server->world->config["GlobalPK"]);
+	url += std::string("&deadly=") + HTTP::URLEncode(sln->server->world->config["Deadly"]);
 
 	try
 	{

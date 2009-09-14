@@ -33,6 +33,14 @@ CLIENT_F_FUNC(Login)
 
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
 
+			if (this->server->world->characters.size() >= static_cast<std::size_t>(static_cast<int>(this->server->world->config["MaxPlayers"])))
+			{
+				reply.AddShort(LOGIN_BUSY);
+				CLIENT_SEND(reply);
+				this->Close();
+				return false;
+			}
+
 			if (this->server->world->PlayerOnline(username))
 			{
 				reply.AddShort(LOGIN_LOGGEDIN);

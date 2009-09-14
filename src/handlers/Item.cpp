@@ -22,7 +22,7 @@ CLIENT_F_FUNC(Item)
 			{
 				EIF_Data *item = this->server->world->eif->Get(id);
 				reply.SetID(PACKET_ITEM, PACKET_REPLY);
-				reply.AddChar(item->type); // ?
+				reply.AddChar(item->type);
 				reply.AddShort(id);
 
 				switch (item->type)
@@ -91,7 +91,7 @@ CLIENT_F_FUNC(Item)
 						builder.AddInt(hpgain);
 						builder.AddChar(int(double(this->player->character->hp) / double(this->player->character->maxhp) * 100.0));
 
-						UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+						UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 						{
 							if (character != this->player->character && this->player->character->InRange(character))
 							{
@@ -124,7 +124,7 @@ CLIENT_F_FUNC(Item)
 						builder.AddChar(0); // subloc
 						builder.AddChar(item->haircolor);
 
-						UTIL_VECTOR_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+						UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
 						{
 							if (character != this->player->character && this->player->character->InRange(character))
 							{
@@ -249,7 +249,7 @@ CLIENT_F_FUNC(Item)
 
 			int uid = reader.GetShort();
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
+			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
 			{
 				if (item.uid == uid)
 				{

@@ -150,7 +150,8 @@ enum LoginReply UTIL_EXTEND_ENUM(unsigned char)
 	LOGIN_WRONG_USER = 1,
 	LOGIN_WRONG_USERPASS = 2,
 	LOGIN_OK = 3,
-	LOGIN_LOGGEDIN = 5
+	LOGIN_LOGGEDIN = 5,
+	LOGIN_BUSY = 6
 };
 
 enum WarpReply UTIL_EXTEND_ENUM(unsigned char)

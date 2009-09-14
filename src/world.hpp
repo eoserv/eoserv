@@ -85,6 +85,8 @@ class World
 		Character *GetCharacterPID(unsigned int id);
 		Character *GetCharacterCID(unsigned int id);
 
+		Map *GetMap(short id);
+
 		bool CharacterExists(std::string name);
 		Character *CreateCharacter(Player *, std::string name, Gender, int hairstyle, int haircolor, Skin);
 		void DeleteCharacter(std::string name);

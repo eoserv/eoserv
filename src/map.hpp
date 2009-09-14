@@ -212,7 +212,7 @@ struct Map_Chest
 class Map
 {
 	private:
-		void Load();
+		bool Load();
 		void Unload();
 
 	public:
@@ -227,10 +227,10 @@ class Map
 		unsigned char relog_x;
 		unsigned char relog_y;
 		std::string filename;
-		std::vector<Character *> characters;
+		std::list<Character *> characters;
 		std::vector<NPC *> npcs;
 		std::vector<Map_Chest *> chests;
-		std::vector<Map_Item> items;
+		std::list<Map_Item> items;
 		std::vector<std::vector<Map_Tile> > tiles;
 		bool exists;
 
@@ -266,7 +266,7 @@ class Map
 
 		void Effect(int effect, int param);
 
-		void Reload();
+		bool Reload();
 
 		Character *GetCharacter(std::string name);
 		Character *GetCharacterPID(unsigned int id);

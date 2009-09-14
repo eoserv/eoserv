@@ -215,7 +215,7 @@ void NPC::Spawn()
 	builder.AddChar(this->y);
 	builder.AddChar(this->direction);
 
-	UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 	{
 		if (character->InRange(this))
 		{
@@ -259,7 +259,7 @@ void NPC::Act()
 		Character *closest = 0;
 		unsigned char closest_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 
-		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 		{
 			int distance = util::path_length(character->x, character->y, this->x, this->y);
 
@@ -404,7 +404,7 @@ void NPC::Damage(Character *from, int amount)
 		builder.AddShort(int(double(this->hp) / double(this->data->hp) * 100.0));
 		builder.AddChar(1); // ?
 
-		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 		{
 			if (character->InRange(this))
 			{
@@ -509,7 +509,7 @@ void NPC::Damage(Character *from, int amount)
 			}
 		}
 
-		UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 		{
 			std::list<NPC_Opponent>::iterator findopp;
 			found = false;
@@ -806,7 +806,7 @@ void NPC::Attack(Character *target)
 	builder.AddByte(255);
 	builder.AddByte(255);
 
-	UTIL_VECTOR_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
 	{
 		if (character == target || !character->InRange(target))
 		{
@@ -833,6 +833,12 @@ void NPC::Attack(Character *target)
 	if (target->hp == 0)
 	{
 		target->hp = rechp;
+
+		if (static_cast<int>(this->map->world->config["Deadly"]))
+		{
+			target->DropAll();
+		}
+
 		target->Warp(target->spawnmap, target->spawnx, target->spawny);
 	}
 }
