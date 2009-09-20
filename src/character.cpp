@@ -106,6 +106,7 @@ Character::Character(std::string name, World *world)
 	this->login_time = std::time(0);
 
 	this->online = false;
+	this->nowhere = false;
 	this->id = this->world->GenerateCharacterID();
 
 	this->admin = static_cast<AdminLevel>(GetRow<int>(row, "admin"));
@@ -609,16 +610,31 @@ bool Character::InRange(unsigned char x, unsigned char y)
 
 bool Character::InRange(Character *other)
 {
+	if (this->nowhere || other->nowhere)
+	{
+		return false;
+	}
+
 	return this->InRange(other->x, other->y);
 }
 
 bool Character::InRange(NPC *other)
 {
+	if (this->nowhere)
+	{
+		return false;
+	}
+
 	return this->InRange(other->x, other->y);
 }
 
 bool Character::InRange(Map_Item other)
 {
+	if (this->nowhere)
+	{
+		return false;
+	}
+
 	return this->InRange(other.x, other.y);
 }
 
@@ -632,7 +648,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	PacketBuilder builder;
 	builder.SetID(PACKET_WARP, PACKET_REQUEST);
 
-	if (this->player->character->mapid == map)
+	if (this->player->character->mapid == map && !this->player->character->nowhere)
 	{
 		builder.AddChar(WARP_LOCAL);
 		builder.AddShort(map);
@@ -675,6 +691,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	this->map->Enter(this, animation);
 
 	this->warp_anim = animation;
+	this->nowhere = false;
 
 	this->player->client->SendBuilder(builder);
 
@@ -939,7 +956,7 @@ void Character::CalculateStats()
 	}
 }
 
-void Character::DropAll()
+void Character::DropAll(Character *killer)
 {
 	// TODO: This could be more efficient
 	restart_loop:
@@ -950,13 +967,21 @@ void Character::DropAll()
 			continue;
 		}
 
-		Map_Item *map_item = this->player->character->map->AddItem(item.id, item.amount, this->x, this->y, this);
+		Map_Item *map_item = this->player->character->map->AddItem(item.id, item.amount, this->x, this->y, 0);
 		this->DelItem(item.id, item.amount);
 
 		if (map_item)
 		{
-			map_item->owner = this->player->id;
-			map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProctectPlayerDrop"]);
+			if (killer)
+			{
+				map_item->owner = killer->player->id;
+				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectPKDrop"]);
+			}
+			else
+			{
+				map_item->owner = this->player->id;
+				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectDeathDrop"]);
+			}
 
 			PacketBuilder builder(PACKET_ITEM, PACKET_DROP);
 			builder.AddShort(item.id);
@@ -976,18 +1001,26 @@ void Character::DropAll()
 	int i = 0;
 	UTIL_ARRAY_FOREACH_ALL(this->paperdoll, int, 15, id)
 	{
-		if (id == 0 || this->world->eif->Get(id)->special == EIF::Lore)
+		if (id == 0 || this->world->eif->Get(id)->special == EIF::Lore || this->world->eif->Get(id)->special == EIF::Cursed)
 		{
 			++i;
 			continue;
 		}
 
-		Map_Item *map_item = this->player->character->map->AddItem(id, 1, this->x, this->y, this);
+		Map_Item *map_item = this->player->character->map->AddItem(id, 1, this->x, this->y, 0);
 
 		if (map_item)
 		{
-			map_item->owner = this->player->id;
-			map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProctectPlayerDrop"]);
+			if (killer)
+			{
+				map_item->owner = killer->player->id;
+				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectPKDrop"]);
+			}
+			else
+			{
+				map_item->owner = this->player->id;
+				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectDeathDrop"]);
+			}
 
 			int subloc = 0;
 

@@ -67,6 +67,7 @@ class Character
 	public:
 		int login_time;
 		bool online;
+		bool nowhere;
 		unsigned int id;
 		AdminLevel admin;
 		std::string name;
@@ -170,7 +171,7 @@ class Character
 		std::string PaddedGuildTag();
 		int Usage();
 		void CalculateStats();
-		void DropAll();
+		void DropAll(Character *killer);
 
 		void Save();
 

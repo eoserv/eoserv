@@ -146,7 +146,7 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 
 	UTIL_VECTOR_FOREACH_ALL(this->members, Character *, member)
 	{
-		if (member->map == map)
+		if (member->map == map && !member->nowhere)
 		{
 			if (member->level == 0)
 			{
@@ -162,7 +162,7 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 
 	UTIL_VECTOR_FOREACH_ALL(this->members, Character *, member)
 	{
-		if (member->map != map)
+		if (member->map != map || member->nowhere)
 		{
 			continue;
 		}

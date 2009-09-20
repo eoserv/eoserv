@@ -239,7 +239,7 @@ void NPC::Act()
 
 	UTIL_LIST_IFOREACH_ALL(this->damagelist, NPC_Opponent, opponent)
 	{
-		if (opponent->attacker->map != this->map || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
+		if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
 		{
 			continue;
 		}
@@ -639,7 +639,7 @@ void NPC::Damage(Character *from, int amount)
 
 						character->exp = std::min(character->exp, static_cast<int>(this->map->world->config["MaxExp"]));
 
-						if (character->level < static_cast<int>(this->map->world->config["MaxLevel"]) && character->exp >= this->map->world->exp_table[character->level+1])
+						while (character->level < static_cast<int>(this->map->world->config["MaxLevel"]) && character->exp >= this->map->world->exp_table[character->level+1])
 						{
 							level_up = true;
 							++character->level;
@@ -836,10 +836,24 @@ void NPC::Attack(Character *target)
 
 		if (static_cast<int>(this->map->world->config["Deadly"]))
 		{
-			target->DropAll();
+			target->DropAll(0);
 		}
 
-		target->Warp(target->spawnmap, target->spawnx, target->spawny);
+		target->nowhere = true;
+		target->map = this->map->world->GetMap(target->spawnmap);
+		target->mapid = target->spawnmap;
+		target->x = target->spawnx;
+		target->y = target->spawny;
+
+		PacketBuilder builder;
+		builder.AddShort(target->spawnmap);
+		builder.AddChar(target->spawnx);
+		builder.AddChar(target->spawny);
+
+		PacketReader reader(builder.Get().substr(4));
+
+		target->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5));
+		target->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0));
 	}
 }
 

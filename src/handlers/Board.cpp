@@ -65,7 +65,7 @@ CLIENT_F_FUNC(Board)
 
 			for (std::string::iterator i = subject.begin(); i != subject.end(); ++i)
 			{
-				if (*i == 0xFF)
+				if (static_cast<unsigned char>(*i) == 0xFF)
 				{
 					*i = 'y';
 				}

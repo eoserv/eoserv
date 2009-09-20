@@ -21,7 +21,7 @@ CLIENT_F_FUNC(Players)
 
 			if (victim)
 			{
-				if (victim->mapid == this->player->character->mapid)
+				if (victim->mapid == this->player->character->mapid && !victim->nowhere)
 				{
 					reply.SetID(PACKET_PLAYERS, PACKET_NET2);
 				}

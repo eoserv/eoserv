@@ -18,6 +18,7 @@ class PacketBuilder;
 
 enum PacketFamily UTIL_EXTEND_ENUM(unsigned char)
 {
+	PACKET_INTERNAL = 0,
 	PACKET_CONNECTION = 1,
 	PACKET_ACCOUNT = 2,
 	PACKET_CHARACTER = 3,
@@ -90,6 +91,10 @@ enum PacketAction UTIL_EXTEND_ENUM(unsigned char)
 	PACKET_JUNK = 25,
 	PACKET_GET = 27,
 	PACKET_EXP = 33, // Tentative name
+
+	PACKET_INTERNAL_NULL = 128,
+	PACKET_INTERNAL_WARP = 129,
+
 	PACKET_NET = 240,
 	PACKET_NET2 = 241,
 	PACKET_NET3 = 242,

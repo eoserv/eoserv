@@ -59,6 +59,13 @@ void EOClient::Execute(std::string data)
 	family = static_cast<PacketFamily>(static_cast<unsigned char>(data[1]));
 	action = static_cast<PacketAction>(static_cast<unsigned char>(data[0]));
 
+	if (family == PACKET_INTERNAL)
+	{
+		Console::Wrn("Closing client connection sending a reserved packet ID.");
+		this->Close();
+		return;
+	}
+
 	PacketReader reader(data.substr(2));
 
 	bool result = false;

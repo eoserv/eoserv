@@ -83,6 +83,7 @@ void server_pump_queue(void *server_void)
 			switch (action->family)
 			{
 				QUEUE_F_HANDLE(PACKET_F_INIT,Init);
+				QUEUE_F_HANDLE(PACKET_INTERNAL,Internal);
 				QUEUE_F_HANDLE(PACKET_CONNECTION,Connection);
 				QUEUE_F_HANDLE(PACKET_ACCOUNT,Account);
 				QUEUE_F_HANDLE(PACKET_CHARACTER,Character);

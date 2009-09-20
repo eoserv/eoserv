@@ -112,6 +112,7 @@ class EOClient : public Client
 
 // Stop doxygen generating a gigantic list of functions
 #ifndef DOXYGEN
+		CLIENT_F_FUNC(Internal);
 		CLIENT_F_FUNC(Init);
 		CLIENT_F_FUNC(Connection);
 		CLIENT_F_FUNC(Account);

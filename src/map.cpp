@@ -1353,7 +1353,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 		double pkrate = static_cast<double>(this->world->config["PKRate"]) / 100.0;
 		UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 		{
-			if (character->mapid == this->id && character->x == target_x && character->y == target_y)
+			if (character->mapid == this->id && !character->nowhere && character->x == target_x && character->y == target_y)
 			{
 				int amount = util::rand(from->mindam, from->maxdam);
 
@@ -1432,10 +1432,24 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 					if (static_cast<int>(this->world->config["Deadly"]))
 					{
-						character->DropAll();
+						character->DropAll(from);
 					}
 
-					character->Warp(character->spawnmap, character->spawnx, character->spawny);
+					character->nowhere = true;
+					character->map = this->world->GetMap(character->spawnmap);
+					character->mapid = character->spawnmap;
+					character->x = character->spawnx;
+					character->y = character->spawny;
+
+					PacketBuilder builder;
+					builder.AddShort(character->spawnmap);
+					builder.AddChar(character->spawnx);
+					builder.AddChar(character->spawny);
+
+					PacketReader reader(builder.Get().substr(4));
+
+					character->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5));
+					character->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0));
 				}
 
 				builder.Reset();

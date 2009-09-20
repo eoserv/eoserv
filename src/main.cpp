@@ -331,6 +331,8 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "DropAmount"         , 15);
 		eoserv_config_default(config, "ProctectPlayerDrop" , 5);
 		eoserv_config_default(config, "ProtectNPCDrop"     , 30);
+		eoserv_config_default(config, "ProtectPKDrop"      , 60);
+		eoserv_config_default(config, "ProtectDeathDrop"   , 1800);
 		eoserv_config_default(config, "SeeDistance"        , 11);
 		eoserv_config_default(config, "DropDistance"       , 2);
 		eoserv_config_default(config, "RangedDistance"     , 5);
