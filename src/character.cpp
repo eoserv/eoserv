@@ -788,6 +788,62 @@ void Character::Refresh()
 	this->player->client->SendBuilder(builder);
 }
 
+void Character::ShowBoard(int boardid)
+{
+	if (static_cast<std::size_t>(boardid) > this->world->boards.size())
+	{
+		return;
+	}
+
+	PacketBuilder builder(PACKET_BOARD, PACKET_OPEN);
+	builder.AddChar(boardid);
+	builder.AddChar(this->world->boards[boardid]->posts.size());
+
+	int post_count = 0;
+	int recent_post_count = 0;
+
+	UTIL_LIST_FOREACH_ALL(this->world->boards[boardid]->posts, Board_Post *, post)
+	{
+		if (post->author == this->player->character->name)
+		{
+			++post_count;
+
+			if (post->time + static_cast<int>(this->world->config["BoardRecentPostTime"]) > Timer::GetTime())
+			{
+				++recent_post_count;
+			}
+		}
+	}
+
+	int posts_remaining = std::min(static_cast<int>(this->world->config["BoardMaxUserPosts"]) - post_count, static_cast<int>(this->world->config["BoardMaxUserRecentPosts"]) - recent_post_count);
+
+	UTIL_LIST_FOREACH_ALL(this->world->boards[boardid]->posts, Board_Post *, post)
+	{
+		builder.AddShort(post->id);
+		builder.AddByte(255);
+
+		std::string author_extra;
+
+		if (posts_remaining > 0)
+		{
+			author_extra = " ";
+		}
+
+		builder.AddBreakString(post->author + author_extra);
+
+		std::string subject_extra;
+
+		if (static_cast<int>(this->world->config["BoardDatePosts"]))
+		{
+			subject_extra = " (" + util::timeago(post->time, Timer::GetTime()) + ")";
+		}
+
+		builder.AddBreakString(post->subject + subject_extra);
+	}
+
+	this->player->client->SendBuilder(builder);
+}
+
 std::string Character::PaddedGuildTag()
 {
 	std::string tag;

@@ -49,7 +49,7 @@ CLIENT_F_FUNC(Init)
 		}
 		else
 		{
-			int mins_remaining = std::min(255.0, std::ceil(double(ban_expires - std::time(0)) / 60.0));
+			int mins_remaining = int(std::min(255.0, std::ceil(double(ban_expires - std::time(0)) / 60.0)));
 			reply.AddByte(INIT_BAN_TEMP);
 			reply.AddByte(mins_remaining);
 		}

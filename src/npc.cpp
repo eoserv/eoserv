@@ -540,7 +540,7 @@ void NPC::Damage(Character *from, int amount)
 							case 0:
 								if (character == from)
 								{
-									reward = std::ceil(double(this->data->exp) * exprate);
+									reward = int(std::ceil(double(this->data->exp) * exprate));
 
 									if (reward > 0)
 									{
@@ -566,7 +566,7 @@ void NPC::Damage(Character *from, int amount)
 							case 1:
 								if (character == most_damage)
 								{
-									reward = std::ceil(double(this->data->exp) * exprate);
+									reward = int(std::ceil(double(this->data->exp) * exprate));
 
 									if (reward > 0)
 									{
@@ -590,7 +590,7 @@ void NPC::Damage(Character *from, int amount)
 								break;
 
 							case 2:
-								reward = std::ceil(double(this->data->exp) * exprate * (double(findopp->damage) / double(this->totaldamage)));
+								reward = int(std::ceil(double(this->data->exp) * exprate * (double(findopp->damage) / double(this->totaldamage))));
 
 								if (reward > 0)
 								{
@@ -614,7 +614,7 @@ void NPC::Damage(Character *from, int amount)
 								break;
 
 							case 3:
-								reward = std::ceil(double(this->data->exp) * exprate * (double(this->damagelist.size()) / 1.0));
+								reward = int(std::ceil(double(this->data->exp) * exprate * (double(this->damagelist.size()) / 1.0)));
 
 								if (reward > 0)
 								{
@@ -816,7 +816,7 @@ void NPC::Attack(Character *target)
 		character->player->client->SendBuilder(builder);
 	}
 
-	int rechp = target->maxhp * static_cast<double>(this->map->world->config["DeathRecover"]) / 100.0;
+	int rechp = int(target->maxhp * static_cast<double>(this->map->world->config["DeathRecover"]) / 100.0);
 
 	if (target->hp == 0)
 	{

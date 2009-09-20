@@ -427,7 +427,7 @@ bool Map::Load()
 
 		for (int ii = 0; ii < amount; ++ii)
 		{
-			if (x < 0 || x > this->width || y < 0 || y > this->height)
+			if (x > this->width || y > this->height)
 			{
 				Console::Wrn("An NPC spawn on map %i is outside of map bounds (%s at %ix%i)", this->id, this->world->enf->Get(npc_id)->name.c_str(), x, y);
 				continue;
@@ -1397,7 +1397,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 					amount = int(double(amount) * 1.5);
 				}
 
-				amount *= pkrate;
+				amount = int(amount * pkrate);
 
 				amount = std::max(amount, 0);
 
@@ -1428,7 +1428,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				if (character->hp == 0)
 				{
-					character->hp = character->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0;
+					character->hp = int(character->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0);
 
 					if (static_cast<int>(this->world->config["Deadly"]))
 					{

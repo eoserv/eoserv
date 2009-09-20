@@ -124,6 +124,15 @@ restart_loop:
 	}
 }
 
+Board::~Board()
+{
+	while (!this->posts.empty())
+	{
+		delete this->posts.back();
+		this->posts.pop_back();
+	}
+}
+
 World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	if (int(this->timer.resolution * 1000.0) > 1)
@@ -212,6 +221,11 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	for (std::size_t i = 1; i < sizeof(this->exp_table)/sizeof(int); ++i)
 	{
 		exp_table[i] = int(util::round(std::pow(double(i), 3.0) * 133.1));
+	}
+
+	for (std::size_t i = 0; i < this->boards.size(); ++i)
+	{
+		this->boards = new Board;
 	}
 }
 

@@ -169,11 +169,11 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 		switch (sharemode)
 		{
 			case 1:
-				reward = std::ceil(double(exp) / members);
+				reward = int(std::ceil(double(exp) / members));
 				break;
 
 			case 2:
-				reward = std::ceil(double(exp) * double((member->level == 0) ? 1 : member->level) / sumlevel);
+				reward = int(std::ceil(double(exp) * double((member->level == 0) ? 1 : member->level) / sumlevel));
 				break;
 		}
 

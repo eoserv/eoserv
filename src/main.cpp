@@ -28,6 +28,7 @@ volatile bool eoserv_running = true;
 
 static EOServer *eoserv_rehash_server = 0;
 
+#ifdef SIGHUP
 static void eoserv_rehash(int signal)
 {
 	if (eoserv_rehash_server == 0) return;
@@ -43,6 +44,7 @@ static void eoserv_rehash(int signal)
 
 	}
 }
+#endif // SIGHUP
 
 static void eoserv_terminate(int signal)
 {
@@ -299,6 +301,13 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "NPCChaseDistance"   , 18);
 		eoserv_config_default(config, "NPCBoredTimer"      , 30);
 		eoserv_config_default(config, "NPCAdjustMaxDam"    , 3);
+		eoserv_config_default(config, "BoardMaxPosts"      , 20);
+		eoserv_config_default(config, "BoardMaxUserPosts"  , 6);
+		eoserv_config_default(config, "BoardMaxRecentPosts", 2);
+		eoserv_config_default(config, "BoardRecentPostTime", 1800);
+		eoserv_config_default(config, "BoardMaxSubjectLength", 32);
+		eoserv_config_default(config, "BoardMaxPostLength" , 2048);
+		eoserv_config_default(config, "BoardDatePosts"     , 1);
 		eoserv_config_default(config, "ShowLevel"          , 0);
 		eoserv_config_default(config, "WarpBubbles"        , 1);
 		eoserv_config_default(config, "HideGlobal"         , 0);
@@ -428,6 +437,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "setkarma"      , 3);
 		eoserv_config_default(aconfig, "strip"         , 3);
 		eoserv_config_default(aconfig, "killnpc"       , 2);
+		eoserv_config_default(aconfig, "boardmod"      , 1);
 
 		Console::Styled[1] = Console::Styled[0] = static_cast<int>(config["StyleConsole"]);
 

@@ -12,6 +12,9 @@
 
 class World;
 
+struct Board_Post;
+struct Board;
+
 #include "character.hpp"
 #include "guild.hpp"
 #include "party.hpp"
@@ -25,6 +28,26 @@ class World;
 #include "eodata.hpp"
 #include "config.hpp"
 #include "socket.hpp"
+
+struct Board_Post
+{
+	short id;
+	std::string author;
+	int author_admin;
+	std::string subject;
+	std::string body;
+	double time;
+};
+
+struct Board
+{
+	short last_id;
+	std::list<Board_Post *> posts;
+
+	Board() : last_id(0) { }
+
+	~Board();
+};
 
 /**
  * Object which holds and manages all maps and characters on the server, as well as timed events
@@ -56,6 +79,8 @@ class World
 		std::vector<Guild *> guilds;
 		std::vector<Party *> parties;
 		std::vector<Map *> maps;
+
+		util::array<Board *, 8> boards;
 
 		util::array<int, 254> exp_table;
 

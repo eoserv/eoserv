@@ -521,6 +521,8 @@ double round(double);
 
 void sleep(double seconds);
 
+std::string timeago(double time, double current_time);
+
 /**
  * Finds the distance IN TILES between a pair of x,y coordinates
  */

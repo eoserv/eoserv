@@ -166,6 +166,7 @@ class Character
 		bool InRange(Map_Item);
 		void Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation = WARP_ANIMATION_NONE);
 		void Refresh();
+		void ShowBoard(int boardid);
 		std::string PaddedGuildTag();
 		int Usage();
 		void CalculateStats();

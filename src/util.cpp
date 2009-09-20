@@ -408,6 +408,44 @@ double round(double subject)
 	return std::floor(subject + 0.5);
 }
 
+std::string timeago(double time, double current_time)
+{
+	static bool init = false;
+	static std::vector<std::pair<int, std::string> > times;
+
+	if (!init)
+	{
+		init = true;
+		times.resize(5);
+		times.push_back(std::make_pair(1, "second"));
+		times.push_back(std::make_pair(60, "minute"));
+		times.push_back(std::make_pair(60*60, "hour"));
+		times.push_back(std::make_pair(24*60*60, "day"));
+		times.push_back(std::make_pair(7*24*60*60, "week"));
+	}
+
+	std::string ago;
+
+	double diff = current_time - time;
+
+	ago = ((diff >= 0) ? " ago" : " from now");
+
+	diff = std::abs(diff);
+
+	for (int i = times.size()-1; i >= 0; --i)
+	{
+		int x = int(diff / times[i].first);
+		diff -= x * times[i].first;
+
+		if (x > 0)
+		{
+			return util::to_string(x) + " " + times[i].second + ((x == 1) ? "" : "s") + ago;
+		}
+	}
+
+	return "now";
+}
+
 void sleep(double seconds)
 {
 #if defined(WIN32) || defined(WIN64)

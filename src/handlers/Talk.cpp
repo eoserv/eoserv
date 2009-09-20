@@ -135,12 +135,12 @@ CLIENT_F_FUNC(Talk)
 						}
 						else
 						{
-							duration = util::tdparse(arguments[1]);
+							duration = int(util::tdparse(arguments[1]));
 						}
 					}
 					else
 					{
-						duration = util::tdparse(this->server->world->config["DefaultBanLength"]);
+						duration = int(util::tdparse(this->server->world->config["DefaultBanLength"]));
 					}
 
 					if (victim)
