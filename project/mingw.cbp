@@ -155,6 +155,7 @@
 		<Unit filename="..\src\handlers\Global.cpp" />
 		<Unit filename="..\src\handlers\Guild.cpp" />
 		<Unit filename="..\src\handlers\Init.cpp" />
+		<Unit filename="..\src\handlers\Internal.cpp" />
 		<Unit filename="..\src\handlers\Item.cpp" />
 		<Unit filename="..\src\handlers\Jukebox.cpp" />
 		<Unit filename="..\src\handlers\Locker.cpp" />
