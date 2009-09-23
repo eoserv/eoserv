@@ -68,6 +68,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/handlers/Global.o \
        $(OBJDIR)/handlers/Guild.o \
        $(OBJDIR)/handlers/Init.o \
+       $(OBJDIR)/handlers/Internal.o \
        $(OBJDIR)/handlers/Item.o \
        $(OBJDIR)/handlers/Jukebox.o \
        $(OBJDIR)/handlers/Locker.o \
