@@ -206,7 +206,8 @@ Map::Map(int id, World *world)
 
 	if (static_cast<int>(world->arenas_config[util::to_string(id) + ".enabled"]))
 	{
-		std::vector<std::string> spawns = util::explode(',', static_cast<std::string>(world->arenas_config[util::to_string(id) + ".spawns"]));
+		std::string spawns_str = world->arenas_config[util::to_string(id) + ".spawns"];
+		std::vector<std::string> spawns = util::explode(',', spawns_str);
 
 		if (spawns.size() % 4 != 0)
 		{

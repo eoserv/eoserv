@@ -342,7 +342,7 @@ bool Character::DelItem(short item, int amount)
 	{
 		if (it->id == item)
 		{
-			if (it->amount - amount > it->amount || it->amount - amount <= 0)
+			if (it->amount < 0 || it->amount - amount <= 0)
 			{
 				this->inventory.erase(it);
 			}

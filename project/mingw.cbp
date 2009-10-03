@@ -63,7 +63,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-O3" />
 					<Add option="-DDATABASE_MYSQL" />
 					<Add option="-DDATABASE_SQLITE" />
 				</Compiler>
@@ -80,7 +80,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-O3" />
 					<Add option="-DDATABASE_MYSQL" />
 				</Compiler>
 				<Linker>
@@ -95,7 +95,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-O3" />
 					<Add option="-DDATABASE_SQLITE" />
 				</Compiler>
 				<Linker>
@@ -117,6 +117,9 @@
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
 		</Linker>
+		<Unit filename="winres.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
 		<Unit filename="..\src\arena.cpp" />
 		<Unit filename="..\src\arena.hpp" />
 		<Unit filename="..\src\character.cpp" />

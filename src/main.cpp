@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "ProctectPlayerDrop" , 5);
 		eoserv_config_default(config, "ProtectNPCDrop"     , 30);
 		eoserv_config_default(config, "ProtectPKDrop"      , 60);
-		eoserv_config_default(config, "ProtectDeathDrop"   , 1800);
+		eoserv_config_default(config, "ProtectDeathDrop"   , 300);
 		eoserv_config_default(config, "SeeDistance"        , 11);
 		eoserv_config_default(config, "DropDistance"       , 2);
 		eoserv_config_default(config, "RangedDistance"     , 5);
@@ -445,7 +445,7 @@ int main(int argc, char *argv[])
 
 		std::puts("\
                           ___ ___  ___ ___ _____   __\n\
-   EOSERV Version 0.5.0  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
+   EOSERV Version 0.5.1  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
                          |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
 \n\
