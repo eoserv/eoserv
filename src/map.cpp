@@ -615,25 +615,28 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	}
 }
 
-void Map::Leave(Character *character, WarpAnimation animation)
+void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 {
-	PacketBuilder builder;
-
-	builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
-	builder.AddShort(character->player->id);
-	if (animation != WARP_ANIMATION_NONE)
+	if (!silent)
 	{
-		builder.AddChar(animation);
-	}
+		PacketBuilder builder;
 
-	UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkcharacter)
-	{
-		if (checkcharacter == character || !character->InRange(checkcharacter))
+		builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
+		builder.AddShort(character->player->id);
+		if (animation != WARP_ANIMATION_NONE)
 		{
-			continue;
+			builder.AddChar(animation);
 		}
 
-		checkcharacter->player->client->SendBuilder(builder);
+		UTIL_LIST_FOREACH_ALL(this->characters, Character *, checkcharacter)
+		{
+			if (checkcharacter == character || !character->InRange(checkcharacter))
+			{
+				continue;
+			}
+
+			checkcharacter->player->client->SendBuilder(builder);
+		}
 	}
 
 	UTIL_LIST_IFOREACH_ALL(this->characters, Character *, checkcharacter)
@@ -1436,18 +1439,15 @@ bool Map::AttackPK(Character *from, Direction direction)
 						character->DropAll(from);
 					}
 
+					character->map->Leave(character, WARP_ANIMATION_NONE, true);
+
 					character->nowhere = true;
 					character->map = this->world->GetMap(character->spawnmap);
 					character->mapid = character->spawnmap;
 					character->x = character->spawnx;
 					character->y = character->spawny;
 
-					PacketBuilder builder;
-					builder.AddShort(character->spawnmap);
-					builder.AddChar(character->spawnx);
-					builder.AddChar(character->spawny);
-
-					PacketReader reader(builder.Get().substr(4));
+					PacketReader reader("");
 
 					character->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5));
 					character->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0));

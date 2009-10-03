@@ -648,7 +648,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	PacketBuilder builder;
 	builder.SetID(PACKET_WARP, PACKET_REQUEST);
 
-	if (this->player->character->mapid == map && !this->player->character->nowhere)
+	if (this->mapid == map && !this->nowhere)
 	{
 		builder.AddChar(WARP_LOCAL);
 		builder.AddShort(map);
@@ -678,7 +678,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 		builder.AddChar(0); // ?
 	}
 
-	if (this->map->exists)
+	if (this->map && this->map->exists)
 	{
 		this->map->Leave(this, animation);
 	}
@@ -688,10 +688,11 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	this->x = x;
 	this->y = y;
 	this->sitting = SIT_STAND;
-	this->map->Enter(this, animation);
 
 	this->warp_anim = animation;
 	this->nowhere = false;
+
+	this->map->Enter(this, animation);
 
 	this->player->client->SendBuilder(builder);
 

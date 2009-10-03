@@ -839,18 +839,15 @@ void NPC::Attack(Character *target)
 			target->DropAll(0);
 		}
 
+		target->map->Leave(target, WARP_ANIMATION_NONE, true);
+
 		target->nowhere = true;
 		target->map = this->map->world->GetMap(target->spawnmap);
 		target->mapid = target->spawnmap;
 		target->x = target->spawnx;
 		target->y = target->spawny;
 
-		PacketBuilder builder;
-		builder.AddShort(target->spawnmap);
-		builder.AddChar(target->spawnx);
-		builder.AddChar(target->spawny);
-
-		PacketReader reader(builder.Get().substr(4));
+		PacketReader reader("");
 
 		target->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5));
 		target->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0));

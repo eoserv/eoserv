@@ -19,13 +19,10 @@ CLIENT_F_FUNC(Internal)
 		case PACKET_INTERNAL_NULL:
 			break;
 
-		case PACKET_INTERNAL_WARP: // Warp
+		case PACKET_INTERNAL_WARP: // Death warp
 		{
-			short map = reader.GetShort();
-			unsigned char x = reader.GetChar();
-			unsigned char y = reader.GetChar();
-
-			this->player->character->Warp(map, x, y);
+			this->player->character->map = 0;
+			this->player->character->Warp(this->player->character->spawnmap, this->player->character->spawnx, this->player->character->spawny, WARP_ANIMATION_NONE);
 		}
 		break;
 

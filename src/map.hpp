@@ -242,7 +242,7 @@ class Map
 		unsigned char GenerateNPCIndex();
 
 		void Enter(Character *, WarpAnimation animation = WARP_ANIMATION_NONE);
-		void Leave(Character *, WarpAnimation animation = WARP_ANIMATION_NONE);
+		void Leave(Character *, WarpAnimation animation = WARP_ANIMATION_NONE, bool silent = false);
 
 		void Msg(Character *from, std::string message);
 		bool Walk(Character *from, Direction direction, bool admin = false);
