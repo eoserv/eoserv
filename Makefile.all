@@ -10,8 +10,8 @@ RELEASE_OBJDIR = obj/Release/$(SRCDIR)
 DEBUG_FORMAT = -g
 OPTIMIZATION_LEVEL = -O2
 
-CFLAGS = -DEOSERV_MAKEFILE
-CXXFLAGS = -DEOSERV_MAKEFILE
+CFLAGS = -DEOSERV_MAKEFILE -fno-inline
+CXXFLAGS = $(CFLAGS)
 LDFLAGS = 
 LIBS = $(PTHREAD_LIB)
 
@@ -38,6 +38,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/eoserver.o \
        $(OBJDIR)/guild.o \
        $(OBJDIR)/hash.o \
+       $(OBJDIR)/hook.o \
        $(OBJDIR)/main.o \
        $(OBJDIR)/map.o \
        $(OBJDIR)/nanohttp.o \
@@ -45,6 +46,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/packet.o \
        $(OBJDIR)/party.o \
        $(OBJDIR)/player.o \
+       $(OBJDIR)/script.o \
        $(OBJDIR)/sha256.o \
        $(OBJDIR)/sln.o \
        $(OBJDIR)/socket.o \

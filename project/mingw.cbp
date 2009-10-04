@@ -106,6 +106,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-fno-inline" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
 			<Add directory="..\src\" />
@@ -116,6 +117,12 @@
 			<Add library="ws2_32" />
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
+			<Add library="angelscript" />
+			<Add library="as_scriptbuilder" />
+			<Add library="as_scriptmath" />
+			<Add library="as_scriptstdstring" />
+			<Add library="as_scriptdictionary" />
+			<Add library="as_scriptfile" />
 		</Linker>
 		<Unit filename="winres.rc">
 			<Option compilerVar="WINDRES" />
@@ -179,6 +186,8 @@
 		<Unit filename="..\src\handlers\handlers.hpp" />
 		<Unit filename="..\src\hash.cpp" />
 		<Unit filename="..\src\hash.hpp" />
+		<Unit filename="..\src\hook.cpp" />
+		<Unit filename="..\src\hook.hpp" />
 		<Unit filename="..\src\main.cpp" />
 		<Unit filename="..\src\map.cpp" />
 		<Unit filename="..\src\map.hpp" />
@@ -192,6 +201,8 @@
 		<Unit filename="..\src\party.hpp" />
 		<Unit filename="..\src\player.cpp" />
 		<Unit filename="..\src\player.hpp" />
+		<Unit filename="..\src\script.cpp" />
+		<Unit filename="..\src\script.hpp" />
 		<Unit filename="..\src\sha256.c">
 			<Option compilerVar="CC" />
 		</Unit>

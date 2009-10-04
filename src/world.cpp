@@ -227,6 +227,11 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	{
 		this->boards = new Board;
 	}
+
+	this->hookmanager = new HookManager(this->config["ScriptDir"]);
+
+	// Any new script-visible classes must be added here
+	HookManager::ScriptRegister(this->hookmanager->engine);
 }
 
 int World::GenerateCharacterID()

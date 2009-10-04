@@ -281,9 +281,9 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "ArenasFile"         , "./data/arenas.ini");
 		eoserv_config_default(config, "MapDir"             , "./data/maps/");
 		eoserv_config_default(config, "Maps"               , 278);
-		eoserv_config_default(config, "QuestDir"           , "./data/quests/");
 		eoserv_config_default(config, "ScriptDir"          , "./data/scripts/");
 		eoserv_config_default(config, "ProtectMaps"        , 0);
+		eoserv_config_default(config, "ScriptFileAccess"   , 1);
 		eoserv_config_default(config, "SLN"                , 1);
 		eoserv_config_default(config, "SLNURL"             , "http://eoserv.net/SLN/");
 		eoserv_config_default(config, "SLNSite"            , "");

@@ -28,6 +28,7 @@ struct Board;
 #include "eodata.hpp"
 #include "config.hpp"
 #include "socket.hpp"
+#include "hook.hpp"
 
 struct Board_Post
 {
@@ -63,6 +64,8 @@ class World
 
 		EOServer *server;
 		Database db;
+
+		HookManager *hookmanager;
 
 		EIF *eif;
 		ENF *enf;
