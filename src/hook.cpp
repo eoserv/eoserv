@@ -31,15 +31,20 @@ void HookManager::InitCall(std::string filename)
 {
 	ScriptContext *ctx = this->engine.Build(filename);
 
+	if (!ctx)
+	{
+		return;
+	}
+
 	this->current_context = ctx;
 
-	if (!ctx->Prepare("init"))
+	if (ctx->Prepare("init") < 0)
 	{
-		puts("Prepare failed in init");
+		return;
 	}
 
 	ctx->as->SetArgObject(0, this);
-	ctx->Execute<void>();
+	ctx->Execute();
 
 	this->current_context = 0;
 }

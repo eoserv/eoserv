@@ -30,7 +30,7 @@ struct Board;
 #include "socket.hpp"
 #include "hook.hpp"
 
-struct Board_Post
+SCRIPT_STRUCT_VALUE(Board_Post)
 {
 	short id;
 	std::string author;
@@ -38,9 +38,21 @@ struct Board_Post
 	std::string subject;
 	std::string body;
 	double time;
+
+	SCRIPT_REGISTER(Board_Post)
+	{
+		Board_Post *inst = reinterpret_cast<Board_Post *>(std::malloc(sizeof(inst)));
+		SCRIPT_REGISTER_VARIABLE_OFFSET("int16", "id", instance_offsetof(inst, id));
+		SCRIPT_REGISTER_VARIABLE_OFFSET("string", "author", instance_offsetof(inst, author));
+		SCRIPT_REGISTER_VARIABLE_OFFSET("int", "author_admin", instance_offsetof(inst, author_admin));
+		SCRIPT_REGISTER_VARIABLE_OFFSET("string", "subject", instance_offsetof(inst, subject));
+		SCRIPT_REGISTER_VARIABLE_OFFSET("string", "body", instance_offsetof(inst, body));
+		SCRIPT_REGISTER_VARIABLE_OFFSET("double", "time", instance_offsetof(inst, time));
+		std::free(inst);
+	}
 };
 
-struct Board
+SCRIPT_STRUCT_REF(Board)
 {
 	short last_id;
 	std::list<Board_Post *> posts;
@@ -48,6 +60,14 @@ struct Board
 	Board() : last_id(0) { }
 
 	~Board();
+
+	SCRIPT_REGISTER(Board)
+	{
+		Board *inst = reinterpret_cast<Board *>(std::malloc(sizeof(inst)));
+		SCRIPT_REGISTER_VARIABLE_OFFSET("int16", "last_id", instance_offsetof(inst, last_id));
+		SCRIPT_REGISTER_VARIABLE_OFFSET("_list_Board_Post_ptr", "posts", instance_offsetof(inst, posts));
+		std::free(inst);
+	}
 };
 
 /**

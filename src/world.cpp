@@ -12,6 +12,7 @@
 #include <limits>
 #include <cmath>
 #include <ctime>
+#include <cstdio>
 
 #include "character.hpp"
 #include "guild.hpp"
@@ -230,8 +231,52 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 
 	this->hookmanager = new HookManager(this->config["ScriptDir"]);
 
+	if (static_cast<int>(this->config["ScriptFileAccess"]))
+	{
+		RegisterScriptFile(this->hookmanager->engine.as);
+	}
+
+	if (static_cast<int>(this->config["ScriptLibCAccess"]))
+	{
+		RegisterScriptLibC(this->hookmanager->engine.as);
+	}
+
 	// Any new script-visible classes must be added here
+	Board_Post::ScriptRegisterType(this->hookmanager->engine);
+	Board::ScriptRegisterType(this->hookmanager->engine);
+	HookManager::ScriptRegisterType(this->hookmanager->engine);
+
+	// Any STL types used must be added here
+	RegisterScriptList<Board_Post *>("_list_Board_Post_ptr", "Board_Post_ptr", this->hookmanager->engine.as);
+
+	// Any new script-visible classes must be added here (yes, again)
+	Board_Post::ScriptRegister(this->hookmanager->engine);
+	Board::ScriptRegister(this->hookmanager->engine);
 	HookManager::ScriptRegister(this->hookmanager->engine);
+
+	FILE *fh = fopen(static_cast<std::string>(this->config["ScriptsFile"]).c_str(), "rt");
+
+	if (!fh)
+	{
+		Console::Wrn("Failed to open %s, no scripts will be loaded", static_cast<std::string>(this->config["ScriptsFile"]).c_str());
+	}
+
+	char buf[4096];
+
+	while (fgets(buf, 4096, fh))
+	{
+		std::string sbuf(buf);
+		sbuf = util::trim(sbuf);
+
+		if (sbuf.length() == 0 || sbuf[0] == '#')
+		{
+			continue;
+		}
+
+		this->hookmanager->InitCall(sbuf.c_str());
+	}
+
+	fclose(fh);
 }
 
 int World::GenerateCharacterID()

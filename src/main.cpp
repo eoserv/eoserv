@@ -282,8 +282,11 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "MapDir"             , "./data/maps/");
 		eoserv_config_default(config, "Maps"               , 278);
 		eoserv_config_default(config, "ScriptDir"          , "./data/scripts/");
+		eoserv_config_default(config, "ScriptsFile"        , "./data/scripts.txt");
 		eoserv_config_default(config, "ProtectMaps"        , 0);
 		eoserv_config_default(config, "ScriptFileAccess"   , 1);
+		eoserv_config_default(config, "ScriptLibCAccess"   , 1);
+		eoserv_config_default(config, "ScriptMaxExecTime"  , 1500);
 		eoserv_config_default(config, "SLN"                , 1);
 		eoserv_config_default(config, "SLNURL"             , "http://eoserv.net/SLN/");
 		eoserv_config_default(config, "SLNSite"            , "");
@@ -448,8 +451,6 @@ int main(int argc, char *argv[])
    EOSERV Version 0.5.2  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
                          |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
-\n\
-EO Version Support: .27 .28\n\
 \n");
 #ifdef DEBUG
 		Console::Wrn("This is a debug build and shouldn't be used for live servers.");

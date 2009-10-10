@@ -118,7 +118,6 @@
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
 			<Add library="angelscript" />
-			<Add library="as_scriptbuilder" />
 			<Add library="as_scriptmath" />
 			<Add library="as_scriptstdstring" />
 			<Add library="as_scriptdictionary" />
@@ -203,6 +202,9 @@
 		<Unit filename="..\src\player.hpp" />
 		<Unit filename="..\src\script.cpp" />
 		<Unit filename="..\src\script.hpp" />
+		<Unit filename="..\src\scriptlibc.cpp" />
+		<Unit filename="..\src\scriptlibc.h" />
+		<Unit filename="..\src\scriptstl.h" />
 		<Unit filename="..\src\sha256.c">
 			<Option compilerVar="CC" />
 		</Unit>

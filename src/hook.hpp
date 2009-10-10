@@ -12,6 +12,41 @@
 
 #include "script.hpp"
 
+#define HOOK_CALL(hm, s) \
+{ \
+	bool break_hook = false; \
+ \
+	UTIL_LIST_FOREACH_ALL(hm->hooks[s], Hook *, hook) \
+	{ \
+		if (hook->ctx->Prepare(hook->func.c_str()) < 0) \
+		{ \
+			break; \
+		} \
+
+#define HOOK_DEFAULT() \
+		bool *ret = hook->ctx->Execute<bool>(); \
+ \
+		if (ret) \
+		{ \
+			break_hook = *ret; \
+ \
+			if (break_hook) \
+			{ \
+				break; \
+			} \
+		} \
+ \
+		hook->ctx->as->Release(); \
+	} \
+ \
+	if (!break_hook) \
+
+#define HOOK_CANCEL() \
+	else
+
+#define HOOK_CALL_END() \
+}
+
 class Hook
 {
 	public:
@@ -30,7 +65,7 @@ class Hook
 		}
 };
 
-class HookManager : public ScriptRefObject<HookManager>
+SCRIPT_CLASS_REF(HookManager)
 {
 	public:
 		std::map<std::string, std::list<Hook *> > hooks;
@@ -48,14 +83,10 @@ class HookManager : public ScriptRefObject<HookManager>
 
 		void InitCall(std::string filename);
 
-		static const char *Type() { return "HookManager"; }
-
-		static void ScriptRegister(ScriptEngine &engine)
+		SCRIPT_REGISTER(HookManager)
 		{
-			HookManager::RegisterType(engine);
-			HookManager::RegisterBehaviour(engine);
-			HookManager::RegisterFunction(engine, "void Register(string, string)", asMETHOD(HookManager, Register_));
-			HookManager::RegisterFunction(engine, "void Unregister(string, string)", asMETHOD(HookManager, Unregister_));
+			SCRIPT_REGISTER_FUNCTION("void Register(string, string)", Register_);
+			SCRIPT_REGISTER_FUNCTION("void Unregister(string, string)", Unregister_);
 		}
 };
 
