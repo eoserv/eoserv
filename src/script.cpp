@@ -11,7 +11,7 @@
 
 #include "script.hpp"
 
-#include "Console.hpp"
+#include "console.hpp"
 
 bool ScriptContext::Prepare(std::string function)
 {
