@@ -364,10 +364,10 @@ bool NPC::Walk(Direction direction)
 
 void NPC::Damage(Character *from, int amount)
 {
-	double droprate = static_cast<double>(this->map->world->config["DropRate"]) / 100.0;
-	double exprate = static_cast<double>(this->map->world->config["ExpRate"]) / 100.0;
-	int sharemode = static_cast<int>(this->map->world->config["ShareMode"]);
-	int partysharemode = static_cast<int>(this->map->world->config["PartyShareMode"]);
+	double droprate = this->map->world->config["DropRate"];
+	double exprate = this->map->world->config["ExpRate"];
+	int sharemode = this->map->world->config["ShareMode"];
+	int partysharemode = this->map->world->config["PartyShareMode"];
 	std::set<Party *> parties;
 	PacketBuilder builder;
 
@@ -721,7 +721,7 @@ void NPC::Damage(Character *from, int amount)
 
 void NPC::Attack(Character *target)
 {
-	double mobrate = static_cast<double>(this->map->world->config["MobRate"]) / 100.0;
+	double mobrate = this->map->world->config["MobRate"];
 
 	int amount = util::rand(this->data->mindam, this->data->maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
 
@@ -825,7 +825,7 @@ void NPC::Attack(Character *target)
 		character->player->client->SendBuilder(builder);
 	}
 
-	int rechp = int(target->maxhp * static_cast<double>(this->map->world->config["DeathRecover"]) / 100.0);
+	int rechp = int(target->maxhp * static_cast<double>(this->map->world->config["DeathRecover"]));
 
 	if (target->hp == 0)
 	{

@@ -1261,7 +1261,7 @@ void Map::Attack(Character *from, Direction direction)
 			return;
 		}
 
-		double mobrate = static_cast<double>(this->world->config["MobRate"]) / 100.0;
+		double mobrate = this->world->config["MobRate"];
 		UTIL_VECTOR_FOREACH_ALL(this->npcs, NPC *, npc)
 		{
 			if ((npc->data->type == ENF::Passive || npc->data->type == ENF::Aggressive || from->admin > static_cast<int>(this->world->admin_config["killnpcs"]))
@@ -1355,7 +1355,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 			return false;
 		}
 
-		double pkrate = static_cast<double>(this->world->config["PKRate"]) / 100.0;
+		double pkrate = this->world->config["PKRate"];
 		UTIL_LIST_FOREACH_ALL(this->characters, Character *, character)
 		{
 			if (character->mapid == this->id && !character->nowhere && character->x == target_x && character->y == target_y)

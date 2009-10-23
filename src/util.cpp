@@ -77,13 +77,14 @@ int variant::GetInt()
 			break;
 
 		case type_string:
-			this->val_int = 0;
-			std::sscanf(this->val_string.c_str(), "%d", &this->val_int);
+			this->val_int = tdparse(this->val_string);
 			break;
 
 		case type_bool:
 			this->val_int = this->val_bool ? 0 : -1;
 			break;
+
+		default: ; // Shut the compiler up
 	}
 
 	return this->val_int;
@@ -104,13 +105,14 @@ double variant::GetFloat()
 			break;
 
 		case type_string:
-			this->val_float = 0.0;
-			std::sscanf(this->val_string.c_str(), "%lf", &this->val_float);
+			this->val_float = tdparse(this->val_string);
 			break;
 
 		case type_bool:
 			this->val_float = this->val_bool ? 0.0 : 1.0;
 			break;
+
+		default: ; // Shut the compiler up
 	}
 
 	return this->val_float;
@@ -141,6 +143,8 @@ std::string variant::GetString()
 		case type_bool:
 			this->val_string = this->val_bool ? "yes" : "no";
 			break;
+
+		default: ; // Shut the compiler up
 	}
 
 	return this->val_string;
@@ -172,6 +176,8 @@ bool variant::GetBool()
 			util::lowercase(s);
 			this->val_bool = (s == "yes" || s == "true" || s == "enabled" || intval != 0);
 			break;
+
+		default: ; // Shut the compiler up
 	}
 
 	return this->val_bool;
@@ -363,39 +369,82 @@ std::vector<std::string> explode(std::string delimiter, std::string str)
 
 double tdparse(std::string timestr)
 {
-	static char period_names[] = {'s', 'm',  'h',    'd'    };
-	static double period_mul[] = {1.0, 60.0, 3600.0, 86400.0};
+	static char period_names[] = {'s', 'm',  '%',   'k',    'h',    'd'    };
+	static double period_mul[] = {1.0, 60.0, 100.0, 1000.0, 3600.0, 86400.0};
 	double ret = 0.0;
-	double val = 0;
+	double val = 0.0;
+	bool decimal = false;
+	double decimalmulti = 0.1;
+	bool negate = false;
 
 	for (std::size_t i = 0; i < timestr.length(); ++i)
 	{
-		char c = timestr.c_str()[i];
+		char c = timestr[i];
 		bool found = false;
+
+		if (c == '-')
+		{
+			negate = true;
+			continue;
+		}
 
 		if (c >= 'A' && c <= 'Z')
 		{
 			c -= 'A' - 'a';
 		}
 
-		for (std::size_t i = 0; i < sizeof(period_names)/sizeof(char); ++i)
+		for (std::size_t ii = 0; ii < sizeof(period_names)/sizeof(char); ++ii)
 		{
-			if (c == period_names[i])
+			if (c == period_names[ii])
 			{
-				ret += val * period_mul[i];
+				if (c == 'm' && timestr[i+1] == 's')
+				{
+					ret += val / 1000.0;
+					++i;
+				}
+				else if (c == '%')
+				{
+					ret += val / period_mul[ii];
+				}
+				else
+				{
+					ret += val * period_mul[ii];
+				}
+
 				found = true;
-				val = false;
+				val = 0.0;
+
+				decimal = false;
+				decimalmulti = 0.1;
+
+				break;
 			}
 		}
 
 		if (!found)
 		{
-			val *= 10;
-			val += c - '0';
+			if (c >= '0' && c <= '9')
+			{
+				if (!decimal)
+				{
+					val *= 10.0;
+					val += c - '0';
+				}
+				else
+				{
+					val += (c - '0') * decimalmulti;
+					decimalmulti /= 10.0;
+				}
+			}
+			else if (c == '.')
+			{
+				decimal = true;
+				decimalmulti = 0.1;
+			}
 		}
 	}
 
-	return ret;
+	return (ret + val) * (negate ? -1.0 : 1.0);
 }
 
 int to_int(const std::string &subject)

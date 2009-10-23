@@ -26,7 +26,7 @@ void world_spawn_npcs(void *world_void)
 {
 	World *world = static_cast<World *>(world_void);
 
-	double spawnrate = static_cast<double>(world->config["SpawnRate"]) / 100.0;
+	double spawnrate = world->config["SpawnRate"];
 	double current_time = Timer::GetTime();
 	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
 	{
