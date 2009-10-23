@@ -4,25 +4,17 @@
  * See LICENSE.txt for more info.
  */
 
-#include <algorithm>
-#include <string>
-#include <cstdio>
-#include <cmath>
-#include <list>
-#include <vector>
+#ifndef HANDLERS_H_INCLUDED
+#define HANDLERS_H_INCLUDED
 
+#include "stdafx.h"
+
+#include "character.hpp"
 #include "eoclient.hpp"
 #include "eoserver.hpp"
-#include "world.hpp"
-#include "player.hpp"
-#include "character.hpp"
-#include "party.hpp"
-#include "guild.hpp"
 #include "packet.hpp"
-#include "eoconst.hpp"
-#include "eodata.hpp"
-#include "util.hpp"
-#include "console.hpp"
+#include "player.hpp"
+#include "world.hpp"
 
 #ifdef CLIENT_F_FUNC
 #undef CLIENT_F_FUNC
@@ -33,3 +25,5 @@
 #define CLIENT_SENDRAW(REPLY) this->Send(REPLY)
 #define CLIENT_SEND(REPLY) this->Send(this->processor.Encode(REPLY))
 #define CLIENT_QUEUE_ACTION(time) if (!act) { this->queue.push(new ActionQueue_Action(family, action, reader, time)); return true; }
+
+#endif // HANDLERS_H_INCLUDED

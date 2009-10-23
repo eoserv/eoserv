@@ -6,28 +6,21 @@
 
 #include "world.hpp"
 
-#include <algorithm>
-#include <map>
-#include <string>
-#include <limits>
-#include <cmath>
-#include <ctime>
-#include <cstdio>
-
 #include "character.hpp"
-#include "guild.hpp"
-#include "party.hpp"
-#include "map.hpp"
-
-#include "eoserver.hpp"
-#include "eoconst.hpp"
-#include "timer.hpp"
-#include "util.hpp"
+#include "config.hpp"
+#include "console.hpp"
 #include "database.hpp"
 #include "eodata.hpp"
-#include "config.hpp"
+#include "eoserver.hpp"
+#include "guild.hpp"
 #include "hash.hpp"
-#include "console.hpp"
+#include "hook.hpp"
+#include "map.hpp"
+#include "npc.hpp"
+#include "party.hpp"
+#include "player.hpp"
+#include "scriptreg.hpp"
+#include "util.hpp"
 
 void world_spawn_npcs(void *world_void)
 {
@@ -213,7 +206,7 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	this->timer.Register(new TimeEvent(world_act_npcs, this, 0.05, Timer::FOREVER, true));
 	this->timer.Register(new TimeEvent(world_recover, this, 90.0, Timer::FOREVER, true));
 
-	if (static_cast<int>(this->config["ItemDespawn"]))
+	if (this->config["ItemDespawn"])
 	{
 		this->timer.Register(new TimeEvent(world_despawn_items, this, static_cast<double>(this->config["ItemDespawnCheck"]), Timer::FOREVER, true));
 	}
@@ -231,28 +224,7 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 
 	this->hookmanager = new HookManager(this->config["ScriptDir"]);
 
-	if (static_cast<int>(this->config["ScriptFileAccess"]))
-	{
-		RegisterScriptFile(this->hookmanager->engine.as);
-	}
-
-	if (static_cast<int>(this->config["ScriptLibCAccess"]))
-	{
-		RegisterScriptLibC(this->hookmanager->engine.as);
-	}
-
-	// Any new script-visible classes must be added here
-	Board_Post::ScriptRegisterType(this->hookmanager->engine);
-	Board::ScriptRegisterType(this->hookmanager->engine);
-	HookManager::ScriptRegisterType(this->hookmanager->engine);
-
-	// Any STL types used must be added here
-	RegisterScriptList<Board_Post *>("_list_Board_Post_ptr", "Board_Post_ptr", this->hookmanager->engine.as);
-
-	// Any new script-visible classes must be added here (yes, again)
-	Board_Post::ScriptRegister(this->hookmanager->engine);
-	Board::ScriptRegister(this->hookmanager->engine);
-	HookManager::ScriptRegister(this->hookmanager->engine);
+	script_register(*this); // See scriptreg.cpp
 
 	FILE *fh = fopen(static_cast<std::string>(this->config["ScriptsFile"]).c_str(), "rt");
 
@@ -678,6 +650,11 @@ static std::list<int> PKExceptUnserialize(std::string serialized)
 	std::list<int> list;
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
+
+	if (!serialized.empty() && *(serialized.end()-1) != ',')
+	{
+		serialized.push_back(',');
+	}
 
 	while ((p = serialized.find_first_of(',', p+1)) != std::string::npos)
 	{

@@ -7,45 +7,9 @@
 #ifndef HOOK_HPP_INCLUDED
 #define HOOK_HPP_INCLUDED
 
-#include <map>
-#include <list>
+#include "stdafx.h"
 
 #include "script.hpp"
-
-#define HOOK_CALL(hm, s) \
-{ \
-	bool break_hook = false; \
- \
-	UTIL_LIST_FOREACH_ALL(hm->hooks[s], Hook *, hook) \
-	{ \
-		if (hook->ctx->Prepare(hook->func.c_str()) < 0) \
-		{ \
-			break; \
-		} \
-
-#define HOOK_DEFAULT() \
-		bool *ret = hook->ctx->Execute<bool>(); \
- \
-		if (ret) \
-		{ \
-			break_hook = *ret; \
- \
-			if (break_hook) \
-			{ \
-				break; \
-			} \
-		} \
- \
-		hook->ctx->as->Release(); \
-	} \
- \
-	if (!break_hook) \
-
-#define HOOK_CANCEL() \
-	else
-
-#define HOOK_CALL_END() \
-}
 
 class Hook
 {

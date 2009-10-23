@@ -4,7 +4,9 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.hpp"
+#include "handlers.h"
+
+#include "eodata.hpp"
 
 CLIENT_F_FUNC(Character)
 {

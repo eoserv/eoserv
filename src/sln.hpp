@@ -7,9 +7,7 @@
 #ifndef SLN_HPP_INCLUDED
 #define SLN_HPP_INCLUDED
 
-class SLN;
-
-#include "eoserver.hpp"
+#include "stdafx.h"
 
 /**
  * Manages checking in with the SLN server regularly

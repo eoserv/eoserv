@@ -77,8 +77,8 @@ enum Skin UTIL_EXTEND_ENUM(unsigned char)
 	SKIN_YELLOW = 1,
 	SKIN_TAN = 2,
 	SKIN_ORC = 3,
-	SKIN_PANDA = 4,
-	SKIN_SKELETON = 5,
+	SKIN_SKELETON = 4,
+	SKIN_PANDA = 5,
 	SKIN_FISH = 6
 };
 

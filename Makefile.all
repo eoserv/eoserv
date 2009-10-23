@@ -8,12 +8,12 @@ DEBUG_OBJDIR = obj/Debug/$(SRCDIR)
 RELEASE_OBJDIR = obj/Release/$(SRCDIR)
 
 DEBUG_FORMAT = -g
-OPTIMIZATION_LEVEL = -O2
+OPTIMIZATION_LEVEL = -O3
 
 CFLAGS = -DEOSERV_MAKEFILE -fno-inline
 CXXFLAGS = $(CFLAGS)
 LDFLAGS = 
-LIBS = $(PTHREAD_LIB) -langelscript -las_scriptmath -las_scriptstdstring -las_scriptdictionary -las_scriptfile
+LIBS = $(PTHREAD_LIB) -langelscript -las_scriptmath -las_scriptstdstring -las_scriptfile
 
 ifeq ($(DEBUG),1)
 	BIN = $(DEBUG_BIN)

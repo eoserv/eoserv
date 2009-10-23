@@ -6,9 +6,6 @@
 
 #include "hash.hpp"
 
-#include <string>
-#include <cstring>
-
 extern "C"
 {
 #include "sha256.h"

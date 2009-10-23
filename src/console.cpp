@@ -4,15 +4,13 @@
  * See LICENSE.txt for more info.
  */
 
-#include <string>
+#include "console.hpp"
+
 #include <cstdio>
-#include <cstdarg>
 
 #if defined(WIN32) || defined(WIN64)
 #include <windows.h>
 #endif // defined(WIN32) || defined(WIN64)
-
-#include "console.hpp"
 
 namespace Console
 {
@@ -46,13 +44,13 @@ void SetTextColor(Stream stream, Color color, bool bold)
 {
 	char command[6] = {27, '[', '3', '0', 'm', 0};
 	command[4] += (color - 30);
-	fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
+	std::fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
 }
 
 void ResetTextColor(Stream stream)
 {
 	char command[5] = {27, '[', '0', 'm', 0};
-	fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
+	std::fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
 }
 #endif // defined(WIN32) || defined(WIN64)
 

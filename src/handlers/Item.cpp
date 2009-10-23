@@ -4,7 +4,11 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.hpp"
+#include "handlers.h"
+
+#include "eodata.hpp"
+#include "map.hpp"
+#include "party.hpp"
 
 CLIENT_F_FUNC(Item)
 {
@@ -62,7 +66,7 @@ CLIENT_F_FUNC(Item)
 						int hpgain = item->hp;
 						int tpgain = item->tp;
 
-						if (static_cast<int>(this->server->world->config["LimitDamage"]))
+						if (this->server->world->config["LimitDamage"])
 						{
 							hpgain = std::min(hpgain, this->player->character->maxhp - this->player->character->hp);
 							tpgain = std::min(tpgain, this->player->character->maxtp - this->player->character->tp);
@@ -71,7 +75,7 @@ CLIENT_F_FUNC(Item)
 						this->player->character->hp += hpgain;
 						this->player->character->tp += tpgain;
 
-						if (!static_cast<int>(this->server->world->config["LimitDamage"]))
+						if (!this->server->world->config["LimitDamage"])
 						{
 							this->player->character->hp = std::min(this->player->character->hp, this->player->character->maxhp);
 							this->player->character->tp = std::min(this->player->character->tp, this->player->character->maxtp);

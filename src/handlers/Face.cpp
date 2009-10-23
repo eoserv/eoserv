@@ -4,7 +4,9 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.hpp"
+#include "handlers.h"
+
+#include "map.hpp"
 
 CLIENT_F_FUNC(Face)
 {

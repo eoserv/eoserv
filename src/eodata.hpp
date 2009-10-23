@@ -7,21 +7,7 @@
 #ifndef EODATA_HPP_INCLUDED
 #define EODATA_HPP_INCLUDED
 
-#include <string>
-#include <vector>
-#include <cstdio>
-
-// TODO: this
-
-class EIF_Data;
-class ENF_Data;
-class ESF_Data;
-class ECF_Data;
-
-class EIF;
-class ENF;
-class ESF;
-class ECF;
+#include "stdafx.h"
 
 /**
  * Loads and stores information on all items from an EIF file

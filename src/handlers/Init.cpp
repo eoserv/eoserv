@@ -4,7 +4,7 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.hpp"
+#include "handlers.h"
 
 static unsigned int stupid_hash(unsigned int i)
 {
@@ -58,19 +58,19 @@ CLIENT_F_FUNC(Init)
 		return false;
 	}
 
-	int minversion = static_cast<int>(this->server->world->config["MinVersion"]);
+	int minversion = this->server->world->config["MinVersion"];
 	if (!minversion)
 	{
 		minversion = 27;
 	}
 
-	int maxversion = static_cast<int>(this->server->world->config["MaxVersion"]);
+	int maxversion = this->server->world->config["MaxVersion"];
 	if (!maxversion)
 	{
 		maxversion = 28;
 	}
 
-	if (static_cast<int>(this->server->world->config["CheckVersion"]) && (this->version < minversion || this->version > maxversion))
+	if (this->server->world->config["CheckVersion"] && (this->version < minversion || this->version > maxversion))
 	{
 		reply.AddByte(INIT_OUT_OF_DATE);
 		reply.AddChar(0);

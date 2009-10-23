@@ -6,12 +6,8 @@
 
 #include "util.hpp"
 
-#include <list>
-#include <vector>
-#include <cstdio>
-#include <cmath>
+#include <algorithm>
 #include <ctime>
-#include <string>
 #include <limits>
 
 #if defined(WIN32) || defined(WIN64)
@@ -23,29 +19,33 @@ namespace util
 
 variant::variant()
 {
-	this->type = type_int;
-	this->val_int = 0;
-	this->cache_val[type_int] = true;
-	this->cache_val[type_float] = false;
-	this->cache_val[type_string] = false;
+	this->SetInt(0);
 }
 
 variant::variant(int i)
 {
 	this->SetInt(i);
-	this->cache_val[type_int] = true;
 }
 
 variant::variant(double d)
 {
 	this->SetFloat(d);
-	this->cache_val[type_float] = true;
 }
 
 variant::variant(const std::string &s)
 {
 	this->SetString(s);
-	this->cache_val[type_string] = true;
+}
+
+variant::variant(const char *p)
+{
+	std::string s(p);
+	this->SetString(s);
+}
+
+variant::variant(bool b)
+{
+	this->SetBool(b);
 }
 
 int variant::int_length(int x)
@@ -80,6 +80,10 @@ int variant::GetInt()
 			this->val_int = 0;
 			std::sscanf(this->val_string.c_str(), "%d", &this->val_int);
 			break;
+
+		case type_bool:
+			this->val_int = this->val_bool ? 0 : -1;
+			break;
 	}
 
 	return this->val_int;
@@ -102,6 +106,10 @@ double variant::GetFloat()
 		case type_string:
 			this->val_float = 0.0;
 			std::sscanf(this->val_string.c_str(), "%lf", &this->val_float);
+			break;
+
+		case type_bool:
+			this->val_float = this->val_bool ? 0.0 : 1.0;
 			break;
 	}
 
@@ -129,35 +137,81 @@ std::string variant::GetString()
 			snprintf(buf, 1024, "%lf", this->val_float);
 			this->val_string = buf;
 			break;
+
+		case type_bool:
+			this->val_string = this->val_bool ? "yes" : "no";
+			break;
 	}
 
 	return this->val_string;
 }
 
+bool variant::GetBool()
+{
+	if (this->cache_val[type_bool])
+	{
+		return this->val_bool;
+	}
+	this->cache_val[type_bool] = true;
+
+	int intval = 0;
+	std::string s = this->val_string;
+
+	switch (this->type)
+	{
+		case type_int:
+			this->val_bool = static_cast<bool>(this->val_int);
+			break;
+
+		case type_float:
+			this->val_bool = std::abs(this->val_float) != 0.0 && this->val_float == this->val_float;
+			break;
+
+		case type_string:
+			std::sscanf(this->val_string.c_str(), "%d", &intval);
+			util::lowercase(s);
+			this->val_bool = (s == "yes" || s == "true" || s == "enabled" || intval != 0);
+			break;
+	}
+
+	return this->val_bool;
+}
+
+void variant::SetType(variant::var_type type)
+{
+	this->type = type;
+
+	for (std::size_t i = 0; i < sizeof(this->cache_val); ++i)
+	{
+		this->cache_val[i] = (static_cast<variant::var_type>(i) == type);
+	}
+}
+
 variant &variant::SetInt(int i)
 {
 	this->val_int = i;
-	this->type = type_int;
-	this->cache_val[type_float] = false;
-	this->cache_val[type_string] = false;
+	this->SetType(type_int);
 	return *this;
 }
 
 variant &variant::SetFloat(double d)
 {
 	this->val_float = d;
-	this->type = type_float;
-	this->cache_val[type_int] = false;
-	this->cache_val[type_string] = false;
+	this->SetType(type_float);
 	return *this;
 }
 
 variant &variant::SetString(const std::string &s)
 {
 	this->val_string = s;
-	this->type = type_string;
-	this->cache_val[type_int] = false;
-	this->cache_val[type_float] = false;
+	this->SetType(type_string);
+	return *this;
+}
+
+variant &variant::SetBool(bool b)
+{
+	this->val_bool = b;
+	this->SetType(type_bool);
 	return *this;
 }
 
@@ -176,6 +230,17 @@ variant &variant::operator =(const std::string &s)
 	return this->SetString(s);
 }
 
+variant &variant::operator =(const char *p)
+{
+	std::string s(p);
+	return this->SetString(s);
+}
+
+variant &variant::operator =(bool b)
+{
+	return this->SetBool(b);
+}
+
 variant::operator int()
 {
 	return this->GetInt();
@@ -189,6 +254,11 @@ variant::operator double()
 variant::operator std::string()
 {
 	return this->GetString();
+}
+
+variant::operator bool()
+{
+	return this->GetBool();
 }
 
 std::string ltrim(const std::string &str)

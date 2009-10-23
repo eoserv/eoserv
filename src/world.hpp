@@ -7,28 +7,12 @@
 #ifndef WORLD_HPP_INCLUDED
 #define WORLD_HPP_INCLUDED
 
-#include <vector>
-#include <string>
+#include "stdafx.h"
 
-class World;
-
-struct Board_Post;
-struct Board;
-
-#include "character.hpp"
-#include "guild.hpp"
-#include "party.hpp"
-#include "map.hpp"
-
-#include "eoserver.hpp"
-#include "eoconst.hpp"
-#include "timer.hpp"
-#include "util.hpp"
-#include "database.hpp"
-#include "eodata.hpp"
 #include "config.hpp"
-#include "socket.hpp"
-#include "hook.hpp"
+#include "database.hpp"
+#include "script.hpp"
+#include "timer.hpp"
 
 SCRIPT_STRUCT_VALUE(Board_Post)
 {

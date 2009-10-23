@@ -7,24 +7,7 @@
 #ifndef MAP_HPP_INCLUDED
 #define MAP_HPP_INCLUDED
 
-#include <string>
-#include <vector>
-
-class Map;
-
-struct Map_Item;
-struct Map_Warp;
-struct Map_Tile;
-struct Map_Chest_Item;
-struct Map_Chest_Spawn;
-struct Map_Chest;
-
-#include "world.hpp"
-#include "eoconst.hpp"
-#include "character.hpp"
-#include "npc.hpp"
-#include "arena.hpp"
-#include "timer.hpp"
+#include "stdafx.h"
 
 /**
  * Object representing an item on the floor of a map

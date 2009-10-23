@@ -4,20 +4,17 @@
  * See LICENSE.txt for more info.
  */
 
-#include <limits>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
 #include <csignal>
-#include <cerrno>
 
+#include "character.hpp"
 #include "config.hpp"
-#include "socket.hpp"
-#include "eoserver.hpp"
-#include "eoclient.hpp"
-#include "packet.hpp"
-#include "util.hpp"
 #include "console.hpp"
+#include "eoclient.hpp"
+#include "eoserver.hpp"
+#include "packet.hpp"
+#include "player.hpp"
+#include "socket.hpp"
+#include "world.hpp"
 
 #if defined(WIN32) || defined(WIN64)
 #include <windows.h>
@@ -253,7 +250,7 @@ int main(int argc, char *argv[])
 
 		eoserv_config_default(config, "LogOut"             , "-");
 		eoserv_config_default(config, "LogErr"             , "error.log");
-		eoserv_config_default(config, "StyleConsole"       , 1);
+		eoserv_config_default(config, "StyleConsole"       , true);
 		eoserv_config_default(config, "Host"               , "0.0.0.0");
 		eoserv_config_default(config, "Port"               , 8078);
 		eoserv_config_default(config, "MaxConnections"     , 300);
@@ -262,7 +259,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "MaxConnectionsPerIP", 3);
 		eoserv_config_default(config, "IPReconnectLimit"   , 10);
 		eoserv_config_default(config, "MaxConnectionsPerPC", 1);
-		eoserv_config_default(config, "CheckVersion"       , 1);
+		eoserv_config_default(config, "CheckVersion"       , true);
 		eoserv_config_default(config, "MinVersion"         , 0);
 		eoserv_config_default(config, "MaxVersion"         , 0);
 		eoserv_config_default(config, "PasswordSalt"       , "ChangeMe");
@@ -283,11 +280,11 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "Maps"               , 278);
 		eoserv_config_default(config, "ScriptDir"          , "./data/scripts/");
 		eoserv_config_default(config, "ScriptsFile"        , "./data/scripts.txt");
-		eoserv_config_default(config, "ProtectMaps"        , 0);
-		eoserv_config_default(config, "ScriptFileAccess"   , 1);
-		eoserv_config_default(config, "ScriptLibCAccess"   , 1);
+		eoserv_config_default(config, "ProtectMaps"        , false);
+		eoserv_config_default(config, "ScriptFileAccess"   , true);
+		eoserv_config_default(config, "ScriptLibCAccess"   , true);
 		eoserv_config_default(config, "ScriptMaxExecTime"  , 1500);
-		eoserv_config_default(config, "SLN"                , 1);
+		eoserv_config_default(config, "SLN"                , true);
 		eoserv_config_default(config, "SLNURL"             , "http://eoserv.net/SLN/");
 		eoserv_config_default(config, "SLNSite"            , "");
 		eoserv_config_default(config, "ServerName"         , "Untitled Server");
@@ -298,7 +295,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "RecruitCost"        , 1000);
 		eoserv_config_default(config, "GuildMaxMembers"    , 5000);
 		eoserv_config_default(config, "GuildBankMax"       , 10000000);
-		eoserv_config_default(config, "GlobalPK"           , 0);
+		eoserv_config_default(config, "GlobalPK"           , false);
 		eoserv_config_default(config, "PKExcept"           , "");
 		eoserv_config_default(config, "NPCChaseMode"       , 0);
 		eoserv_config_default(config, "NPCChaseDistance"   , 18);
@@ -310,10 +307,10 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "BoardRecentPostTime", 1800);
 		eoserv_config_default(config, "BoardMaxSubjectLength", 32);
 		eoserv_config_default(config, "BoardMaxPostLength" , 2048);
-		eoserv_config_default(config, "BoardDatePosts"     , 1);
-		eoserv_config_default(config, "ShowLevel"          , 0);
-		eoserv_config_default(config, "WarpBubbles"        , 1);
-		eoserv_config_default(config, "HideGlobal"         , 0);
+		eoserv_config_default(config, "BoardDatePosts"     , true);
+		eoserv_config_default(config, "ShowLevel"          , false);
+		eoserv_config_default(config, "WarpBubbles"        , true);
+		eoserv_config_default(config, "HideGlobal"         , false);
 		eoserv_config_default(config, "GlobalBuffer"       , 0);
 		eoserv_config_default(config, "AdminPrefix"        , "$");
 		eoserv_config_default(config, "StatPerLevel"       , 3);
@@ -325,7 +322,6 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "MaxStat"            , 1000);
 		eoserv_config_default(config, "MaxSkillLevel"      , 100);
 		eoserv_config_default(config, "MaxSkills"          , 48);
-		eoserv_config_default(config, "MaxMessageLength"   , 128);
 		eoserv_config_default(config, "MaxCharacters"      , 3);
 		eoserv_config_default(config, "MaxShopBuy"         , 4);
 		eoserv_config_default(config, "GhostTimer"         , 4);
@@ -339,14 +335,14 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "SeeDistance"        , 11);
 		eoserv_config_default(config, "DropDistance"       , 2);
 		eoserv_config_default(config, "RangedDistance"     , 5);
-		eoserv_config_default(config, "ItemDespawn"        , 0);
+		eoserv_config_default(config, "ItemDespawn"        , false);
 		eoserv_config_default(config, "ItemDespawnCheck"   , 60);
 		eoserv_config_default(config, "ItemDespawnRate"    , 600);
 		eoserv_config_default(config, "ChatLength"         , 128);
 		eoserv_config_default(config, "ShareMode"          , 2);
 		eoserv_config_default(config, "PartyShareMode"     , 2);
-		eoserv_config_default(config, "GhostNPC"           , 0);
-		eoserv_config_default(config, "AllowStats"         , 1);
+		eoserv_config_default(config, "GhostNPC"           , false);
+		eoserv_config_default(config, "AllowStats"         , true);
 		eoserv_config_default(config, "StartMap"           , 0);
 		eoserv_config_default(config, "StartX"             , 0);
 		eoserv_config_default(config, "StartY"             , 0);
@@ -370,9 +366,9 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "CreateMinSkin"      , 0);
 		eoserv_config_default(config, "CreateMaxSkin"      , 3);
 		eoserv_config_default(config, "DefaultBanLength"   , "2h");
-		eoserv_config_default(config, "LimitDamage"        , 1);
+		eoserv_config_default(config, "LimitDamage"        , true);
 		eoserv_config_default(config, "DeathRecover"       , 50);
-		eoserv_config_default(config, "Deadly"             , 0);
+		eoserv_config_default(config, "Deadly"             , false);
 		eoserv_config_default(config, "ExpRate"            , 100);
 		eoserv_config_default(config, "DropRate"           , 100);
 		eoserv_config_default(config, "MobRate"            , 100);
@@ -444,7 +440,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "killnpc"       , 2);
 		eoserv_config_default(aconfig, "boardmod"      , 1);
 
-		Console::Styled[1] = Console::Styled[0] = static_cast<int>(config["StyleConsole"]);
+		Console::Styled[1] = Console::Styled[0] = config["StyleConsole"];
 
 		std::puts("\
                           ___ ___  ___ ___ _____   __\n\

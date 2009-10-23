@@ -6,20 +6,14 @@
 
 #include "eoserver.hpp"
 
-#include <string>
-
-#include <pthread.h>
-
-#include "world.hpp"
-
-#include "socket.hpp"
-#include "packet.hpp"
-#include "eoclient.hpp"
-#include "timer.hpp"
-#include "nanohttp.hpp"
-#include "util.hpp"
-#include "sln.hpp"
 #include "console.hpp"
+#include "eoclient.hpp"
+#include "nanohttp.hpp"
+#include "packet.hpp"
+#include "sln.hpp"
+#include "socket.hpp"
+#include "timer.hpp"
+#include "world.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
@@ -137,7 +131,7 @@ void EOServer::Initialize(util::array<std::string, 5> dbinfo, const Config &eose
 
 	this->world->server = this;
 
-	if (static_cast<int>(this->world->config["SLN"]))
+	if (this->world->config["SLN"])
 	{
 		this->sln = new SLN(this);
 	}

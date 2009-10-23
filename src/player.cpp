@@ -6,10 +6,12 @@
 
 #include "player.hpp"
 
-#include <cstdio>
-
-#include "hash.hpp"
+#include "character.hpp"
 #include "console.hpp"
+#include "database.hpp"
+#include "eoclient.hpp"
+#include "hash.hpp"
+#include "world.hpp"
 
 Player::Player(std::string username, World *world)
 {

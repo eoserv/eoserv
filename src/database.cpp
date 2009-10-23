@@ -6,13 +6,6 @@
 
 #include "database.hpp"
 
-#include <string>
-#include <map>
-#include <stdexcept>
-#include <cstdarg>
-#include <cstdio>
-
-#include "util.hpp"
 #include "console.hpp"
 
 int sqlite_callback(void *data, int num, char *fields[], char *columns[])

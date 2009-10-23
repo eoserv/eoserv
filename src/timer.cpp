@@ -13,11 +13,6 @@
 #include <sys/types.h>
 #endif // WIN32
 
-#include <algorithm>
-#include <cmath>
-
-#include "util.hpp"
-
 int rres = 0;
 double gettime_offset = 0.0;
 double gettime_last = 0.0;

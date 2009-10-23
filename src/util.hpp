@@ -7,21 +7,14 @@
 #ifndef UTIL_HPP_INCLUDED
 #define UTIL_HPP_INCLUDED
 
-#include <string>
-#include <deque>
-#include <list>
-#include <map>
-#include <queue>
-#include <set>
-#include <stack>
-#include <vector>
-#include <cstring>
-#include <cstddef>
-#include <cstdarg>
 #include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <stdexcept>
-#include <algorithm>
-#include <iterator>
+#include <string>
+#include <vector>
 
 /**
  * Utility functions to assist with common tasks
@@ -166,9 +159,6 @@ namespace util
 #else // __GXX_EXPERIMENTAL_CXX0X__
 #define UTIL_EXTEND_ENUM(T)
 #endif // __GXX_EXPERIMENTAL_CXX0X__
-
-template <typename T, std::size_t N> class array;
-class variant;
 
 /**
  * Generic and simple array class.
@@ -350,20 +340,26 @@ class variant
 		 */
 		std::string val_string;
 
+		/**
+		 * Value stored as a bool.
+		 */
+		bool val_bool;
+
 		enum var_type
 		{
 			type_int,
 			type_float,
-			type_string
+			type_string,
+			type_bool
 		};
 
-		bool cache_val[3];
+		bool cache_val[4];
 
 		/**
 		 * Current type the value is stored as.
 		 * Accessing as this type will need no conversion.
 		 */
-		int type;
+		var_type type;
 
 		/**
 		 * Return the value as an integer, casting if neccessary.
@@ -381,6 +377,16 @@ class variant
 		std::string GetString();
 
 		/**
+		 * Return the value as a bool, casting if neccessary.
+		 */
+		bool GetBool();
+
+		/**
+		 * Invalidates the cache values and changes the type.
+		 */
+		void SetType(var_type);
+
+		/**
 		 * Set the value to an integer.
 		 */
 		variant &SetInt(int);
@@ -394,6 +400,11 @@ class variant
 		 * Set the value to a string.
 		 */
 		variant &SetString(const std::string &);
+
+		/**
+		 * Set the value to a bool.
+		 */
+		variant &SetBool(bool);
 
 		/**
 		 * Helper function that returns the string length of a number in decimal format.
@@ -422,6 +433,16 @@ class variant
 		variant(const std::string &);
 
 		/**
+		 * Initialize the variant to a string with the specified value.
+		 */
+		variant(const char *);
+
+		/**
+		 * Initialize the variant to a bool with the specified value.
+		 */
+		variant(bool);
+
+		/**
 		 * Set the value to an integer.
 		 */
 		variant &operator =(int);
@@ -437,6 +458,16 @@ class variant
 		variant &operator =(const std::string &);
 
 		/**
+		 * Set the value to a string.
+		 */
+		variant &operator =(const char *);
+
+		/**
+		 * Set the value to a bool.
+		 */
+		variant &operator =(bool);
+
+		/**
 		 * Return the value as an integer, casting if neccessary.
 		 */
 		operator int();
@@ -450,6 +481,11 @@ class variant
 		 * Return the value as a string, casting if neccessary.
 		 */
 		operator std::string();
+
+		/**
+		 * Return the value as an boolean, casting if neccessary.
+		 */
+		operator bool();
 };
 
 /**

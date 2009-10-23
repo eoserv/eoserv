@@ -7,20 +7,10 @@
 #ifndef EOSERVER_HPP_INCLUDED
 #define EOSERVER_HPP_INCLUDED
 
-#include <string>
-#include <vector>
-#include <ctime>
+#include "stdafx.h"
 
-class EOServer;
-
-struct EOServer_Ban;
-
-#include "util.hpp"
-#include "socket.hpp"
 #include "eoclient.hpp"
-#include "config.hpp"
-#include "world.hpp"
-#include "sln.hpp"
+#include "socket.hpp"
 
 void server_ping_all(void *server_void);
 void server_pump_queue(void *server_void);

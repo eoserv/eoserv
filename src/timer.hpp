@@ -7,10 +7,7 @@
 #ifndef TIMER_HPP_INCLUDED
 #define TIMER_HPP_INCLUDED
 
-#include <set>
-
-class Timer;
-class TimeEvent;
+#include "stdafx.h"
 
 typedef void(*TimerCallback)(void *);
 

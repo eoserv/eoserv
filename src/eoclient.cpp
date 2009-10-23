@@ -6,17 +6,15 @@
 
 #include "eoclient.hpp"
 
-#include <string>
-
-#include <pthread.h>
-
-#include "socket.hpp"
-#include "packet.hpp"
-#include "eoclient.hpp"
-#include "timer.hpp"
-#include "nanohttp.hpp"
-#include "util.hpp"
 #include "console.hpp"
+#include "eoclient.hpp"
+#include "eoserver.hpp"
+#include "nanohttp.hpp"
+#include "packet.hpp"
+#include "player.hpp"
+#include "timer.hpp"
+#include "socket.hpp"
+#include "world.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \

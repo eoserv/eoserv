@@ -7,14 +7,7 @@
 #ifndef PACKET_HPP_INCLUDED
 #define PACKET_HPP_INCLUDED
 
-#include <string>
-#include <cstddef>
-
-class PacketProcessor;
-class PacketReader;
-class PacketBuilder;
-
-#include "util.hpp"
+#include "stdafx.h"
 
 enum PacketFamily UTIL_EXTEND_ENUM(unsigned char)
 {

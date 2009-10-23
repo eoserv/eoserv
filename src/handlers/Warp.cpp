@@ -4,7 +4,11 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.hpp"
+#include "handlers.h"
+
+#include "eodata.hpp"
+#include "map.hpp"
+#include "npc.hpp"
 
 CLIENT_F_FUNC(Warp)
 {
@@ -147,7 +151,7 @@ CLIENT_F_FUNC(Warp)
 				char buf[4096];
 				int len = std::fread(buf, sizeof(char), 4096, fh);
 
-				if (static_cast<int>(this->server->world->config["GlobalPK"]) && !this->server->world->PKExcept(this->player->character->mapid))
+				if (this->server->world->config["GlobalPK"] && !this->server->world->PKExcept(this->player->character->mapid))
 				{
 					if (p + len >= 0x04 && 0x03 - p > 0) buf[0x03 - p] = 0xFF;
 					if (p + len >= 0x05 && 0x04 - p > 0) buf[0x04 - p] = 0x01;
@@ -165,7 +169,7 @@ CLIENT_F_FUNC(Warp)
 			reply.AddString(content);
 			CLIENT_SENDRAW(reply);
 
-			if (static_cast<int>(this->server->world->config["ProtectMaps"]))
+			if (this->server->world->config["ProtectMaps"])
 			{
 				reply.Reset();
 				reply.AddChar(INIT_BANNED);

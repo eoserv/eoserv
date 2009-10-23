@@ -6,14 +6,11 @@
 
 #include "party.hpp"
 
-#include <string>
-#include <vector>
-#include <cmath>
-
 #include "character.hpp"
-
-#include "util.hpp"
+#include "eoclient.hpp"
 #include "packet.hpp"
+#include "player.hpp"
+#include "world.hpp"
 
 Party::Party(World *world, Character *leader, Character *other)
 {

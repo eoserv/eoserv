@@ -7,6 +7,8 @@
 #ifndef NANOHTTP_HPP_INCLUDED
 #define NANOHTTP_HPP_INCLUDED
 
+#include "stdafx.h"
+
 #include "socket.hpp"
 
 /**

@@ -7,14 +7,7 @@
 #ifndef ARENA_HPP_INCLUDED
 #define ARENA_HPP_INCLUDED
 
-class Arena;
-
-struct Arena_Spawn;
-
-#include "character.hpp"
-
-#include "eoconst.hpp"
-#include "timer.hpp"
+#include "stdafx.h"
 
 struct Arena_Spawn
 {

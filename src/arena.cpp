@@ -6,8 +6,14 @@
 
 #include "arena.hpp"
 
-#include "timer.hpp"
+#include "character.hpp"
 #include "console.hpp"
+#include "eoclient.hpp"
+#include "map.hpp"
+#include "packet.hpp"
+#include "player.hpp"
+#include "timer.hpp"
+#include "world.hpp"
 
 void arena_spawn(void *arena_void)
 {

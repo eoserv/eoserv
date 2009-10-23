@@ -6,11 +6,6 @@
 
 #include "config.hpp"
 
-#include <string>
-#include <cstdio>
-#include <stdexcept>
-
-#include "util.hpp"
 #include "console.hpp"
 
 Config::Config(std::string filename)
@@ -26,7 +21,6 @@ void Config::Read(std::string filename)
 	std::string key;
 	std::string val;
 	std::size_t eqloc;
-	util::variant vval;
 
 	this->filename = filename;
 

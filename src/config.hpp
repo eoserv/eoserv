@@ -7,13 +7,7 @@
 #ifndef CONFIG_HPP_INCLUDED
 #define CONFIG_HPP_INCLUDED
 
-#include <string>
-#include <map>
-#include <cstddef>
-
-class Config;
-
-#include "util.hpp"
+#include "stdafx.h"
 
 /**
  * Reads configuration data from a file.
@@ -37,7 +31,7 @@ class Config : public std::map<std::string, util::variant>
 		/**
 		 * Construct an empty Config object which should have Read() called on it
 		 */
-		Config() {};
+		Config() { }
 
 		/**
 		 * Reads all configuration data from the file to memory.

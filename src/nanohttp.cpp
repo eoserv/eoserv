@@ -6,11 +6,7 @@
 
 #include "nanohttp.hpp"
 
-#include <string>
-#include <cstdio>
-
 #include "socket.hpp"
-#include "util.hpp"
 
 HTTP::HTTP(std::string host, unsigned short port, std::string path, IPAddress outgoing)
 {

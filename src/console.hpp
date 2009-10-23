@@ -7,6 +7,8 @@
 #ifndef CONSOLE_HPP_INCLUDED
 #define CONSOLE_HPP_INCLUDED
 
+#include <string>
+
 namespace Console
 {
 

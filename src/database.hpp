@@ -7,10 +7,7 @@
 #ifndef DATABASE_HPP_INCLUDED
 #define DATABASE_HPP_INCLUDED
 
-#include <list>
-#include <map>
-#include <string>
-#include <exception>
+#include "stdafx.h"
 
 #ifdef DATABASE_MYSQL
 #include "socket.hpp"
@@ -26,11 +23,6 @@
 #error At least one database driver must be selected
 #endif // DATABASE_SQLITE
 #endif // DATABASE_MYSQL
-
-class Database_Result;
-class Database;
-
-#include "util.hpp"
 
 /**
  * Generic Database exception type

@@ -6,16 +6,13 @@
 
 #include "sln.hpp"
 
-#include <string>
-#include <vector>
-
 #include <pthread.h>
-#include <unistd.h>
 
+#include "console.hpp"
+#include "eoserver.hpp"
 #include "nanohttp.hpp"
 #include "timer.hpp"
-#include "util.hpp"
-#include "console.hpp"
+#include "world.hpp"
 
 // TODO: Make this safe (race conditions)
 
@@ -70,11 +67,11 @@ void *SLN::RequestThread(void *void_sln)
 
 	try
 	{
-		if (static_cast<int>(sln->server->world->config["SLNBind"]) == 0)
+		if (static_cast<std::string>(sln->server->world->config["SLNBind"]) == "0")
 		{
 			http = HTTP::RequestURL(url);
 		}
-		else if (static_cast<int>(sln->server->world->config["SLNBind"]) == 1)
+		else if (static_cast<std::string>(sln->server->world->config["SLNBind"]) == "1")
 		{
 			http = HTTP::RequestURL(url, IPAddress(static_cast<std::string>(sln->server->world->config["Host"])));
 		}

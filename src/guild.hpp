@@ -7,15 +7,7 @@
 #ifndef GUILD_HPP_INCLUDED
 #define GUILD_HPP_INCLUDED
 
-#include <vector>
-#include <string>
-#include <ctime>
-
-class Guild;
-
-#include "character.hpp"
-
-#include "util.hpp"
+#include "stdafx.h"
 
 /**
  * Stores guild information and references to online members

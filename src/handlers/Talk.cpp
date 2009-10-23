@@ -4,7 +4,13 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.hpp"
+#include "handlers.h"
+
+#include "arena.hpp"
+#include "eodata.hpp"
+#include "map.hpp"
+#include "npc.hpp"
+#include "party.hpp"
 
 static void limit_message(std::string &message, std::size_t chatlength)
 {

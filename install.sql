@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `accounts`
 
 CREATE TABLE IF NOT EXISTS `characters`
 (
-	`name`        VARCHAR(12) NOT NULL,
+	`name`        VARCHAR(16) NOT NULL,
 	`account`     VARCHAR(16)          DEFAULT NULL,
 	`title`       VARCHAR(32)          DEFAULT NULL,
 	`home`        VARCHAR(32)          DEFAULT NULL,
@@ -59,7 +59,9 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`spells`      TEXT        NOT NULL,
 	`guild`       CHAR(3)              DEFAULT NULL,
 	`guild_rank`  INTEGER              DEFAULT NULL,
-	
+	`quest`       TEXT        NOT NULL,
+	`vars`        TEXT        NOT NULL
+
 	PRIMARY KEY (`name`)
 );
 

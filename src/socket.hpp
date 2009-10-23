@@ -7,21 +7,18 @@
 #ifndef SOCKET_HPP_INCLUDED
 #define SOCKET_HPP_INCLUDED
 
-#include "util.hpp"
+#include "fwd/socket.hpp"
 
-#include <string>
-#include <list>
-#include <stdint.h>
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
-#include <stdexcept>
+#include <exception>
+#include <list>
+#include <string>
 #include <vector>
 
-/**
- * Return the OS last error message
- */
-const char *OSErrorString();
+#include "util.hpp"
 
 #if defined(WIN32) || defined(WIN64)
 #include <windows.h>
@@ -35,6 +32,7 @@ const char *OSErrorString();
 #endif //  __MINGW32__
 #include <ws2tcpip.h>
 #endif // NTDDI_WIN2K
+
 /**
  * Stores the initialization state of WinSock.
  */
@@ -82,10 +80,6 @@ const SOCKET INVALID_SOCKET = -1;
  */
 const int SOCKET_ERROR = -1;
 #endif // defined(WIN32) || defined(WIN64)
-
-class IPAddress;
-class Client;
-template <class> class Server;
 
 /**
  * Generic Socket exception type

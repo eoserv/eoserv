@@ -6,15 +6,24 @@
 
 #include "npc.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
-#include <algorithm>
-#include <cstdio>
-#include <cmath>
 
-#include "util.hpp"
+#include "config.hpp"
 #include "console.hpp"
+#include "eoclient.hpp"
+#include "eodata.hpp"
+#include "map.hpp"
+#include "npc.hpp"
+#include "packet.hpp"
+#include "party.hpp"
+#include "player.hpp"
+#include "timer.hpp"
+#include "world.hpp"
 
 static const double speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
 
@@ -364,7 +373,7 @@ void NPC::Damage(Character *from, int amount)
 
 	int limitamount = std::min(this->hp, amount);
 
-	if (static_cast<int>(this->map->world->config["LimitDamage"]))
+	if (this->map->world->config["LimitDamage"])
 	{
 		amount = limitamount;
 	}
@@ -758,7 +767,7 @@ void NPC::Attack(Character *target)
 
 	int limitamount = std::min(amount, int(target->hp));
 
-	if (static_cast<int>(this->map->world->config["LimitDamage"]))
+	if (this->map->world->config["LimitDamage"])
 	{
 		amount = limitamount;
 	}
@@ -834,7 +843,7 @@ void NPC::Attack(Character *target)
 	{
 		target->hp = rechp;
 
-		if (static_cast<int>(this->map->world->config["Deadly"]))
+		if (this->map->world->config["Deadly"])
 		{
 			target->DropAll(0);
 		}

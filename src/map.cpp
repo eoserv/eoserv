@@ -6,16 +6,16 @@
 
 #include "map.hpp"
 
-#include <algorithm>
-#include <string>
-#include <vector>
-#include <cstdio>
-#include <cmath>
-
-#include "util.hpp"
-#include "eoserver.hpp"
-#include "packet.hpp"
+#include "arena.hpp"
+#include "character.hpp"
 #include "console.hpp"
+#include "eodata.hpp"
+#include "eoserver.hpp"
+#include "npc.hpp"
+#include "packet.hpp"
+#include "player.hpp"
+#include "timer.hpp"
+#include "world.hpp"
 
 static const char *safe_fail_filename;
 
@@ -204,9 +204,10 @@ Map::Map(int id, World *world)
 	this->world = world;
 	this->exists = false;
 
-	if (static_cast<int>(world->arenas_config[util::to_string(id) + ".enabled"]))
+	if (world->arenas_config[util::to_string(id) + ".enabled"])
 	{
 		std::string spawns_str = world->arenas_config[util::to_string(id) + ".spawns"];
+
 		std::vector<std::string> spawns = util::explode(',', spawns_str);
 
 		if (spawns.size() % 4 != 0)
@@ -1202,7 +1203,7 @@ void Map::Attack(Character *from, Direction direction)
 		from->arena->Attack(from, direction);
 	}
 
-	if (this->pk || (static_cast<int>(this->world->config["GlobalPK"]) && !this->world->PKExcept(this->id)))
+	if (this->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id)))
 	{
 		if (this->AttackPK(from, direction))
 		{
@@ -1407,7 +1408,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				int limitamount = std::min(amount, int(character->hp));
 
-				if (static_cast<int>(this->world->config["LimitDamage"]))
+				if (this->world->config["LimitDamage"])
 				{
 					amount = limitamount;
 				}
@@ -1434,7 +1435,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				{
 					character->hp = int(character->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0);
 
-					if (static_cast<int>(this->world->config["Deadly"]))
+					if (this->world->config["Deadly"])
 					{
 						character->DropAll(from);
 					}
@@ -1799,7 +1800,7 @@ bool Map::Reload()
 		character->player->client->Send(builder.Get());
 		character->Refresh(); // TODO: Find a better way to reload NPCs
 
-		if (static_cast<int>(this->world->config["ProtectMaps"]))
+		if (this->world->config["ProtectMaps"])
 		{
 			character->player->client->Send(protect_builder.Get());
 		}

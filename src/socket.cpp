@@ -4,12 +4,9 @@
  * See LICENSE.txt for more info.
  */
 
-#include <cstdio>
-#include <ctime>
-
 #include "socket.hpp"
 
-#include "util.hpp"
+#include <cerrno>
 
 static char ErrorBuf[1024];
 

@@ -7,21 +7,10 @@
 #ifndef EOCLIENT_HPP_INCLUDED
 #define EOCLIENT_HPP_INCLUDED
 
-#include <string>
-#include <cstddef>
-#include <vector>
-#include <queue>
+#include "stdafx.h"
 
-class EOClient;
-class ActionQueue;
-
-struct ActionQueue_Action;
-
-#include "eoserver.hpp"
-#include "util.hpp"
-#include "socket.hpp"
 #include "packet.hpp"
-#include "player.hpp"
+#include "socket.hpp"
 
 #define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(PacketFamily family, PacketAction action, PacketReader &reader, int act)
 

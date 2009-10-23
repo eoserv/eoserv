@@ -7,14 +7,7 @@
 #ifndef PLAYER_HPP_INCLUDED
 #define PLAYER_HPP_INCLUDED
 
-#include <string>
-
-class Player;
-
-#include "eoclient.hpp"
-#include "world.hpp"
-#include "character.hpp"
-#include "eoconst.hpp"
+#include "stdafx.h"
 
 /**
  * Object representing a player, but not a character

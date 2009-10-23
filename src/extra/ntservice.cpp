@@ -4,14 +4,9 @@
  * See LICENSE.txt for more info.
  */
 
-#include <windows.h>
-#include <cstdlib>
-#include <cstdio>
-#include <string>
-
 #include "ntservice.hpp"
 
-#include "../socket.hpp" // OSErrorString
+#include "../fwd/socket.hpp" // OSErrorString
 #include "../console.hpp"
 
 SERVICE_STATUS_HANDLE service_handle;

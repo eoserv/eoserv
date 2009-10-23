@@ -6,20 +6,24 @@
 
 #include "character.hpp"
 
-#include <string>
-#include <list>
-#include <vector>
-#include <limits>
-
-#include "database.hpp"
-#include "util.hpp"
+#include "arena.hpp"
 #include "console.hpp"
+#include "database.hpp"
+#include "eoclient.hpp"
+#include "eodata.hpp"
+#include "map.hpp"
+#include "npc.hpp"
+#include "packet.hpp"
+#include "party.hpp"
+#include "player.hpp"
+#include "world.hpp"
 
 // TODO: Clean up these functions
 std::string ItemSerialize(std::list<Character_Item> list)
 {
 	std::string serialized;
 	serialized.reserve(list.size()*10); // Reserve some space to stop some mass-reallocations
+
 	UTIL_LIST_FOREACH_ALL(list, Character_Item, item)
 	{
 		serialized.append(util::to_string(item.id));
@@ -27,6 +31,7 @@ std::string ItemSerialize(std::list<Character_Item> list)
 		serialized.append(util::to_string(item.amount));
 		serialized.append(";");
 	}
+
 	serialized.reserve(0); // Clean up the reserve to save memory
 	return serialized;
 }
@@ -37,6 +42,11 @@ std::list<Character_Item> ItemUnserialize(std::string serialized)
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	Character_Item newitem;
+
+	if (!serialized.empty() && *(serialized.end()-1) != ';')
+	{
+		serialized.push_back(';');
+	}
 
 	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
 	{
@@ -81,11 +91,18 @@ util::array<int, 15> DollUnserialize(std::string serialized)
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	int i = 0;
+
+	if (!serialized.empty() && *(serialized.end()-1) != ',')
+	{
+		serialized.push_back(',');
+	}
+
 	while ((p = serialized.find_first_of(',', p+1)) != std::string::npos)
 	{
 		list[i++] = util::to_int(serialized.substr(lastp+1, p-lastp-1));
 		lastp = p;
 	}
+
 	return list;
 }
 
@@ -660,7 +677,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 		builder.AddChar(WARP_SWITCH);
 		builder.AddShort(map);
 
-		if (static_cast<int>(this->world->config["GlobalPK"]) && !this->world->PKExcept(map))
+		if (this->world->config["GlobalPK"] && !this->world->PKExcept(map))
 		{
 			builder.AddByte(0xFF);
 			builder.AddByte(0x01);
@@ -851,7 +868,7 @@ void Character::ShowBoard(int boardid)
 
 		std::string subject_extra;
 
-		if (static_cast<int>(this->world->config["BoardDatePosts"]))
+		if (this->world->config["BoardDatePosts"])
 		{
 			subject_extra = " (" + util::timeago(post->time, Timer::GetTime()) + ")";
 		}
@@ -866,7 +883,7 @@ std::string Character::PaddedGuildTag()
 {
 	std::string tag;
 
-	if (static_cast<int>(this->world->config["ShowLevel"]))
+	if (this->world->config["ShowLevel"])
 	{
 		tag = util::to_string(this->level);
 		if (tag.length() < 3)

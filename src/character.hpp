@@ -7,22 +7,7 @@
 #ifndef CHARACTER_HPP_INCLUDED
 #define CHARACTER_HPP_INCLUDED
 
-#include <vector>
-#include <list>
-
-class Character;
-
-struct Character_Item;
-struct Character_Spell;
-
-#include "world.hpp"
-#include "npc.hpp"
-#include "player.hpp"
-#include "party.hpp"
-#include "guild.hpp"
-#include "arena.hpp"
-
-#include "eoconst.hpp"
+#include "stdafx.h"
 
 /**
  * Serialize a list of items in to a text format that can be restored with ItemUnserialize

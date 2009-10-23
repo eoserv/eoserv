@@ -4,7 +4,7 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.hpp"
+#include "handlers.h"
 
 CLIENT_F_FUNC(Board)
 {

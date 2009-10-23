@@ -7,13 +7,7 @@
 #ifndef PARTY_HPP_INCLUDED
 #define PARTY_HPP_INCLUDED
 
-#include <vector>
-#include <string>
-
-class Party;
-
-#include "character.hpp"
-#include "map.hpp"
+#include "stdafx.h"
 
 /**
  * A temporary group of Characters

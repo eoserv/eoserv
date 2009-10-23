@@ -7,20 +7,9 @@
 #ifndef NPC_HPP_INCLUDED
 #define NPC_HPP_INCLUDED
 
-#include <vector>
+#include "stdafx.h"
 
-class NPC;
-
-struct NPC_Opponent;
-struct NPC_Drop;
-struct NPC_Shop_Trade_Item;
-struct NPC_Shop_Craft_Ingredient;
-struct NPC_Shop_Craft_Item;
-
-#include "map.hpp"
-
-#include "eoconst.hpp"
-#include "eodata.hpp"
+#include "character.hpp"
 
 /**
  * Used by the NPC class to store information about an attacker

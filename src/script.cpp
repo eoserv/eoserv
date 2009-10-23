@@ -4,11 +4,6 @@
  * See LICENSE.txt for more info.
  */
 
-#include <string>
-#include <exception>
-#include <cstdio>
-#include <cerrno>
-
 #include "script.hpp"
 
 #include "console.hpp"
@@ -83,7 +78,6 @@ ScriptEngine::ScriptEngine(std::string scriptpath)
 
 	RegisterScriptMath(this->as);
 	RegisterStdString(this->as);
-	RegisterScriptDictionary(this->as);
 }
 
 void ScriptEngine::MessageCallback(const asSMessageInfo *msg, void *param)

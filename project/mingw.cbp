@@ -4,6 +4,7 @@
 	<Project>
 		<Option title="eoserv" />
 		<Option platforms="Windows;" />
+		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="DEBUG+MYSQL+SQLITE">
@@ -120,7 +121,6 @@
 			<Add library="angelscript" />
 			<Add library="as_scriptmath" />
 			<Add library="as_scriptstdstring" />
-			<Add library="as_scriptdictionary" />
 			<Add library="as_scriptfile" />
 		</Linker>
 		<Unit filename="winres.rc">
@@ -145,6 +145,26 @@
 		<Unit filename="..\src\eoserver.hpp" />
 		<Unit filename="..\src\extra\ntservice.cpp" />
 		<Unit filename="..\src\extra\ntservice.hpp" />
+		<Unit filename="..\src\fwd\arena.hpp" />
+		<Unit filename="..\src\fwd\character.hpp" />
+		<Unit filename="..\src\fwd\config.hpp" />
+		<Unit filename="..\src\fwd\database.hpp" />
+		<Unit filename="..\src\fwd\eoclient.hpp" />
+		<Unit filename="..\src\fwd\eodata.hpp" />
+		<Unit filename="..\src\fwd\eoserver.hpp" />
+		<Unit filename="..\src\fwd\guild.hpp" />
+		<Unit filename="..\src\fwd\hook.hpp" />
+		<Unit filename="..\src\fwd\map.hpp" />
+		<Unit filename="..\src\fwd\nanohttp.hpp" />
+		<Unit filename="..\src\fwd\npc.hpp" />
+		<Unit filename="..\src\fwd\packet.hpp" />
+		<Unit filename="..\src\fwd\party.hpp" />
+		<Unit filename="..\src\fwd\player.hpp" />
+		<Unit filename="..\src\fwd\script.hpp" />
+		<Unit filename="..\src\fwd\sln.hpp" />
+		<Unit filename="..\src\fwd\socket.hpp" />
+		<Unit filename="..\src\fwd\timer.hpp" />
+		<Unit filename="..\src\fwd\world.hpp" />
 		<Unit filename="..\src\guild.cpp" />
 		<Unit filename="..\src\guild.hpp" />
 		<Unit filename="..\src\handlers\Account.cpp" />
@@ -182,7 +202,10 @@
 		<Unit filename="..\src\handlers\Walk.cpp" />
 		<Unit filename="..\src\handlers\Warp.cpp" />
 		<Unit filename="..\src\handlers\Welcome.cpp" />
-		<Unit filename="..\src\handlers\handlers.hpp" />
+		<Unit filename="..\src\handlers\handlers.h">
+			<Option compile="1" />
+			<Option weight="0" />
+		</Unit>
 		<Unit filename="..\src\hash.cpp" />
 		<Unit filename="..\src\hash.hpp" />
 		<Unit filename="..\src\hook.cpp" />
@@ -204,6 +227,8 @@
 		<Unit filename="..\src\script.hpp" />
 		<Unit filename="..\src\scriptlibc.cpp" />
 		<Unit filename="..\src\scriptlibc.h" />
+		<Unit filename="..\src\scriptreg.cpp" />
+		<Unit filename="..\src\scriptreg.hpp" />
 		<Unit filename="..\src\scriptstl.h" />
 		<Unit filename="..\src\sha256.c">
 			<Option compilerVar="CC" />
@@ -213,6 +238,10 @@
 		<Unit filename="..\src\sln.hpp" />
 		<Unit filename="..\src\socket.cpp" />
 		<Unit filename="..\src\socket.hpp" />
+		<Unit filename="..\src\stdafx.h">
+			<Option compile="1" />
+			<Option weight="0" />
+		</Unit>
 		<Unit filename="..\src\timer.cpp" />
 		<Unit filename="..\src\timer.hpp" />
 		<Unit filename="..\src\util.cpp" />
