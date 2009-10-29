@@ -155,9 +155,14 @@ IPAddress::operator std::string()
 	return std::string(buf);
 }
 
-bool IPAddress::operator ==(const IPAddress &other)
+bool IPAddress::operator ==(const IPAddress &other) const
 {
 	return (this->address == other.address);
+}
+
+bool IPAddress::operator <(const IPAddress &other) const
+{
+	return (this->address < other.address);
 }
 
 Client::Client()
@@ -386,12 +391,18 @@ bool Client::Connected()
 	return this->connected;
 }
 
-void Client::Close()
+void Client::Close(bool force)
 {
 	if (this->connected)
 	{
 		this->connected = false;
 		this->closed_time = std::time(0);
+
+		// This won't work properly for the first 2 seconds of 1 January 1970
+		if (force)
+		{
+			this->closed_time = 0;
+		}
 	}
 }
 

@@ -535,8 +535,25 @@ int main(int argc, char *argv[])
 		{
 			if ((newclient = server.Poll()) != 0)
 			{
+				static std::map<IPAddress, double> connection_log;
 				int ip_connections = 0;
-				//bool throttle = false;
+				bool throttle = false;
+				IPAddress remote_addr = newclient->GetRemoteAddr();
+
+				restart_loop:
+				UTIL_MAP_IFOREACH_ALL(connection_log, IPAddress, double, connection)
+				{
+					if (connection->second + static_cast<int>(config["IPReconnectLimit"]) < Timer::GetTime())
+					{
+						connection_log.erase(connection);
+						goto restart_loop;
+					}
+
+					if (connection->first == remote_addr)
+					{
+						throttle = true;
+					}
+				}
 
 				UTIL_LIST_FOREACH_ALL(server.clients, EOClient *, client)
 				{
@@ -546,15 +563,20 @@ int main(int argc, char *argv[])
 					}
 				}
 
-				/*if (throttle)
+				if (!throttle)
+				{
+					connection_log[remote_addr] = Timer::GetTime();
+				}
+
+				if (throttle)
 				{
 					Console::Wrn("Connection from %s was rejected (reconnecting too fast)", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
-					newclient->Close();
+					newclient->Close(true);
 				}
-				else */if (ip_connections > static_cast<int>(config["MaxConnectionsPerIP"]))
+				else if (ip_connections > static_cast<int>(config["MaxConnectionsPerIP"]))
 				{
-					Console::Wrn("Connection from %s was rejected (too many connections from this address)", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
-					newclient->Close();
+					Console::Wrn("Connection from %s was rejected (too many connections from this address)", static_cast<std::string>(remote_addr).c_str());
+					newclient->Close(true);
 				}
 				else
 				{

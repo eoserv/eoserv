@@ -238,7 +238,8 @@ class IPAddress
 		 */
 		operator std::string();
 
-		bool operator ==(const IPAddress &);
+		bool operator ==(const IPAddress &) const;
+		bool operator <(const IPAddress &) const;
 };
 
 /**
@@ -270,7 +271,7 @@ class Client
 		void Tick(double timeout);
 		bool Connected();
 		IPAddress GetRemoteAddr();
-		void Close();
+		void Close(bool force = false);
 		time_t ConnectTime();
 		virtual ~Client();
 
@@ -739,7 +740,7 @@ template <class T = Client> class Server
 		{
 			UTIL_TPL_LIST_IFOREACH_ALL(this->clients, T *, it)
 			{
-				if (!(*it)->Connected() && (((*it)->send_buffer.length() == 0 && (*it)->recv_buffer.length() == 0) || (*it)->closed_time + 5 < std::time(0)))
+				if (!(*it)->Connected() && (((*it)->send_buffer.length() == 0 && (*it)->recv_buffer.length() == 0) || (*it)->closed_time + 2 < std::time(0)))
 				{
 #if defined(WIN32) || defined(WIN64)
 					closesocket((*it)->sock);

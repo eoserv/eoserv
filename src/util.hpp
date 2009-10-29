@@ -47,8 +47,8 @@ namespace util
 
 #define UTIL_IFOREACH_GENERIC2(iterator, iterator2, start, end, type, as) \
 	for (int util_i = 0; util_i < 1; ++util_i) \
-		for (iterator,iterator2 util_start = container.begin(); util_i < 1; ++util_i) \
-			for (iterator,iterator2 util_end = contianer.end(); util_i < 1; ++util_i) \
+		for (iterator,iterator2 util_start = start; util_i < 1; ++util_i) \
+			for (iterator,iterator2 util_end = end; util_i < 1; ++util_i) \
 				for (iterator,iterator2 as = util_start; as != util_end; ++as)
 
 #define UTIL_ARRAY_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(util::array<type, type2 >::iterator, start, end, type, as)
