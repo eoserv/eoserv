@@ -376,6 +376,9 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "SpawnRate"          , 1.0);
 		eoserv_config_default(config, "BankUpgradeBase"    , 1000);
 		eoserv_config_default(config, "BankUpgradeStep"    , 1000);
+		eoserv_config_default(config, "JukeboxSongs"       , 20);
+		eoserv_config_default(config, "JukeboxPrice"       , 25);
+		eoserv_config_default(config, "JukeboxTimer"       , 90);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
 		eoserv_config_default(config, "MaxItem"            , 10000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);

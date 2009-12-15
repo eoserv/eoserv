@@ -213,6 +213,8 @@ Character::Character(std::string name, World *world)
 	this->guild_rank = static_cast<int>(row["guild_rank"]);
 	this->party = 0;
 	this->map = this->world->GetMap(0);
+
+	this->jukebox_open = false;
 }
 
 bool Character::ValidName(std::string name)
@@ -732,6 +734,10 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	this->x = x;
 	this->y = y;
 	this->sitting = SIT_STAND;
+
+	this->shop_npc = 0;
+	this->bank_npc = 0;
+	this->jukebox_open = true;
 
 	this->warp_anim = animation;
 	this->nowhere = false;

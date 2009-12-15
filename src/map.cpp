@@ -212,6 +212,7 @@ Map::Map(int id, World *world)
 	this->id = id;
 	this->world = world;
 	this->exists = false;
+	this->jukebox_protect = 0.0;
 
 	if (world->arenas_config[util::to_string(id) + ".enabled"])
 	{

@@ -278,6 +278,8 @@ class Map : public Shared
 		PtrList<Map_Item> items;
 		PtrVector<PtrVector<Map_Tile> > tiles;
 		bool exists;
+		double jukebox_protect;
+		std::string jukebox_player;
 
 		Arena *arena;
 
@@ -356,6 +358,8 @@ class Map : public Shared
 		SCRIPT_REGISTER_VARIABLE("PtrList<Map_Item>", "items", items);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<PtrVector<Map_Tile>>", "tiles", tiles);
 		SCRIPT_REGISTER_VARIABLE("bool", "exists", exists);
+		SCRIPT_REGISTER_VARIABLE("double", "jukebox_protect", jukebox_protect);
+		SCRIPT_REGISTER_VARIABLE("string", "jukebox_player", jukebox_player);
 		SCRIPT_REGISTER_VARIABLE("Arena @", " arena", arena);
 		SCRIPT_REGISTER_FUNCTION("int GenerateItemID()", GenerateItemID);
 		SCRIPT_REGISTER_FUNCTION("uint8 GenerateNPCIndex()", GenerateNPCIndex);

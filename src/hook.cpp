@@ -76,7 +76,6 @@ Hook_Call HookManager::Call(std::string trigger)
 #include <cstdio>
 #include <typeinfo>
 
-template <> void Hook_Call::SetArg<Shared *>(ScriptContext *ctx, int argc, Shared *arg) { printf("A %s [%i = %x]\n", typeid(arg).name(), argc, arg); ctx->as->SetArgAddress(argc, arg); }
 template <> void Hook_Call::SetArg<asBYTE>(ScriptContext *ctx, int argc, asBYTE arg)    { printf("A %s [%i = %i]\n", typeid(arg).name(), argc, arg); ctx->as->SetArgByte(argc, arg);    }
 	template <> void Hook_Call::SetArg<char>(ScriptContext *ctx, int argc, char arg)      { return SetArg(ctx, argc, (asBYTE)arg); }
 template <> void Hook_Call::SetArg<asWORD>(ScriptContext *ctx, int argc, asWORD arg)    { printf("A %s [%i = %i]\n", typeid(arg).name(), argc, arg); ctx->as->SetArgWord(argc, arg);    }

@@ -78,7 +78,7 @@ class Hook_Call : public Shared
 			}
 		}
 
-		template <typename T> static void SetArg(ScriptContext *ctx, int argc, T arg) { ctx->as->SetArgObject(argc, &arg); }
+		template <typename T> static void SetArg(ScriptContext *ctx, int argc, T arg) { ctx->as->SetArgObject(argc, arg); }
 
 		template <typename T> Hook_Call &operator [](T arg)
 		{

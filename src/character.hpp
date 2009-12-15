@@ -110,6 +110,7 @@ class Character : public Shared
 
 		NPC *shop_npc;
 		NPC *bank_npc;
+		bool jukebox_open;
 
 		WarpAnimation warp_anim;
 
@@ -249,6 +250,7 @@ class Character : public Shared
 		SCRIPT_REGISTER_VARIABLE("PartyRequestType", "party_send_type", party_send_type);
 		SCRIPT_REGISTER_VARIABLE("NPC @", " shop_npc", shop_npc);
 		SCRIPT_REGISTER_VARIABLE("NPC @", " bank_npc", bank_npc);
+		SCRIPT_REGISTER_VARIABLE("bool", " jukebox_open", jukebox_open);
 		SCRIPT_REGISTER_VARIABLE("WarpAnimation", "warp_anim", warp_anim);
 		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", "inventory", inventory);
 		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", "bank", bank);
