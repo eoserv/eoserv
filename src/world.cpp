@@ -10,6 +10,7 @@
 #include "config.hpp"
 #include "console.hpp"
 #include "database.hpp"
+#include "eoclient.hpp"
 #include "eodata.hpp"
 #include "eoserver.hpp"
 #include "guild.hpp"
@@ -17,6 +18,7 @@
 #include "hook.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
 #include "scriptreg.hpp"
@@ -24,13 +26,13 @@
 
 void world_spawn_npcs(void *world_void)
 {
-	World *world = static_cast<World *>(world_void);
+	World *world(static_cast<World *>(world_void));
 
 	double spawnrate = world->config["SpawnRate"];
 	double current_time = Timer::GetTime();
-	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
+	UTIL_PTR_VECTOR_FOREACH(world->maps, Map, map)
 	{
-		UTIL_VECTOR_FOREACH_ALL(map->npcs, NPC *, npc)
+		UTIL_PTR_VECTOR_FOREACH(map->npcs, NPC, npc)
 		{
 			if (!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time)
 			{
@@ -45,12 +47,12 @@ void world_spawn_npcs(void *world_void)
 
 void world_act_npcs(void *world_void)
 {
-	World *world = static_cast<World *>(world_void);
+	World *world(static_cast<World *>(world_void));
 
 	double current_time = Timer::GetTime();
-	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
+	UTIL_PTR_VECTOR_FOREACH(world->maps, Map, map)
 	{
-		UTIL_VECTOR_FOREACH_ALL(map->npcs, NPC *, npc)
+		UTIL_PTR_VECTOR_FOREACH(map->npcs, NPC, npc)
 		{
 			if (npc->alive && npc->last_act + npc->act_speed < current_time)
 			{
@@ -62,11 +64,11 @@ void world_act_npcs(void *world_void)
 
 void world_recover(void *world_void)
 {
-	World *world = static_cast<World *>(world_void);
+	World *world(static_cast<World *>(world_void));
 
 	PacketBuilder builder(PACKET_RECOVER, PACKET_PLAYER);
 
-	UTIL_VECTOR_FOREACH_ALL(world->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(world->characters, Character, character)
 	{
 		bool updated = false;
 
@@ -78,7 +80,7 @@ void world_recover(void *world_void)
 
 			if (character->party)
 			{
-				character->party->UpdateHP(character);
+				character->party->UpdateHP(*character);
 			}
 		}
 
@@ -104,26 +106,15 @@ void world_despawn_items(void *world_void)
 {
 	World *world = static_cast<World *>(world_void);
 
-	UTIL_VECTOR_FOREACH_ALL(world->maps, Map *, map)
+	UTIL_PTR_VECTOR_FOREACH(world->maps, Map, map)
 	{
-restart_loop:
-		UTIL_LIST_IFOREACH_ALL(map->items, Map_Item, item)
+		UTIL_PTR_LIST_FOREACH(map->items, Map_Item, item)
 		{
 			if (item->unprotecttime < (Timer::GetTime() - static_cast<double>(world->config["ItemDespawnRate"])))
 			{
 				map->DelItem(item->uid, 0);
-				goto restart_loop;
 			}
 		}
-	}
-}
-
-Board::~Board()
-{
-	while (!this->posts.empty())
-	{
-		delete this->posts.back();
-		this->posts.pop_back();
 	}
 }
 
@@ -219,7 +210,7 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 
 	for (std::size_t i = 0; i < this->boards.size(); ++i)
 	{
-		this->boards = new Board;
+		this->boards[i] = new Board;
 	}
 
 	this->hookmanager = new HookManager(this->config["ScriptDir"]);
@@ -260,7 +251,7 @@ int World::GeneratePlayerID()
 {
 	unsigned int lowest_free_id = 1;
 	restart_loop:
-	UTIL_LIST_FOREACH_ALL(this->server->clients, EOClient *, client)
+	UTIL_PTR_LIST_FOREACH(this->server->clients, EOClient, client)
 	{
 		if (client->id == lowest_free_id)
 		{
@@ -290,14 +281,7 @@ void World::Logout(Character *character)
 	{
 		this->GetMap(character->mapid)->Leave(character);
 
-		UTIL_VECTOR_IFOREACH(this->characters.begin(), this->characters.end(), Character *, checkcharacter)
-		{
-			if (*checkcharacter == character)
-			{
-				this->characters.erase(checkcharacter);
-				break;
-			}
-		}
+		erase_first(this->characters, character);
 	}
 }
 
@@ -316,9 +300,9 @@ void World::Msg(Character *from, std::string message)
 	}
 	builder.AddBreakString(message);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
-		if (character == from)
+		if (*character == from)
 		{
 			continue;
 		}
@@ -342,9 +326,9 @@ void World::AdminMsg(Character *from, std::string message, int minlevel)
 	}
 	builder.AddBreakString(message);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
-		if (character == from || character->admin < minlevel)
+		if (*character == from || character->admin < minlevel)
 		{
 			continue;
 		}
@@ -368,9 +352,9 @@ void World::AnnounceMsg(Character *from, std::string message)
 	}
 	builder.AddBreakString(message);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
-		if (character == from)
+		if (*character == from)
 		{
 			continue;
 		}
@@ -386,7 +370,7 @@ void World::ServerMsg(std::string message)
 	builder.SetID(PACKET_TALK, PACKET_SERVER);
 	builder.AddString(message);
 
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
@@ -394,52 +378,43 @@ void World::ServerMsg(std::string message)
 
 Character *World::GetCharacter(std::string name)
 {
-	Character *selected = 0;
+	name = util::lowercase(name);
 
-	util::lowercase(name);
-
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
 		if (character->name.compare(name) == 0)
 		{
-			selected = character;
-			break;
+			return *character;
 		}
 	}
 
-	return selected;
+	return 0;
 }
 
 Character *World::GetCharacterPID(unsigned int id)
 {
-	Character *selected = 0;
-
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
 		if (character->player->id == id)
 		{
-			selected = character;
-			break;
+			return *character;
 		}
 	}
 
-	return selected;
+	return 0;
 }
 
 Character *World::GetCharacterCID(unsigned int id)
 {
-	Character *selected = 0;
-
-	UTIL_VECTOR_FOREACH_ALL(this->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
 		if (character->id == id)
 		{
-			selected = character;
-			break;
+			return *character;
 		}
 	}
 
-	return selected;
+	return 0;
 }
 
 Map *World::GetMap(short id)
@@ -530,7 +505,7 @@ bool World::PlayerOnline(std::string username)
 		return false;
 	}
 
-	UTIL_LIST_FOREACH_ALL(this->server->clients, EOClient *, connection)
+	UTIL_PTR_LIST_FOREACH(this->server->clients, EOClient, connection)
 	{
 		if (connection->player)
 		{
@@ -687,15 +662,3 @@ bool World::PKExcept(int mapid)
 	return std::find(except_list.begin(), except_list.end(), mapid) != except_list.end();
 }
 
-World::~World()
-{
-	delete this->eif;
-	delete this->enf;
-	delete this->esf;
-	delete this->ecf;
-
-	UTIL_VECTOR_FOREACH_ALL(this->maps, Map *, map)
-	{
-		delete map;
-	}
-}

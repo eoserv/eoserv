@@ -49,7 +49,7 @@ static void eoserv_terminate(int signal)
 
 	Console::Out("Exiting EOSERV");
 
-	UTIL_VECTOR_FOREACH_ALL(eoserv_rehash_server->world->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(eoserv_rehash_server->world->characters, Character, character)
 	{
 		character->Save();
 		character->player->client->Close();
@@ -76,7 +76,7 @@ static void eoserv_crash(int signal)
 
 	Console::Err("EOSERV is dying! %s", extype);
 
-	UTIL_VECTOR_FOREACH_ALL(eoserv_rehash_server->world->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(eoserv_rehash_server->world->characters, Character, character)
 	{
 		character->Save();
 		character->player->client->Close();
@@ -97,7 +97,7 @@ static BOOL WINAPI eoserv_win_event_handler(DWORD event)
 
 	Console::Out("Exiting EOSERV");
 
-	UTIL_VECTOR_FOREACH_ALL(eoserv_rehash_server->world->characters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(eoserv_rehash_server->world->characters, Character, character)
 	{
 		character->Save();
 		character->player->client->Close();
@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "AttackLimit"        , 251);
 		eoserv_config_default(config, "DropTimer"          , 120);
 		eoserv_config_default(config, "DropAmount"         , 15);
-		eoserv_config_default(config, "ProctectPlayerDrop" , 5);
+		eoserv_config_default(config, "ProtectPlayerDrop"  , 5);
 		eoserv_config_default(config, "ProtectNPCDrop"     , 30);
 		eoserv_config_default(config, "ProtectPKDrop"      , 60);
 		eoserv_config_default(config, "ProtectDeathDrop"   , 300);
@@ -394,6 +394,8 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "spell"         , 1);
 		eoserv_config_default(aconfig, "class"         , 1);
 		eoserv_config_default(aconfig, "info"          , 1);
+		eoserv_config_default(aconfig, "uptime"        , 1);
+		eoserv_config_default(aconfig, "objects"       , 4);
 		eoserv_config_default(aconfig, "kick"          , 1);
 		eoserv_config_default(aconfig, "skick"         , 3);
 		eoserv_config_default(aconfig, "jail"          , 1);
@@ -529,7 +531,7 @@ int main(int argc, char *argv[])
 			std::exit(1);
 		}
 
-		std::vector<EOClient *> active_clients;
+		PtrVector<Client> *active_clients;
 		Client *newclient;
 		while (eoserv_running)
 		{
@@ -555,17 +557,12 @@ int main(int argc, char *argv[])
 					}
 				}
 
-				UTIL_LIST_FOREACH_ALL(server.clients, EOClient *, client)
+				UTIL_PTR_LIST_FOREACH(server.clients, EOClient, client)
 				{
 					if (client->GetRemoteAddr() == newclient->GetRemoteAddr())
 					{
 						++ip_connections;
 					}
-				}
-
-				if (!throttle)
-				{
-					connection_log[remote_addr] = Timer::GetTime();
 				}
 
 				if (throttle)
@@ -580,8 +577,11 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
+					connection_log[remote_addr] = Timer::GetTime();
 					Console::Out("New connection from %s (%i/%i connections)", static_cast<std::string>(newclient->GetRemoteAddr()).c_str(), server.Connections(), server.MaxConnections());
 				}
+
+				newclient->Release();
 			}
 
 			try
@@ -596,9 +596,9 @@ int main(int argc, char *argv[])
 				}
 			}
 
-			UTIL_VECTOR_IFOREACH_ALL(active_clients, EOClient *, ci)
+			UTIL_PTR_VECTOR_FOREACH(*active_clients, Client, cl_)
 			{
-				EOClient *cl = *ci;
+				EOClient *cl = static_cast<EOClient *>(*cl_);
 				std::string data;
 				int done = false;
 				int oldlength;
@@ -683,6 +683,7 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
+			active_clients->clear();
 
 			server.BuryTheDead();
 

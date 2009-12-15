@@ -6,6 +6,8 @@
 
 #include "handlers.h"
 
+#include "map.hpp"
+
 CLIENT_F_FUNC(Internal)
 {
 	if (!act)

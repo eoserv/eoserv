@@ -7,7 +7,11 @@
 #ifndef CONSOLE_HPP_INCLUDED
 #define CONSOLE_HPP_INCLUDED
 
+#include "fwd/console.hpp"
+
 #include <string>
+
+#include "script.hpp"
 
 namespace Console
 {
@@ -50,6 +54,14 @@ void Out(std::string f, ...);
 void Wrn(std::string f, ...);
 void Err(std::string f, ...);
 void Dbg(std::string f, ...);
+
+inline void ScriptRegister(ScriptEngine &engine)
+{
+	engine.as->RegisterGlobalFunction("void Out(string)", asFUNCTION(Out), asCALL_CDECL);
+	engine.as->RegisterGlobalFunction("void Wrn(string)", asFUNCTION(Wrn), asCALL_CDECL);
+	engine.as->RegisterGlobalFunction("void Err(string)", asFUNCTION(Err), asCALL_CDECL);
+	engine.as->RegisterGlobalFunction("void Dbg(string)", asFUNCTION(Dbg), asCALL_CDECL);
+}
 
 }
 

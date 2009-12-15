@@ -18,7 +18,11 @@
 #include <string>
 #include <vector>
 
+#include "shared.hpp"
 #include "util.hpp"
+
+#include "container/ptr_list.hpp"
+#include "container/ptr_vector.hpp"
 
 #if defined(WIN32) || defined(WIN64)
 #include <windows.h>
@@ -240,12 +244,16 @@ class IPAddress
 
 		bool operator ==(const IPAddress &) const;
 		bool operator <(const IPAddress &) const;
+
+	SCRIPT_REGISTER_REF_DF(IPAddress)
+
+	SCRIPT_REGISTER_END()
 };
 
 /**
  * Generic TCP client class.
  */
-class Client
+class Client : public Shared
 {
 	protected:
 		bool connected;
@@ -254,7 +262,7 @@ class Client
 		sockaddr_in sin;
 		std::string send_buffer;
 		std::string recv_buffer;
-		void *void_server;
+		Server *server;
 		std::size_t recv_buffer_max;
 		std::size_t send_buffer_max;
 		time_t connect_time;
@@ -262,8 +270,8 @@ class Client
 	public:
 		Client();
 		Client(IPAddress addr, uint16_t port);
-		Client(void *);
-		Client(SOCKET, sockaddr_in, void *);
+		Client(Server *);
+		Client(SOCKET, sockaddr_in, Server *);
 		bool Connect(IPAddress addr, uint16_t port);
 		void Bind(IPAddress addr, uint16_t port);
 		std::string Recv(std::size_t length);
@@ -275,13 +283,13 @@ class Client
 		time_t ConnectTime();
 		virtual ~Client();
 
-	template<class> friend class Server;
+	friend class Server;
 };
 
 /**
  * Generic TCP server class.
  */
-template <class T = Client> class Server
+class Server : public Shared
 {
 	public:
 		enum State
@@ -343,25 +351,7 @@ template <class T = Client> class Server
 		 * This is called by every Socket constructor.
 		 * @throw Socket_InitFailed
 		 */
-		void Initialize()
-		{
-#if defined(WIN32) || defined(WIN64)
-			if (!socket_ws_init)
-			{
-				if (WSAStartup(MAKEWORD(2,0), &socket_wsadata) != 0)
-				{
-					this->state = Invalid;
-					throw Socket_InitFailed(OSErrorString());
-				}
-				socket_ws_init = true;
-			}
-#endif // defined(WIN32) || defined(WIN64)
-			this->server = socket(AF_INET, SOCK_STREAM, 0);
-			this->state = Created;
-			this->recv_buffer_max = 1024*128;
-			this->send_buffer_max = 1024*128;
-			this->maxconn = 0;
-		}
+		void Initialize();
 
 	protected:
 		/**
@@ -390,11 +380,13 @@ template <class T = Client> class Server
 		 */
 		State state;
 
+		virtual Client *ClientFactory(SOCKET sock, sockaddr_in sin);
+
 	public:
 		/**
 		 * List of connected clients.
 		 */
-		std::list<T *> clients;
+		PtrList<Client> clients;
 
 		/**
 		 * Initializes the Server.
@@ -422,26 +414,7 @@ template <class T = Client> class Server
 		 * @param port Port number to bind to.
 		 * @throw Socket_BindFailed
 		 */
-		void Bind(IPAddress addr, uint16_t port)
-		{
-			sockaddr_in sin;
-			this->address = addr;
-			this->port = port;
-			this->portn = htons(port);
-
-			std::memset(&sin, 0, sizeof(sin));
-			sin.sin_family = AF_INET;
-			sin.sin_addr = this->address;
-			sin.sin_port = this->portn;
-
-			if (bind(this->server, reinterpret_cast<sockaddr *>(&sin), sizeof(sin)) == SOCKET_ERROR)
-			{
-				this->state = Invalid;
-				throw Socket_BindFailed(OSErrorString());
-			}
-
-			this->state = Bound;
-		}
+		void Bind(IPAddress addr, uint16_t port);
 
 		/**
 		 * Bind the Server to the specified address and port.
@@ -449,76 +422,13 @@ template <class T = Client> class Server
 		 * @param backlog Number of connections to keep in the queue.
 		 * @throw Socket_ListenFailed
 		 */
-		void Listen(int maxconn, int backlog = 10)
-		{
-			this->maxconn = maxconn;
-
-			//if (this->state == Bound)
-			//{
-				if (listen(this->server, backlog) != SOCKET_ERROR)
-				{
-					this->state = Listening;
-					return;
-				}
-			//}
-
-			this->state = Invalid;
-			throw Socket_ListenFailed(OSErrorString());
-		}
+		void Listen(int maxconn, int backlog = 10);
 
 		/**
 		 * Check for new connection requests.
 		 * @return NULL if there are no pending connections, a pointer to the Client otherwise.
 		 */
-		T *Poll()
-		{
-			SOCKET newsock;
-			sockaddr_in sin;
-			socklen_t addrsize = sizeof(sockaddr_in);
-			T* newclient;
-#if defined(WIN32) || defined(WIN64)
-			unsigned long nonblocking;
-#endif // defined(WIN32) || defined(WIN64)
-
-			if (this->clients.size() >= this->maxconn)
-			{
-				if ((newsock = accept(this->server, reinterpret_cast<sockaddr *>(&sin), &addrsize)) != INVALID_SOCKET)
-				{
-#if defined(WIN32) || defined(WIN64)
-					closesocket(newsock);
-#else // defined(WIN32) || defined(WIN64)
-					close(newsock);
-#endif // defined(WIN32) || defined(WIN64)
-					return 0;
-				}
-			}
-
-#if defined(WIN32) || defined(WIN64)
-			nonblocking = 1;
-			ioctlsocket(this->server, FIONBIO, &nonblocking);
-#else // defined(WIN32) || defined(WIN64)
-			fcntl(this->server, F_SETFL, FNONBLOCK|FASYNC);
-#endif // defined(WIN32) || defined(WIN64)
-			if ((newsock = accept(this->server, reinterpret_cast<sockaddr *>(&sin), &addrsize)) == INVALID_SOCKET)
-			{
-				return 0;
-			}
-#if defined(WIN32) || defined(WIN64)
-			nonblocking = 0;
-			ioctlsocket(this->server, FIONBIO, &nonblocking);
-#else // defined(WIN32) || defined(WIN64)
-			fcntl(this->server, F_SETFL, 0);
-#endif // defined(WIN32) || defined(WIN64)
-
-			newclient = new T(newsock, sin, static_cast<void *>(this));
-			newclient->send_buffer_max = this->send_buffer_max;
-			newclient->recv_buffer_max = this->recv_buffer_max;
-			newclient->connect_time = time(0);
-
-			this->clients.push_back(newclient);
-
-			return newclient;
-		}
+		Client *Poll();
 
 		/**
 		 * Check clients for incoming data and errors, and sends data in their send_buffer.
@@ -528,230 +438,13 @@ template <class T = Client> class Server
 		 * @throw Socket_Exception
 		 * @return Returns a list of clients that have data in their recv_buffer.
 		 */
-#if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
-		std::vector<T *> Select(double timeout)
-		{
-			class std::vector<T *> selected;
-			class std::vector<pollfd> fds;
-			int result;
-			pollfd fd;
-
-			fds.reserve(this->clients.size() + 1);
-
-			fd.fd = this->server;
-			fd.events = POLLERR;
-			fds.push_back(fd);
-
-			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
-			{
-				fd.fd = client->sock;
-
-				fd.events = 0;
-
-				if (client->recv_buffer.length() < client->recv_buffer_max)
-				{
-					fd.events |= POLLIN;
-				}
-
-				if (client->send_buffer.length() > 0)
-				{
-					fd.events |= POLLOUT;
-				}
-
-				fds.push_back(fd);
-			}
-
-			result = poll(&fds[0], fds.size(), long(timeout * 1000));
-
-			if (result == -1)
-			{
-				throw Socket_SelectFailed(OSErrorString());
-			}
-
-			if (result > 0)
-			{
-				if (fds[0].revents & POLLERR == POLLERR)
-				{
-					throw Socket_Exception("There was an exception on the listening socket.");
-				}
-
-				int i = 0;
-				UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
-				{
-					++i;
-					if (fds[i].revents & POLLERR || fds[i].revents & POLLHUP || fds[i].revents & POLLNVAL)
-					{
-						client->Close();
-						continue;
-					}
-
-					if (fds[i].revents & POLLIN)
-					{
-						char buf[32767];
-						int recieved = recv(client->sock, buf, 32767, 0);
-						if (recieved > 0)
-						{
-							client->recv_buffer.append(buf, recieved);
-						}
-						else
-						{
-							client->Close();
-							continue;
-						}
-
-						if (client->recv_buffer.length() > client->recv_buffer_max)
-						{
-							client->Close();
-							continue;
-						}
-					}
-
-					if (fds[i].revents & POLLOUT)
-					{
-						int written = send(client->sock, client->send_buffer.c_str(), client->send_buffer.length(), 0);
-						if (written == SOCKET_ERROR)
-						{
-							client->Close();
-							continue;
-						}
-						client->send_buffer.erase(0,written);
-					}
-				}
-			}
-
-			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
-			{
-				if (client->connected || client->recv_buffer.length() > 0)
-				{
-					selected.push_back(client);
-				}
-			}
-
-			return selected;
-		}
-#else // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
-		std::vector<T *> Select(double timeout)
-		{
-			long tsecs = long(timeout);
-			timeval timeout_val = {tsecs, long((timeout - double(tsecs))*1000000)};
-			std::vector<T *> selected;
-			SOCKET nfds = this->server;
-			int result;
-
-			FD_ZERO(&this->read_fds);
-			FD_ZERO(&this->write_fds);
-			FD_ZERO(&this->except_fds);
-
-			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
-			{
-				if (client->recv_buffer.length() < client->recv_buffer_max)
-				{
-					FD_SET(client->sock, &this->read_fds);
-				}
-
-				if (client->send_buffer.length() > 0)
-				{
-					FD_SET(client->sock, &this->write_fds);
-				}
-
-				FD_SET(client->sock, &this->except_fds);
-
-				if (client->sock > nfds)
-				{
-					nfds = client->sock;
-				}
-			}
-
-			FD_SET(this->server, &this->except_fds);
-
-			result = select(nfds+1, &this->read_fds, &this->write_fds, &this->except_fds, &timeout_val);
-
-			if (result == -1)
-			{
-				throw Socket_SelectFailed(OSErrorString());
-			}
-
-			if (result > 0)
-			{
-				if (FD_ISSET(this->server, &this->except_fds))
-				{
-					throw Socket_Exception("There was an exception on the listening socket.");
-				}
-
-				UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
-				{
-					if (FD_ISSET(client->sock, &this->except_fds))
-					{
-						client->Close();
-						continue;
-					}
-
-					if (FD_ISSET(client->sock, &this->read_fds))
-					{
-						char buf[32767];
-						int recieved = recv(client->sock, buf, 32767, 0);
-						if (recieved > 0)
-						{
-							client->recv_buffer.append(buf, recieved);
-						}
-						else
-						{
-							client->Close();
-							continue;
-						}
-
-						if (client->recv_buffer.length() > client->recv_buffer_max)
-						{
-							client->Close();
-							continue;
-						}
-					}
-
-					if (FD_ISSET(client->sock, &this->write_fds))
-					{
-						int written = send(client->sock, client->send_buffer.c_str(), client->send_buffer.length(), 0);
-						if (written == SOCKET_ERROR)
-						{
-							client->Close();
-							continue;
-						}
-						client->send_buffer.erase(0,written);
-					}
-				}
-			}
-
-			UTIL_TPL_LIST_FOREACH_ALL(this->clients, T *, client)
-			{
-				if (client->recv_buffer.length() > 0)
-				{
-					selected.push_back(client);
-				}
-			}
-
-			return selected;
-		}
-#endif // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+		PtrVector<Client> *Select(double timeout);
 
 		/**
 		 * Destroys any dead clients, should be called periodically.
 		 * All pointers to Client objects from this Server should be considered invalid after execution.
 		 */
-		void BuryTheDead()
-		{
-			UTIL_TPL_LIST_IFOREACH_ALL(this->clients, T *, it)
-			{
-				if (!(*it)->Connected() && (((*it)->send_buffer.length() == 0 && (*it)->recv_buffer.length() == 0) || (*it)->closed_time + 2 < std::time(0)))
-				{
-#if defined(WIN32) || defined(WIN64)
-					closesocket((*it)->sock);
-#else // defined(WIN32) || defined(WIN64)
-					close((*it)->sock);
-#endif // defined(WIN32) || defined(WIN64)
-					delete *it;
-					it = this->clients.erase(it);
-				}
-			}
-		}
+		void BuryTheDead();
 
 		State State()
 		{

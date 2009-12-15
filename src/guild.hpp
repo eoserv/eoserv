@@ -13,16 +13,20 @@
  * Stores guild information and references to online members
  * Created by the World object when a member of the guild logs in, and destroyed when the last member logs out
  */
-class Guild
+class Guild : public Shared
 {
 	public:
 		std::string tag;
 		std::string name;
-		std::vector<Character *> members;
+		PtrVector<Character> members;
 		util::array<std::string, 9> ranks;
 		std::time_t created;
 
-		void Msg(Character *from, std::string message);
+		void Msg(PtrVector<Character> from, std::string message);
+
+	SCRIPT_REGISTER_REF_DF(Guild)
+
+	SCRIPT_REGISTER_END()
 };
 
 #endif // GUILD_HPP_INCLUDED

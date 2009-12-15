@@ -19,29 +19,26 @@
 #include "world.hpp"
 
 // TODO: Clean up these functions
-std::string ItemSerialize(std::list<Character_Item> list)
+std::string ItemSerialize(const PtrList<Character_Item> &list)
 {
 	std::string serialized;
-	serialized.reserve(list.size()*10); // Reserve some space to stop some mass-reallocations
 
-	UTIL_LIST_FOREACH_ALL(list, Character_Item, item)
+	for (PtrList<Character_Item>::ConstIterator it(list); it; ++it)
 	{
-		serialized.append(util::to_string(item.id));
+		serialized.append(util::to_string(it->id));
 		serialized.append(",");
-		serialized.append(util::to_string(item.amount));
+		serialized.append(util::to_string(it->amount));
 		serialized.append(";");
 	}
 
-	serialized.reserve(0); // Clean up the reserve to save memory
 	return serialized;
 }
 
-std::list<Character_Item> ItemUnserialize(std::string serialized)
+PtrList<Character_Item> ItemUnserialize(std::string serialized)
 {
-	std::list<Character_Item> list;
+	PtrList<Character_Item> list;
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
-	Character_Item newitem;
 
 	if (!serialized.empty() && *(serialized.end()-1) != ';')
 	{
@@ -53,14 +50,18 @@ std::list<Character_Item> ItemUnserialize(std::string serialized)
 		std::string part = serialized.substr(lastp+1, p-lastp-1);
 		std::size_t pp = 0;
 		pp = part.find_first_of(',', 0);
+
 		if (pp == std::string::npos)
 		{
 			continue;
 		}
-		newitem.id = util::to_int(part.substr(0, pp));
-		newitem.amount = util::to_int(part.substr(pp+1));
+
+		Character_Item *newitem = new Character_Item;
+		newitem->id = util::to_int(part.substr(0, pp));
+		newitem->amount = util::to_int(part.substr(pp+1));
 
 		list.push_back(newitem);
+		newitem->Release();
 
 		lastp = p;
 	}
@@ -72,15 +73,11 @@ std::string DollSerialize(util::array<int, 15> list)
 {
 	std::string serialized;
 
-	serialized.reserve(15*5); // Reserve some space to stop some mass-reallocations
-
 	UTIL_ARRAY_FOREACH_ALL(list, int, 15, item)
 	{
 		serialized.append(util::to_string(item));
 		serialized.append(",");
 	}
-
-	serialized.reserve(0); // Clean up the reserve to save memory
 
 	return serialized;
 }
@@ -251,6 +248,15 @@ void Character::Msg(Character *from, std::string message)
 	this->player->client->SendBuilder(builder);
 }
 
+void Character::ServerMsg(std::string message)
+{
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_TALK, PACKET_SERVER);
+	builder.AddString(message);
+	this->player->client->SendBuilder(builder);
+}
+
 bool Character::Walk(Direction direction)
 {
 	return this->map->Walk(this, direction);
@@ -283,25 +289,25 @@ void Character::Emote(enum Emote emote, bool relay)
 
 int Character::HasItem(short item)
 {
-	UTIL_LIST_FOREACH_ALL(this->inventory, Character_Item, it)
+	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, it)
 	{
-		if (it.id == item)
+		if (it->id == item)
 		{
 			if (this->trading)
 			{
-				UTIL_LIST_FOREACH_ALL(this->trade_inventory, Character_Item, tit)
+				UTIL_PTR_LIST_FOREACH(this->trade_inventory, Character_Item, tit)
 				{
-					if (tit.id == item)
+					if (tit->id == item)
 					{
-						return std::max(it.amount - tit.amount, 0);
+						return std::max(it->amount - tit->amount, 0);
 					}
 				}
 
-				return it.amount;
+				return it->amount;
 			}
 			else
 			{
-				return it.amount;
+				return it->amount;
 			}
 		}
 	}
@@ -311,8 +317,6 @@ int Character::HasItem(short item)
 
 bool Character::AddItem(short item, int amount)
 {
-	Character_Item newitem;
-
 	if (amount <= 0)
 	{
 		return false;
@@ -323,7 +327,7 @@ bool Character::AddItem(short item, int amount)
 		return false;
 	}
 
-	UTIL_LIST_IFOREACH_ALL(this->inventory, Character_Item, it)
+	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, it)
 	{
 		if (it->id == item)
 		{
@@ -340,10 +344,12 @@ bool Character::AddItem(short item, int amount)
 		}
 	}
 
-	newitem.id = item;
-	newitem.amount = amount;
+	Character_Item *newitem = new Character_Item;
+	newitem->id = item;
+	newitem->amount = amount;
 
 	this->inventory.push_back(newitem);
+	newitem->Release();
 	this->CalculateStats();
 	return true;
 }
@@ -355,7 +361,7 @@ bool Character::DelItem(short item, int amount)
 		return false;
 	}
 
-	UTIL_LIST_IFOREACH_ALL(this->inventory, Character_Item, it)
+	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, it)
 	{
 		if (it->id == item)
 		{
@@ -376,10 +382,27 @@ bool Character::DelItem(short item, int amount)
 	return false;
 }
 
+void Character::DelItem(PtrList<Character_Item>::Iterator &it, int amount)
+{
+	if (amount <= 0)
+	{
+		return;
+	}
+
+	if (it->amount < 0 || it->amount - amount <= 0)
+	{
+		this->inventory.erase(it);
+	}
+	else
+	{
+		it->amount -= amount;
+	}
+
+	this->CalculateStats();
+}
+
 bool Character::AddTradeItem(short item, int amount)
 {
-	Character_Item newitem;
-
 	if (amount <= 0)
 	{
 		return false;
@@ -397,7 +420,7 @@ bool Character::AddTradeItem(short item, int amount)
 		return false;
 	}
 
-	UTIL_LIST_IFOREACH_ALL(this->trade_inventory, Character_Item, it)
+	UTIL_PTR_LIST_FOREACH(this->trade_inventory, Character_Item, it)
 	{
 		if (it->id == item)
 		{
@@ -406,16 +429,18 @@ bool Character::AddTradeItem(short item, int amount)
 		}
 	}
 
-	newitem.id = item;
-	newitem.amount = amount;
+	Character_Item *newitem = new Character_Item;
+	newitem->id = item;
+	newitem->amount = amount;
 
 	this->trade_inventory.push_back(newitem);
+	newitem->Release();
 	return true;
 }
 
 bool Character::DelTradeItem(short item)
 {
-	UTIL_LIST_IFOREACH_ALL(this->trade_inventory, Character_Item, it)
+	for (PtrList<Character_Item>::Iterator it(this->trade_inventory); it; ++it)
 	{
 		if (it->id == item)
 		{
@@ -425,6 +450,7 @@ bool Character::DelTradeItem(short item)
 	}
 
 	return false;
+
 }
 
 bool Character::Unequip(short item, unsigned char subloc)
@@ -440,6 +466,7 @@ bool Character::Unequip(short item, unsigned char subloc)
 		{
 			if (((i == Character::Ring2 || i == Character::Armlet2 || i == Character::Bracer2) ? 1 : 0) == subloc)
 			{
+
 				this->paperdoll[i] = 0;
 				this->AddItem(item, 1);
 				this->CalculateStats();
@@ -645,14 +672,14 @@ bool Character::InRange(NPC *other)
 	return this->InRange(other->x, other->y);
 }
 
-bool Character::InRange(Map_Item other)
+bool Character::InRange(Map_Item *other)
 {
 	if (this->nowhere)
 	{
 		return false;
 	}
 
-	return this->InRange(other.x, other.y);
+	return this->InRange(other->x, other->y);
 }
 
 void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation)
@@ -731,31 +758,31 @@ void Character::Refresh()
 {
 	PacketBuilder builder;
 
-	std::vector<Character *> updatecharacters;
-	std::vector<NPC *> updatenpcs;
-	std::vector<Map_Item> updateitems;
+	PtrVector<Character> updatecharacters;
+	PtrVector<NPC> updatenpcs;
+	PtrVector<Map_Item> updateitems;
 
-	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 	{
-		if (this->InRange(character))
+		if (this->InRange(*character))
 		{
-			updatecharacters.push_back(character);
+			updatecharacters.push_back(*character);
 		}
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(this->map->npcs, NPC *, npc)
+	UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
 	{
-		if (this->InRange(npc))
+		if (this->InRange(*npc))
 		{
-			updatenpcs.push_back(npc);
+			updatenpcs.push_back(*npc);
 		}
 	}
 
-	UTIL_LIST_FOREACH_ALL(this->map->items, Map_Item, item)
+	UTIL_PTR_LIST_FOREACH(this->map->items, Map_Item, item)
 	{
-		if (this->InRange(item))
+		if (this->InRange(*item))
 		{
-			updateitems.push_back(item);
+			updateitems.push_back(*item);
 		}
 	}
 
@@ -763,7 +790,7 @@ void Character::Refresh()
 	builder.AddChar(updatecharacters.size()); // Number of players
 	builder.AddByte(255);
 
-	UTIL_VECTOR_FOREACH_ALL(updatecharacters, Character *, character)
+	UTIL_PTR_VECTOR_FOREACH(updatecharacters, Character, character)
 	{
 		builder.AddBreakString(character->name);
 		builder.AddShort(character->player->id);
@@ -797,7 +824,7 @@ void Character::Refresh()
 		builder.AddByte(255);
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(updatenpcs, NPC *, npc)
+	UTIL_PTR_VECTOR_FOREACH(updatenpcs, NPC, npc)
 	{
 		if (npc->alive)
 		{
@@ -811,13 +838,13 @@ void Character::Refresh()
 
 	builder.AddByte(255);
 
-	UTIL_VECTOR_FOREACH_ALL(updateitems, Map_Item, item)
+	UTIL_PTR_VECTOR_FOREACH(updateitems, Map_Item, item)
 	{
-		builder.AddShort(item.uid);
-		builder.AddShort(item.id);
-		builder.AddChar(item.x);
-		builder.AddChar(item.y);
-		builder.AddThree(item.amount);
+		builder.AddShort(item->uid);
+		builder.AddShort(item->id);
+		builder.AddChar(item->x);
+		builder.AddChar(item->y);
+		builder.AddThree(item->amount);
 	}
 
 	this->player->client->SendBuilder(builder);
@@ -837,7 +864,7 @@ void Character::ShowBoard(int boardid)
 	int post_count = 0;
 	int recent_post_count = 0;
 
-	UTIL_LIST_FOREACH_ALL(this->world->boards[boardid]->posts, Board_Post *, post)
+	UTIL_PTR_LIST_FOREACH(this->world->boards[boardid]->posts, Board_Post, post)
 	{
 		if (post->author == this->player->character->name)
 		{
@@ -852,7 +879,7 @@ void Character::ShowBoard(int boardid)
 
 	int posts_remaining = std::min(static_cast<int>(this->world->config["BoardMaxUserPosts"]) - post_count, static_cast<int>(this->world->config["BoardMaxUserRecentPosts"]) - recent_post_count);
 
-	UTIL_LIST_FOREACH_ALL(this->world->boards[boardid]->posts, Board_Post *, post)
+	UTIL_PTR_LIST_FOREACH(this->world->boards[boardid]->posts, Board_Post, post)
 	{
 		builder.AddShort(post->id);
 		builder.AddByte(255);
@@ -934,10 +961,12 @@ void Character::CalculateStats()
 	this->evade = 0;
 	this->armor = 0;
 	this->maxsp = 0;
-	UTIL_LIST_FOREACH_ALL(this->inventory, Character_Item, item)
+
+	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, item)
 	{
-		this->weight += this->world->eif->Get(item.id)->weight * item.amount;
+		this->weight += this->world->eif->Get(item->id)->weight * item->amount;
 	}
+
 	UTIL_ARRAY_FOREACH_ALL(this->paperdoll, int, 15, i)
 	{
 		if (i)
@@ -977,16 +1006,14 @@ void Character::CalculateStats()
 void Character::DropAll(Character *killer)
 {
 	// TODO: This could be more efficient
-	restart_loop:
-	UTIL_LIST_FOREACH_ALL(this->inventory, Character_Item, item)
+	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, item)
 	{
-		if (this->world->eif->Get(item.id)->special == EIF::Lore)
+		if (this->world->eif->Get(item->id)->special == EIF::Lore)
 		{
 			continue;
 		}
 
-		Map_Item *map_item = this->player->character->map->AddItem(item.id, item.amount, this->x, this->y, 0);
-		this->DelItem(item.id, item.amount);
+		Map_Item *map_item = this->player->character->map->AddItem(item->id, item->amount, this->x, this->y, 0);
 
 		if (map_item)
 		{
@@ -998,12 +1025,13 @@ void Character::DropAll(Character *killer)
 			else
 			{
 				map_item->owner = this->player->id;
+				Console::Dbg("ProtectDeathDrop = %g\n", static_cast<double>(this->world->config["ProtectDeathDrop"]));
 				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectDeathDrop"]);
 			}
 
 			PacketBuilder builder(PACKET_ITEM, PACKET_DROP);
-			builder.AddShort(item.id);
-			builder.AddThree(item.amount);
+			builder.AddShort(item->id);
+			builder.AddThree(item->amount);
 			builder.AddInt(0);
 			builder.AddShort(map_item->uid);
 			builder.AddChar(this->x);
@@ -1013,7 +1041,7 @@ void Character::DropAll(Character *killer)
 			this->player->client->SendBuilder(builder);
 		}
 
-		goto restart_loop;
+		this->DelItem(item, item->amount);
 	}
 
 	int i = 0;
@@ -1094,25 +1122,7 @@ void Character::DropAll(Character *killer)
 	}
 }
 
-void Character::Save()
-{
-
-#ifdef DEBUG
-	Console::Dbg("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
-#endif // DEBUG
-	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
-		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
-		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, "
-		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
-		"`spells` = '$', `guild` = '$', guild_rank = # WHERE `name` = '$'",
-		this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
-		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
-		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
-		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
-		DollSerialize(this->paperdoll).c_str(), "", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
-}
-
-Character::~Character()
+void Character::Logout()
 {
 	if (!this->online)
 	{
@@ -1149,9 +1159,9 @@ Character::~Character()
 		--this->arena->occupants;
 	}
 
-	UTIL_LIST_FOREACH_ALL(this->unregister_npc, NPC *, npc)
+	UTIL_PTR_LIST_FOREACH(this->unregister_npc, NPC, npc)
 	{
-		UTIL_LIST_IFOREACH_ALL(npc->damagelist, NPC_Opponent, checkopp)
+		UTIL_PTR_LIST_FOREACH(npc->damagelist, NPC_Opponent, checkopp)
 		{
 			if (checkopp->attacker == this)
 			{
@@ -1165,4 +1175,28 @@ Character::~Character()
 	this->world->Logout(this);
 
 	this->Save();
+
+	this->online = false;
+}
+
+void Character::Save()
+{
+#ifdef DEBUG
+	Console::Dbg("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
+#endif // DEBUG
+	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
+		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
+		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, "
+		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
+		"`spells` = '$', `guild` = '$', guild_rank = # WHERE `name` = '$'",
+		this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
+		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
+		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
+		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
+		DollSerialize(this->paperdoll).c_str(), "", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
+}
+
+Character::~Character()
+{
+	this->Logout();
 }

@@ -44,6 +44,10 @@ class Config : public std::map<std::string, util::variant>
 		 * @param filename File to read from.
 		 */
 		void Read(std::string filename);
+
+	SCRIPT_REGISTER_REF_DF(Config)
+		SCRIPT_REGISTER_FUNCTION("void Read(string filename)", Read);
+	SCRIPT_REGISTER_END()
 };
 
 #endif // CONFIG_HPP_INCLUDED

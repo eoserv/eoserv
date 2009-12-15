@@ -8,6 +8,25 @@
 
 #include "map.hpp"
 
+static void add_common(PacketBuilder &reply, Character *character, short item, int amount)
+{
+	character->DelItem(item, amount);
+
+	character->CalculateStats();
+
+	reply.SetID(PACKET_LOCKER, PACKET_REPLY);
+	reply.AddShort(item);
+	reply.AddInt(character->HasItem(item));
+	reply.AddChar(character->weight);
+	reply.AddChar(character->maxweight);
+
+	UTIL_PTR_LIST_FOREACH(character->bank, Character_Item, item)
+	{
+		reply.AddShort(item->id);
+		reply.AddThree(item->amount);
+	}
+}
+
 CLIENT_F_FUNC(Locker)
 {
 	PacketBuilder reply;
@@ -24,6 +43,7 @@ CLIENT_F_FUNC(Locker)
 			int amount = reader.GetThree();
 
 			if (item == 1) return true;
+			if (amount <= 0) return true;
 			if (this->player->character->HasItem(item) < amount) return true;
 
 			std::size_t lockermax = static_cast<int>(this->server->world->config["BaseBankSize"]) + this->player->character->bankmax * static_cast<int>(this->server->world->config["BankSizeStep"]);
@@ -32,7 +52,7 @@ CLIENT_F_FUNC(Locker)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
 				{
-					UTIL_LIST_IFOREACH_ALL(this->player->character->bank, Character_Item, it)
+					UTIL_PTR_LIST_FOREACH(this->player->character->bank, Character_Item, it)
 					{
 						if (it->id == item)
 						{
@@ -45,7 +65,9 @@ CLIENT_F_FUNC(Locker)
 
 							it->amount += amount;
 
-							goto Locker_Add_Common;
+							add_common(reply, this->player->character, item, amount);
+							CLIENT_SEND(reply);
+							return true;
 						}
 					}
 
@@ -56,28 +78,15 @@ CLIENT_F_FUNC(Locker)
 
 					amount = std::min<int>(amount, static_cast<int>(this->server->world->config["MaxBank"]));
 
-					Character_Item newitem;
+					Character_Item *newitem(new Character_Item);
 
-					newitem.id = item;
-					newitem.amount = amount;
+					newitem->id = item;
+					newitem->amount = amount;
 
 					this->player->character->bank.push_back(newitem);
+					newitem->Release();
 
-Locker_Add_Common:
-					this->player->character->DelItem(item, amount);
-
-					this->player->character->CalculateStats();
-
-					reply.SetID(PACKET_LOCKER, PACKET_REPLY);
-					reply.AddShort(item);
-					reply.AddInt(this->player->character->HasItem(item));
-					reply.AddChar(this->player->character->weight);
-					reply.AddChar(this->player->character->maxweight);
-					UTIL_LIST_FOREACH_ALL(this->player->character->bank, Character_Item, item)
-					{
-						reply.AddShort(item.id);
-						reply.AddThree(item.amount);
-					}
+					add_common(reply, this->player->character, item, amount);
 					CLIENT_SEND(reply);
 				}
 			}
@@ -96,7 +105,7 @@ Locker_Add_Common:
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
 				{
-					UTIL_LIST_IFOREACH_ALL(this->player->character->bank, Character_Item, it)
+					UTIL_PTR_LIST_FOREACH(this->player->character->bank, Character_Item, it)
 					{
 						if (it->id == item)
 						{
@@ -112,10 +121,10 @@ Locker_Add_Common:
 
 							this->player->character->bank.erase(it);
 
-							UTIL_LIST_FOREACH_ALL(this->player->character->bank, Character_Item, item)
+							UTIL_PTR_LIST_FOREACH(this->player->character->bank, Character_Item, item)
 							{
-								reply.AddShort(item.id);
-								reply.AddThree(item.amount);
+								reply.AddShort(item->id);
+								reply.AddThree(item->amount);
 							}
 							CLIENT_SEND(reply);
 
@@ -141,10 +150,10 @@ Locker_Add_Common:
 					reply.SetID(PACKET_LOCKER, PACKET_OPEN);
 					reply.AddChar(x);
 					reply.AddChar(y);
-					UTIL_LIST_FOREACH_ALL(this->player->character->bank, Character_Item, item)
+					UTIL_PTR_LIST_FOREACH(this->player->character->bank, Character_Item, item)
 					{
-						reply.AddShort(item.id);
-						reply.AddThree(item.amount);
+						reply.AddShort(item->id);
+						reply.AddThree(item->amount);
 					}
 					CLIENT_SEND(reply);
 				}

@@ -13,6 +13,7 @@
 #include "nanohttp.hpp"
 #include "timer.hpp"
 #include "world.hpp"
+#include "character.hpp"
 
 // TODO: Make this safe (race conditions)
 
@@ -38,7 +39,7 @@ void SLN::Request()
 void *SLN::RequestThread(void *void_sln)
 {
 	HTTP *http;
-	SLN *sln = static_cast<SLN *>(void_sln);
+	SLN *sln(static_cast<SLN *>(void_sln));
 
 	std::string url = sln->server->world->config["SLNURL"];
 	url += "check?software=EOSERV";
@@ -62,8 +63,15 @@ void *SLN::RequestThread(void *void_sln)
 		url += std::string("&zone=") + HTTP::URLEncode(sln->server->world->config["SLNZone"]);
 	}
 
-	url += std::string("&pk=") + HTTP::URLEncode(sln->server->world->config["GlobalPK"]);
-	url += std::string("&deadly=") + HTTP::URLEncode(sln->server->world->config["Deadly"]);
+	if (sln->server->world->config["GlobalPK"])
+	{
+		url += std::string("&pk=") + HTTP::URLEncode(sln->server->world->config["GlobalPK"]);
+	}
+
+	if (sln->server->world->config["Deadly"])
+	{
+		url += std::string("&deadly=") + HTTP::URLEncode(sln->server->world->config["Deadly"]);
+	}
 
 	try
 	{
@@ -229,16 +237,18 @@ void *SLN::RequestThread(void *void_sln)
 		}
 	}
 
-	delete http;
+	TimeEvent *event = new TimeEvent(SLN::TimedRequest, sln, static_cast<int>(sln->server->world->config["SLNPeriod"]), 1, true);
+	sln->server->world->timer.Register(event);
+	event->Release();
 
-	sln->server->world->timer.Register(new TimeEvent(SLN::TimedRequest, sln, static_cast<int>(sln->server->world->config["SLNPeriod"]), 1, true));
+	http->Release();
 
 	return 0;
 }
 
 void SLN::TimedRequest(void *void_sln)
 {
-	SLN *sln = static_cast<SLN *>(void_sln);
+	SLN *sln(static_cast<SLN *>(void_sln));
 
 	sln->Request();
 }

@@ -6,18 +6,23 @@
 
 #include "script.hpp"
 
+#include <cstdio>
+
 #include "console.hpp"
 
-bool ScriptContext::Prepare(std::string function)
+void *ScriptPtrCast(void *p)
+{
+	return p;
+}
+
+bool ScriptContext::Prepare(std::string function, bool declaration)
 {
 	int mainfunc;
 
 	SCRIPT_ASSERT(mainfunc = this->mod->GetFunctionIdByName(function.c_str()),
 		"(%s): function %s() not found.", this->mod->GetName(), function.c_str());
 
-	this->as->Prepare(mainfunc);
-
-	return true;
+	return this->as->Prepare(mainfunc) >= 0;
 }
 
 void *ScriptContext::Execute()
@@ -34,7 +39,7 @@ void *ScriptContext::Execute()
 
 		if (r != asEXECUTION_FINISHED)
 		{
-			Console::Err("SCRIPT ERROR (%s): Failed to execute script.", this->mod->GetName());
+			Console::Err("SCRIPT ERROR (%s): Failed to execute script. (r = %i)", this->mod->GetName(), r);
 			return 0;
 		}
 	}
@@ -75,9 +80,6 @@ ScriptEngine::ScriptEngine(std::string scriptpath)
 	{
 		Console::Err("Failed to set message callback, script errors may not be reported.");
 	}
-
-	RegisterScriptMath(this->as);
-	RegisterStdString(this->as);
 }
 
 void ScriptEngine::MessageCallback(const asSMessageInfo *msg, void *param)
@@ -129,7 +131,7 @@ ScriptContext *ScriptEngine::Build(std::string filename)
 
 	char buf[4096] = {0};
 
-	while (!feof(fh))
+	while (!std::feof(fh))
 	{
 		int read = std::fread(buf, sizeof(char), 4096, fh);
 

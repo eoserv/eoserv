@@ -138,7 +138,7 @@ void Timer::Unregister(TimeEvent *timer)
 	this->timers.erase(timer);
 	if (timer->autofree)
 	{
-		delete timer;
+		timer->Release();
 	}
 }
 
@@ -148,7 +148,7 @@ Timer::~Timer()
 	{
 		if (timer->autofree)
 		{
-			delete timer;
+			timer->Release();
 		}
 	}
 #ifdef WIN32

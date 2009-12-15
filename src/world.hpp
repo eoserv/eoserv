@@ -14,7 +14,7 @@
 #include "script.hpp"
 #include "timer.hpp"
 
-SCRIPT_STRUCT_VALUE(Board_Post)
+struct Board_Post : public Shared
 {
 	short id;
 	std::string author;
@@ -23,42 +23,34 @@ SCRIPT_STRUCT_VALUE(Board_Post)
 	std::string body;
 	double time;
 
-	SCRIPT_REGISTER(Board_Post)
-	{
-		Board_Post *inst = reinterpret_cast<Board_Post *>(std::malloc(sizeof(inst)));
-		SCRIPT_REGISTER_VARIABLE_OFFSET("int16", "id", instance_offsetof(inst, id));
-		SCRIPT_REGISTER_VARIABLE_OFFSET("string", "author", instance_offsetof(inst, author));
-		SCRIPT_REGISTER_VARIABLE_OFFSET("int", "author_admin", instance_offsetof(inst, author_admin));
-		SCRIPT_REGISTER_VARIABLE_OFFSET("string", "subject", instance_offsetof(inst, subject));
-		SCRIPT_REGISTER_VARIABLE_OFFSET("string", "body", instance_offsetof(inst, body));
-		SCRIPT_REGISTER_VARIABLE_OFFSET("double", "time", instance_offsetof(inst, time));
-		std::free(inst);
-	}
+	SCRIPT_REGISTER_REF_DF(Board_Post)
+		SCRIPT_REGISTER_VARIABLE("int16", "id", id);
+		SCRIPT_REGISTER_VARIABLE("string", "author", author);
+		SCRIPT_REGISTER_VARIABLE("int", "author_admin", author_admin);
+		SCRIPT_REGISTER_VARIABLE("string", "subject", subject);
+		SCRIPT_REGISTER_VARIABLE("string", "body", body);
+		SCRIPT_REGISTER_VARIABLE("double", "time", time);
+	SCRIPT_REGISTER_END()
 };
 
-SCRIPT_STRUCT_REF(Board)
+struct Board : public Shared
 {
 	short last_id;
-	std::list<Board_Post *> posts;
+	PtrList<Board_Post> posts;
 
 	Board() : last_id(0) { }
 
-	~Board();
-
-	SCRIPT_REGISTER(Board)
-	{
-		Board *inst = reinterpret_cast<Board *>(std::malloc(sizeof(inst)));
-		SCRIPT_REGISTER_VARIABLE_OFFSET("int16", "last_id", instance_offsetof(inst, last_id));
-		SCRIPT_REGISTER_VARIABLE_OFFSET("_list_Board_Post_ptr", "posts", instance_offsetof(inst, posts));
-		std::free(inst);
-	}
+	SCRIPT_REGISTER_REF_DF(Board)
+		SCRIPT_REGISTER_VARIABLE("int16", "last_id", last_id);
+		SCRIPT_REGISTER_VARIABLE("PtrList<Board_Post>", "posts", posts);
+	SCRIPT_REGISTER_END()
 };
 
 /**
  * Object which holds and manages all maps and characters on the server, as well as timed events
  * Only one of these should exist per server
  */
-class World
+class World : public Shared
 {
 	protected:
 		int last_character_id;
@@ -82,10 +74,10 @@ class World
 		Config shops_config;
 		Config arenas_config;
 
-		std::vector<Character *> characters;
-		std::vector<Guild *> guilds;
-		std::vector<Party *> parties;
-		std::vector<Map *> maps;
+		PtrVector<Character> characters;
+		PtrVector<Guild> guilds;
+		PtrVector<Party> parties;
+		PtrVector<Map> maps;
 
 		util::array<Board *, 8> boards;
 
@@ -131,7 +123,53 @@ class World
 		bool PKExcept(const Map *map);
 		bool PKExcept(int mapid);
 
-		~World();
+	SCRIPT_REGISTER_REF(World)
+		SCRIPT_REGISTER_VARIABLE("Timer", "timer", timer);
+		SCRIPT_REGISTER_VARIABLE("EOServer @", "server", server);
+		SCRIPT_REGISTER_VARIABLE("Database", "db", db);
+		SCRIPT_REGISTER_VARIABLE("EIF @", "eif", eif);
+		SCRIPT_REGISTER_VARIABLE("ENF @", "enf", enf);
+		SCRIPT_REGISTER_VARIABLE("ESF @", "esf", esf);
+		SCRIPT_REGISTER_VARIABLE("ECF @", "ecf", ecf);
+		SCRIPT_REGISTER_VARIABLE("Config", "config", config);
+		SCRIPT_REGISTER_VARIABLE("Config", "admin_config", admin_config);
+		SCRIPT_REGISTER_VARIABLE("Config", "drops_config", drops_config);
+		SCRIPT_REGISTER_VARIABLE("Config", "shops_config", shops_config);
+		SCRIPT_REGISTER_VARIABLE("Config", "arenas_config", arenas_config);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Character @>", "characters", characters);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Guild @>", "guilds", guilds);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Party @>", "parties", parties);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Map @>", "maps", maps);
+		//SCRIPT_REGISTER_VARIABLE("Array<Board @, 8>", "boards", boards);
+		//SCRIPT_REGISTER_VARIABLE("Array<int, 254>", "exp_table", exp_table);
+		SCRIPT_REGISTER_FUNCTION("int GenerateCharacterID()", GenerateCharacterID);
+		SCRIPT_REGISTER_FUNCTION("int GeneratePlayerID()", GenerateCharacterID);
+		SCRIPT_REGISTER_FUNCTION_PR("void Login(Character @)", Login, (Character *), void);
+		SCRIPT_REGISTER_FUNCTION("void Logout(Character @)", Logout);
+		SCRIPT_REGISTER_FUNCTION("void Msg(Character @, string)", Msg);
+		SCRIPT_REGISTER_FUNCTION("void AdminMsg(Character @, string, int minlevel)", AdminMsg);
+		SCRIPT_REGISTER_FUNCTION("void AnnounceMsg(Character @, string)", AnnounceMsg);
+		SCRIPT_REGISTER_FUNCTION("void ServerMsg(string)", ServerMsg);
+		//SCRIPT_REGISTER_FUNCTION_PR("void Reboot()", Reboot, (), void);
+		//SCRIPT_REGISTER_FUNCTION_PR("void Reboot(int, string)", Reboot, (int, std::string), void);
+		SCRIPT_REGISTER_FUNCTION("void Kick(Character @, Character @, bool announce)", Kick);
+		SCRIPT_REGISTER_FUNCTION("void Jail(Character @, Character @, bool announce)", Jail);
+		SCRIPT_REGISTER_FUNCTION("void Ban(Character @, Character @, int, bool announce)", Ban);
+		//SCRIPT_REGISTER_FUNCTION("int CheckBan(const string @, const IPAddress @, const int @)", CheckBan);
+		SCRIPT_REGISTER_FUNCTION("Character @GetCharacter(string)", GetCharacter);
+		SCRIPT_REGISTER_FUNCTION("Character @GetCharacterPID(uint)", GetCharacterPID);
+		SCRIPT_REGISTER_FUNCTION("Character @GetCharacterCID(uint)", GetCharacterCID);
+		SCRIPT_REGISTER_FUNCTION_PR("Map @GetMap(int16)", GetMap, (short), Map *);
+		SCRIPT_REGISTER_FUNCTION("bool CharacterExists(string)", CharacterExists);
+		SCRIPT_REGISTER_FUNCTION("Character @CreateCharacter(Player @, string, Gender, int, int, Skin)", CreateCharacter);
+		SCRIPT_REGISTER_FUNCTION("void DeleteCharacter(string)", DeleteCharacter);
+		SCRIPT_REGISTER_FUNCTION_PR("Player @Login(string, string)", Login, (std::string, std::string), Player *);
+		SCRIPT_REGISTER_FUNCTION("void CreatePlayer(string, string, string, string, string, string, string, string)", CreatePlayer);
+		SCRIPT_REGISTER_FUNCTION("bool PlayerExists(string)", PlayerExists);
+		SCRIPT_REGISTER_FUNCTION("bool PlayerOnline(string)", PlayerOnline);
+		SCRIPT_REGISTER_FUNCTION_PR("bool PKExcept(const Map @)", PKExcept, (const Map *), bool);
+		SCRIPT_REGISTER_FUNCTION_PR("bool PKExcept(int)", PKExcept, (int), bool);
+	SCRIPT_REGISTER_END()
 };
 
 #endif // WORLD_HPP_INCLUDED

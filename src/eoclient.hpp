@@ -9,6 +9,7 @@
 
 #include "stdafx.h"
 
+#include "eoserver.hpp"
 #include "packet.hpp"
 #include "socket.hpp"
 
@@ -85,12 +86,12 @@ class EOClient : public Client
 
 		PacketProcessor processor;
 
-		EOClient(void *void_server) : Client(void_server), server(static_cast<EOServer *>(void_server))
+		EOClient(EOServer *server_) : Client(server_), server(server_)
 		{
 			this->Initialize();
 		}
 
-		EOClient(SOCKET s, sockaddr_in sa, void *void_server) : Client(s, sa, void_server), server(static_cast<EOServer *>(void_server))
+		EOClient(SOCKET s, sockaddr_in sa, EOServer *server_) : Client(s, sa, server_), server(server_)
 		{
 			this->Initialize();
 		}
@@ -140,7 +141,7 @@ class EOClient : public Client
 		CLIENT_F_FUNC(Book);
 #endif // DOXYGEN
 
-		virtual ~EOClient();
+		~EOClient();
 };
 
 #endif // EOCLIENT_HPP_INCLUDED

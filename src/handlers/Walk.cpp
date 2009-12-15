@@ -6,6 +6,8 @@
 
 #include "handlers.h"
 
+#include "npc.hpp"
+
 CLIENT_F_FUNC(Walk)
 {
 	PacketBuilder reply;

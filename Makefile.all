@@ -48,12 +48,16 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/player.o \
        $(OBJDIR)/script.o \
        $(OBJDIR)/scriptlibc.o \
+       $(OBJDIR)/scriptreg.o \
        $(OBJDIR)/sha256.o \
+       $(OBJDIR)/shared.o \
        $(OBJDIR)/sln.o \
        $(OBJDIR)/socket.o \
        $(OBJDIR)/timer.o \
        $(OBJDIR)/util.o \
        $(OBJDIR)/world.o \
+       $(OBJDIR)/container/ptr_list.o \
+       $(OBJDIR)/container/ptr_vector.o \
        $(OBJDIR)/handlers/Account.o \
        $(OBJDIR)/handlers/AdminInteract.o \
        $(OBJDIR)/handlers/Attack.o \
@@ -118,14 +122,15 @@ clean:
 
 create-build-dirs:
 	-@mkdir $(OBJDIR)
+	-@mkdir $(OBJDIR)/container
 	-@mkdir $(OBJDIR)/extra
 	-@mkdir $(OBJDIR)/handlers
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) -I./$(SRCDIR)/ -I./$(SRCDIR)/extra/ -I./$(SRCDIR)/handlers/ -c $< -o $@ $(CFLAGS)
+	$(CC) -I./$(SRCDIR)/ -I./$(SRCDIR)/container/ -I./$(SRCDIR)/extra/ -I./$(SRCDIR)/handlers/ -c $< -o $@ $(CFLAGS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -I./$(SRCDIR)/ -I./$(SRCDIR)/extra/ -I./$(SRCDIR)/handlers/ -c $< -o $@ $(CXXFLAGS)
+	$(CXX) -I./$(SRCDIR)/ -I./$(SRCDIR)/container/ -I./$(SRCDIR)/extra/ -I./$(SRCDIR)/handlers/ -c $< -o $@ $(CXXFLAGS)
 
 eoserv: create-build-dirs $(OBJ)
 	$(CXX) $(OBJ) -o $(BIN) $(LIBS) $(LDFLAGS)

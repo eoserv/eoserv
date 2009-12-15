@@ -38,14 +38,9 @@ HTTP *HTTP::RequestURL(std::string url, IPAddress outgoing)
 	std::size_t loc, loc2;
 
 	loc = url.find("//");
-	if (loc == std::string::npos)
+	if (loc == std::string::npos || url.substr(0, loc) != "http:")
 	{
-		return 0;
-	}
-
-	if (url.substr(0, loc) != "http:")
-	{
-		return 0;
+		throw std::invalid_argument("HTTP::RequestURL");
 	}
 
 	bool hasport = true;
@@ -146,5 +141,5 @@ std::string HTTP::URLEncode(std::string raw)
 
 HTTP::~HTTP()
 {
-	delete this->client;
+	client->Release();
 }

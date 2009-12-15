@@ -12,7 +12,7 @@
 /**
  * Manages checking in with the SLN server regularly
  */
-class SLN
+class SLN : public Shared
 {
 	private:
 		EOServer *server;

@@ -29,6 +29,16 @@
 #include <stdint.h>
 
 #include "util.hpp"
+#include "shared.hpp"
+
+#include "container/iterator.hpp"
+#include "container/container.hpp"
+#include "container/algorithm.hpp"
+#include "container/ptr_list.hpp"
+#include "container/ptr_vector.hpp"
+
+#include "script.hpp"
+#include "hook.hpp"
 
 #include "eoconst.hpp"
 #include "socket.hpp"
@@ -41,16 +51,13 @@
 #include "fwd/eodata.hpp"
 #include "fwd/eoserver.hpp"
 #include "fwd/guild.hpp"
-#include "fwd/hook.hpp"
 #include "fwd/map.hpp"
 #include "fwd/nanohttp.hpp"
 #include "fwd/npc.hpp"
 #include "fwd/packet.hpp"
 #include "fwd/party.hpp"
 #include "fwd/player.hpp"
-#include "fwd/script.hpp"
 #include "fwd/sln.hpp"
-#include "fwd/socket.hpp"
 #include "fwd/timer.hpp"
 #include "fwd/world.hpp"
 

@@ -173,7 +173,7 @@ bool variant::GetBool()
 
 		case type_string:
 			std::sscanf(this->val_string.c_str(), "%d", &intval);
-			util::lowercase(s);
+			s = util::lowercase(s);
 			this->val_bool = (s == "yes" || s == "true" || s == "enabled" || intval != 0);
 			break;
 
@@ -397,7 +397,7 @@ double tdparse(std::string timestr)
 		{
 			if (c == period_names[ii])
 			{
-				if (c == 'm' && timestr[i+1] == 's')
+				if (c == 'm' && (i < timestr.length()-1 && timestr[i+1] == 's'))
 				{
 					ret += val / 1000.0;
 					++i;
@@ -467,14 +467,16 @@ std::string to_string(double subject)
 	return static_cast<std::string>(util::variant(subject));
 }
 
-void lowercase(std::string &subject)
+std::string lowercase(std::string subject)
 {
 	std::transform(subject.begin(), subject.end(), subject.begin(), static_cast<int(*)(int)>(std::tolower));
+	return subject;
 }
 
-void uppercase(std::string &subject)
+std::string uppercase(std::string subject)
 {
 	std::transform(subject.begin(), subject.end(), subject.begin(), static_cast<int(*)(int)>(std::toupper));
+	return subject;
 }
 
 void ucfirst(std::string &subject)

@@ -27,9 +27,9 @@ CLIENT_F_FUNC(Party)
 				return false;
 			}
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
 			{
-				if (character->player->id == invitee && this->player->character->InRange(character))
+				if (character->player->id == invitee && this->player->character->InRange(*character))
 				{
 					PacketBuilder builder(PACKET_PARTY, PACKET_REQUEST);
 					builder.AddChar(type);
@@ -38,7 +38,7 @@ CLIENT_F_FUNC(Party)
 
 					character->player->client->SendBuilder(builder);
 
-					this->player->character->party_trust_send = character;
+					this->player->character->party_trust_send = *character;
 					character->party_trust_recv = this->player->character;
 					this->player->character->party_send_type = type;
 					break;
@@ -55,19 +55,19 @@ CLIENT_F_FUNC(Party)
 			unsigned short inviter_id = reader.GetShort();
 			Character *inviter = 0;
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
 			{
-				if (character->player->id == inviter_id && this->player->character->InRange(character))
+				if (character->player->id == inviter_id && this->player->character->InRange(*character))
 				{
 					if (character->party_trust_send == this->player->character)
 					{
-						inviter = character;
+						inviter = *character;
 					}
 					break;
 				}
 			}
 
-			if (inviter == 0)
+			if (!inviter)
 			{
 				return true;
 			}
@@ -81,7 +81,7 @@ CLIENT_F_FUNC(Party)
 						inviter->party->Leave(inviter);
 					}
 
-					if (this->player->character->party == 0)
+					if (!this->player->character->party)
 					{
 						new Party(this->server->world, this->player->character, inviter);
 					}
@@ -97,7 +97,7 @@ CLIENT_F_FUNC(Party)
 						this->player->character->party->Leave(this->player->character);
 					}
 
-					if (inviter->party == 0)
+					if (!inviter->party)
 					{
 						new Party(this->server->world, inviter, this->player->character);
 					}

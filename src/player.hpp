@@ -12,7 +12,7 @@
 /**
  * Object representing a player, but not a character
  */
-class Player
+class Player : public Shared
 {
 	public:
 		int login_time;
@@ -23,17 +23,23 @@ class Player
 
 		Player(std::string username, World *);
 
-		std::vector<Character *> characters;
+		PtrVector<Character> characters;
 		Character *character;
 
 		static bool ValidName(std::string username);
 		bool AddCharacter(std::string name, Gender gender, int hairstyle, int haircolor, Skin race);
 		void ChangePass(std::string password);
 
+		void Logout();
+
 		World *world;
 		EOClient *client;
 
 		~Player();
+
+	SCRIPT_REGISTER_REF(Player)
+
+	SCRIPT_REGISTER_END()
 };
 
 

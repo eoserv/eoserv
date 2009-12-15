@@ -12,13 +12,13 @@
 /**
  * A temporary group of Characters
  */
-class Party
+class Party : public Shared
 {
 	public:
 		World *world;
 
 		Character *leader;
-		std::vector<Character *> members;
+		PtrVector<Character> members;
 
 		int temp_expsum;
 
@@ -32,6 +32,10 @@ class Party
 		void ShareEXP(int exp, int sharemode, Map *map);
 
 		~Party();
+
+	SCRIPT_REGISTER_REF(Party)
+
+	SCRIPT_REGISTER_END()
 };
 
 #endif // PARTY_HPP_INCLUDED

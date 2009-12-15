@@ -7,6 +7,7 @@
 #include "console.hpp"
 
 #include <cstdio>
+#include <cstdarg>
 
 #if defined(WIN32) || defined(WIN64)
 #include <windows.h>

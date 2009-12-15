@@ -31,12 +31,12 @@ CLIENT_F_FUNC(Board)
 				return true;
 			}
 
-			UTIL_LIST_IFOREACH_ALL(this->server->world->boards[boardid]->posts, Board_Post *, post)
+			UTIL_PTR_LIST_FOREACH(this->server->world->boards[boardid]->posts, Board_Post, post)
 			{
-				if ((*post)->id == postid)
+				if (post->id == postid)
 				{
-					if ((*post)->author_admin < this->player->character->admin
-					 || (*post)->author == this->player->character->name)
+					if (post->author_admin < this->player->character->admin
+					 || post->author == this->player->character->name)
 					{
 						this->server->world->boards[boardid]->posts.erase(post);
 					}
@@ -77,7 +77,7 @@ CLIENT_F_FUNC(Board)
 			int post_count = 0;
 			int recent_post_count = 0;
 
-			UTIL_LIST_FOREACH_ALL(this->server->world->boards[boardid]->posts, Board_Post *, post)
+			UTIL_PTR_LIST_FOREACH(this->server->world->boards[boardid]->posts, Board_Post, post)
 			{
 				if (post->author == this->player->character->name)
 				{
@@ -136,7 +136,7 @@ CLIENT_F_FUNC(Board)
 				return true;
 			}
 
-			UTIL_LIST_FOREACH_ALL(this->server->world->boards[boardid]->posts, Board_Post *, post)
+			UTIL_PTR_LIST_FOREACH(this->server->world->boards[boardid]->posts, Board_Post, post)
 			{
 				if (post->id == postid)
 				{

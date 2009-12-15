@@ -144,6 +144,18 @@ namespace util
 #define UTIL_REPEAT(amt) \
 	for (int util_i = 0; util_i < amt; ++util_i)
 
+#define UTIL_PTR_LIST_FOREACH(container, type, as) for (PtrList<type>::Iterator as(container); as; as ? ++as : 0)
+#define UTIL_PTR_VECTOR_FOREACH(container, type, as) for (PtrVector<type>::Iterator as(container); as; as ? ++as : 0)
+
+#define UTIL_PTR_LIST_FOREACH_SAFE(container, type, as) for (PtrList<type>::SafeIterator as(container); as; as ? ++as : 0)
+#define UTIL_PTR_VECTOR_FOREACH_SAFE(container, type, as) for (PtrVector<type>::SafeIterator as(container); as; as ? ++as : 0)
+
+#define UTIL_TPL_PTR_LIST_FOREACH(container, type, as) for (class PtrList<type>::Iterator as(container); as; as ? ++as : 0)
+#define UTIL_TPL_PTR_VECTOR_FOREACH(container, type, as) for (class PtrVector<type>::Iterator as(container); as; as ? ++as : 0)
+
+#define UTIL_TPL_PTR_LIST_FOREACH_SAFE(container, type, as) for (class PtrList<type>::SafeIterator as(container); as; as ? ++as : 0)
+#define UTIL_TPL_PTR_VECTOR_FOREACH_SAFE(container, type, as) for (class PtrVector<type>::SafeIterator as(container); as; as ? ++as : 0)
+
 // DEPRECATED
 // Relies on a GCC (typeof) or c++0x (decltype) only feature, do not use
 #ifdef __GNUC__
@@ -544,9 +556,9 @@ double to_float(const std::string &);
 std::string to_string(int);
 std::string to_string(double);
 
-void lowercase(std::string &);
+std::string lowercase(std::string);
 
-void uppercase(std::string &);
+std::string uppercase(std::string);
 
 void ucfirst(std::string &);
 

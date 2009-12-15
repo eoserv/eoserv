@@ -131,7 +131,7 @@ void EOClient::Execute(std::string data)
 
 void EOClient::SendBuilder(PacketBuilder &builder)
 {
-	std::string packet = static_cast<std::string >(builder);
+	std::string packet(builder);
 	this->Send(this->processor.Encode(packet));
 }
 
@@ -139,6 +139,6 @@ EOClient::~EOClient()
 {
 	if (this->player)
 	{
-		delete this->player; // Player handles removing himself from the world
+		this->player->Logout();
 	}
 }

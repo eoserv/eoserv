@@ -51,7 +51,7 @@ static char *sp_cast(std::string &s){ return &s[0]; }
 static std::string ps_cast(void *p){ return std::string(static_cast<const char *>(p)); }
 
 template<typename T> T &generic_ptr_index(T *p, int i){ return p[i]; }
-template<typename T1, typename T2> T2 generic_ptr_cast(T1 p){ return static_cast<T2>(p); }
+void *generic_ptr_cast(void *p){ return p; }
 template<typename T1, typename T2> T2 generic_cast(T1 p){ return static_cast<T2>(p); }
 
 void
@@ -232,41 +232,23 @@ void RegisterScriptLibC(asIScriptEngine *engine)
 	engine->RegisterObjectType("tm_ptr", sizeof(fpos_t *), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_PRIMITIVE);
 
 	// casts
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "char_ptr f()", asFUNCTION2(generic_ptr_cast<void *, char *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "schar_ptr f()", asFUNCTION2(generic_ptr_cast<void *, signed char *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "uchar_ptr f()", asFUNCTION2(generic_ptr_cast<void *, unsigned char *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "int_ptr f()", asFUNCTION2(generic_ptr_cast<void *, int *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "uint_ptr f()", asFUNCTION2(generic_ptr_cast<void *, unsigned int *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "FILE_ptr f()", asFUNCTION2(generic_ptr_cast<void *, FILE *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "lconv_ptr f()", asFUNCTION2(generic_ptr_cast<void *, lconv *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "fpos_t_ptr f()", asFUNCTION2(generic_ptr_cast<void *, fpos_t *>), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "char_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "schar_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "uchar_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "int_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "uint_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "FILE_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "lconv_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "fpos_t_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
 
-	engine->RegisterObjectBehaviour("char_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<char *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("schar_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<signed char *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("uchar_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<unsigned char *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("int_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<int *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("uint_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<unsigned int *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("FILE_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<FILE *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("lconv_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<lconv *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("fpos_t_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<fpos_t *, void *>), asCALL_CDECL_OBJFIRST);
-
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "char_ptr f()", asFUNCTION2(generic_ptr_cast<void *, char *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "schar_ptr f()", asFUNCTION2(generic_ptr_cast<void *, signed char *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "uchar_ptr f()", asFUNCTION2(generic_ptr_cast<void *, unsigned char *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "int_ptr f()", asFUNCTION2(generic_ptr_cast<void *, int *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "uint_ptr f()", asFUNCTION2(generic_ptr_cast<void *, unsigned int *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "FILE_ptr f()", asFUNCTION2(generic_ptr_cast<void *, FILE *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "lconv_ptr f()", asFUNCTION2(generic_ptr_cast<void *, lconv *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("void_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "fpos_t_ptr f()", asFUNCTION2(generic_ptr_cast<void *, fpos_t *>), asCALL_CDECL_OBJFIRST);
-
-	engine->RegisterObjectBehaviour("char_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<char *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("schar_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<signed char *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("uchar_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<unsigned char *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("int_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<int *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("uint_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<unsigned int *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("FILE_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<FILE *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("lconv_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<lconv *, void *>), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectBehaviour("fpos_t_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION2(generic_ptr_cast<fpos_t *, void *>), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("char_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("schar_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("uchar_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("int_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("uint_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("FILE_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("lconv_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
+	engine->RegisterObjectBehaviour("fpos_t_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "void_ptr f()", asFUNCTION(generic_ptr_cast), asCALL_CDECL_OBJFIRST);
 
 	engine->RegisterObjectBehaviour("char_ptr", asBEHAVE_IMPLICIT_VALUE_CAST, "string f()", asFUNCTION(ps_cast), asCALL_CDECL_OBJFIRST);
 	engine->RegisterObjectBehaviour("string", asBEHAVE_IMPLICIT_VALUE_CAST, "char_ptr f()", asFUNCTION(sp_cast), asCALL_CDECL_OBJFIRST);

@@ -15,6 +15,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 					<Add option="-DDEBUG" />
 					<Add option="-DDATABASE_DEBUG" />
 					<Add option="-DDATABASE_MYSQL" />
@@ -113,6 +115,7 @@
 			<Add directory="..\src\" />
 			<Add directory="..\src\extra\" />
 			<Add directory="..\src\handlers\" />
+			<Add directory="..\src\container\" />
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />
@@ -134,6 +137,13 @@
 		<Unit filename="..\src\config.hpp" />
 		<Unit filename="..\src\console.cpp" />
 		<Unit filename="..\src\console.hpp" />
+		<Unit filename="..\src\container\algorithm.hpp" />
+		<Unit filename="..\src\container\container.hpp" />
+		<Unit filename="..\src\container\iterator.hpp" />
+		<Unit filename="..\src\container\ptr_list.cpp" />
+		<Unit filename="..\src\container\ptr_list.hpp" />
+		<Unit filename="..\src\container\ptr_vector.cpp" />
+		<Unit filename="..\src\container\ptr_vector.hpp" />
 		<Unit filename="..\src\database.cpp" />
 		<Unit filename="..\src\database.hpp" />
 		<Unit filename="..\src\eoclient.cpp" />
@@ -148,19 +158,18 @@
 		<Unit filename="..\src\fwd\arena.hpp" />
 		<Unit filename="..\src\fwd\character.hpp" />
 		<Unit filename="..\src\fwd\config.hpp" />
+		<Unit filename="..\src\fwd\console.hpp" />
 		<Unit filename="..\src\fwd\database.hpp" />
 		<Unit filename="..\src\fwd\eoclient.hpp" />
 		<Unit filename="..\src\fwd\eodata.hpp" />
 		<Unit filename="..\src\fwd\eoserver.hpp" />
 		<Unit filename="..\src\fwd\guild.hpp" />
-		<Unit filename="..\src\fwd\hook.hpp" />
 		<Unit filename="..\src\fwd\map.hpp" />
 		<Unit filename="..\src\fwd\nanohttp.hpp" />
 		<Unit filename="..\src\fwd\npc.hpp" />
 		<Unit filename="..\src\fwd\packet.hpp" />
 		<Unit filename="..\src\fwd\party.hpp" />
 		<Unit filename="..\src\fwd\player.hpp" />
-		<Unit filename="..\src\fwd\script.hpp" />
 		<Unit filename="..\src\fwd\sln.hpp" />
 		<Unit filename="..\src\fwd\socket.hpp" />
 		<Unit filename="..\src\fwd\timer.hpp" />
@@ -229,11 +238,12 @@
 		<Unit filename="..\src\scriptlibc.h" />
 		<Unit filename="..\src\scriptreg.cpp" />
 		<Unit filename="..\src\scriptreg.hpp" />
-		<Unit filename="..\src\scriptstl.h" />
 		<Unit filename="..\src\sha256.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\sha256.h" />
+		<Unit filename="..\src\shared.cpp" />
+		<Unit filename="..\src\shared.hpp" />
 		<Unit filename="..\src\sln.cpp" />
 		<Unit filename="..\src\sln.hpp" />
 		<Unit filename="..\src\socket.cpp" />

@@ -14,7 +14,7 @@
 /**
  * Used by the NPC class to store information about an attacker
  */
-struct NPC_Opponent
+struct NPC_Opponent : public Shared
 {
 	Character *attacker;
 	unsigned short damage;
@@ -24,7 +24,7 @@ struct NPC_Opponent
 /**
  * Used by the NPC class to store information about an item drop
  */
-struct NPC_Drop
+struct NPC_Drop : public Shared
 {
 	unsigned short id;
 	int min;
@@ -35,7 +35,7 @@ struct NPC_Drop
 /**
  * Used by the NPC class to store trade shop data
  */
-struct NPC_Shop_Trade_Item
+struct NPC_Shop_Trade_Item : public Shared
 {
 	unsigned short id;
 	int buy;
@@ -45,7 +45,7 @@ struct NPC_Shop_Trade_Item
 /**
  * Used by the NPC_Shop_Craft_Item class to store item ingredients
  */
-struct NPC_Shop_Craft_Ingredient
+struct NPC_Shop_Craft_Ingredient : public Shared
 {
 	unsigned short id;
 	unsigned char amount;
@@ -54,16 +54,16 @@ struct NPC_Shop_Craft_Ingredient
 /**
  * Used by the NPC class to store craft shop data
  */
-struct NPC_Shop_Craft_Item
+struct NPC_Shop_Craft_Item : public Shared
 {
 	unsigned short id;
-	std::vector<NPC_Shop_Craft_Ingredient> ingredients;
+	PtrVector<NPC_Shop_Craft_Ingredient> ingredients;
 };
 
 /**
  * An instance of an NPC created and managed by a Map
  */
-class NPC
+class NPC : public Shared
 {
 	public:
 		bool temporary;
@@ -75,10 +75,10 @@ class NPC
 		short spawn_time;
 		unsigned char spawn_x, spawn_y;
 		NPC *parent;
-		std::vector<NPC_Drop> drops;
+		PtrVector<NPC_Drop> drops;
 		std::string shop_name;
-		std::vector<NPC_Shop_Trade_Item> shop_trade;
-		std::vector<NPC_Shop_Craft_Item> shop_craft;
+		PtrVector<NPC_Shop_Trade_Item> shop_trade;
+		PtrVector<NPC_Shop_Craft_Item> shop_craft;
 
 		bool alive;
 		double dead_since;
@@ -88,7 +88,7 @@ class NPC
 		bool attack;
 		int hp;
 		int totaldamage;
-		std::list<NPC_Opponent> damagelist;
+		PtrList<NPC_Opponent> damagelist;
 
 		Map *map;
 		unsigned char index;
@@ -106,6 +106,10 @@ class NPC
 		void Attack(Character *target);
 
 		~NPC();
+
+	SCRIPT_REGISTER_REF(NPC)
+
+	SCRIPT_REGISTER_END()
 };
 
 #endif // NPC_HPP_INCLUDED

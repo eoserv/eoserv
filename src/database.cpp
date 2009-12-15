@@ -38,7 +38,7 @@ int sqlite_callback(void *data, int num, char *fields[], char *columns[])
 		result.insert(result.begin(), make_pair(column, field));
 	}
 
-	((Database *)data)->callbackdata.push_back(result);
+	static_cast<Database *>(data)->callbackdata.push_back(result);
 	return 0;
 }
 
@@ -103,7 +103,9 @@ void Database::Connect(Database::Engine type, std::string host, std::string user
 			{
 				throw Database_OpenFailed(mysql_error(this->mysql_handle));
 			}
+
 			this->connected = true;
+
 			break;
 #endif // DATABASE_MYSQL
 
@@ -113,7 +115,9 @@ void Database::Connect(Database::Engine type, std::string host, std::string user
 			{
 				throw Database_OpenFailed(sqlite3_errmsg(this->sqlite_handle));
 			}
+
 			this->connected = true;
+
 			break;
 #endif // DATABASE_SQLITE
 
@@ -130,6 +134,7 @@ void Database::Close()
 	}
 
 	this->connected = false;
+
 	switch (this->engine)
 	{
 #ifdef DATABASE_MYSQL
@@ -155,6 +160,7 @@ Database_Result Database::Query(const char *format, ...)
 
 	va_list ap;
 	va_start(ap, format);
+
 	std::string finalquery;
 	int tempi;
 	char *tempc;
@@ -163,13 +169,18 @@ Database_Result Database::Query(const char *format, ...)
 
 	for (const char *p = format; *p != '\0'; ++p)
 	{
-		if (*p == '#'){
+		if (*p == '#')
+		{
 			tempi = va_arg(ap,int);
 			finalquery += util::to_string(tempi);
-		} else if (*p == '@'){
+		}
+		else if (*p == '@')
+		{
 			tempc = va_arg(ap,char *);
 			finalquery += static_cast<std::string>(tempc);
-		} else if (*p == '$'){
+		}
+		else if (*p == '$')
+		{
 			tempc = va_arg(ap,char *);
 			switch (this->engine)
 			{
@@ -191,10 +202,13 @@ Database_Result Database::Query(const char *format, ...)
 					break;
 #endif // DATABASE_SQLITE
 			}
-		} else {
+		}
+		else
+		{
 			finalquery += *p;
 		}
 	}
+
 	va_end(ap);
 
 #ifdef DATABASE_DEBUG
@@ -214,6 +228,7 @@ Database_Result Database::Query(const char *format, ...)
 			if (mysql_real_query(this->mysql_handle, finalquery.c_str(), finalquery.length()) != 0)
 			{
 				int myerr = mysql_errno(this->mysql_handle);
+
 				if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
 				{
 					this->Close();

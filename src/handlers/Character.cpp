@@ -37,7 +37,7 @@ CLIENT_F_FUNC(Character)
 			Skin race = static_cast<Skin>(reader.GetShort());
 			reader.GetByte();
 			std::string name = reader.GetBreakString();
-			util::lowercase(name);
+			name = util::lowercase(name);
 
 			if (gender != GENDER_MALE && gender != GENDER_FEMALE) return false;
 			if (hairstyle < static_cast<int>(this->server->world->config["CreateMinHairStyle"]) || hairstyle > static_cast<int>(this->server->world->config["CreateMaxHairStyle"])) return false;
@@ -67,7 +67,7 @@ CLIENT_F_FUNC(Character)
 				reply.AddChar(this->player->characters.size());
 				reply.AddByte(1); // ??
 				reply.AddByte(255);
-				UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
+				UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
 				{
 					reply.AddBreakString(character->name);
 					reply.AddInt(character->id);
@@ -99,14 +99,14 @@ CLIENT_F_FUNC(Character)
 			unsigned int charid = reader.GetInt();
 
 			bool yourchar = false;
-			std::vector<Character *>::iterator char_it;
+			PtrVector<Character>::Iterator char_it(this->player->characters);
 
-			UTIL_VECTOR_IFOREACH(this->player->characters.begin(), this->player->characters.end(), Character *, character)
+			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
 			{
-				if ((*character)->id == charid)
+				if (character->id == charid)
 				{
-					Console::Out("Deleted character: %s (%s)", (*character)->name.c_str(), this->player->username.c_str());
-					this->server->world->DeleteCharacter((*character)->name);
+					Console::Out("Deleted character: %s (%s)", character->name.c_str(), this->player->username.c_str());
+					this->server->world->DeleteCharacter(character->name);
 					char_it = character;
 					yourchar = true;
 					break;
@@ -125,7 +125,7 @@ CLIENT_F_FUNC(Character)
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
-			UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
+			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);
@@ -154,7 +154,7 @@ CLIENT_F_FUNC(Character)
 
 			bool yourchar = false;
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
+			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
 			{
 				if (character->id == charid)
 				{

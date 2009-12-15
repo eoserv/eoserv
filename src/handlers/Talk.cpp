@@ -72,11 +72,12 @@ CLIENT_F_FUNC(Talk)
 			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 			Character *to = 0;
 
-			UTIL_VECTOR_FOREACH_ALL(this->server->world->characters, Character *, character)
+			UTIL_PTR_VECTOR_FOREACH(this->server->world->characters, Character, character)
 			{
 				if (character->name == name)
 				{
-					to = character;
+					to = *character;
+					to->AddRef();
 					break;
 				}
 			}
@@ -84,6 +85,7 @@ CLIENT_F_FUNC(Talk)
 			if (to)
 			{
 				to->Msg(this->player->character, message);
+				to->Release();
 			}
 			else
 			{
@@ -134,7 +136,7 @@ CLIENT_F_FUNC(Talk)
 					int duration;
 					if (arguments.size() >= 2)
 					{
-						util::lowercase(arguments[1]);
+						arguments[1] = util::lowercase(arguments[1]);
 						if (arguments[1] == "forever")
 						{
 							duration = -1;
@@ -196,7 +198,7 @@ CLIENT_F_FUNC(Talk)
 						if (item)
 						{
 							item->owner = this->player->id;
-							item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server->world->config["ProctectPlayerDrop"]);
+							item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server->world->config["ProtectPlayerDrop"]);
 							this->player->character->DelItem(id, amount);
 
 							reply.SetID(PACKET_ITEM, PACKET_DROP);
@@ -234,6 +236,7 @@ CLIENT_F_FUNC(Talk)
 						NPC *npc = new NPC(this->player->character->map, id, this->player->character->x, this->player->character->y, 1, 1, index, true);
 						this->player->character->map->npcs.push_back(npc);
 						npc->Spawn();
+						npc->Release();
 					}
 				}
 				else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["warpmeto"]))
@@ -359,13 +362,21 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["shutdown"]))
 				{
-					UTIL_VECTOR_FOREACH_ALL(this->server->world->characters, Character *, character)
+					UTIL_PTR_VECTOR_FOREACH(this->server->world->characters, Character, character)
 					{
 						character->Save();
 						character->player->client->Close();
 					}
 					Console::Wrn("Server shut down by %s", this->player->character->name.c_str());
 					std::exit(0);
+				}
+				else if (command.length() == 3 && command.compare(0,3,"obj") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["objects"]))
+				{
+					std::string buffer = "Objects: ";
+					buffer += util::to_string(shared_objects_allocated_);
+					buffer += "  References: ";
+					buffer += util::to_string(shared_references_);
+					this->player->character->ServerMsg(buffer);
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"q") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["quake"]))
 				{

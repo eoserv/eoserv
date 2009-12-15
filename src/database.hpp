@@ -162,6 +162,16 @@ class Database
 		 * Object used to collect information from an external callback
 		 */
 		Database_Result callbackdata;
+
+	SCRIPT_REGISTER_REF_DF(Database)
+		SCRIPT_REGISTER_ENUM("Engine");
+			SCRIPT_REGISTER_ENUM_VALUE("Engine", MySQL);
+			SCRIPT_REGISTER_ENUM_VALUE("Engine", SQLite);
+
+		SCRIPT_REGISTER_FUNCTION("void Connect(Engine type, string host, string user, string pass, string db)", Connect);
+		SCRIPT_REGISTER_FUNCTION("void Close()", Close);
+		SCRIPT_REGISTER_FUNCTION("string Escape(string)", Escape);
+	SCRIPT_REGISTER_END()
 };
 
 #endif // DATABASE_HPP_INCLUDED

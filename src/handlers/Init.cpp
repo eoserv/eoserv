@@ -9,14 +9,8 @@
 static unsigned int stupid_hash(unsigned int i)
 {
 	++i;
-	int a = ((i % 11 + 1) * 119);
 
-	if (a == 0)
-	{
-		return 0;
-	}
-
-	return 110905 + (i % 9 + 1) * ((11092004 - i) % a) * 119 + i % 2004;
+	return 110905 + (i % 9 + 1) * ((11092004 - i) % ((i % 11 + 1) * 119)) * 119 + i % 2004;
 }
 
 CLIENT_F_FUNC(Init)

@@ -12,7 +12,7 @@
 /**
  * Loads and stores information on all items from an EIF file
  */
-class EIF
+class EIF : public Shared
 {
 	public:
 		enum Type
@@ -71,16 +71,20 @@ class EIF
 		static const int DATA_SIZE = 58;
 		unsigned char rid[4];
 		unsigned char len[2];
-		std::vector<EIF_Data> data;
+		PtrVector<EIF_Data> data;
 		EIF(std::string filename);
 
 		EIF_Data *Get(unsigned int id);
+
+		SCRIPT_REGISTER_REF(EIF)
+
+		SCRIPT_REGISTER_END()
 };
 
 /**
  * One item record in an EIF object
  */
-struct EIF_Data
+struct EIF_Data : public Shared
 {
 	int id;
 	std::string name;
@@ -135,7 +139,7 @@ struct EIF_Data
 /**
  * Loads and stores information on all NPCs from an ENF file
  */
-class ENF
+class ENF : public Shared
 {
 	public:
 		enum Type
@@ -160,16 +164,20 @@ class ENF
 		static const int DATA_SIZE = 39;
 		unsigned char rid[4];
 		unsigned char len[2];
-		std::vector<ENF_Data> data;
+		PtrVector<ENF_Data> data;
 		ENF(std::string filename);
 
 		ENF_Data *Get(unsigned int id);
+
+		SCRIPT_REGISTER_REF(ENF)
+
+		SCRIPT_REGISTER_END()
 };
 
 /**
  * One NPC record in an ENF object
  */
-struct ENF_Data
+struct ENF_Data : public Shared
 {
 	int id;
 	std::string name;
@@ -194,21 +202,24 @@ struct ENF_Data
 /**
  * Loads and stores information on all spells from an ESF file
  */
-class ESF
+class ESF : public Shared
 {
 	public:
 		static const int DATA_SIZE = 51;
 		unsigned char rid[4];
 		unsigned char len[2];
-		std::vector<ESF_Data> data;
+		PtrVector<ESF_Data> data;
 		ESF(std::string filename);
 
+		SCRIPT_REGISTER_REF(ESF)
+
+		SCRIPT_REGISTER_END()
 };
 
 /**
  * One spell record in an ESF object
  */
-struct ESF_Data
+struct ESF_Data : public Shared
 {
 	int id;
 	std::string name;
@@ -220,21 +231,24 @@ struct ESF_Data
 /**
  * Loads and stores information on all classes from an ECF file
  */
-class ECF
+class ECF : public Shared
 {
 	public:
 		static const int DATA_SIZE = 14;
 		unsigned char rid[4];
 		unsigned char len[2];
-		std::vector<ECF_Data> data;
+		PtrVector<ECF_Data> data;
 		ECF(std::string filename);
 
+	SCRIPT_REGISTER_REF(ECF)
+
+	SCRIPT_REGISTER_END()
 };
 
 /**
  * One class record in an ECF object
  */
-struct ECF_Data
+struct ECF_Data : public Shared
 {
 	int id;
 	std::string name;

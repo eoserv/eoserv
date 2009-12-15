@@ -29,11 +29,12 @@ CLIENT_F_FUNC(Welcome)
 
 			this->player->character = 0;
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
+			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
 			{
 				if (character->id == id)
 				{
-					this->player->character = character;
+					this->player->character = *character;
+					character->AddRef();
 					break;
 				}
 			}
@@ -211,10 +212,10 @@ CLIENT_F_FUNC(Welcome)
 			// ??
 			reply.AddChar(this->player->character->weight); // Weight
 			reply.AddChar(this->player->character->maxweight); // Max Weight
-			UTIL_LIST_FOREACH_ALL(this->player->character->inventory, Character_Item, item)
+			UTIL_PTR_LIST_FOREACH(this->player->character->inventory, Character_Item, item)
 			{
-				reply.AddShort(item.id);
-				reply.AddInt(item.amount);
+				reply.AddShort(item->id);
+				reply.AddInt(item->amount);
 			}
 			reply.AddByte(255);
 			// foreach spell {
@@ -226,37 +227,37 @@ CLIENT_F_FUNC(Welcome)
 			//reply.AddShort(100); // Spell Level
 			// }
 			reply.AddByte(255);
-			std::vector<Character *> updatecharacters;
-			std::vector<NPC *> updatenpcs;
-			std::vector<Map_Item> updateitems;
+			PtrVector<Character> updatecharacters;
+			PtrVector<NPC> updatenpcs;
+			PtrVector<Map_Item> updateitems;
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+			UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
 			{
-				if (this->player->character->InRange(character))
+				if (this->player->character->InRange(*character))
 				{
-					updatecharacters.push_back(character);
+					updatecharacters.push_back(*character);
 				}
 			}
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->npcs, NPC *, npc)
+			UTIL_PTR_VECTOR_FOREACH(this->player->character->map->npcs, NPC, npc)
 			{
-				if (this->player->character->InRange(npc))
+				if (this->player->character->InRange(*npc))
 				{
-					updatenpcs.push_back(npc);
+					updatenpcs.push_back(*npc);
 				}
 			}
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
+			UTIL_PTR_LIST_FOREACH(this->player->character->map->items, Map_Item, item)
 			{
-				if (this->player->character->InRange(item))
+				if (this->player->character->InRange(*item))
 				{
-					updateitems.push_back(item);
+					updateitems.push_back(*item);
 				}
 			}
 
 			reply.AddChar(updatecharacters.size()); // Number of players
 			reply.AddByte(255);
-			UTIL_VECTOR_FOREACH_ALL(updatecharacters, Character *, character)
+			UTIL_PTR_VECTOR_FOREACH(updatecharacters, Character, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddShort(character->player->id);
@@ -289,7 +290,7 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddChar(0); // visible
 				reply.AddByte(255);
 			}
-			UTIL_VECTOR_FOREACH_ALL(updatenpcs, NPC *, npc)
+			UTIL_PTR_VECTOR_FOREACH(updatenpcs, NPC, npc)
 			{
 				if (npc->alive)
 				{
@@ -301,13 +302,13 @@ CLIENT_F_FUNC(Welcome)
 				}
 			}
 			reply.AddByte(255);
-			UTIL_VECTOR_FOREACH_ALL(updateitems, Map_Item, item)
+			UTIL_PTR_VECTOR_FOREACH(updateitems, Map_Item, item)
 			{
-				reply.AddShort(item.uid);
-				reply.AddShort(item.id);
-				reply.AddChar(item.x);
-				reply.AddChar(item.y);
-				reply.AddThree(item.amount);
+				reply.AddShort(item->uid);
+				reply.AddShort(item->id);
+				reply.AddChar(item->x);
+				reply.AddChar(item->y);
+				reply.AddThree(item->amount);
 			}
 			CLIENT_SEND(reply);
 		}
@@ -320,7 +321,7 @@ CLIENT_F_FUNC(Welcome)
 			std::string content;
 			char mapbuf[6] = {0};
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
-			std::string filename = "./data/maps/";
+			std::string filename = this->server->world->config["MapDir"];
 			std::FILE *fh;
 			InitReply replycode = INIT_FILE_MAP;
 			char fileid = 0;

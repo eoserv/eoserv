@@ -9,7 +9,7 @@
 
 class IPAddress;
 class Client;
-template <class> class Server;
+class Server;
 
 /**
  * Return the OS last error message

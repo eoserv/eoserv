@@ -17,7 +17,7 @@ CLIENT_F_FUNC(Account)
 			if (this->state != EOClient::Initialized) return false;
 			std::string username = reader.GetEndString();
 
-			util::lowercase(username);
+			username = util::lowercase(username);
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
@@ -54,7 +54,7 @@ CLIENT_F_FUNC(Account)
 			std::string computer = reader.GetBreakString();
 			int hdid = util::to_int(reader.GetBreakString());
 
-			util::lowercase(username);
+			username = util::lowercase(username);
 
 			reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
 			if (!Player::ValidName(username))
@@ -69,7 +69,7 @@ CLIENT_F_FUNC(Account)
 			}
 			else
 			{
-				util::lowercase(username);
+				username = util::lowercase(username);
 
 				this->server->world->CreatePlayer(username, password, fullname, location, email, computer, util::to_string(hdid), static_cast<std::string>(this->GetRemoteAddr()));
 				reply.AddShort(ACCOUNT_CREATED);
@@ -120,7 +120,7 @@ CLIENT_F_FUNC(Account)
 			reply.AddString("OK");
 			CLIENT_SEND(reply);
 
-			delete changepass;
+			changepass->Release();
 		}
 		break;
 

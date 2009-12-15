@@ -95,9 +95,9 @@ CLIENT_F_FUNC(Item)
 						builder.AddInt(hpgain);
 						builder.AddChar(int(double(this->player->character->hp) / double(this->player->character->maxhp) * 100.0));
 
-						UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
 						{
-							if (character != this->player->character && this->player->character->InRange(character))
+							if (*character != this->player->character && this->player->character->InRange(*character))
 							{
 								character->player->client->SendBuilder(builder);
 							}
@@ -128,9 +128,9 @@ CLIENT_F_FUNC(Item)
 						builder.AddChar(0); // subloc
 						builder.AddChar(item->haircolor);
 
-						UTIL_LIST_FOREACH_ALL(this->player->character->map->characters, Character *, character)
+						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
 						{
-							if (character != this->player->character && this->player->character->InRange(character))
+							if (*character != this->player->character && this->player->character->InRange(*character))
 							{
 								character->player->client->SendBuilder(builder);
 							}
@@ -207,7 +207,7 @@ CLIENT_F_FUNC(Item)
 				if (item)
 				{
 					item->owner = this->player->id;
-					item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server->world->config["ProctectPlayerDrop"]);
+					item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server->world->config["ProtectPlayerDrop"]);
 					this->player->character->DelItem(id, amount);
 
 					reply.SetID(PACKET_ITEM, PACKET_DROP);
@@ -253,34 +253,34 @@ CLIENT_F_FUNC(Item)
 
 			int uid = reader.GetShort();
 
-			UTIL_LIST_FOREACH_ALL(this->player->character->map->items, Map_Item, item)
+			Map_Item *item = this->player->character->map->GetItem(uid);
+			if (item)
 			{
-				if (item.uid == uid)
+				int distance = util::path_length(item->x, item->y, this->player->character->x, this->player->character->y);
+
+				if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
 				{
-					int distance = util::path_length(item.x, item.y, this->player->character->x, this->player->character->y);
-
-					if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
-					{
-						break;
-					}
-
-					if (item.owner != this->player->id && item.unprotecttime > Timer::GetTime())
-					{
-						break;
-					}
-
-					this->player->character->AddItem(item.id, item.amount);
-					this->player->character->map->DelItem(uid, this->player->character);
-
-					reply.SetID(PACKET_ITEM, PACKET_GET);
-					reply.AddShort(uid);
-					reply.AddShort(item.id);
-					reply.AddThree(item.amount);
-					reply.AddChar(this->player->character->weight);
-					reply.AddChar(this->player->character->maxweight);
-					CLIENT_SEND(reply);
 					break;
 				}
+
+				if (item->owner != this->player->id && item->unprotecttime > Timer::GetTime())
+				{
+					break;
+				}
+
+				this->player->character->AddItem(item->id, item->amount);
+
+				reply.SetID(PACKET_ITEM, PACKET_GET);
+				reply.AddShort(uid);
+				reply.AddShort(item->id);
+				reply.AddThree(item->amount);
+				reply.AddChar(this->player->character->weight);
+				reply.AddChar(this->player->character->maxweight);
+				CLIENT_SEND(reply);
+
+				this->player->character->map->DelItem(item, this->player->character);
+
+				break;
 			}
 
 		}

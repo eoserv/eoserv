@@ -22,11 +22,11 @@ CLIENT_F_FUNC(Bank)
 
 			short id = reader.GetShort();
 
-			UTIL_VECTOR_FOREACH_ALL(this->player->character->map->npcs, NPC *, npc)
+			UTIL_PTR_VECTOR_FOREACH(this->player->character->map->npcs, NPC, npc)
 			{
 				if (npc->index == id && npc->data->type == ENF::Bank)
 				{
-					this->player->character->bank_npc = npc;
+					this->player->character->bank_npc = *npc;
 
 					reply.SetID(PACKET_BANK, PACKET_OPEN);
 					reply.AddInt(this->player->character->goldbank);

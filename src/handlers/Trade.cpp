@@ -49,7 +49,7 @@ CLIENT_F_FUNC(Trade)
 			/*int accept =*/ reader.GetChar();
 			int victimid = reader.GetShort();
 
-			Character *victim = this->player->character->map->GetCharacterCID(victimid);
+			Character *victim(this->player->character->map->GetCharacterCID(victimid));
 
 			if (victim && victim->mapid == this->player->character->mapid && victim->trade_partner == this->player->character && (victim->player->client->state > EOClient::PlayingModal))
 			{
@@ -90,18 +90,18 @@ CLIENT_F_FUNC(Trade)
 				PacketBuilder builder(PACKET_TRADE, PACKET_REPLY);
 
 				builder.AddShort(this->player->character->player->id);
-				UTIL_LIST_FOREACH_ALL(this->player->character->trade_inventory, Character_Item, item)
+				UTIL_PTR_LIST_FOREACH(this->player->character->trade_inventory, Character_Item, item)
 				{
-					builder.AddShort(item.id);
-					builder.AddInt(item.amount);
+					builder.AddShort(item->id);
+					builder.AddInt(item->amount);
 				}
 				builder.AddByte(255);
 
 				builder.AddShort(this->player->character->trade_partner->player->id);
-				UTIL_LIST_FOREACH_ALL(this->player->character->trade_partner->trade_inventory, Character_Item, item)
+				UTIL_PTR_LIST_FOREACH(this->player->character->trade_partner->trade_inventory, Character_Item, item)
 				{
-					builder.AddShort(item.id);
-					builder.AddInt(item.amount);
+					builder.AddShort(item->id);
+					builder.AddInt(item->amount);
 				}
 				builder.AddByte(255);
 
@@ -131,21 +131,21 @@ CLIENT_F_FUNC(Trade)
 				{
 					PacketBuilder builder(PACKET_TRADE, PACKET_USE);
 					builder.AddShort(this->player->character->trade_partner->player->id);
-					UTIL_LIST_FOREACH_ALL(this->player->character->trade_partner->trade_inventory, Character_Item, item)
+					UTIL_PTR_LIST_FOREACH(this->player->character->trade_partner->trade_inventory, Character_Item, item)
 					{
-						builder.AddShort(item.id);
-						builder.AddInt(item.amount);
-						this->player->character->trade_partner->DelItem(item.id, item.amount);
-						this->player->character->AddItem(item.id, item.amount);
+						builder.AddShort(item->id);
+						builder.AddInt(item->amount);
+						this->player->character->trade_partner->DelItem(item->id, item->amount);
+						this->player->character->AddItem(item->id, item->amount);
 					}
 					builder.AddByte(255);
 					builder.AddShort(this->player->character->player->id);
-					UTIL_LIST_FOREACH_ALL(this->player->character->trade_inventory, Character_Item, item)
+					UTIL_PTR_LIST_FOREACH(this->player->character->trade_inventory, Character_Item, item)
 					{
-						builder.AddShort(item.id);
-						builder.AddInt(item.amount);
-						this->player->character->DelItem(item.id, item.amount);
-						this->player->character->trade_partner->AddItem(item.id, item.amount);
+						builder.AddShort(item->id);
+						builder.AddInt(item->amount);
+						this->player->character->DelItem(item->id, item->amount);
+						this->player->character->trade_partner->AddItem(item->id, item->amount);
 					}
 					builder.AddByte(255);
 					CLIENT_SEND(builder);
@@ -204,9 +204,9 @@ CLIENT_F_FUNC(Trade)
 			}
 
 			bool offered = false;
-			UTIL_LIST_FOREACH_ALL(this->player->character->trade_inventory, Character_Item, item)
+			UTIL_PTR_LIST_FOREACH(this->player->character->trade_inventory, Character_Item, item)
 			{
-				if (item.id == itemid)
+				if (item->id == itemid)
 				{
 					offered = true;
 					break;
@@ -225,18 +225,18 @@ CLIENT_F_FUNC(Trade)
 				PacketBuilder builder(PACKET_TRADE, PACKET_REPLY);
 
 				builder.AddShort(this->player->character->player->id);
-				UTIL_LIST_FOREACH_ALL(this->player->character->trade_inventory, Character_Item, item)
+				UTIL_PTR_LIST_FOREACH(this->player->character->trade_inventory, Character_Item, item)
 				{
-					builder.AddShort(item.id);
-					builder.AddInt(item.amount);
+					builder.AddShort(item->id);
+					builder.AddInt(item->amount);
 				}
 				builder.AddByte(255);
 
 				builder.AddShort(this->player->character->trade_partner->player->id);
-				UTIL_LIST_FOREACH_ALL(this->player->character->trade_partner->trade_inventory, Character_Item, item)
+				UTIL_PTR_LIST_FOREACH(this->player->character->trade_partner->trade_inventory, Character_Item, item)
 				{
-					builder.AddShort(item.id);
-					builder.AddInt(item.amount);
+					builder.AddShort(item->id);
+					builder.AddInt(item->amount);
 				}
 				builder.AddByte(255);
 

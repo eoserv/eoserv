@@ -165,8 +165,10 @@ bool IPAddress::operator <(const IPAddress &other) const
 	return (this->address < other.address);
 }
 
+
 Client::Client()
 {
+	Socket_WSAStartup();
 	this->connected = false;
 	this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	this->send_buffer_max = static_cast<unsigned int>(-1);
@@ -184,21 +186,21 @@ Client::Client(IPAddress addr, uint16_t port)
 	this->Connect(addr, port);
 }
 
-Client::Client(void *void_server)
+Client::Client(Server *server)
 {
 	Socket_WSAStartup();
 	this->connected = false;
 	this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	this->void_server = void_server;
+	this->server = server;
 }
 
-Client::Client(SOCKET sock, sockaddr_in sin, void *void_server)
+Client::Client(SOCKET sock, sockaddr_in sin, Server *server)
 {
 	Socket_WSAStartup();
 	this->connected = true;
 	this->sock = sock;
 	this->sin = sin;
-	this->void_server = void_server;
+	this->server = server;
 }
 
 bool Client::Connect(IPAddress addr, uint16_t port)
@@ -421,5 +423,339 @@ Client::~Client()
 	if (this->connected)
 	{
 		this->Close();
+	}
+}
+
+
+void Server::Initialize()
+{
+#if defined(WIN32) || defined(WIN64)
+	if (!socket_ws_init)
+	{
+		if (WSAStartup(MAKEWORD(2,0), &socket_wsadata) != 0)
+		{
+			this->state = Invalid;
+			throw Socket_InitFailed(OSErrorString());
+		}
+		socket_ws_init = true;
+	}
+#endif // defined(WIN32) || defined(WIN64)
+	this->server = socket(AF_INET, SOCK_STREAM, 0);
+	this->state = Created;
+	this->recv_buffer_max = 1024*128;
+	this->send_buffer_max = 1024*128;
+	this->maxconn = 0;
+}
+
+Client *Server::ClientFactory(SOCKET sock, sockaddr_in sin)
+{
+	return new Client(sock, sin, this);
+}
+
+void Server::Bind(IPAddress addr, uint16_t port)
+{
+	sockaddr_in sin;
+	this->address = addr;
+	this->port = port;
+	this->portn = htons(port);
+
+	std::memset(&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_addr = this->address;
+	sin.sin_port = this->portn;
+
+	if (bind(this->server, reinterpret_cast<sockaddr *>(&sin), sizeof(sin)) == SOCKET_ERROR)
+	{
+		this->state = Invalid;
+		throw Socket_BindFailed(OSErrorString());
+	}
+
+	this->state = Bound;
+}
+
+void Server::Listen(int maxconn, int backlog)
+{
+	this->maxconn = maxconn;
+
+	//if (this->state == Bound)
+	//{
+		if (listen(this->server, backlog) != SOCKET_ERROR)
+		{
+			this->state = Listening;
+			return;
+		}
+	//}
+
+	this->state = Invalid;
+	throw Socket_ListenFailed(OSErrorString());
+}
+
+Client *Server::Poll()
+{
+	SOCKET newsock;
+	sockaddr_in sin;
+	socklen_t addrsize = sizeof(sockaddr_in);
+	Client *newclient;
+#if defined(WIN32) || defined(WIN64)
+	unsigned long nonblocking;
+#endif // defined(WIN32) || defined(WIN64)
+
+	if (this->clients.size() >= this->maxconn)
+	{
+		if ((newsock = accept(this->server, reinterpret_cast<sockaddr *>(&sin), &addrsize)) != INVALID_SOCKET)
+		{
+#if defined(WIN32) || defined(WIN64)
+			closesocket(newsock);
+#else // defined(WIN32) || defined(WIN64)
+			close(newsock);
+#endif // defined(WIN32) || defined(WIN64)
+			return 0;
+		}
+	}
+
+#if defined(WIN32) || defined(WIN64)
+	nonblocking = 1;
+	ioctlsocket(this->server, FIONBIO, &nonblocking);
+#else // defined(WIN32) || defined(WIN64)
+	fcntl(this->server, F_SETFL, FNONBLOCK|FASYNC);
+#endif // defined(WIN32) || defined(WIN64)
+	if ((newsock = accept(this->server, reinterpret_cast<sockaddr *>(&sin), &addrsize)) == INVALID_SOCKET)
+	{
+		return 0;
+	}
+#if defined(WIN32) || defined(WIN64)
+	nonblocking = 0;
+	ioctlsocket(this->server, FIONBIO, &nonblocking);
+#else // defined(WIN32) || defined(WIN64)
+	fcntl(this->server, F_SETFL, 0);
+#endif // defined(WIN32) || defined(WIN64)
+
+	newclient = this->ClientFactory(newsock, sin);
+	newclient->send_buffer_max = this->send_buffer_max;
+	newclient->recv_buffer_max = this->recv_buffer_max;
+	newclient->connect_time = time(0);
+
+	this->clients.push_back(newclient);
+
+	return newclient;
+}
+
+#if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+PtrVector<Client> &Server::Select(double timeout)
+{
+	static PtrVector<Client> selected;
+	std::vector<pollfd> fds;
+	int result;
+	pollfd fd;
+
+	fds.reserve(this->clients.size() + 1);
+
+	fd.fd = this->server;
+	fd.events = POLLERR;
+	fds.push_back(fd);
+
+	UTIL_LIST_FOREACH_ALL(this->clients, Client, client)
+	{
+		fd.fd = client->sock;
+
+		fd.events = 0;
+
+		if (client->recv_buffer.length() < client->recv_buffer_max)
+		{
+			fd.events |= POLLIN;
+		}
+
+		if (client->send_buffer.length() > 0)
+		{
+			fd.events |= POLLOUT;
+		}
+
+		fds.push_back(fd);
+	}
+
+	result = poll(&fds[0], fds.size(), long(timeout * 1000));
+
+	if (result == -1)
+	{
+		throw Socket_SelectFailed(OSErrorString());
+	}
+
+	if (result > 0)
+	{
+		if (fds[0].revents & POLLERR == POLLERR)
+		{
+			throw Socket_Exception("There was an exception on the listening socket.");
+		}
+
+		int i = 0;
+		UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+		{
+			++i;
+			if (fds[i].revents & POLLERR || fds[i].revents & POLLHUP || fds[i].revents & POLLNVAL)
+			{
+				client->Close();
+				continue;
+			}
+
+			if (fds[i].revents & POLLIN)
+			{
+				char buf[32767];
+				int recieved = recv(client->sock, buf, 32767, 0);
+				if (recieved > 0)
+				{
+					client->recv_buffer.append(buf, recieved);
+				}
+				else
+				{
+					client->Close();
+					continue;
+				}
+
+				if (client->recv_buffer.length() > client->recv_buffer_max)
+				{
+					client->Close();
+					continue;
+				}
+			}
+
+			if (fds[i].revents & POLLOUT)
+			{
+				int written = send(client->sock, client->send_buffer.c_str(), client->send_buffer.length(), 0);
+				if (written == SOCKET_ERROR)
+				{
+					client->Close();
+					continue;
+				}
+				client->send_buffer.erase(0,written);
+			}
+		}
+	}
+
+	UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+	{
+		if (client->connected || client->recv_buffer.length() > 0)
+		{
+			selected.push_back(client);
+		}
+	}
+
+	return &selected;
+}
+#else // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+PtrVector<Client> *Server::Select(double timeout)
+{
+	long tsecs = long(timeout);
+	timeval timeout_val = {tsecs, long((timeout - double(tsecs))*1000000)};
+	static PtrVector<Client> selected;
+	SOCKET nfds = this->server;
+	int result;
+
+	FD_ZERO(&this->read_fds);
+	FD_ZERO(&this->write_fds);
+	FD_ZERO(&this->except_fds);
+
+	UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+	{
+		if (client->recv_buffer.length() < client->recv_buffer_max)
+		{
+			FD_SET(client->sock, &this->read_fds);
+		}
+
+		if (client->send_buffer.length() > 0)
+		{
+			FD_SET(client->sock, &this->write_fds);
+		}
+
+		FD_SET(client->sock, &this->except_fds);
+
+		if (client->sock > nfds)
+		{
+			nfds = client->sock;
+		}
+	}
+
+	FD_SET(this->server, &this->except_fds);
+
+	result = select(nfds+1, &this->read_fds, &this->write_fds, &this->except_fds, &timeout_val);
+
+	if (result == -1)
+	{
+		throw Socket_SelectFailed(OSErrorString());
+	}
+
+	if (result > 0)
+	{
+		if (FD_ISSET(this->server, &this->except_fds))
+		{
+			throw Socket_Exception("There was an exception on the listening socket.");
+		}
+
+		UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+		{
+			if (FD_ISSET(client->sock, &this->except_fds))
+			{
+				client->Close();
+				continue;
+			}
+
+			if (FD_ISSET(client->sock, &this->read_fds))
+			{
+				char buf[32767];
+				int recieved = recv(client->sock, buf, 32767, 0);
+				if (recieved > 0)
+				{
+					client->recv_buffer.append(buf, recieved);
+				}
+				else
+				{
+					client->Close();
+					continue;
+				}
+
+				if (client->recv_buffer.length() > client->recv_buffer_max)
+				{
+					client->Close();
+					continue;
+				}
+			}
+
+			if (FD_ISSET(client->sock, &this->write_fds))
+			{
+				int written = send(client->sock, client->send_buffer.c_str(), client->send_buffer.length(), 0);
+				if (written == SOCKET_ERROR)
+				{
+					client->Close();
+					continue;
+				}
+				client->send_buffer.erase(0,written);
+			}
+		}
+	}
+
+	UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+	{
+		if (client->recv_buffer.length() > 0)
+		{
+			selected.push_back(*client);
+		}
+	}
+
+	return &selected;
+}
+#endif // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+
+void Server::BuryTheDead()
+{
+	UTIL_PTR_LIST_FOREACH(this->clients, Client, it)
+	{
+		if (!it->Connected() && ((it->send_buffer.length() == 0 && it->recv_buffer.length() == 0) || it->closed_time + 2 < std::time(0)))
+		{
+#if defined(WIN32) || defined(WIN64)
+			closesocket(it->sock);
+#else // defined(WIN32) || defined(WIN64)
+			close(it->sock);
+#endif // defined(WIN32) || defined(WIN64)
+			this->clients.erase(it);
+		}
 	}
 }

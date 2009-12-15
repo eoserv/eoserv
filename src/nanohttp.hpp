@@ -14,7 +14,7 @@
 /**
  * Super simple HTTP client
  */
-class HTTP
+class HTTP : public Shared
 {
 	private:
 		Client *client;

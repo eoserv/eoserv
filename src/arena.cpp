@@ -36,11 +36,11 @@ void Arena::Spawn(bool force)
 {
 	int newplayers = 0;
 
-	UTIL_VECTOR_FOREACH_ALL(this->spawns, Arena_Spawn, spawn)
+	UTIL_PTR_VECTOR_FOREACH(this->spawns, Arena_Spawn, spawn)
 	{
-		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 		{
-			if (character->x == spawn.sx && character->y == spawn.sy)
+			if (character->x == spawn->sx && character->y == spawn->sy)
 			{
 				++newplayers;
 			}
@@ -56,7 +56,7 @@ void Arena::Spawn(bool force)
 	{
 		PacketBuilder builder(PACKET_ARENA, PACKET_DROP);
 
-		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 		{
 			character->player->client->SendBuilder(builder);
 		}
@@ -64,15 +64,15 @@ void Arena::Spawn(bool force)
 		return;
 	}
 
-	UTIL_VECTOR_FOREACH_ALL(this->spawns, Arena_Spawn, spawn)
+	UTIL_PTR_VECTOR_FOREACH(this->spawns, Arena_Spawn, spawn)
 	{
-		UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 		{
-			if (character->x == spawn.sx && character->y == spawn.sy)
+			if (character->x == spawn->sx && character->y == spawn->sy)
 			{
 				character->next_arena = this;
 				character->arena_kills = 0;
-				character->Warp(this->map->id, spawn.dx, spawn.dy);
+				character->Warp(this->map->id, spawn->dx, spawn->dy);
 				break;
 			}
 		}
@@ -81,7 +81,7 @@ void Arena::Spawn(bool force)
 	PacketBuilder builder(PACKET_ARENA, PACKET_USE);
 	builder.AddChar(newplayers);
 
-	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
@@ -111,12 +111,15 @@ void Arena::Attack(Character *from, Direction direction)
 			break;
 	}
 
-	UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 	{
-		if (character->arena == this && character->x == target_x && character->y == target_y)
+		Character *character_ptr = *character;
+		character_ptr->AddRef();
+
+		if (character_ptr->arena == this && character_ptr->x == target_x && character_ptr->y == target_y)
 		{
 			++from->arena_kills;
-			character->Warp(this->map->id, this->map->relog_x, this->map->relog_y);
+			character_ptr->Warp(this->map->id, this->map->relog_x, this->map->relog_y);
 
 			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC);
 			builder.AddShort(0); // ?
@@ -127,9 +130,9 @@ void Arena::Attack(Character *from, Direction direction)
 			builder.AddChar(0); // ?
 			builder.AddByte(255);
 			builder.AddBreakString(from->name);
-			builder.AddBreakString(character->name);
+			builder.AddBreakString(character_ptr->name);
 
-			UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+			UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 			{
 				character->player->client->SendBuilder(builder);
 			}
@@ -142,13 +145,16 @@ void Arena::Attack(Character *from, Direction direction)
 				builder.SetID(PACKET_ARENA, PACKET_ACCEPT);
 				builder.AddBreakString(from->name);
 
-				UTIL_LIST_FOREACH_ALL(this->map->characters, Character *, character)
+				UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 				{
 					character->player->client->SendBuilder(builder);
 				}
 			}
 
+			character_ptr->Release();
 			break;
 		}
+
+		character_ptr->Release();
 	}
 }

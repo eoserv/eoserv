@@ -45,7 +45,7 @@ CLIENT_F_FUNC(Players)
 			reply.AddChar(INIT_PLAYERS);
 			reply.AddShort(this->server->world->characters.size());
 			reply.AddByte(255);
-			UTIL_VECTOR_FOREACH_ALL(this->server->world->characters, Character *, character)
+			UTIL_PTR_VECTOR_FOREACH(this->server->world->characters, Character, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddBreakString(character->title);

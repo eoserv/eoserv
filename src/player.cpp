@@ -40,6 +40,7 @@ Player::Player(std::string username, World *world)
 		Character *newchar = new Character(row["name"], world);
 		this->characters.push_back(newchar);
 		newchar->player = this;
+		newchar->Release();
 	}
 
 	this->client = 0;
@@ -70,12 +71,12 @@ bool Player::ValidName(std::string username)
 
 bool Player::AddCharacter(std::string name, Gender gender, int hairstyle, int haircolor, Skin race)
 {
-	if (this->characters.size() > 3)
+	if (static_cast<int>(this->characters.size()) > static_cast<int>(this->world->config["MaxCharacters"]))
 	{
 		return false;
 	}
 
-	Character *newchar = this->world->CreateCharacter(this, name, gender, hairstyle, haircolor, race);
+	Character *newchar(this->world->CreateCharacter(this, name, gender, hairstyle, haircolor, race));
 
 	if (!newchar)
 	{
@@ -83,8 +84,10 @@ bool Player::AddCharacter(std::string name, Gender gender, int hairstyle, int ha
 	}
 
 	newchar->player = this;
+	this->AddRef();
 
 	this->characters.push_back(newchar);
+	newchar->Release();
 	return true;
 }
 
@@ -96,8 +99,15 @@ void Player::ChangePass(std::string password)
 	this->world->db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.c_str(), this->username.c_str());
 }
 
-Player::~Player()
+void Player::Logout()
 {
+	if (this->character)
+	{
+		this->character->Logout();
+		this->character->Release();
+		this->character = 0;
+	}
+
 	if (this->client)
 	{
 #ifdef DEBUG
@@ -108,11 +118,13 @@ Player::~Player()
 		// Disconnect the client to make sure this null pointer is never dereferenced
 		this->client->Close();
 		this->client->player = 0;
+		this->client = 0; // Not reference counted!
+		this->characters.clear();
+		this->Release();
 	}
+}
 
-	while (!this->characters.empty())
-	{
-		delete this->characters.back();
-		this->characters.pop_back();
-	}
+Player::~Player()
+{
+	this->Logout();
 }

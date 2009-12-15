@@ -35,7 +35,7 @@ void server_ping_all(void *server_void)
 	builder.AddShort(0);
 	builder.AddChar(0);
 
-	UTIL_LIST_FOREACH_ALL(server->clients, EOClient *, client)
+	UTIL_PTR_LIST_FOREACH(server->clients, EOClient, client)
 	{
 		if (client->needpong)
 		{
@@ -54,7 +54,7 @@ void server_pump_queue(void *server_void)
 	EOServer *server = static_cast<EOServer *>(server_void);
 	double now = Timer::GetTime();
 
-	UTIL_LIST_FOREACH_ALL(server->clients, EOClient *, client)
+	UTIL_PTR_LIST_FOREACH(server->clients, EOClient, client)
 	{
 		std::size_t size = client->queue.size();
 
@@ -123,6 +123,11 @@ void server_pump_queue(void *server_void)
 	}
 }
 
+Client *EOServer::ClientFactory(SOCKET sock, sockaddr_in sin)
+{
+	return new EOClient(sock, sin, this);
+}
+
 void EOServer::Initialize(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	this->world = new World(dbinfo, eoserv_config, admin_config);
@@ -145,8 +150,8 @@ EOServer::~EOServer()
 {
 	if (this->sln)
 	{
-		delete this->sln;
+		this->sln->Release();
 	}
 
-	delete this->world;
+	this->world->Release();
 }

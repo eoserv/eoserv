@@ -21,7 +21,7 @@ CLIENT_F_FUNC(Login)
 			std::string username = reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
-			util::lowercase(username);
+			username = util::lowercase(username);
 
 			if (this->server->world->CheckBan(&username, 0, 0) != -1)
 			{
@@ -50,21 +50,24 @@ CLIENT_F_FUNC(Login)
 				return true;
 			}
 
-			if ((this->player = this->server->world->Login(username, password)) == 0)
+			this->player = this->server->world->Login(username, password);
+
+			if (!this->player)
 			{
 				reply.AddShort(LOGIN_WRONG_USERPASS);
 				CLIENT_SEND(reply);
 				return true;
 			}
+
 			this->player->id = this->id;
-			this->player->client = this;
+			this->player->client = this; // Not reference counted!
 			this->state = EOClient::LoggedIn;
 
 			reply.AddShort(LOGIN_OK);
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(2);
 			reply.AddByte(255);
-			UTIL_VECTOR_FOREACH_ALL(this->player->characters, Character *, character)
+			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);
