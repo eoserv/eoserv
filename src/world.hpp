@@ -99,6 +99,8 @@ class World : public Shared
 		void Reboot();
 		void Reboot(int seconds, std::string reason);
 
+		void ReloadPub();
+
 		void Kick(Character *from, Character *victim, bool announce = true);
 		void Jail(Character *from, Character *victim, bool announce = true);
 		void Ban(Character *from, Character *victim, int duration, bool announce = true);

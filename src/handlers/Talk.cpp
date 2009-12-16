@@ -279,6 +279,10 @@ CLIENT_F_FUNC(Talk)
 						}
 					}
 				}
+				else if (command.length() >= 3 && command.compare(0,3,"rep") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["repub"]))
+				{
+					this->server->world->ReloadPub();
+				}
 				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["rehash"]))
 				{
 					Console::Out("Config reloaded by %s", this->player->character->name.c_str());
@@ -370,12 +374,18 @@ CLIENT_F_FUNC(Talk)
 					Console::Wrn("Server shut down by %s", this->player->character->name.c_str());
 					std::exit(0);
 				}
-				else if (command.length() == 3 && command.compare(0,3,"obj") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["objects"]))
+				else if (command.length() >= 3 && command.compare(0,3,"obj") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["objects"]))
 				{
 					std::string buffer = "Objects: ";
 					buffer += util::to_string(shared_objects_allocated_);
 					buffer += "  References: ";
 					buffer += util::to_string(shared_references_);
+					this->player->character->ServerMsg(buffer);
+				}
+				else if (command.length() >= 2 && command.compare(0,2,"up") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["uptime"]))
+				{
+					std::string buffer = "Server started ";
+					buffer += util::timeago(this->server->start, Timer::GetTime());
 					this->player->character->ServerMsg(buffer);
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"q") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["quake"]))

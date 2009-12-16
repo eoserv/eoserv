@@ -99,6 +99,7 @@ class EOClient : public Client
 		void Execute(std::string data);
 
 		void SendBuilder(PacketBuilder &packet);
+		void SendBuilderRaw(PacketBuilder &packet);
 
 // Stop doxygen generating a gigantic list of functions
 #ifndef DOXYGEN

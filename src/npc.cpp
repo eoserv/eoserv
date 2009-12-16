@@ -48,8 +48,6 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 	this->spawn_time = spawn_time;
 	this->walk_idle_for = 0;
 
-	this->data = map->world->enf->Get(id);
-
 	if (spawn_type == 7)
 	{
 		this->direction = static_cast<Direction>(spawn_time & 0x03);
@@ -161,6 +159,11 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 	}
 }
 
+ENF_Data *NPC::Data()
+{
+	return this->map->world->enf->Get(id);
+}
+
 void NPC::Spawn()
 {
 	if (this->spawn_type < 7)
@@ -212,7 +215,7 @@ void NPC::Spawn()
 	}
 
 	this->alive = true;
-	this->hp = this->data->hp;
+	this->hp = this->Data()->hp;
 	this->last_act = Timer::GetTime();
 	this->act_speed = speed_table[this->spawn_type];
 
@@ -264,7 +267,7 @@ void NPC::Act()
 		}
 	}
 
-	if (this->data->type == ENF::Aggressive && !attacker)
+	if (this->Data()->type == ENF::Aggressive && !attacker)
 	{
 		Character *closest = 0;
 		unsigned char closest_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
@@ -412,7 +415,7 @@ void NPC::Damage(Character *from, int amount)
 		builder.AddChar(from->direction);
 		builder.AddShort(this->index);
 		builder.AddThree(amount);
-		builder.AddShort(int(double(this->hp) / double(this->data->hp) * 100.0));
+		builder.AddShort(int(double(this->hp) / double(this->Data()->hp) * 100.0));
 		builder.AddChar(1); // ?
 
 		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
@@ -482,7 +485,7 @@ void NPC::Damage(Character *from, int amount)
 
 				case 2:
 				{
-					int rewarded_hp = util::rand(0, this->data->hp);
+					int rewarded_hp = util::rand(0, this->Data()->hp);
 					int count_hp = 0;
 					UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, opponent)
 					{
@@ -533,7 +536,7 @@ void NPC::Damage(Character *from, int amount)
 
 				builder.SetID(PACKET_NPC, PACKET_SPEC);
 
-				if (this->data->exp != 0)
+				if (this->Data()->exp != 0)
 				{
 					if (findopp)
 					{
@@ -543,7 +546,7 @@ void NPC::Damage(Character *from, int amount)
 							case 0:
 								if (*character == from)
 								{
-									reward = int(std::ceil(double(this->data->exp) * exprate));
+									reward = int(std::ceil(double(this->Data()->exp) * exprate));
 
 									if (reward > 0)
 									{
@@ -569,7 +572,7 @@ void NPC::Damage(Character *from, int amount)
 							case 1:
 								if (*character == most_damage)
 								{
-									reward = int(std::ceil(double(this->data->exp) * exprate));
+									reward = int(std::ceil(double(this->Data()->exp) * exprate));
 
 									if (reward > 0)
 									{
@@ -593,7 +596,7 @@ void NPC::Damage(Character *from, int amount)
 								break;
 
 							case 2:
-								reward = int(std::ceil(double(this->data->exp) * exprate * (double(findopp->damage) / double(this->totaldamage))));
+								reward = int(std::ceil(double(this->Data()->exp) * exprate * (double(findopp->damage) / double(this->totaldamage))));
 
 								if (reward > 0)
 								{
@@ -617,7 +620,7 @@ void NPC::Damage(Character *from, int amount)
 								break;
 
 							case 3:
-								reward = int(std::ceil(double(this->data->exp) * exprate * (double(this->damagelist.size()) / 1.0)));
+								reward = int(std::ceil(double(this->Data()->exp) * exprate * (double(this->damagelist.size()) / 1.0)));
 
 								if (reward > 0)
 								{
@@ -712,7 +715,7 @@ void NPC::Attack(Character *target)
 {
 	double mobrate = this->map->world->config["MobRate"];
 
-	int amount = util::rand(this->data->mindam, this->data->maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
+	int amount = util::rand(this->Data()->mindam, this->Data()->maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
 
 	int hit_rate = 120;
 	bool critical = true;
@@ -726,7 +729,7 @@ void NPC::Attack(Character *target)
 		hit_rate -= 40;
 	}
 
-	hit_rate += int(double(this->data->accuracy) / 2.0 * mobrate);
+	hit_rate += int(double(this->Data()->accuracy) / 2.0 * mobrate);
 	hit_rate -= int(double(target->evade) / 2.0);
 	hit_rate = std::min(std::max(hit_rate, 20), 100);
 

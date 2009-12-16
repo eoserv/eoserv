@@ -135,6 +135,12 @@ void EOClient::SendBuilder(PacketBuilder &builder)
 	this->Send(this->processor.Encode(packet));
 }
 
+void EOClient::SendBuilderRaw(PacketBuilder &builder)
+{
+	std::string packet(builder);
+	this->Send(packet);
+}
+
 EOClient::~EOClient()
 {
 	if (this->player)

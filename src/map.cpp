@@ -1274,7 +1274,7 @@ void Map::Attack(Character *from, Direction direction)
 		double mobrate = this->world->config["MobRate"];
 		UTIL_PTR_VECTOR_FOREACH(this->npcs, NPC, npc)
 		{
-			if ((npc->data->type == ENF::Passive || npc->data->type == ENF::Aggressive || from->admin > static_cast<int>(this->world->admin_config["killnpcs"]))
+			if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive || from->admin > static_cast<int>(this->world->admin_config["killnpcs"]))
 			 && npc->alive && npc->x == target_x && npc->y == target_y)
 			{
 				int amount = util::rand(from->mindam, from->maxdam);
@@ -1294,11 +1294,11 @@ void Map::Attack(Character *from, Direction direction)
 				}
 
 				hit_rate += int(from->accuracy / 2.0);
-				hit_rate -= int(double(npc->data->evade) / 2.0 * mobrate);
+				hit_rate -= int(double(npc->Data()->evade) / 2.0 * mobrate);
 				hit_rate = std::min(std::max(hit_rate, 20), 100);
 
 				int origamount = amount;
-				amount -= int(double(npc->data->armor) / 3.0 * mobrate);
+				amount -= int(double(npc->Data()->armor) / 3.0 * mobrate);
 
 				amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
 

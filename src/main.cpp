@@ -410,6 +410,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "warpmeto"      , 2);
 		eoserv_config_default(aconfig, "evacuate"      , 2);
 		eoserv_config_default(aconfig, "remap"         , 4);
+		eoserv_config_default(aconfig, "repub"         , 4);
 		eoserv_config_default(aconfig, "arena"         , 1);
 		eoserv_config_default(aconfig, "shutdown"      , 4);
 		eoserv_config_default(aconfig, "rehash"        , 4);

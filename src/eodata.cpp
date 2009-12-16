@@ -20,8 +20,10 @@ static void safe_fail(int line)
 #define SAFE_SEEK(fh, offset, from) if (std::fseek(fh, offset, from) != 0) { std::fclose(fh); safe_fail(__LINE__); }
 #define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<int>(count)) { std::fclose(fh); safe_fail(__LINE__); }
 
-EIF::EIF(std::string filename)
+void EIF::Read(std::string filename)
 {
+	this->data.clear();
+
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 	safe_fail_filename = filename.c_str();
 
@@ -119,8 +121,10 @@ EIF_Data *EIF::Get(unsigned int id)
 	}
 }
 
-ENF::ENF(std::string filename)
+void ENF::Read(std::string filename)
 {
+	this->data.clear();
+
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 	safe_fail_filename = filename.c_str();
 
@@ -203,8 +207,10 @@ ENF_Data *ENF::Get(unsigned int id)
 	}
 }
 
-ESF::ESF(std::string filename)
+void ESF::Read(std::string filename)
 {
+	this->data.clear();
+
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 	safe_fail_filename = filename.c_str();
 
@@ -277,8 +283,10 @@ ESF::ESF(std::string filename)
 	std::fclose(fh);
 }
 
-ECF::ECF(std::string filename)
+void ECF::Read(std::string filename)
 {
+	this->data.clear();
+
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 	safe_fail_filename = filename.c_str();
 

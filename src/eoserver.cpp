@@ -144,6 +144,8 @@ void EOServer::Initialize(util::array<std::string, 5> dbinfo, const Config &eose
 	{
 		this->sln = 0;
 	}
+
+	this->start = Timer::GetTime();
 }
 
 EOServer::~EOServer()

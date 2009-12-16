@@ -835,7 +835,7 @@ void Character::Refresh()
 		if (npc->alive)
 		{
 			builder.AddChar(npc->index);
-			builder.AddShort(npc->data->id);
+			builder.AddShort(npc->Data()->id);
 			builder.AddChar(npc->x);
 			builder.AddChar(npc->y);
 			builder.AddChar(npc->direction);

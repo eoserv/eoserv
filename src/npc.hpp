@@ -68,7 +68,6 @@ class NPC : public Shared
 	public:
 		bool temporary;
 		short id;
-		ENF_Data *data;
 		unsigned char x, y;
 		Direction direction;
 		unsigned char spawn_type;
@@ -94,6 +93,8 @@ class NPC : public Shared
 		unsigned char index;
 
 		NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index, bool temporary = false);
+
+		ENF_Data *Data();
 
 		bool SpawnReady();
 

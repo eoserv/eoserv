@@ -105,7 +105,7 @@ CLIENT_F_FUNC(Warp)
 				if (npc->alive)
 				{
 					reply.AddChar(npc->index);
-					reply.AddShort(npc->data->id);
+					reply.AddShort(npc->Data()->id);
 					reply.AddChar(npc->x);
 					reply.AddChar(npc->y);
 					reply.AddChar(npc->direction);

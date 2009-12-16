@@ -295,7 +295,7 @@ CLIENT_F_FUNC(Welcome)
 				if (npc->alive)
 				{
 					reply.AddChar(npc->index);
-					reply.AddShort(npc->data->id);
+					reply.AddShort(npc->Data()->id);
 					reply.AddChar(npc->x);
 					reply.AddChar(npc->y);
 					reply.AddChar(npc->direction);
@@ -334,10 +334,10 @@ CLIENT_F_FUNC(Welcome)
 			switch (file)
 			{
 				case FILE_MAP: break; // Map file is pre-loaded in to the variable
-				case FILE_ITEM: filename = "./data/pub/dat001.eif"; replycode = INIT_FILE_EIF; fileid = 1; break;
-				case FILE_NPC: filename = "./data/pub/dtn001.enf"; replycode = INIT_FILE_ENF; fileid = 1; break;
-				case FILE_SPELL: filename = "./data/pub/dsl001.esf"; replycode = INIT_FILE_ESF; fileid = 1; break;
-				case FILE_CLASS: filename = "./data/pub/dat001.ecf"; replycode = INIT_FILE_ECF; fileid = 1; break;
+				case FILE_ITEM: filename = static_cast<std::string>(this->server->world->config["EIF"]); replycode = INIT_FILE_EIF; fileid = 1; break;
+				case FILE_NPC: filename = static_cast<std::string>(this->server->world->config["ENF"]); replycode = INIT_FILE_ENF; fileid = 1; break;
+				case FILE_SPELL: filename = static_cast<std::string>(this->server->world->config["ESF"]); replycode = INIT_FILE_ESF; fileid = 1; break;
+				case FILE_CLASS: filename = static_cast<std::string>(this->server->world->config["ECF"]); replycode = INIT_FILE_ECF; fileid = 1; break;
 				default: return false;
 			}
 

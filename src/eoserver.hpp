@@ -28,6 +28,7 @@ class EOServer : public Server
 
 	public:
 		World *world;
+		double start;
 
 		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
 		{

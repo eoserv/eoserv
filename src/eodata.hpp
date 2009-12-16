@@ -72,7 +72,8 @@ class EIF : public Shared
 		unsigned char rid[4];
 		unsigned char len[2];
 		PtrVector<EIF_Data> data;
-		EIF(std::string filename);
+		EIF(std::string filename) { Read(filename); }
+		void Read(std::string filename);
 
 		EIF_Data *Get(unsigned int id);
 
@@ -165,7 +166,8 @@ class ENF : public Shared
 		unsigned char rid[4];
 		unsigned char len[2];
 		PtrVector<ENF_Data> data;
-		ENF(std::string filename);
+		ENF(std::string filename) { Read(filename); }
+		void Read(std::string filename);
 
 		ENF_Data *Get(unsigned int id);
 
@@ -209,7 +211,8 @@ class ESF : public Shared
 		unsigned char rid[4];
 		unsigned char len[2];
 		PtrVector<ESF_Data> data;
-		ESF(std::string filename);
+		ESF(std::string filename) { Read(filename); }
+		void Read(std::string filename);
 
 		SCRIPT_REGISTER_REF(ESF)
 
@@ -238,7 +241,8 @@ class ECF : public Shared
 		unsigned char rid[4];
 		unsigned char len[2];
 		PtrVector<ECF_Data> data;
-		ECF(std::string filename);
+		ECF(std::string filename) { Read(filename); }
+		void Read(std::string filename);
 
 	SCRIPT_REGISTER_REF(ECF)
 

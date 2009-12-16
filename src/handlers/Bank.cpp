@@ -24,7 +24,7 @@ CLIENT_F_FUNC(Bank)
 
 			UTIL_PTR_VECTOR_FOREACH(this->player->character->map->npcs, NPC, npc)
 			{
-				if (npc->index == id && npc->data->type == ENF::Bank)
+				if (npc->index == id && npc->Data()->type == ENF::Bank)
 				{
 					this->player->character->bank_npc = *npc;
 
