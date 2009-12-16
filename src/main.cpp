@@ -445,6 +445,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "strip"         , 3);
 		eoserv_config_default(aconfig, "killnpc"       , 2);
 		eoserv_config_default(aconfig, "boardmod"      , 1);
+		eoserv_config_default(aconfig, "reports"       , 1);
 
 		Console::Styled[1] = Console::Styled[0] = config["StyleConsole"];
 

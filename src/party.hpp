@@ -24,7 +24,7 @@ class Party : public Shared
 
 		Party(World *world, Character *leader, Character *other);
 
-		void Msg(Character *from, std::string message);
+		void Msg(Character *from, std::string message, bool echo = true);
 		void Join(Character *);
 		void Leave(Character *);
 		void RefreshMembers(Character *);

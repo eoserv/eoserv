@@ -645,7 +645,7 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 	character->map = 0;
 }
 
-void Map::Msg(Character *from, std::string message)
+void Map::Msg(Character *from, std::string message, bool echo)
 {
 	PacketBuilder builder;
 
@@ -655,7 +655,7 @@ void Map::Msg(Character *from, std::string message)
 
 	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
 	{
-		if (*character == from || !from->InRange(*character))
+		if ((!echo && *character == from) || !from->InRange(*character))
 		{
 			continue;
 		}
@@ -1550,7 +1550,7 @@ void Map::Stand(Character *from)
 	}
 }
 
-void Map::Emote(Character *from, enum Emote emote, bool relay)
+void Map::Emote(Character *from, enum Emote emote, bool echo)
 {
 	PacketBuilder builder;
 
@@ -1560,7 +1560,7 @@ void Map::Emote(Character *from, enum Emote emote, bool relay)
 
 	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
 	{
-		if (!relay && (*character == from || !from->InRange(*character)))
+		if (!echo && (*character == from || !from->InRange(*character)))
 		{
 			continue;
 		}

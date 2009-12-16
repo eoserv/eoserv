@@ -291,14 +291,14 @@ class Map : public Shared
 		void Enter(Character *, WarpAnimation animation = WARP_ANIMATION_NONE);
 		void Leave(Character *, WarpAnimation animation = WARP_ANIMATION_NONE, bool silent = false);
 
-		void Msg(Character *from, std::string message);
+		void Msg(Character *from, std::string message, bool echo = true);
 		bool Walk(Character *from, Direction direction, bool admin = false);
 		void Attack(Character *from, Direction direction);
 		bool AttackPK(Character *from, Direction direction);
 		void Face(Character *from, Direction direction);
 		void Sit(Character *from, SitAction sit_type);
 		void Stand(Character *from);
-		void Emote(Character *from, enum Emote emote, bool relay = true);
+		void Emote(Character *from, enum Emote emote, bool echo = true);
 		bool OpenDoor(Character *from, unsigned char x, unsigned char y);
 
 		bool Walk(NPC *from, Direction direction);
@@ -365,14 +365,14 @@ class Map : public Shared
 		SCRIPT_REGISTER_FUNCTION("uint8 GenerateNPCIndex()", GenerateNPCIndex);
 		SCRIPT_REGISTER_FUNCTION("void Enter(Character @, WarpAnimation animation)", Enter);
 		SCRIPT_REGISTER_FUNCTION("void Leave(Character @, WarpAnimation animation, bool silent)", Leave);
-		SCRIPT_REGISTER_FUNCTION("void Msg(Character @from, string message)", Msg);
+		SCRIPT_REGISTER_FUNCTION("void Msg(Character @from, string message, bool echo)", Msg);
 		SCRIPT_REGISTER_FUNCTION_PR("bool Walk(Character @from, Direction direction, bool admin)", Walk, (Character *, Direction, bool), bool);
 		SCRIPT_REGISTER_FUNCTION("void Attack(Character @from, Direction direction)", Attack);
 		SCRIPT_REGISTER_FUNCTION("bool AttackPK(Character @from, Direction direction)", AttackPK);
 		SCRIPT_REGISTER_FUNCTION("void Face(Character @from, Direction direction)", Face);
 		SCRIPT_REGISTER_FUNCTION("void Sit(Character @from, SitAction sit_type)", Sit);
 		SCRIPT_REGISTER_FUNCTION("void Stand(Character @from)", Stand);
-		SCRIPT_REGISTER_FUNCTION("void Emote(Character @from, Emote emote, bool relay)", Emote);
+		SCRIPT_REGISTER_FUNCTION("void Emote(Character @from, Emote emote, bool echo)", Emote);
 		SCRIPT_REGISTER_FUNCTION("bool OpenDoor(Character @from, uint8 x, uint8 y)", OpenDoor);
 		SCRIPT_REGISTER_FUNCTION_PR("bool Walk(NPC @from, Direction direction)", Walk, (NPC *, Direction), bool);
 		SCRIPT_REGISTER_FUNCTION("Map_Item @AddItem(int16 id, int amount, uint8 x, uint8 y, Character @from)", AddItem);

@@ -91,9 +91,9 @@ class World : public Shared
 		void Login(Character *);
 		void Logout(Character *);
 
-		void Msg(Character *from, std::string message);
-		void AdminMsg(Character *from, std::string message, int minlevel = ADMIN_GUARDIAN);
-		void AnnounceMsg(Character *from, std::string message);
+		void Msg(Character *from, std::string message, bool echo = true);
+		void AdminMsg(Character *from, std::string message, int minlevel = ADMIN_GUARDIAN, bool echo = true);
+		void AnnounceMsg(Character *from, std::string message, bool echo = true);
 		void ServerMsg(std::string message);
 
 		void Reboot();
@@ -148,9 +148,9 @@ class World : public Shared
 		SCRIPT_REGISTER_FUNCTION("int GeneratePlayerID()", GenerateCharacterID);
 		SCRIPT_REGISTER_FUNCTION_PR("void Login(Character @)", Login, (Character *), void);
 		SCRIPT_REGISTER_FUNCTION("void Logout(Character @)", Logout);
-		SCRIPT_REGISTER_FUNCTION("void Msg(Character @, string)", Msg);
-		SCRIPT_REGISTER_FUNCTION("void AdminMsg(Character @, string, int minlevel)", AdminMsg);
-		SCRIPT_REGISTER_FUNCTION("void AnnounceMsg(Character @, string)", AnnounceMsg);
+		SCRIPT_REGISTER_FUNCTION("void Msg(Character @, string, bool echo)", Msg);
+		SCRIPT_REGISTER_FUNCTION("void AdminMsg(Character @, string, int minlevel, bool echo)", AdminMsg);
+		SCRIPT_REGISTER_FUNCTION("void AnnounceMsg(Character @, string, bool echo)", AnnounceMsg);
 		SCRIPT_REGISTER_FUNCTION("void ServerMsg(string)", ServerMsg);
 		//SCRIPT_REGISTER_FUNCTION_PR("void Reboot()", Reboot, (), void);
 		//SCRIPT_REGISTER_FUNCTION_PR("void Reboot(int, string)", Reboot, (int, std::string), void);

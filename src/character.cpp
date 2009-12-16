@@ -284,9 +284,9 @@ void Character::Stand()
 	this->map->Stand(this);
 }
 
-void Character::Emote(enum Emote emote, bool relay)
+void Character::Emote(enum Emote emote, bool echo)
 {
-	this->map->Emote(this, emote, relay);
+	this->map->Emote(this, emote, echo);
 }
 
 int Character::HasItem(short item)

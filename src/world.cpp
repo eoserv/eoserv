@@ -285,7 +285,7 @@ void World::Logout(Character *character)
 	}
 }
 
-void World::Msg(Character *from, std::string message)
+void World::Msg(Character *from, std::string message, bool echo)
 {
 	PacketBuilder builder;
 
@@ -302,7 +302,7 @@ void World::Msg(Character *from, std::string message)
 
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
-		if (*character == from)
+		if (!echo && *character == from)
 		{
 			continue;
 		}
@@ -311,7 +311,7 @@ void World::Msg(Character *from, std::string message)
 	}
 }
 
-void World::AdminMsg(Character *from, std::string message, int minlevel)
+void World::AdminMsg(Character *from, std::string message, int minlevel, bool echo)
 {
 	PacketBuilder builder;
 
@@ -328,7 +328,7 @@ void World::AdminMsg(Character *from, std::string message, int minlevel)
 
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
-		if (*character == from || character->admin < minlevel)
+		if ((!echo && *character == from) || character->admin < minlevel)
 		{
 			continue;
 		}
@@ -337,7 +337,7 @@ void World::AdminMsg(Character *from, std::string message, int minlevel)
 	}
 }
 
-void World::AnnounceMsg(Character *from, std::string message)
+void World::AnnounceMsg(Character *from, std::string message, bool echo)
 {
 	PacketBuilder builder;
 
@@ -354,7 +354,7 @@ void World::AnnounceMsg(Character *from, std::string message)
 
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
-		if (*character == from)
+		if (!echo && *character == from)
 		{
 			continue;
 		}

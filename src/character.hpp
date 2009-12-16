@@ -150,7 +150,7 @@ class Character : public Shared
 		void Attack(Direction direction);
 		void Sit(SitAction sit_type);
 		void Stand();
-		void Emote(enum Emote emote, bool relay = true);
+		void Emote(enum Emote emote, bool echo = true);
 		int HasItem(short item);
 		bool AddItem(short item, int amount);
 		bool DelItem(short item, int amount);
@@ -271,7 +271,7 @@ class Character : public Shared
 		SCRIPT_REGISTER_FUNCTION("void Attack(Direction direction)", Attack);
 		SCRIPT_REGISTER_FUNCTION("void Sit(SitAction sit_type)", Sit);
 		SCRIPT_REGISTER_FUNCTION("void Stand()", Stand);
-		SCRIPT_REGISTER_FUNCTION("void Emote(Emote emote, bool relay)", Emote);
+		SCRIPT_REGISTER_FUNCTION("void Emote(Emote emote, bool echo)", Emote);
 		SCRIPT_REGISTER_FUNCTION("int HasItem(int16 item)", HasItem);
 		SCRIPT_REGISTER_FUNCTION("bool AddItem(int16 item, int amount)", AddItem);
 		SCRIPT_REGISTER_FUNCTION_PR("bool DelItem(int16 item, int amount)", DelItem, (short, int), bool);

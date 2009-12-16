@@ -31,7 +31,7 @@ Party::Party(World *world, Character *leader, Character *other)
 	this->RefreshMembers(other);
 }
 
-void Party::Msg(Character *from, std::string message)
+void Party::Msg(Character *from, std::string message, bool echo)
 {
 	PacketBuilder builder(PACKET_TALK, PACKET_OPEN);
 
@@ -40,7 +40,7 @@ void Party::Msg(Character *from, std::string message)
 
 	UTIL_PTR_VECTOR_FOREACH(this->members, Character, member)
 	{
-		if (*member != from)
+		if (echo || *member != from)
 		{
 			member->player->client->SendBuilder(builder);
 		}

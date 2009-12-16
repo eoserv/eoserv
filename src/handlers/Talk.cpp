@@ -43,7 +43,7 @@ CLIENT_F_FUNC(Talk)
 			message = reader.GetEndString(); // message
 			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 
-			this->player->character->party->Msg(this->player->character, message);
+			this->player->character->party->Msg(this->player->character, message, false);
 		}
 		break;
 
@@ -59,7 +59,7 @@ CLIENT_F_FUNC(Talk)
 			message = reader.GetEndString();
 			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 
-			this->server->world->Msg(this->player->character, message);
+			this->server->world->Msg(this->player->character, message, false);
 		}
 		break;
 
@@ -396,7 +396,7 @@ CLIENT_F_FUNC(Talk)
 			}
 			else
 			{
-				this->player->character->map->Msg(this->player->character, message);
+				this->player->character->map->Msg(this->player->character, message, false);
 			}
 		}
 		break;
@@ -423,7 +423,7 @@ CLIENT_F_FUNC(Talk)
 			message = reader.GetEndString(); // message
 			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 
-			this->server->world->AnnounceMsg(this->player->character, message);
+			this->server->world->AnnounceMsg(this->player->character, message, false);
 		}
 		break;
 

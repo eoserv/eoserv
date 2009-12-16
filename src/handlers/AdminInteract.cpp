@@ -14,13 +14,26 @@ CLIENT_F_FUNC(AdminInteract)
 	{
 		case PACKET_TELL: // "Talk to admin" message
 		{
+			if (this->state < EOClient::PlayingModal) return false;
 
+			std::string message = reader.GetEndString();
+
+			message = "[Request] " + message;
+
+			this->server->world->AdminMsg(this->player->character, message, static_cast<int>(this->server->world->admin_config["reports"]));
 		}
 		break;
 
 		case PACKET_REPORT: // User report
 		{
+			if (this->state < EOClient::PlayingModal) return false;
 
+			std::string reportee = reader.GetBreakString();
+			std::string message = reader.GetEndString();
+
+			message = "[Report:" + reportee + "] " + message;
+
+			this->server->world->AdminMsg(this->player->character, message, static_cast<int>(this->server->world->admin_config["reports"]));
 		}
 		break;
 
