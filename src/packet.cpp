@@ -539,6 +539,11 @@ unsigned short PacketBuilder::SetID(PacketFamily family, PacketAction action)
 	return this->SetID(PacketProcessor::PID(family,action));
 }
 
+std::size_t PacketBuilder::Length()
+{
+	return this->length;
+}
+
 unsigned char PacketBuilder::AddByte(unsigned char byte)
 {
 	++this->length;
@@ -652,7 +657,7 @@ void PacketBuilder::Reset()
 	this->data.erase();
 }
 
-std::string PacketBuilder::Get()
+std::string PacketBuilder::Get() const
 {
 	std::string retdata;
 	util::pairchar id = PacketProcessor::EPID(this->id);
@@ -667,7 +672,7 @@ std::string PacketBuilder::Get()
 	return retdata;
 }
 
-PacketBuilder::operator std::string()
+PacketBuilder::operator std::string() const
 {
 	return this->Get();
 }

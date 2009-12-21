@@ -77,10 +77,21 @@ template <class T> class ScriptRefObject;
 #define SCRIPT_REGISTER_FUNCTION(declaration, function) ScriptType::RegisterFunction(engine, declaration, asMETHOD(_script_thistype, function))
 #define SCRIPT_REGISTER_FUNCTION_PR(declaration, function, p, r) ScriptType::RegisterFunction(engine, declaration, asMETHODPR(_script_thistype, function, p, r))
 
-#define SCRIPT_REGISTER_VARIABLE(type, name, varname) ScriptType::RegisterVariable(engine, type, name, instance_offsetof(_script_inst, varname))
+#define SCRIPT_REGISTER_GLOBAL_FUNCTION(declaration, function) ScriptRegisterFunction(engine, declaration, asFUNCTION(function));
+#define SCRIPT_REGISTER_GLOBAL_FUNCTION_PR(declaration, function, p, r) ScriptRegisterFunction(engine, declaration, asFUNCTIONPR(function, p, r));
 
-#define SCRIPT_REGISTER_ENUM(name) engine.as->RegisterEnum(name);
-#define SCRIPT_REGISTER_ENUM_VALUE(name, val) engine.as->RegisterEnumValue(name, #val, val);
+#define SCRIPT_REGISTER_VARIABLE(type, name) ScriptType::RegisterVariable(engine, type, #name, instance_offsetof(_script_inst, name))
+#define SCRIPT_REGISTER_VARIABLE_NAME(type, name, scriptname) ScriptType::RegisterVariable(engine, type, scriptname, instance_offsetof(_script_inst, name))
+
+#define SCRIPT_REGISTER_ENUM(name) \
+{ \
+	const char *name_ = name; engine.as->RegisterEnum(name);
+
+#define SCRIPT_REGISTER_ENUM_VALUE(val) \
+	engine.as->RegisterEnumValue(name_, #val, val);
+
+#define SCRIPT_REGISTER_ENUM_END() \
+}
 
 #define SCRIPT_REGISTER_BEHAVIOUR(behaviour, declaration, function) ScriptType::RegisterBehaviour(engine, behaviour, declaration, asMETHOD(_script_thistype, function), asCALL_THISCALL)
 #define SCRIPT_REGISTER_BEHAVIOUR_PR(behaviour, declaration, function, p, r) ScriptType::RegisterBehaviour(engine, behaviour, declaration, asMETHODPR(_script_thistype, function, p, r), asCALL_THISCALL)
@@ -168,6 +179,14 @@ class ScriptEngine
 
 		~ScriptEngine();
 };
+
+inline bool ScriptRegisterFunction(ScriptEngine &engine, const char *declaration, asSFuncPtr ptr)
+{
+	SCRIPT_ASSERT(engine.as->RegisterGlobalFunction(declaration, ptr, asCALL_CDECL),
+		"Failed to register %s", declaration);
+
+	return true;
+}
 
 template <class T> class ScriptObject
 {

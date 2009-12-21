@@ -57,10 +57,10 @@ void Dbg(std::string f, ...);
 
 inline void ScriptRegister(ScriptEngine &engine)
 {
-	engine.as->RegisterGlobalFunction("void Out(string)", asFUNCTION(Out), asCALL_CDECL);
-	engine.as->RegisterGlobalFunction("void Wrn(string)", asFUNCTION(Wrn), asCALL_CDECL);
-	engine.as->RegisterGlobalFunction("void Err(string)", asFUNCTION(Err), asCALL_CDECL);
-	engine.as->RegisterGlobalFunction("void Dbg(string)", asFUNCTION(Dbg), asCALL_CDECL);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("void Out(string)", Out);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("void Wrn(string)", Wrn);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("void Err(string)", Err);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("void Dbg(string)", Dbg);
 }
 
 }

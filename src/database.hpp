@@ -164,11 +164,12 @@ class Database
 		Database_Result callbackdata;
 
 	SCRIPT_REGISTER_REF_DF(Database)
-		SCRIPT_REGISTER_ENUM("Engine");
-			SCRIPT_REGISTER_ENUM_VALUE("Engine", MySQL);
-			SCRIPT_REGISTER_ENUM_VALUE("Engine", SQLite);
+		SCRIPT_REGISTER_ENUM("Database_Engine")
+			SCRIPT_REGISTER_ENUM_VALUE(MySQL);
+			SCRIPT_REGISTER_ENUM_VALUE(SQLite);
+		SCRIPT_REGISTER_ENUM_END()
 
-		SCRIPT_REGISTER_FUNCTION("void Connect(Engine type, string host, string user, string pass, string db)", Connect);
+		SCRIPT_REGISTER_FUNCTION("void Connect(Database_Engine type, string host, string user, string pass, string db)", Connect);
 		SCRIPT_REGISTER_FUNCTION("void Close()", Close);
 		SCRIPT_REGISTER_FUNCTION("string Escape(string)", Escape);
 	SCRIPT_REGISTER_END()

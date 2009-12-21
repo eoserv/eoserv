@@ -158,18 +158,13 @@ inline void _Socket_WSAStartup()
 /**
  * Stores an IP address and converts between string and numeric formats.
  */
-class IPAddress
+class IPAddress : public Shared
 {
 	protected:
 		/**
 		 * Integer version of the IP address.
 		 */
 		uint32_t address;
-
-		/**
-		 * Return the IP address as a string (eg 255.255.255.255).
-		 */
-		std::string GetString();
 
 	public:
 		/**
@@ -199,6 +194,7 @@ class IPAddress
 
 		/**
 		 * Initialize the address using a string (eg 255.255.255.255).
+		 * Only accepts IP addresses, see Lookup to lookup hostnames
 		 */
 		IPAddress(std::string);
 
@@ -206,6 +202,26 @@ class IPAddress
 		 * Lookup a hostname and use that to create an IPAddress class
 		 */
 		static IPAddress Lookup(std::string host);
+
+		/**
+		 * Set the address to an integer value
+		 */
+		IPAddress &SetInt(unsigned int);
+
+		/**
+		 * Set the address using 4 octets.
+		 */
+		IPAddress &SetOctets(unsigned char, unsigned char, unsigned char, unsigned char);
+
+		/**
+		 * Set the address using a string (eg 255.255.255.255).
+		 */
+		IPAddress &SetString(const char *);
+
+		/**
+		 * Set the address using a string (eg 255.255.255.255).
+		 */
+		IPAddress &SetString(std::string);
 
 		/**
 		 * Set the address to an integer value
@@ -230,23 +246,48 @@ class IPAddress
 		/**
 		 * Return the IP address as an integer.
 		 */
-		operator unsigned int();
-
-		/**
-		 * Return the IP address as a POSIX in_addr struct.
-		 */
-		operator in_addr();
+		unsigned int GetInt() const;
 
 		/**
 		 * Return the IP address as a string (eg 255.255.255.255).
 		 */
-		operator std::string();
+		std::string GetString() const;
+
+		/**
+		 * Return the IP address as an integer.
+		 */
+		operator unsigned int() const;
+
+		/**
+		 * Return the IP address as a POSIX in_addr struct.
+		 */
+		operator in_addr() const;
+
+		/**
+		 * Return the IP address as a string (eg 255.255.255.255).
+		 */
+		operator std::string() const;
 
 		bool operator ==(const IPAddress &) const;
 		bool operator <(const IPAddress &) const;
 
-	SCRIPT_REGISTER_REF_DF(IPAddress)
+	static IPAddress *ScriptFactoryCopy(IPAddress &other) { return new IPAddress(other); }
+	static IPAddress *ScriptFactoryInt(unsigned int addr) { return new IPAddress(addr); }
+	static IPAddress *ScriptFactoryOctets(unsigned char o1, unsigned char o2, unsigned char o3, unsigned char o4) { return new IPAddress(o1, o2, o3, o4); }
+	static IPAddress *ScriptFactoryString(std::string str_addr) { return new IPAddress(str_addr); }
 
+	SCRIPT_REGISTER_REF_DF(IPAddress)
+		SCRIPT_REGISTER_FACTORY("IPAddress @f(uint)", ScriptFactoryInt);
+		SCRIPT_REGISTER_FACTORY("IPAddress @f(uint8, uint8, uint8, uint8)", ScriptFactoryOctets);
+		SCRIPT_REGISTER_FACTORY("IPAddress @f(string)", ScriptFactoryString);
+
+		SCRIPT_REGISTER_FUNCTION("IPAddress &SetInt(uint)", SetInt);
+		SCRIPT_REGISTER_FUNCTION("IPAddress &SetOctets(uint8, uint8, uint8, uint8)", SetOctets);
+		SCRIPT_REGISTER_FUNCTION_PR("IPAddress &SetString(string)", SetString, (std::string), IPAddress &);
+		SCRIPT_REGISTER_FUNCTION("uint GetInt()", GetInt);
+		SCRIPT_REGISTER_FUNCTION("string GetString()", GetString);
+
+		SCRIPT_REGISTER_GLOBAL_FUNCTION("IPAddress @IPAddress_Lookup(string host)", Lookup);
 	SCRIPT_REGISTER_END()
 };
 
@@ -269,11 +310,11 @@ class Client : public Shared
 
 	public:
 		Client();
-		Client(IPAddress addr, uint16_t port);
+		Client(const IPAddress &addr, uint16_t port);
 		Client(Server *);
 		Client(SOCKET, sockaddr_in, Server *);
-		bool Connect(IPAddress addr, uint16_t port);
-		void Bind(IPAddress addr, uint16_t port);
+		bool Connect(const IPAddress &addr, uint16_t port);
+		void Bind(const IPAddress &addr, uint16_t port);
 		std::string Recv(std::size_t length);
 		void Send(const std::string &data);
 		void Tick(double timeout);
@@ -284,6 +325,24 @@ class Client : public Shared
 		virtual ~Client();
 
 	friend class Server;
+
+	static Client *ScriptFactoryIPPort(IPAddress addr, uint16_t port) { return new Client(addr, port); }
+	static Client *ScriptFactoryServer(Server *server) { return new Client(server); }
+
+	SCRIPT_REGISTER_REF_DF(Client)
+		SCRIPT_REGISTER_FACTORY("Client @f(const IPAddress &addr, uint16)", ScriptFactoryIPPort);
+		SCRIPT_REGISTER_FACTORY("Client @f(Server @server)", ScriptFactoryServer);
+
+		SCRIPT_REGISTER_FUNCTION("bool Connect(const IPAddress &addr, uint16 port)", Connect);
+		SCRIPT_REGISTER_FUNCTION("void Bind(const IPAddress &addr, uint16 port)", Bind);
+		SCRIPT_REGISTER_FUNCTION("string Recv(uint length)", Recv);
+		SCRIPT_REGISTER_FUNCTION("void Send(const string &data)", Send);
+		SCRIPT_REGISTER_FUNCTION("void Tick(double timeout)", Tick);
+		SCRIPT_REGISTER_FUNCTION("bool Connected()", Connected);
+		// GetRemoteAddr
+		SCRIPT_REGISTER_FUNCTION("void Close(bol force)", Close);
+		SCRIPT_REGISTER_FUNCTION("uint ConnectTime", ConnectTime);
+	SCRIPT_REGISTER_END()
 };
 
 /**
@@ -401,7 +460,7 @@ class Server : public Shared
 		 * @param addr Address to bind to
 		 * @param port Port number to bind to
 		 */
-		Server(IPAddress addr, uint16_t port)
+		Server(const IPAddress &addr, uint16_t port)
 		{
 			this->Initialize();
 			this->Bind(addr, port);
@@ -414,7 +473,7 @@ class Server : public Shared
 		 * @param port Port number to bind to.
 		 * @throw Socket_BindFailed
 		 */
-		void Bind(IPAddress addr, uint16_t port);
+		void Bind(const IPAddress &addr, uint16_t port);
 
 		/**
 		 * Bind the Server to the specified address and port.
@@ -469,6 +528,33 @@ class Server : public Shared
 			close(this->server);
 #endif // defined(WIN32) || defined(WIN64)
 		}
+
+	static Server *ScriptFactoryIPPort(const IPAddress &addr, uint16_t port) { return new Server(addr, port); }
+
+	SCRIPT_REGISTER_REF_DF(Server)
+		SCRIPT_REGISTER_ENUM("Server_State")
+			SCRIPT_REGISTER_ENUM_VALUE(Invalid);
+			SCRIPT_REGISTER_ENUM_VALUE(Created);
+			SCRIPT_REGISTER_ENUM_VALUE(Bound);
+			SCRIPT_REGISTER_ENUM_VALUE(Listening);
+		SCRIPT_REGISTER_ENUM_END()
+
+		SCRIPT_REGISTER_FACTORY("Server @f(const IPAddress &, uint16 port)", ScriptFactoryIPPort);
+
+		SCRIPT_REGISTER_VARIABLE("uint", recv_buffer_max);
+		SCRIPT_REGISTER_VARIABLE("uint", send_buffer_max);
+		SCRIPT_REGISTER_VARIABLE("uint", maxconn);
+		SCRIPT_REGISTER_VARIABLE("PtrList<Client>", clients);
+		SCRIPT_REGISTER_VARIABLE("PtrList<Client>", clients);
+		SCRIPT_REGISTER_FUNCTION("Bind(const IPAddress &, uint16 port)", Bind);
+		SCRIPT_REGISTER_FUNCTION("Listen(int maxconn, int backlog)", Listen);
+		SCRIPT_REGISTER_FUNCTION("Client @Poll()", Poll);
+		SCRIPT_REGISTER_FUNCTION("PtrVector<Client> @Select(double timeout)", Select);
+		SCRIPT_REGISTER_FUNCTION("void BuryTheDead()", BuryTheDead);
+		SCRIPT_REGISTER_FUNCTION("Server_State State()", State);
+		SCRIPT_REGISTER_FUNCTION("int Connections()", Connections);
+		SCRIPT_REGISTER_FUNCTION("int MaxConnections()", MaxConnections);
+	SCRIPT_REGISTER_END()
 };
 
 

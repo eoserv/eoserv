@@ -37,8 +37,23 @@ class Player : public Shared
 
 		~Player();
 
-	SCRIPT_REGISTER_REF(Player)
+	static Player *ScriptFactory(std::string username, World *world) { return new Player(username, world); }
 
+	SCRIPT_REGISTER_REF(Player)
+		SCRIPT_REGISTER_FACTORY("Player @f(string username, World @world)", ScriptFactory);
+
+		SCRIPT_REGISTER_VARIABLE("int", login_time);
+		SCRIPT_REGISTER_VARIABLE("bool", online);
+		SCRIPT_REGISTER_VARIABLE("uint", id);
+		SCRIPT_REGISTER_VARIABLE("string", username);
+		SCRIPT_REGISTER_VARIABLE("string", password);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Character>", characters);
+		SCRIPT_REGISTER_VARIABLE("Character @", character);
+		SCRIPT_REGISTER_VARIABLE("World @", world);
+		//SCRIPT_REGISTER_VARIABLE("EOClient @", client);
+		SCRIPT_REGISTER_FUNCTION("bool AddCharacter(string name, Gender gender, int hairstyle, int haircolor, Skin race)", AddCharacter);
+		SCRIPT_REGISTER_FUNCTION("void ChangePass(string password)", ChangePass);
+		SCRIPT_REGISTER_FUNCTION("void Logout()", Logout);
 	SCRIPT_REGISTER_END()
 };
 

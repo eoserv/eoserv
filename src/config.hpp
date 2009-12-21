@@ -45,7 +45,11 @@ class Config : public std::map<std::string, util::variant>
 		 */
 		void Read(std::string filename);
 
+	static Config *ScriptFactory1(std::string filename) { return new Config(filename); }
+
 	SCRIPT_REGISTER_REF_DF(Config)
+		SCRIPT_REGISTER_FACTORY("Config @f(string filename)", ScriptFactory1);
+
 		SCRIPT_REGISTER_FUNCTION("void Read(string filename)", Read);
 	SCRIPT_REGISTER_END()
 };

@@ -666,28 +666,6 @@ void Map::Msg(Character *from, std::string message, bool echo)
 
 bool Map::Walk(Character *from, Direction direction, bool admin)
 {
-	/*if (HOOK_CALL(this->world->hookmanager, "character/walk", (from)))
-	{
-		return false;
-	}*/
-
-	/*asIScriptContext *ctx = engine->CreateContext();
-	int func = engine->GetModule(module_name)->GetFunctionIdByDecl("bool $(Character @)");
-	ctx->Prepare(func);*/
-	if (this->world->hookmanager->Call("character/walk")[from])
-	{
-		return false;
-	}
-
-	/*int r = ctx->Execute();*/
-
-	/*if (r == asEXECUTION_FINISHED)
-	{
-		asDWORD ret = ctx->GetReturnDWord();
-	}
-
-	ctx->Release();*/
-
 	PacketBuilder builder;
 	int seedistance = this->world->config["SeeDistance"];
 
@@ -753,6 +731,21 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		}
 
 		return false;
+	}
+
+	from->direction = direction;
+
+	{
+		CharacterEvent *e = new CharacterEvent;
+		e->target_x = target_x;
+		e->target_y = target_y;
+
+		if (this->world->hookmanager->Call("character/walk")[e])
+		{
+			return false;
+		}
+
+		e->Release();
 	}
 
 	from->x = target_x;
@@ -873,8 +866,6 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 			}
 		}
 	}
-
-	from->direction = direction;
 
 	builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
 	builder.AddShort(from->player->id);
@@ -1463,8 +1454,8 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 					PacketReader reader("");
 
-					character_ptr->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5));
-					character_ptr->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0));
+					character_ptr->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5);
+					character_ptr->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0);
 				}
 
 				builder.Reset();

@@ -8,7 +8,7 @@
 
 #include "socket.hpp"
 
-HTTP::HTTP(std::string host, unsigned short port, std::string path, IPAddress outgoing)
+HTTP::HTTP(std::string host, unsigned short port, std::string path, const IPAddress & outgoing)
 {
 	std::string request;
 
@@ -33,7 +33,7 @@ HTTP::HTTP(std::string host, unsigned short port, std::string path, IPAddress ou
 	client->Send(request);
 }
 
-HTTP *HTTP::RequestURL(std::string url, IPAddress outgoing)
+HTTP *HTTP::RequestURL(std::string url, const IPAddress &outgoing)
 {
 	std::size_t loc, loc2;
 

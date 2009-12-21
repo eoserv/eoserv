@@ -33,8 +33,21 @@ class Party : public Shared
 
 		~Party();
 
-	SCRIPT_REGISTER_REF(Party)
+	static Party *ScriptFactory(World *world, Character *leader, Character *other) { return new Party(world, leader, other); }
 
+	SCRIPT_REGISTER_REF(Party)
+		SCRIPT_REGISTER_FACTORY("Party @f(World @, Character @, Character @)", ScriptFactory);
+
+		SCRIPT_REGISTER_VARIABLE("World @", world);
+		SCRIPT_REGISTER_VARIABLE("Character @", leader);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Character>", members);
+		SCRIPT_REGISTER_VARIABLE("int", temp_expsum);
+		SCRIPT_REGISTER_FUNCTION("void Msg(Character @from, string message, bool echo)", Msg);
+		SCRIPT_REGISTER_FUNCTION("void Join(Character @)", Join);
+		SCRIPT_REGISTER_FUNCTION("void Leave(Character @)", Leave);
+		SCRIPT_REGISTER_FUNCTION("void RefreshMembers(Character @)", RefreshMembers);
+		SCRIPT_REGISTER_FUNCTION("void UpdateHP(Character @)", UpdateHP);
+		SCRIPT_REGISTER_FUNCTION("void ShareEXP(int exp, int sharemode, Map @)", ShareEXP);
 	SCRIPT_REGISTER_END()
 };
 

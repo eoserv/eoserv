@@ -24,6 +24,12 @@ class SLN : public Shared
 	public:
 		SLN(EOServer *server);
 		void Request();
+
+	static SLN *ScriptFactory(EOServer *server) { return new SLN(server); }
+
+	SCRIPT_REGISTER_REF(SLN)
+		SCRIPT_REGISTER_FACTORY("SLN @f(EOServer @server)", ScriptFactory);
+	SCRIPT_REGISTER_END()
 };
 
 #endif //SLN_HPP_INCLUDED

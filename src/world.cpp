@@ -528,8 +528,7 @@ void World::DeleteCharacter(std::string name)
 
 Player *World::Login(std::string username, std::string password)
 {
-	password = static_cast<std::string>(this->config["PasswordSalt"]) + username + password;
-	sha256(password);
+	password = sha256(static_cast<std::string>(this->config["PasswordSalt"]) + username + password);
 	Database_Result res = this->db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.c_str());
 	if (res.empty())
 	{
@@ -542,8 +541,7 @@ Player *World::Login(std::string username, std::string password)
 
 bool World::CreatePlayer(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid, std::string ip)
 {
-	password = static_cast<std::string>(this->config["PasswordSalt"]) + username + password;
-	sha256(password);
+	password = sha256(static_cast<std::string>(this->config["PasswordSalt"]) + username + password);
 	Database_Result result = this->db.Query("INSERT INTO `accounts` (`username`, `password`, `fullname`, `location`, `email`, `computer`, `hdid`, `regip`, `created`) VALUES ('$','$','$','$','$','$','$','$',#)", username.c_str(), password.c_str(), fullname.c_str(), location.c_str(), email.c_str(), computer.c_str(), hdid.c_str(), ip.c_str(), std::time(0));
 	return !result.Error();
 }

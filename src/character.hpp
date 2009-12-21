@@ -184,86 +184,86 @@ class Character : public Shared
 		Party *party;
 		Map *map;
 
-		static Character *ScriptFactory(std::string name, World *world) { return new Character(name, world); }
+	static Character *ScriptFactory(std::string name, World *world) { return new Character(name, world); }
 
 	SCRIPT_REGISTER_REF(Character)
 		SCRIPT_REGISTER_FACTORY("Character @f(string name, World @)", ScriptFactory);
 
-		SCRIPT_REGISTER_VARIABLE("int", "login_time", login_time);
-		SCRIPT_REGISTER_VARIABLE("bool", "online", online);
-		SCRIPT_REGISTER_VARIABLE("bool", "nowhere", nowhere);
-		SCRIPT_REGISTER_VARIABLE("uint", "id", id);
-		SCRIPT_REGISTER_VARIABLE("AdminLevel", "admin", admin);
-		SCRIPT_REGISTER_VARIABLE("string", "name", name);
-		SCRIPT_REGISTER_VARIABLE("string", "title", title);
-		SCRIPT_REGISTER_VARIABLE("string", "home", home);
-		SCRIPT_REGISTER_VARIABLE("string", "partner", partner);
-		SCRIPT_REGISTER_VARIABLE("uint8", "clas", clas);
-		SCRIPT_REGISTER_VARIABLE("Gender", "gender", gender);
-		SCRIPT_REGISTER_VARIABLE("Skin", "race", race);
-		SCRIPT_REGISTER_VARIABLE("uint8", "hairstyle", hairstyle);
-		SCRIPT_REGISTER_VARIABLE("uint8", "haircolor", haircolor);
-		SCRIPT_REGISTER_VARIABLE("int16", "mapid", mapid);
-		SCRIPT_REGISTER_VARIABLE("uint8", "x", x);
-		SCRIPT_REGISTER_VARIABLE("uint8", "y", y);
-		SCRIPT_REGISTER_VARIABLE("uint8", "direction", direction);
-		SCRIPT_REGISTER_VARIABLE("int16", "spawnmap", spawnmap);
-		SCRIPT_REGISTER_VARIABLE("uint8", "spawnx", spawnx);
-		SCRIPT_REGISTER_VARIABLE("uint8", "spawny", spawny);
-		SCRIPT_REGISTER_VARIABLE("uint8", "level", level);
-		SCRIPT_REGISTER_VARIABLE("int", "exp", exp);
-		SCRIPT_REGISTER_VARIABLE("int16", "hp", hp);
-		SCRIPT_REGISTER_VARIABLE("int16", "tp", tp);
-		SCRIPT_REGISTER_VARIABLE("int16", "str", str);
-		SCRIPT_REGISTER_VARIABLE("int16", "intl", intl);
-		SCRIPT_REGISTER_VARIABLE("int16", "wis", wis);
-		SCRIPT_REGISTER_VARIABLE("int16", "agi", agi);
-		SCRIPT_REGISTER_VARIABLE("int16", "con", con);
-		SCRIPT_REGISTER_VARIABLE("int16", "cha", cha);
-		SCRIPT_REGISTER_VARIABLE("int16", "statpoints", statpoints);
-		SCRIPT_REGISTER_VARIABLE("int16", "skillpoints", skillpoints);
-		SCRIPT_REGISTER_VARIABLE("int16", "weight", weight);
-		SCRIPT_REGISTER_VARIABLE("int16", "maxweight", maxweight);
-		SCRIPT_REGISTER_VARIABLE("int16", "karma", karma);
-		SCRIPT_REGISTER_VARIABLE("SitAction", "sitting", sitting);
-		SCRIPT_REGISTER_VARIABLE("uint8", "visible", visible);
-		SCRIPT_REGISTER_VARIABLE("int", "bankmax", bankmax);
-		SCRIPT_REGISTER_VARIABLE("int", "goldbank", goldbank);
-		SCRIPT_REGISTER_VARIABLE("int", "usage", usage);
-		SCRIPT_REGISTER_VARIABLE("Arena @", " next_arena", next_arena);
-		SCRIPT_REGISTER_VARIABLE("Arena @", " arena", arena);
-		SCRIPT_REGISTER_VARIABLE("int8", "arena_kills", arena_kills);
-		SCRIPT_REGISTER_VARIABLE("int16", "maxsp", maxsp);
-		SCRIPT_REGISTER_VARIABLE("int16", "maxhp", maxhp);
-		SCRIPT_REGISTER_VARIABLE("int16", "maxtp", maxtp);
-		SCRIPT_REGISTER_VARIABLE("int16", "accuracy", accuracy);
-		SCRIPT_REGISTER_VARIABLE("int16", "evade", evade);
-		SCRIPT_REGISTER_VARIABLE("int16", "armor", armor);
-		SCRIPT_REGISTER_VARIABLE("int16", "mindam", mindam);
-		SCRIPT_REGISTER_VARIABLE("int16", "maxdam", maxdam);
-		SCRIPT_REGISTER_VARIABLE("bool", "trading", trading);
-		SCRIPT_REGISTER_VARIABLE("Character @", " trade_partner", trade_partner);
-		SCRIPT_REGISTER_VARIABLE("bool", "trade_agree", trade_agree);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", "trade_inventory", trade_inventory);
-		SCRIPT_REGISTER_VARIABLE("Character @", " party_trust_send", party_trust_send);
-		SCRIPT_REGISTER_VARIABLE("Character @", " party_trust_recv", party_trust_recv);
-		SCRIPT_REGISTER_VARIABLE("PartyRequestType", "party_send_type", party_send_type);
-		SCRIPT_REGISTER_VARIABLE("NPC @", " shop_npc", shop_npc);
-		SCRIPT_REGISTER_VARIABLE("NPC @", " bank_npc", bank_npc);
-		SCRIPT_REGISTER_VARIABLE("bool", " jukebox_open", jukebox_open);
-		SCRIPT_REGISTER_VARIABLE("WarpAnimation", "warp_anim", warp_anim);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", "inventory", inventory);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", "bank", bank);
-		//SCRIPT_REGISTER_VARIABLE("Array<int, 15>", "paperdoll", paperdoll);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Spell>", "spells", spells);
-		SCRIPT_REGISTER_VARIABLE("PtrList<NPC>", " unregister_npc", unregister_npc);
-		SCRIPT_REGISTER_VARIABLE("World @", " world", world);
-		SCRIPT_REGISTER_VARIABLE("Player @", " player", player);
-		SCRIPT_REGISTER_VARIABLE("Guild @", " guild", guild);
-		SCRIPT_REGISTER_VARIABLE("string", "guild_tag", guild_tag);
-		SCRIPT_REGISTER_VARIABLE("uint8", "guild_rank", guild_rank);
-		SCRIPT_REGISTER_VARIABLE("Party @", " party", party);
-		SCRIPT_REGISTER_VARIABLE("Map @", " map", map);
+		SCRIPT_REGISTER_VARIABLE("int", login_time);
+		SCRIPT_REGISTER_VARIABLE("bool", online);
+		SCRIPT_REGISTER_VARIABLE("bool", nowhere);
+		SCRIPT_REGISTER_VARIABLE("uint", id);
+		SCRIPT_REGISTER_VARIABLE("AdminLevel", admin);
+		SCRIPT_REGISTER_VARIABLE("string", name);
+		SCRIPT_REGISTER_VARIABLE("string", title);
+		SCRIPT_REGISTER_VARIABLE("string", home);
+		SCRIPT_REGISTER_VARIABLE("string", partner);
+		SCRIPT_REGISTER_VARIABLE("uint8", clas);
+		SCRIPT_REGISTER_VARIABLE("Gender", gender);
+		SCRIPT_REGISTER_VARIABLE("Skin", race);
+		SCRIPT_REGISTER_VARIABLE("uint8", hairstyle);
+		SCRIPT_REGISTER_VARIABLE("uint8", haircolor);
+		SCRIPT_REGISTER_VARIABLE("int16", mapid);
+		SCRIPT_REGISTER_VARIABLE("uint8", x);
+		SCRIPT_REGISTER_VARIABLE("uint8", y);
+		SCRIPT_REGISTER_VARIABLE("uint8", direction);
+		SCRIPT_REGISTER_VARIABLE("int16", spawnmap);
+		SCRIPT_REGISTER_VARIABLE("uint8", spawnx);
+		SCRIPT_REGISTER_VARIABLE("uint8", spawny);
+		SCRIPT_REGISTER_VARIABLE("uint8", level);
+		SCRIPT_REGISTER_VARIABLE("int", exp);
+		SCRIPT_REGISTER_VARIABLE("int16", hp);
+		SCRIPT_REGISTER_VARIABLE("int16", tp);
+		SCRIPT_REGISTER_VARIABLE("int16", str);
+		SCRIPT_REGISTER_VARIABLE("int16", intl);
+		SCRIPT_REGISTER_VARIABLE("int16", wis);
+		SCRIPT_REGISTER_VARIABLE("int16", agi);
+		SCRIPT_REGISTER_VARIABLE("int16", con);
+		SCRIPT_REGISTER_VARIABLE("int16", cha);
+		SCRIPT_REGISTER_VARIABLE("int16", statpoints);
+		SCRIPT_REGISTER_VARIABLE("int16", skillpoints);
+		SCRIPT_REGISTER_VARIABLE("int16", weight);
+		SCRIPT_REGISTER_VARIABLE("int16", maxweight);
+		SCRIPT_REGISTER_VARIABLE("int16", karma);
+		SCRIPT_REGISTER_VARIABLE("SitAction", sitting);
+		SCRIPT_REGISTER_VARIABLE("uint8", visible);
+		SCRIPT_REGISTER_VARIABLE("int", bankmax);
+		SCRIPT_REGISTER_VARIABLE("int", goldbank);
+		SCRIPT_REGISTER_VARIABLE("int", usage);
+		SCRIPT_REGISTER_VARIABLE("Arena @", next_arena);
+		SCRIPT_REGISTER_VARIABLE("Arena @", arena);
+		SCRIPT_REGISTER_VARIABLE("int8", arena_kills);
+		SCRIPT_REGISTER_VARIABLE("int16", maxsp);
+		SCRIPT_REGISTER_VARIABLE("int16", maxhp);
+		SCRIPT_REGISTER_VARIABLE("int16", maxtp);
+		SCRIPT_REGISTER_VARIABLE("int16", accuracy);
+		SCRIPT_REGISTER_VARIABLE("int16", evade);
+		SCRIPT_REGISTER_VARIABLE("int16", armor);
+		SCRIPT_REGISTER_VARIABLE("int16", mindam);
+		SCRIPT_REGISTER_VARIABLE("int16", maxdam);
+		SCRIPT_REGISTER_VARIABLE("bool", trading);
+		SCRIPT_REGISTER_VARIABLE("Character @", trade_partner);
+		SCRIPT_REGISTER_VARIABLE("bool", trade_agree);
+		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", trade_inventory);
+		SCRIPT_REGISTER_VARIABLE("Character @", party_trust_send);
+		SCRIPT_REGISTER_VARIABLE("Character @", party_trust_recv);
+		SCRIPT_REGISTER_VARIABLE("PartyRequestType", party_send_type);
+		SCRIPT_REGISTER_VARIABLE("NPC @", shop_npc);
+		SCRIPT_REGISTER_VARIABLE("NPC @", bank_npc);
+		SCRIPT_REGISTER_VARIABLE("bool", jukebox_open);
+		SCRIPT_REGISTER_VARIABLE("WarpAnimation", warp_anim);
+		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", inventory);
+		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", bank);
+		//SCRIPT_REGISTER_VARIABLE("Array<int, 15>", paperdoll);
+		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Spell>", spells);
+		SCRIPT_REGISTER_VARIABLE("PtrList<NPC>", unregister_npc);
+		SCRIPT_REGISTER_VARIABLE("World @", world);
+		SCRIPT_REGISTER_VARIABLE("Player @", player);
+		SCRIPT_REGISTER_VARIABLE("Guild @", guild);
+		SCRIPT_REGISTER_VARIABLE("string", guild_tag);
+		SCRIPT_REGISTER_VARIABLE("uint8", guild_rank);
+		SCRIPT_REGISTER_VARIABLE("Party @", party);
+		SCRIPT_REGISTER_VARIABLE("Map @", map);
 		SCRIPT_REGISTER_FUNCTION("void Msg(Character @from, string message)", Msg);
 		SCRIPT_REGISTER_FUNCTION("void ServerMsg(string message)", ServerMsg);
 		SCRIPT_REGISTER_FUNCTION("bool Walk(Direction direction)", Walk);
@@ -291,6 +291,33 @@ class Character : public Shared
 		SCRIPT_REGISTER_FUNCTION("void CalculateStats()", CalculateStats);
 		SCRIPT_REGISTER_FUNCTION("void DropAll(Character @killer)", DropAll);
 		SCRIPT_REGISTER_FUNCTION("void Save()", Save);
+
+		SCRIPT_REGISTER_GLOBAL_FUNCTION("bool Character_ValidName(string name)", ValidName);
+	SCRIPT_REGISTER_END()
+};
+
+struct CharacterEvent : public Shared
+{
+	Character *character;
+	Character *target_character;
+	Map *target_map;
+	short target_mapid;
+	unsigned char target_x;
+	unsigned char target_y;
+	NPC *target_npc;
+	SitAction sit_action;
+
+	CharacterEvent() : character(0), target_character(0), target_map(0), target_mapid(0), target_x(0), target_y(0), target_npc(0), sit_action(SIT_STAND) { }
+
+	SCRIPT_REGISTER_REF_DF(CharacterEvent)
+		SCRIPT_REGISTER_VARIABLE("Character @", character);
+		SCRIPT_REGISTER_VARIABLE("Character @", target_character);
+		SCRIPT_REGISTER_VARIABLE("Map @", target_map);
+		SCRIPT_REGISTER_VARIABLE("int16", target_mapid);
+		SCRIPT_REGISTER_VARIABLE("uint8", target_x);
+		SCRIPT_REGISTER_VARIABLE("uint8", target_y);
+		SCRIPT_REGISTER_VARIABLE("Map @", target_npc);
+		SCRIPT_REGISTER_VARIABLE("SitAction", sit_action);
 	SCRIPT_REGISTER_END()
 };
 

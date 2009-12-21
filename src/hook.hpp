@@ -11,6 +11,7 @@
 
 #include "script.hpp"
 
+class Event;
 class Hook;
 class Hook_Call;
 class HookManager;
@@ -104,7 +105,7 @@ template <> void Hook_Call::SetArg<asDWORD>(ScriptContext *ctx, int argc, asDWOR
 	template <> void Hook_Call::SetArg<int>(ScriptContext *ctx, int argc, int arg);
 	template <> void Hook_Call::SetArg<long>(ScriptContext *ctx, int argc, long arg);
 	template <> void Hook_Call::SetArg<bool>(ScriptContext *ctx, int argc, bool arg);
-template <> void Hook_Call::SetArg<asQWORD>(ScriptContext *ctx, int argc, asQWORD arg);
+//template <> void Hook_Call::SetArg<asQWORD>(ScriptContext *ctx, int argc, asQWORD arg);
 template <> void Hook_Call::SetArg<float>(ScriptContext *ctx, int argc, float arg);
 template <> void Hook_Call::SetArg<double>(ScriptContext *ctx, int argc, double arg);
 

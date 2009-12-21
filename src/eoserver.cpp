@@ -56,7 +56,7 @@ void server_pump_queue(void *server_void)
 
 	UTIL_PTR_LIST_FOREACH(server->clients, EOClient, client)
 	{
-		std::size_t size = client->queue.size();
+		std::size_t size = client->queue.queue.size();
 
 		if (size > 40)
 		{
@@ -69,8 +69,8 @@ void server_pump_queue(void *server_void)
 
 		if (size != 0 && client->queue.next <= now)
 		{
-			ActionQueue_Action *action = client->queue.front();
-			client->queue.pop();
+			ActionQueue_Action *action = client->queue.queue.front();
+			client->queue.queue.pop();
 
 			bool result;
 

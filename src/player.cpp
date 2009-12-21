@@ -93,8 +93,7 @@ bool Player::AddCharacter(std::string name, Gender gender, int hairstyle, int ha
 
 void Player::ChangePass(std::string password)
 {
-	password = static_cast<std::string>(this->world->config["PasswordSalt"]) + username + password;
-	sha256(password);
+	password = sha256(static_cast<std::string>(this->world->config["PasswordSalt"]) + username + password);
 	this->password = password;
 	this->world->db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.c_str(), this->username.c_str());
 }
@@ -113,7 +112,7 @@ void Player::Logout()
 #ifdef DEBUG
 		Console::Dbg("Saving player '%s' (session lasted %i minutes)", this->username.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
-		this->world->db.Query("UPDATE `accounts` SET `lastused` = #, `lastip` = '$' WHERE username = '$'", std::time(0), static_cast<std::string>(this->client->GetRemoteAddr()).c_str(), this->username.c_str());
+		this->world->db.Query("UPDATE `accounts` SET `lastused` = #, `hdid` = #, `lastip` = '$' WHERE username = '$'", std::time(0), this->client->hdid, static_cast<std::string>(this->client->GetRemoteAddr()).c_str(), this->username.c_str());
 
 		// Disconnect the client to make sure this null pointer is never dereferenced
 		this->client->Close();

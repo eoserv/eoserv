@@ -850,8 +850,8 @@ void NPC::Attack(Character *target)
 
 		PacketReader reader("");
 
-		target->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5));
-		target->player->client->queue.push(new ActionQueue_Action(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0));
+		target->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5);
+		target->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0);
 	}
 }
 

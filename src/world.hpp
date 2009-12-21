@@ -24,12 +24,12 @@ struct Board_Post : public Shared
 	double time;
 
 	SCRIPT_REGISTER_REF_DF(Board_Post)
-		SCRIPT_REGISTER_VARIABLE("int16", "id", id);
-		SCRIPT_REGISTER_VARIABLE("string", "author", author);
-		SCRIPT_REGISTER_VARIABLE("int", "author_admin", author_admin);
-		SCRIPT_REGISTER_VARIABLE("string", "subject", subject);
-		SCRIPT_REGISTER_VARIABLE("string", "body", body);
-		SCRIPT_REGISTER_VARIABLE("double", "time", time);
+		SCRIPT_REGISTER_VARIABLE("int16", id);
+		SCRIPT_REGISTER_VARIABLE("string", author);
+		SCRIPT_REGISTER_VARIABLE("int", author_admin);
+		SCRIPT_REGISTER_VARIABLE("string", subject);
+		SCRIPT_REGISTER_VARIABLE("string", body);
+		SCRIPT_REGISTER_VARIABLE("double", time);
 	SCRIPT_REGISTER_END()
 };
 
@@ -41,8 +41,8 @@ struct Board : public Shared
 	Board() : last_id(0) { }
 
 	SCRIPT_REGISTER_REF_DF(Board)
-		SCRIPT_REGISTER_VARIABLE("int16", "last_id", last_id);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Board_Post>", "posts", posts);
+		SCRIPT_REGISTER_VARIABLE("int16", last_id);
+		SCRIPT_REGISTER_VARIABLE("PtrList<Board_Post>", posts);
 	SCRIPT_REGISTER_END()
 };
 
@@ -126,24 +126,24 @@ class World : public Shared
 		bool PKExcept(int mapid);
 
 	SCRIPT_REGISTER_REF(World)
-		SCRIPT_REGISTER_VARIABLE("Timer", "timer", timer);
-		SCRIPT_REGISTER_VARIABLE("EOServer @", "server", server);
-		SCRIPT_REGISTER_VARIABLE("Database", "db", db);
-		SCRIPT_REGISTER_VARIABLE("EIF @", "eif", eif);
-		SCRIPT_REGISTER_VARIABLE("ENF @", "enf", enf);
-		SCRIPT_REGISTER_VARIABLE("ESF @", "esf", esf);
-		SCRIPT_REGISTER_VARIABLE("ECF @", "ecf", ecf);
-		SCRIPT_REGISTER_VARIABLE("Config", "config", config);
-		SCRIPT_REGISTER_VARIABLE("Config", "admin_config", admin_config);
-		SCRIPT_REGISTER_VARIABLE("Config", "drops_config", drops_config);
-		SCRIPT_REGISTER_VARIABLE("Config", "shops_config", shops_config);
-		SCRIPT_REGISTER_VARIABLE("Config", "arenas_config", arenas_config);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<Character @>", "characters", characters);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<Guild @>", "guilds", guilds);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<Party @>", "parties", parties);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<Map @>", "maps", maps);
-		//SCRIPT_REGISTER_VARIABLE("Array<Board @, 8>", "boards", boards);
-		//SCRIPT_REGISTER_VARIABLE("Array<int, 254>", "exp_table", exp_table);
+		SCRIPT_REGISTER_VARIABLE("Timer", timer);
+		SCRIPT_REGISTER_VARIABLE("EOServer @", server);
+		SCRIPT_REGISTER_VARIABLE("Database", db);
+		SCRIPT_REGISTER_VARIABLE("EIF @", eif);
+		SCRIPT_REGISTER_VARIABLE("ENF @", enf);
+		SCRIPT_REGISTER_VARIABLE("ESF @", esf);
+		SCRIPT_REGISTER_VARIABLE("ECF @", ecf);
+		SCRIPT_REGISTER_VARIABLE("Config", config);
+		SCRIPT_REGISTER_VARIABLE("Config", admin_config);
+		SCRIPT_REGISTER_VARIABLE("Config", drops_config);
+		SCRIPT_REGISTER_VARIABLE("Config", shops_config);
+		SCRIPT_REGISTER_VARIABLE("Config", arenas_config);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Character @>", characters);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Guild @>", guilds);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Party @>", parties);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Map @>", maps);
+		//SCRIPT_REGISTER_VARIABLE("Array<Board @, 8>", boards);
+		//SCRIPT_REGISTER_VARIABLE("Array<int, 254>", exp_table);
 		SCRIPT_REGISTER_FUNCTION("int GenerateCharacterID()", GenerateCharacterID);
 		SCRIPT_REGISTER_FUNCTION("int GeneratePlayerID()", GenerateCharacterID);
 		SCRIPT_REGISTER_FUNCTION_PR("void Login(Character @)", Login, (Character *), void);

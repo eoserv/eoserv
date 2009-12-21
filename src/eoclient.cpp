@@ -21,13 +21,18 @@ case ID: \
 	result = this->Handle_##FUNC(family, action, reader, false);\
 	break
 
+void ActionQueue::AddAction(PacketFamily family, PacketAction action, PacketReader reader, double time)
+{
+	this->queue.push(new ActionQueue_Action(family, action, reader, time));
+}
+
 ActionQueue::~ActionQueue()
 {
-	while (!this->empty())
+	while (!this->queue.empty())
 	{
-		ActionQueue_Action *action = this->front();
-		this->pop();
-		delete action;
+		ActionQueue_Action *action = this->queue.front();
+		this->queue.pop();
+		action->Release();
 	}
 }
 
@@ -129,13 +134,13 @@ void EOClient::Execute(std::string data)
 #endif
 }
 
-void EOClient::SendBuilder(PacketBuilder &builder)
+void EOClient::SendBuilder(const PacketBuilder &builder)
 {
 	std::string packet(builder);
 	this->Send(this->processor.Encode(packet));
 }
 
-void EOClient::SendBuilderRaw(PacketBuilder &builder)
+void EOClient::SendBuilderRaw(const PacketBuilder &builder)
 {
 	std::string packet(builder);
 	this->Send(packet);

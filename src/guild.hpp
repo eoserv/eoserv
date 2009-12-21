@@ -25,7 +25,12 @@ class Guild : public Shared
 		void Msg(PtrVector<Character> from, std::string message);
 
 	SCRIPT_REGISTER_REF_DF(Guild)
+		SCRIPT_REGISTER_VARIABLE("string", tag);
+		SCRIPT_REGISTER_VARIABLE("string", name);
+		SCRIPT_REGISTER_VARIABLE("PtrVector<Character>", members);
+		SCRIPT_REGISTER_VARIABLE("uint", created);
 
+		//SCRIPT_REGISTER_FUNCTION("void Msg(PtrVector<Character> from, string message)", Msg);
 	SCRIPT_REGISTER_END()
 };
 

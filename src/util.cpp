@@ -452,6 +452,27 @@ int to_int(const std::string &subject)
 	return static_cast<int>(util::variant(subject));
 }
 
+unsigned int to_uint_raw(const std::string &subject)
+{
+	unsigned int multiplier = 1;
+	unsigned int result = 0;
+
+	std::size_t i = subject.length();
+	do {
+		--i;
+
+		if (subject[i] < '0' || subject[i] > '9')
+		{
+			throw std::invalid_argument("Non-numeric argument");
+		}
+
+		result += (subject[i] - '0') * multiplier;
+		multiplier *= 10;
+	} while (i > 0);
+
+	return result;
+}
+
 double to_float(const std::string &subject)
 {
 	return static_cast<double>(util::variant(subject));
@@ -479,12 +500,14 @@ std::string uppercase(std::string subject)
 	return subject;
 }
 
-void ucfirst(std::string &subject)
+std::string ucfirst(std::string subject)
 {
 	if (subject[0] > 'a' && subject[0] < 'z')
 	{
 		subject[0] += 'A' - 'a';
 	}
+
+	return subject;
 }
 
 static void rand_init()

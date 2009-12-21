@@ -21,7 +21,6 @@ class EOServer : public Server
 {
 	private:
 		void Initialize(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config);
-		SLN *sln;
 
 	protected:
 		Client *ClientFactory(SOCKET sock, sockaddr_in sin);
@@ -29,6 +28,7 @@ class EOServer : public Server
 	public:
 		World *world;
 		double start;
+		SLN *sln;
 
 		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
 		{
@@ -38,7 +38,9 @@ class EOServer : public Server
 		~EOServer();
 
 	SCRIPT_REGISTER_REF(EOServer)
-
+		SCRIPT_REGISTER_VARIABLE("World @", world);
+		SCRIPT_REGISTER_VARIABLE("double", start);
+		SCRIPT_REGISTER_VARIABLE("SLN @", sln);
 	SCRIPT_REGISTER_END()
 };
 

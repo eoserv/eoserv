@@ -18,28 +18,48 @@
 /**
  * An action the server will execute for the client
  */
-struct ActionQueue_Action
+struct ActionQueue_Action : public Shared
 {
 	PacketFamily family;
 	PacketAction action;
 	PacketReader reader;
 	double time;
 
-	ActionQueue_Action(PacketFamily family, PacketAction action, PacketReader reader, double time) : family(family), action(action), reader(reader), time(time) {};
+	ActionQueue_Action(PacketFamily family_, PacketAction action_, PacketReader reader_, double time_) : family(family_), action(action_), reader(reader_), time(time_) {};
+
+	static ActionQueue_Action *ScriptFactory(PacketFamily family, PacketAction action, PacketReader reader, double time) { return new ActionQueue_Action(family, action, reader, time); }
+
+	SCRIPT_REGISTER_REF(ActionQueue_Action)
+		SCRIPT_REGISTER_FACTORY("ActionQueue_Action @f(PacketFamily family, PacketAction action, PacketReader reader, double time)", ScriptFactory);
+
+		SCRIPT_REGISTER_VARIABLE("PacketFamily", family);
+		SCRIPT_REGISTER_VARIABLE("PacketAction", action);
+		SCRIPT_REGISTER_VARIABLE("PacketReader", reader);
+		SCRIPT_REGISTER_VARIABLE("double", time);
+	SCRIPT_REGISTER_END()
 };
 
 /**
  * A list of actions a client needs to eventually have executed for it
  */
-class ActionQueue : public std::queue<ActionQueue_Action *>
+class ActionQueue : public Shared
 {
 	public:
+		std::queue<ActionQueue_Action *> queue;
+
 		double next;
+		void AddAction(PacketFamily family, PacketAction action, PacketReader reader, double time);
 		void Execute();
 
 		ActionQueue() : next(0) {};
 
 		~ActionQueue();
+
+	SCRIPT_REGISTER_REF_DF(ActionQueue)
+		SCRIPT_REGISTER_VARIABLE("double", next);
+		SCRIPT_REGISTER_FUNCTION("void AddAction(PacketFamily family, PacketAction action, PacketReader reader, double time)", AddAction);
+		SCRIPT_REGISTER_FUNCTION("void Execute()", Execute);
+	SCRIPT_REGISTER_END()
 };
 
 /**
@@ -98,8 +118,8 @@ class EOClient : public Client
 
 		void Execute(std::string data);
 
-		void SendBuilder(PacketBuilder &packet);
-		void SendBuilderRaw(PacketBuilder &packet);
+		void SendBuilder(const PacketBuilder &packet);
+		void SendBuilderRaw(const PacketBuilder &packet);
 
 // Stop doxygen generating a gigantic list of functions
 #ifndef DOXYGEN
@@ -143,6 +163,43 @@ class EOClient : public Client
 #endif // DOXYGEN
 
 		~EOClient();
+
+	static EOClient *ScriptFactory(EOServer *server) { return new EOClient(server); }
+
+	SCRIPT_REGISTER_REF(EOClient)
+		SCRIPT_REGISTER_FACTORY("EOClient @f(EOServer @server)", ScriptFactory);
+
+		SCRIPT_REGISTER_ENUM("PacketState")
+			SCRIPT_REGISTER_ENUM_VALUE(ReadLen1);
+			SCRIPT_REGISTER_ENUM_VALUE(ReadLen2);
+			SCRIPT_REGISTER_ENUM_VALUE(ReadData);
+		SCRIPT_REGISTER_ENUM_END()
+
+		SCRIPT_REGISTER_ENUM("ClientState")
+			SCRIPT_REGISTER_ENUM_VALUE(Uninitialized);
+			SCRIPT_REGISTER_ENUM_VALUE(Initialized);
+			SCRIPT_REGISTER_ENUM_VALUE(LoggedIn);
+			SCRIPT_REGISTER_ENUM_VALUE(PlayingModal);
+			SCRIPT_REGISTER_ENUM_VALUE(Playing);
+		SCRIPT_REGISTER_ENUM_END()
+
+		SCRIPT_REGISTER_VARIABLE("EOServer @", server);
+		SCRIPT_REGISTER_VARIABLE("int", version);
+		SCRIPT_REGISTER_VARIABLE("Player @", player);
+		SCRIPT_REGISTER_VARIABLE("uint", id);
+		SCRIPT_REGISTER_VARIABLE("bool", needpong);
+		SCRIPT_REGISTER_VARIABLE("int", hdid);
+		SCRIPT_REGISTER_VARIABLE("ClientState", state);
+		SCRIPT_REGISTER_VARIABLE("ActionQueue", queue);
+		SCRIPT_REGISTER_VARIABLE("PacketState", packet_state);
+		// raw_length
+		SCRIPT_REGISTER_VARIABLE("int", length);
+		SCRIPT_REGISTER_VARIABLE("string", data);
+		SCRIPT_REGISTER_VARIABLE("PacketProcessor", processor);
+		SCRIPT_REGISTER_FUNCTION("void Execute(string data)", Execute);
+		SCRIPT_REGISTER_FUNCTION("void SendBuilder(PacketBuilder &in)", SendBuilder);
+		SCRIPT_REGISTER_FUNCTION("void SendBuilderRaw(PacketBuilder &in)", SendBuilderRaw);
+	SCRIPT_REGISTER_END()
 };
 
 #endif // EOCLIENT_HPP_INCLUDED

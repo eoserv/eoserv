@@ -30,7 +30,16 @@ CLIENT_F_FUNC(Init)
 	this->version = reader.GetChar();
 	reader.GetChar(); // ?
 	reader.GetChar(); // ?
-	this->hdid = util::to_int(reader.GetEndString());
+
+	try
+	{
+		this->hdid = static_cast<int>(util::to_uint_raw(reader.GetEndString()));
+	}
+	catch (std::invalid_argument)
+	{
+		this->Close();
+		return false;
+	}
 
 	int ban_expires;
 	IPAddress remote_addr = this->GetRemoteAddr();

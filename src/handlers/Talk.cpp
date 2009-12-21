@@ -308,8 +308,7 @@ CLIENT_F_FUNC(Talk)
 					Character *victim = this->server->world->GetCharacter(arguments[0]);
 					if (victim)
 					{
-						std::string name = victim->name;
-						util::ucfirst(name);
+						std::string name = util::ucfirst(victim->name);
 						reply.SetID(PACKET_ADMININTERACT, PACKET_TELL);
 						if (victim->admin >= 4)
 						{

@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include "script.hpp"
+
 /**
  * Utility functions to assist with common tasks
  */
@@ -334,7 +336,7 @@ template <typename T, std::size_t N> class array
  * A type that can store any numeric/string value and convert between them.
  * It takes way too much effort to use, so it's only used by the Config class.
  */
-class variant
+class variant : public Shared
 {
 	protected:
 		/**
@@ -374,6 +376,17 @@ class variant
 		var_type type;
 
 		/**
+		 * Invalidates the cache values and changes the type.
+		 */
+		void SetType(var_type);
+
+		/**
+		 * Helper function that returns the string length of a number in decimal format.
+		 */
+		int int_length(int);
+
+	public:
+		/**
 		 * Return the value as an integer, casting if neccessary.
 		 */
 		int GetInt();
@@ -392,11 +405,6 @@ class variant
 		 * Return the value as a bool, casting if neccessary.
 		 */
 		bool GetBool();
-
-		/**
-		 * Invalidates the cache values and changes the type.
-		 */
-		void SetType(var_type);
 
 		/**
 		 * Set the value to an integer.
@@ -418,12 +426,6 @@ class variant
 		 */
 		variant &SetBool(bool);
 
-		/**
-		 * Helper function that returns the string length of a number in decimal format.
-		 */
-		int int_length(int);
-
-	public:
 		/**
 		 * Initialize the variant to an integer with the value 0.
 		 */
@@ -498,6 +500,27 @@ class variant
 		 * Return the value as an boolean, casting if neccessary.
 		 */
 		operator bool();
+
+	static variant *ScriptFactoryInt(int val) { return new variant(val); }
+	static variant *ScriptFactoryDouble(double val) { return new variant(val); }
+	static variant *ScriptFactoryString(std::string val) { return new variant(val); }
+	static variant *ScriptFactoryBool(bool val) { return new variant(val); }
+
+	SCRIPT_REGISTER_REF_DF(variant)
+		SCRIPT_REGISTER_FACTORY("variant @f(int)", ScriptFactoryInt);
+		SCRIPT_REGISTER_FACTORY("variant @f(double)", ScriptFactoryDouble);
+		SCRIPT_REGISTER_FACTORY("variant @f(string)", ScriptFactoryString);
+		SCRIPT_REGISTER_FACTORY("variant @f(bool)", ScriptFactoryBool);
+
+		SCRIPT_REGISTER_FUNCTION("int GetInt()", GetInt);
+		SCRIPT_REGISTER_FUNCTION("double GetFloat()", GetFloat);
+		SCRIPT_REGISTER_FUNCTION("string GetString()", GetString);
+		SCRIPT_REGISTER_FUNCTION("bool GetBool()", GetBool);
+		SCRIPT_REGISTER_FUNCTION("variant @SetInt(int)", SetInt);
+		SCRIPT_REGISTER_FUNCTION("variant @SetFloat(double)", SetFloat);
+		SCRIPT_REGISTER_FUNCTION("variant @SetString(string)", SetString);
+		SCRIPT_REGISTER_FUNCTION("variant @SetBool(bool)", SetBool);
+	SCRIPT_REGISTER_END();
 };
 
 /**
@@ -551,6 +574,7 @@ typedef variant var;
 double tdparse(std::string timestr);
 
 int to_int(const std::string &);
+unsigned int to_uint_raw(const std::string &);
 double to_float(const std::string &);
 
 std::string to_string(int);
@@ -560,7 +584,7 @@ std::string lowercase(std::string);
 
 std::string uppercase(std::string);
 
-void ucfirst(std::string &);
+std::string ucfirst(std::string);
 
 int rand(int min, int max);
 double rand(double min, double max);
@@ -577,6 +601,27 @@ std::string timeago(double time, double current_time);
 inline int path_length(int x1, int y1, int x2, int y2)
 {
 	return std::abs(x1 - x2) + std::abs(y1 - y2);
+}
+
+inline void ScriptRegister(ScriptEngine &engine)
+{
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string ltrim(string &in)", ltrim);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string rtrim(string &in)", rtrim);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string trim(string &in)", trim);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("double tdparse(string timestr)", tdparse);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("int to_int(string &in)", to_int);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("double to_float(string &in)", to_float);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION_PR("string to_string(int)", to_string, (int), std::string);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION_PR("string to_string(double)", to_string, (double), std::string);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string lowercase(string)", lowercase);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string uppercase(string)", uppercase);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string ucfirst(string)", ucfirst);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION_PR("int rand(int min, int max)", rand, (int, int), int);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION_PR("double rand(double min, double max)", rand, (double, double), double);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("double round(double)", round);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("void sleep(double seconds)", sleep);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string timeago(double time, double current_time)", timeago);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("int path_length(int x1, int x2, int y1, int y2)", path_length);
 }
 
 }

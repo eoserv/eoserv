@@ -52,7 +52,16 @@ CLIENT_F_FUNC(Account)
 			std::string location = reader.GetBreakString();
 			std::string email = reader.GetBreakString();
 			std::string computer = reader.GetBreakString();
-			int hdid = util::to_int(reader.GetBreakString());
+
+			int hdid;
+			try
+			{
+				hdid = static_cast<int>(util::to_uint_raw(reader.GetBreakString()));
+			}
+			catch (std::invalid_argument)
+			{
+				return false;
+			}
 
 			username = util::lowercase(username);
 

@@ -11,7 +11,7 @@ extern "C"
 #include "sha256.h"
 }
 
-void sha256(std::string &str)
+std::string sha256(std::string str)
 {
 	sha256_context ctx;
 	unsigned char digest[32];
@@ -27,5 +27,5 @@ void sha256(std::string &str)
 		cdigest[i*2+1] = "0123456789abcdef"[((digest[i]) & 0x0F)];
 	}
 
-	str.assign(cdigest, 64);
+	return std::string(cdigest, 64);
 }

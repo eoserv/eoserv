@@ -42,43 +42,37 @@ const char *OSErrorString()
 IPAddress::IPAddress()
 {
 	Socket_WSAStartup();
-	this->address = 0;
+	this->SetInt(0);
 }
 
 IPAddress::IPAddress(std::string str_addr)
 {
 	Socket_WSAStartup();
-	unsigned int io1, io2, io3, io4;
-	std::sscanf(str_addr.c_str(), "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
-	unsigned char o1 = io1, o2 = io2, o3 = io3, o4 = io4;
-	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
+	this->SetString(str_addr);
 }
 
 IPAddress::IPAddress(const char *str_addr)
 {
 	Socket_WSAStartup();
-	unsigned int io1, io2, io3, io4;
-	std::sscanf(str_addr, "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
-	unsigned char o1 = io1, o2 = io2, o3 = io3, o4 = io4;
-	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
+	this->SetString(str_addr);
 }
 
 IPAddress::IPAddress(unsigned int addr)
 {
 	Socket_WSAStartup();
-	this->address = addr;
+	this->SetInt(addr);
 }
 
 IPAddress::IPAddress(in_addr addr)
 {
 	Socket_WSAStartup();
-	this->address = ntohl(addr.s_addr);
+	this->SetInt(ntohl(addr.s_addr));
 }
 
 IPAddress::IPAddress(unsigned char o1, unsigned char o2, unsigned char o3, unsigned char o4)
 {
 	Socket_WSAStartup();
-	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
+	this->SetOctets(o1, o2, o3, o4);
 }
 
 IPAddress IPAddress::Lookup(std::string host)
@@ -107,7 +101,24 @@ IPAddress IPAddress::Lookup(std::string host)
 	return ipaddr;
 }
 
-IPAddress &IPAddress::operator =(std::string str_addr)
+IPAddress &IPAddress::SetInt(unsigned int addr)
+{
+	this->address = addr;
+	return *this;
+}
+
+IPAddress &IPAddress::SetOctets(unsigned char o1, unsigned char o2, unsigned char o3, unsigned char o4)
+{
+	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
+	return *this;
+}
+
+IPAddress &IPAddress::SetString(const char *str_addr)
+{
+	return this->SetString(std::string(str_addr));
+}
+
+IPAddress &IPAddress::SetString(std::string str_addr)
 {
 	unsigned int io1, io2, io3, io4;
 	std::sscanf(str_addr.c_str(), "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
@@ -116,34 +127,27 @@ IPAddress &IPAddress::operator =(std::string str_addr)
 	return *this;
 }
 
+IPAddress &IPAddress::operator =(std::string str_addr)
+{
+	return this->SetString(str_addr);
+}
+
 IPAddress &IPAddress::operator =(const char *str_addr)
 {
-	unsigned int io1, io2, io3, io4;
-	std::sscanf(str_addr, "%u.%u.%u.%u", &io1, &io2, &io3, &io4);
-	unsigned char o1 = io1, o2 = io2, o3 = io3, o4 = io4;
-	this->address = o1 << 24 | o2 << 16 | o3 << 8 | o4;
-	return *this;
+	return this->SetString(str_addr);
 }
 
 IPAddress &IPAddress::operator =(unsigned int addr)
 {
-	this->address = addr;
-	return *this;
+	return this->SetInt(addr);
 }
 
-IPAddress::operator unsigned int()
+unsigned int IPAddress::GetInt() const
 {
 	return this->address;
 }
 
-IPAddress::operator in_addr()
-{
-	in_addr addr;
-	addr.s_addr = htonl(this->address);
-	return addr;
-}
-
-IPAddress::operator std::string()
+std::string IPAddress::GetString() const
 {
 	char buf[16];
 	unsigned char o1, o2, o3, o4;
@@ -153,6 +157,23 @@ IPAddress::operator std::string()
 	o4 = this->address & 0x000000FF;
 	std::sprintf(buf, "%u.%u.%u.%u", o1, o2, o3, o4);
 	return std::string(buf);
+}
+
+IPAddress::operator unsigned int() const
+{
+	return this->address;
+}
+
+IPAddress::operator in_addr() const
+{
+	in_addr addr;
+	addr.s_addr = htonl(this->address);
+	return addr;
+}
+
+IPAddress::operator std::string() const
+{
+	return this->GetString();
 }
 
 bool IPAddress::operator ==(const IPAddress &other) const
@@ -175,7 +196,7 @@ Client::Client()
 	this->recv_buffer_max = static_cast<unsigned int>(-1);
 }
 
-Client::Client(IPAddress addr, uint16_t port)
+Client::Client(const IPAddress &addr, uint16_t port)
 {
 	Socket_WSAStartup();
 	this->connected = false;
@@ -203,7 +224,7 @@ Client::Client(SOCKET sock, sockaddr_in sin, Server *server)
 	this->server = server;
 }
 
-bool Client::Connect(IPAddress addr, uint16_t port)
+bool Client::Connect(const IPAddress &addr, uint16_t port)
 {
 	std::memset(&this->sin, 0, sizeof(this->sin));
 	this->sin.sin_family = AF_INET;
@@ -218,7 +239,7 @@ bool Client::Connect(IPAddress addr, uint16_t port)
 	return this->connected = true;
 }
 
-void Client::Bind(IPAddress addr, uint16_t port)
+void Client::Bind(const IPAddress &addr, uint16_t port)
 {
 	sockaddr_in sin;
 	uint16_t portn = htons(port);
@@ -452,7 +473,7 @@ Client *Server::ClientFactory(SOCKET sock, sockaddr_in sin)
 	return new Client(sock, sin, this);
 }
 
-void Server::Bind(IPAddress addr, uint16_t port)
+void Server::Bind(const IPAddress &addr, uint16_t port)
 {
 	sockaddr_in sin;
 	this->address = addr;

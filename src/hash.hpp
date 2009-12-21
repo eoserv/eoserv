@@ -9,9 +9,21 @@
 
 #include <string>
 
+#include "script.hpp"
+
 /**
  * Convert a string to the hex representation of it's sha256 hash
  */
-void sha256(std::string &);
+std::string sha256(std::string);
+
+namespace hash
+{
+
+inline void ScriptRegister(ScriptEngine &engine)
+{
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string sha256(string)", sha256);
+}
+
+}
 
 #endif // HASH_HPP_INCLUDED
