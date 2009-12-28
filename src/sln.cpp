@@ -237,7 +237,7 @@ void *SLN::RequestThread(void *void_sln)
 		}
 	}
 
-	TimeEvent *event = new TimeEvent(SLN::TimedRequest, sln, static_cast<int>(sln->server->world->config["SLNPeriod"]), 1, true);
+	TimeEvent *event = new TimeEvent(SLN::TimedRequest, sln, static_cast<int>(sln->server->world->config["SLNPeriod"]), 1);
 	sln->server->world->timer.Register(event);
 	event->Release();
 

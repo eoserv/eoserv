@@ -300,11 +300,14 @@ struct CharacterEvent : public Shared
 {
 	Character *character;
 	Character *target_character;
+	std::string target_character_name;
 	Map *target_map;
 	short target_mapid;
 	unsigned char target_x;
 	unsigned char target_y;
 	NPC *target_npc;
+	std::string text;
+	bool success;
 	SitAction sit_action;
 
 	CharacterEvent() : character(0), target_character(0), target_map(0), target_mapid(0), target_x(0), target_y(0), target_npc(0), sit_action(SIT_STAND) { }
@@ -312,11 +315,14 @@ struct CharacterEvent : public Shared
 	SCRIPT_REGISTER_REF_DF(CharacterEvent)
 		SCRIPT_REGISTER_VARIABLE("Character @", character);
 		SCRIPT_REGISTER_VARIABLE("Character @", target_character);
+		SCRIPT_REGISTER_VARIABLE("string", target_character_name);
 		SCRIPT_REGISTER_VARIABLE("Map @", target_map);
 		SCRIPT_REGISTER_VARIABLE("int16", target_mapid);
 		SCRIPT_REGISTER_VARIABLE("uint8", target_x);
 		SCRIPT_REGISTER_VARIABLE("uint8", target_y);
-		SCRIPT_REGISTER_VARIABLE("Map @", target_npc);
+		SCRIPT_REGISTER_VARIABLE("NPC @", target_npc);
+		SCRIPT_REGISTER_VARIABLE("string", text);
+		SCRIPT_REGISTER_VARIABLE("bool", success);
 		SCRIPT_REGISTER_VARIABLE("SitAction", sit_action);
 	SCRIPT_REGISTER_END()
 };

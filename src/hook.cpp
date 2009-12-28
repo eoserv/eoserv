@@ -6,7 +6,7 @@
 
 #include "hook.hpp"
 
-Hook_Call::operator bool()
+bool Hook_Call::operator ()()
 {
 	UTIL_PTR_LIST_FOREACH(this->hookmanager.hooks[this->trigger], Hook, hook)
 	{

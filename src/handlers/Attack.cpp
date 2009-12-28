@@ -15,7 +15,8 @@ CLIENT_F_FUNC(Attack)
 		case PACKET_USE: // Player attacking
 		{
 			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.6)
+			if (!act) printf("%.4g\n", Timer::GetTime());
+			CLIENT_QUEUE_ACTION(0.58)
 
 			Direction direction = static_cast<Direction>(reader.GetChar());
 			/*int timestamp = */reader.GetThree();

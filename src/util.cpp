@@ -444,6 +444,8 @@ double tdparse(std::string timestr)
 		}
 	}
 
+	printf("tdparse %s -> %g\n", timestr.c_str(), (ret + val) * (negate ? -1.0 : 1.0));
+
 	return (ret + val) * (negate ? -1.0 : 1.0);
 }
 

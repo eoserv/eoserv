@@ -11,7 +11,18 @@
 
 #include "script.hpp"
 
-class Event;
+#define HOOK_BEGIN(type, hm_, hook_) \
+{ \
+	type *e = new type; \
+	HookManager *hm = hm_; \
+	const char *hook = hook_;
+
+#define HOOK_CALL hm->Call(hook)[e]
+
+#define HOOK_END() \
+	e->Release(); \
+}
+
 class Hook;
 class Hook_Call;
 class HookManager;
@@ -93,7 +104,7 @@ class Hook_Call : public Shared
 			return *this;
 		}
 
-		operator bool();
+		bool operator ()();
 };
 
 template <> void Hook_Call::SetArg<Shared *>(ScriptContext *ctx, int argc, Shared *arg);

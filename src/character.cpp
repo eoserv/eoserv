@@ -468,7 +468,6 @@ bool Character::Unequip(short item, unsigned char subloc)
 		{
 			if (((i == Character::Ring2 || i == Character::Armlet2 || i == Character::Bracer2) ? 1 : 0) == subloc)
 			{
-
 				this->paperdoll[i] = 0;
 				this->AddItem(item, 1);
 				this->CalculateStats();
@@ -480,6 +479,47 @@ bool Character::Unequip(short item, unsigned char subloc)
 	return false;
 }
 
+static bool character_equip_oneslot(Character *character, short item, unsigned char subloc, Character::EquipLocation slot)
+{
+	if (character->paperdoll[slot] != 0)
+	{
+		return false;
+	}
+
+	character->paperdoll[slot] = item;
+	character->DelItem(item, 1);
+
+	character->CalculateStats();
+	return true;
+}
+
+static bool character_equip_twoslot(Character *character, short item, unsigned char subloc, Character::EquipLocation slot1, Character::EquipLocation slot2)
+{
+	if (subloc == 0)
+	{
+		if (character->paperdoll[slot1] != 0)
+		{
+			return false;
+		}
+
+		character->paperdoll[slot1] = item;
+		character->DelItem(item, 1);
+	}
+	else
+	{
+		if (character->paperdoll[slot2] != 0)
+		{
+			return false;
+		}
+
+		character->paperdoll[slot2] = item;
+		character->DelItem(item, 1);
+	}
+
+	character->CalculateStats();
+	return true;
+}
+
 bool Character::Equip(short item, unsigned char subloc)
 {
 	if (!this->HasItem(item))
@@ -487,166 +527,29 @@ bool Character::Equip(short item, unsigned char subloc)
 		return false;
 	}
 
-	switch (this->world->eif->Get(item)->type)
+	EIF::Type type = this->world->eif->Get(item)->type;
+
+	if (type == EIF::Armor && this->world->eif->Get(item)->gender != this->gender)
 	{
-		case EIF::Weapon:
-			if (this->paperdoll[Character::Weapon] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Weapon] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Shield:
-			if (this->paperdoll[Character::Shield] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Shield] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Armor:
-			if (this->world->eif->Get(item)->gender != this->gender)
-			{
-				return false;
-			}
-			if (this->paperdoll[Character::Armor] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Armor] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Hat:
-			if (this->paperdoll[Character::Hat] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Hat] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Boots:
-			if (this->paperdoll[Character::Boots] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Boots] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Gloves:
-			if (this->paperdoll[Character::Gloves] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Gloves] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Accessory:
-			if (this->paperdoll[Character::Accessory] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Accessory] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Belt:
-			if (this->paperdoll[Character::Belt] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Belt] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Necklace:
-			if (this->paperdoll[Character::Necklace] != 0)
-			{
-				return false;
-			}
-			this->paperdoll[Character::Necklace] = item;
-			this->DelItem(item, 1);
-			break;
-
-		case EIF::Ring:
-			if (subloc == 0)
-			{
-				if (this->paperdoll[Character::Ring1] != 0)
-				{
-					return false;
-				}
-				this->paperdoll[Character::Ring1] = item;
-				this->DelItem(item, 1);
-				break;
-			}
-			else
-			{
-				if (this->paperdoll[Character::Ring2] != 0)
-				{
-					return false;
-				}
-				this->paperdoll[Character::Ring2] = item;
-				this->DelItem(item, 1);
-				break;
-			}
-
-		case EIF::Armlet:
-			if (subloc == 0)
-			{
-				if (this->paperdoll[Character::Armlet1] != 0)
-				{
-					return false;
-				}
-				this->paperdoll[Character::Armlet1] = item;
-				this->DelItem(item, 1);
-				break;
-			}
-			else
-			{
-				if (this->paperdoll[Character::Armlet2] != 0)
-				{
-					return false;
-				}
-				this->paperdoll[Character::Armlet2] = item;
-				this->DelItem(item, 1);
-				break;
-			}
-
-		case EIF::Bracer:
-			if (subloc == 0)
-			{
-				if (this->paperdoll[Character::Bracer1] != 0)
-				{
-					return false;
-				}
-				this->paperdoll[Character::Bracer1] = item;
-				this->DelItem(item, 1);
-				break;
-			}
-			else
-			{
-				if (this->paperdoll[Character::Bracer2] != 0)
-				{
-					return false;
-				}
-				this->paperdoll[Character::Bracer2] = item;
-				this->DelItem(item, 1);
-				break;
-			}
-
-		default:
-			return false;
+		return false;
 	}
 
-	this->CalculateStats();
-
-	return true;
+	switch (type)
+	{
+		case EIF::Weapon: return character_equip_oneslot(this, item, subloc, Weapon);
+		case EIF::Shield: return character_equip_oneslot(this, item, subloc, Shield);
+		case EIF::Hat: return character_equip_oneslot(this, item, subloc, Hat);
+		case EIF::Boots: return character_equip_oneslot(this, item, subloc, Boots);
+		case EIF::Gloves: return character_equip_oneslot(this, item, subloc, Gloves);
+		case EIF::Accessory: return character_equip_oneslot(this, item, subloc, Accessory);
+		case EIF::Belt: return character_equip_oneslot(this, item, subloc, Belt);
+		case EIF::Armor: return character_equip_oneslot(this, item, subloc, Armor);
+		case EIF::Necklace: return character_equip_oneslot(this, item, subloc, Necklace);
+		case EIF::Ring: return character_equip_twoslot(this, item, subloc, Ring1, Ring2);
+		case EIF::Armlet: return character_equip_twoslot(this, item, subloc, Armlet1, Armlet2);
+		case EIF::Bracer: return character_equip_twoslot(this, item, subloc, Bracer1, Bracer2);
+		default: return false;
+	}
 }
 
 bool Character::InRange(unsigned char x, unsigned char y)
@@ -1012,6 +915,7 @@ void Character::CalculateStats()
 void Character::DropAll(Character *killer)
 {
 	// TODO: This could be more efficient
+	restart_loop:
 	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, item)
 	{
 		if (this->world->eif->Get(item->id)->special == EIF::Lore)
@@ -1048,6 +952,7 @@ void Character::DropAll(Character *killer)
 		}
 
 		this->DelItem(item, item->amount);
+		goto restart_loop;
 	}
 
 	int i = 0;

@@ -117,14 +117,9 @@ struct TimeEvent : public Shared
 	int lifetime;
 
 	/**
-	 * Whether the owning Timer object should delete the TimeEvent object when it expires
-	 */
-	bool autofree;
-
-	/**
 	 * Construct a new TimeEvent object
 	 */
-	TimeEvent(TimerCallback callback, void *param, double speed, int lifetime = 1, bool autofree = false);
+	TimeEvent(TimerCallback callback, void *param, double speed, int lifetime = 1);
 
 	/**
 	 * Unregister the object from it's owning Timer object if it has one
@@ -134,11 +129,10 @@ struct TimeEvent : public Shared
 	SCRIPT_REGISTER_REF(TimeEvent)
 		SCRIPT_REGISTER_VARIABLE("Timer @", manager);
 		//SCRIPT_REGISTER_VARIABLE("TimerCallback", callback);
-		SCRIPT_REGISTER_VARIABLE("void_ptr", param);
+		//SCRIPT_REGISTER_VARIABLE("void_ptr", param);
 		SCRIPT_REGISTER_VARIABLE("double", speed);
 		SCRIPT_REGISTER_VARIABLE("double", lasttime);
 		SCRIPT_REGISTER_VARIABLE("int", lifetime);
-		SCRIPT_REGISTER_VARIABLE("bool", autofree);
 	SCRIPT_REGISTER_END()
 };
 

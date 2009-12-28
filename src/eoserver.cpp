@@ -131,8 +131,14 @@ Client *EOServer::ClientFactory(SOCKET sock, sockaddr_in sin)
 void EOServer::Initialize(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	this->world = new World(dbinfo, eoserv_config, admin_config);
-	this->world->timer.Register(new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER, true));
-	this->world->timer.Register(new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER, true));
+
+	TimeEvent *event = new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER);
+	this->world->timer.Register(event);
+	event->Release();
+
+	event = new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER);
+	this->world->timer.Register(event);
+	event->Release();
 
 	this->world->server = this;
 

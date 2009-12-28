@@ -130,26 +130,21 @@ void Timer::Register(TimeEvent *timer)
 
 	timer->lasttime = Timer::GetTime();
 	this->timers.insert(timer);
+	timer->AddRef();
 }
 
 void Timer::Unregister(TimeEvent *timer)
 {
 	this->changed = true;
 	this->timers.erase(timer);
-	if (timer->autofree)
-	{
-		timer->Release();
-	}
+	timer->Release();
 }
 
 Timer::~Timer()
 {
 	UTIL_SET_FOREACH_ALL(this->timers, TimeEvent *, timer)
 	{
-		if (timer->autofree)
-		{
-			timer->Release();
-		}
+		timer->Release();
 	}
 #ifdef WIN32
 	if (rres != 0)
@@ -160,14 +155,13 @@ Timer::~Timer()
 #endif // WIN32
 }
 
-TimeEvent::TimeEvent(TimerCallback callback, void *param, double speed, int lifetime, bool autofree)
+TimeEvent::TimeEvent(TimerCallback callback, void *param, double speed, int lifetime)
 {
 	this->callback = callback;
 	this->param = param;
 	this->speed = speed;
 	this->lifetime = lifetime;
 	this->manager = 0;
-	this->autofree = autofree;
 }
 
 TimeEvent::~TimeEvent()

@@ -29,7 +29,8 @@ CLIENT_F_FUNC(Walk)
 		case PACKET_SPEC: // Player walking (ghost)
 		{
 			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.5);
+			if (!act) printf("%.4g\n", Timer::GetTime());
+			CLIENT_QUEUE_ACTION(0.46);
 
 			Direction direction = static_cast<Direction>(reader.GetChar());
 			/*int timestamp = */reader.GetThree();

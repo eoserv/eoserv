@@ -269,7 +269,9 @@ Map::Map(int id, World *world)
 
 	if (!this->chests.empty())
 	{
-		this->world->timer.Register(new TimeEvent(map_spawn_chests, this, 60.0, Timer::FOREVER, true));
+		TimeEvent *event = new TimeEvent(map_spawn_chests, this, 60.0, Timer::FOREVER);
+		this->world->timer.Register(event);
+		event->Release();
 	}
 }
 
@@ -735,18 +737,14 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 	from->direction = direction;
 
-	{
-		CharacterEvent *e = new CharacterEvent;
+	HOOK_BEGIN(CharacterEvent, this->world->hookmanager, "character/walk")
+		e->character = from;
+		e->target_map = this;
+		e->target_mapid = this->id;
 		e->target_x = target_x;
 		e->target_y = target_y;
-
-		if (this->world->hookmanager->Call("character/walk")[e])
-		{
-			return false;
-		}
-
-		e->Release();
-	}
+		if (HOOK_CALL()) return false;
+	HOOK_END()
 
 	from->x = target_x;
 	from->y = target_y;

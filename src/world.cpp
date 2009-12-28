@@ -193,13 +193,23 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 
 	this->last_character_id = 0;
 
-	this->timer.Register(new TimeEvent(world_spawn_npcs, this, 1.0, Timer::FOREVER, true));
-	this->timer.Register(new TimeEvent(world_act_npcs, this, 0.05, Timer::FOREVER, true));
-	this->timer.Register(new TimeEvent(world_recover, this, 90.0, Timer::FOREVER, true));
+	TimeEvent *event = new TimeEvent(world_spawn_npcs, this, 1.0, Timer::FOREVER);
+	this->timer.Register(event);
+	event->Release();
+
+	event = new TimeEvent(world_act_npcs, this, 0.05, Timer::FOREVER);
+	this->timer.Register(event);
+	event->Release();
+
+	event = new TimeEvent(world_recover, this, 90.0, Timer::FOREVER);
+	this->timer.Register(event);
+	event->Release();
 
 	if (this->config["ItemDespawn"])
 	{
-		this->timer.Register(new TimeEvent(world_despawn_items, this, static_cast<double>(this->config["ItemDespawnCheck"]), Timer::FOREVER, true));
+		event = new TimeEvent(world_despawn_items, this, static_cast<double>(this->config["ItemDespawnCheck"]), Timer::FOREVER);
+		this->timer.Register(event);
+		event->Release();
 	}
 
 	exp_table[0] = 0;

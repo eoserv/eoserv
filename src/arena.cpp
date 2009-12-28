@@ -29,7 +29,9 @@ Arena::Arena(Map *map, int time, int block)
 	this->block = block;
 	this->occupants = 0;
 
-	this->map->world->timer.Register(new TimeEvent(arena_spawn, this, time, Timer::FOREVER, true));
+	TimeEvent *event = new TimeEvent(arena_spawn, this, time, Timer::FOREVER);
+	this->map->world->timer.Register(event);
+	event->Release();
 }
 
 void Arena::Spawn(bool force)
