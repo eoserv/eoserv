@@ -19,7 +19,7 @@ CLIENT_F_FUNC(Emote)
 
 			Emote emote = static_cast<Emote>(reader.GetChar());
 
-			if ((emote >= 0 && emote <= 10) || emote == 14)
+			if ((emote >= 0 && emote <= 10) || emote == 12 || emote == 14)
 			{
 				this->player->character->Emote(emote, false);
 			}

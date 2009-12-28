@@ -118,6 +118,16 @@ void world_despawn_items(void *world_void)
 	}
 }
 
+void world_timed_save(void *world_void)
+{
+	World *world = static_cast<World *>(world_void);
+
+	UTIL_PTR_VECTOR_FOREACH(world->characters, Character, character)
+	{
+		character->Save();
+	}
+}
+
 World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	if (int(this->timer.resolution * 1000.0) > 1)
@@ -146,28 +156,13 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	try
 	{
 		this->drops_config.Read(static_cast<std::string>(this->config["DropsFile"]));
-	}
-	catch (std::runtime_error)
-	{
-		Console::Err("Could not load %s", static_cast<std::string>(this->config["DropsFile"]).c_str());
-	}
-
-	try
-	{
 		this->shops_config.Read(static_cast<std::string>(this->config["ShopsFile"]));
-	}
-	catch (std::runtime_error)
-	{
-		Console::Err("Could not load %s", static_cast<std::string>(this->config["ShopsFile"]).c_str());
-	}
-
-	try
-	{
 		this->arenas_config.Read(static_cast<std::string>(this->config["ArenasFile"]));
+		this->formulas_config.Read(static_cast<std::string>(this->config["FormulasFile"]));
 	}
-	catch (std::runtime_error)
+	catch (std::runtime_error &e)
 	{
-		Console::Err("Could not load %s", static_cast<std::string>(this->config["ArenasFile"]).c_str());
+		Console::Wrn(e.what());
 	}
 
 	this->eif = new EIF(static_cast<std::string>(this->config["EIF"]));
@@ -208,6 +203,13 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	if (this->config["ItemDespawn"])
 	{
 		event = new TimeEvent(world_despawn_items, this, static_cast<double>(this->config["ItemDespawnCheck"]), Timer::FOREVER);
+		this->timer.Register(event);
+		event->Release();
+	}
+
+	if (this->config["TimedSave"])
+	{
+		event = new TimeEvent(world_timed_save, this, static_cast<double>(this->config["TimedSave"]), Timer::FOREVER);
 		this->timer.Register(event);
 		event->Release();
 	}
@@ -383,6 +385,31 @@ void World::ServerMsg(std::string message)
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
 		character->player->client->SendBuilder(builder);
+	}
+}
+
+void World::Rehash()
+{
+	try
+	{
+		this->config.Read("config.ini");
+		this->admin_config.Read("admin.ini");
+		this->drops_config.Read(this->config["DropsFile"]);
+		this->shops_config.Read(this->config["ShopsFile"]);
+		this->arenas_config.Read(this->config["ArenasFile"]);
+		this->formulas_config.Read(this->config["FormulasFile"]);
+	}
+	catch (std::runtime_error &e)
+	{
+		Console::Err(e.what());
+	}
+
+	UTIL_PTR_VECTOR_FOREACH(this->maps, Map, map)
+	{
+		UTIL_PTR_VECTOR_FOREACH(map->npcs, NPC, npc)
+		{
+			npc->LoadShopDrop();
+		}
 	}
 }
 

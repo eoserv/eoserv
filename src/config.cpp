@@ -27,7 +27,8 @@ void Config::Read(std::string filename)
 	fh = std::fopen(filename.c_str(), "rt");
 	if (!fh)
 	{
-		throw std::runtime_error("Configuration file not found.");
+		std::string err = "Configuration file not found: " + filename;
+		throw std::runtime_error(err.c_str());
 	}
 
 	while (!std::feof(fh))

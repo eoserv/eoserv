@@ -31,15 +31,7 @@ static void eoserv_rehash(int signal)
 	if (eoserv_rehash_server == 0) return;
 
 	Console::Out("Reloading config");
-	try
-	{
-		eoserv_rehash_server->world->config.Read("config.ini");
-		eoserv_rehash_server->world->admin_config.Read("admin.ini");
-	}
-	catch (std::runtime_error)
-	{
-
-	}
+	eoserv_rehash_server->world->Rehash();
 }
 #endif // SIGHUP
 
@@ -262,6 +254,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "CheckVersion"       , true);
 		eoserv_config_default(config, "MinVersion"         , 0);
 		eoserv_config_default(config, "MaxVersion"         , 0);
+		eoserv_config_default(config, "TimedSave"          , 0);
 		eoserv_config_default(config, "PasswordSalt"       , "ChangeMe");
 		eoserv_config_default(config, "DBType"             , "mysql");
 		eoserv_config_default(config, "DBHost"             , "localhost");
@@ -276,6 +269,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "DropsFile"          , "./data/drops.ini");
 		eoserv_config_default(config, "ShopsFile"          , "./data/shops.ini");
 		eoserv_config_default(config, "ArenasFile"         , "./data/arenas.ini");
+		eoserv_config_default(config, "FormulasFile"       , "./data/formulas.ini");
 		eoserv_config_default(config, "MapDir"             , "./data/maps/");
 		eoserv_config_default(config, "Maps"               , 278);
 		eoserv_config_default(config, "ScriptDir"          , "./data/scripts/");
@@ -373,6 +367,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "DropRate"           , 1.0);
 		eoserv_config_default(config, "MobRate"            , 1.0);
 		eoserv_config_default(config, "PKRate"             , 0.75);
+		eoserv_config_default(config, "CriticalRate"       , 0.08);
 		eoserv_config_default(config, "SpawnRate"          , 1.0);
 		eoserv_config_default(config, "BankUpgradeBase"    , 1000);
 		eoserv_config_default(config, "BankUpgradeStep"    , 1000);

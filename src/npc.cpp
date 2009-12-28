@@ -58,6 +58,15 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		this->direction = DIRECTION_DOWN;
 	}
 
+	this->LoadShopDrop();
+}
+
+void NPC::LoadShopDrop()
+{
+	this->drops.clear();
+	this->shop_trade.clear();
+	this->shop_craft.clear();
+
 	Config::iterator drops = map->world->drops_config.find(util::to_string(this->id));
 	if (drops != map->world->drops_config.end())
 	{
@@ -67,7 +76,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		{
 			if (parts.size() % 4 != 0)
 			{
-				Console::Err("WARNING: skipping invalid drop data for NPC #%i", id);
+				Console::Wrn("skipping invalid drop data for NPC #%i", id);
 				return;
 			}
 
@@ -97,7 +106,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		{
 			if (parts.size() % 3 != 0)
 			{
-				Console::Err("WARNING: skipping invalid trade shop data for NPC #%i", id);
+				Console::Wrn("skipping invalid trade shop data for NPC #%i", id);
 				return;
 			}
 
@@ -112,7 +121,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 
 				if (item->buy != 0 && item->sell != 0 && item->sell > item->buy)
 				{
-					Console::Err("WARNING: item #%i (NPC #%i) has a higher sell price than buy price.", item->id, id);
+					Console::Wrn("item #%i (NPC #%i) has a higher sell price than buy price.", item->id, id);
 				}
 
 				this->shop_trade[i/3] = item;
@@ -129,7 +138,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		{
 			if (parts.size() % 9 != 0)
 			{
-				Console::Err("WARNING: skipping invalid craft shop data for NPC #%i", id);
+				Console::Wrn("skipping invalid craft shop data for NPC #%i", id);
 				return;
 			}
 
@@ -149,6 +158,7 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 					ingredient->id = util::to_int(parts[i+1+ii*2]);
 					ingredient->amount = util::to_int(parts[i+2+ii*2]);
 					ingredients[ii] = ingredient;
+					ingredient->Release();
 				}
 
 				item->ingredients = ingredients;
@@ -713,46 +723,25 @@ void NPC::Damage(Character *from, int amount)
 
 void NPC::Attack(Character *target)
 {
-	double mobrate = this->map->world->config["MobRate"];
-
 	int amount = util::rand(this->Data()->mindam, this->Data()->maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
+	double rand = util::rand(0.0, 1.0);
+	// Checks if target is facing you
+	bool critical = std::abs(target->direction - this->direction) != 2 || rand < static_cast<double>(this->map->world->config["CriticalRate"]);
 
-	int hit_rate = 120;
-	bool critical = true;
+	std::map<std::string, double> formula_vars;
 
-	if ((target->direction == DIRECTION_UP && this->direction == DIRECTION_DOWN)
-	 || (target->direction == DIRECTION_RIGHT && this->direction == DIRECTION_LEFT)
-	 || (target->direction == DIRECTION_DOWN && this->direction == DIRECTION_UP)
-	 || (target->direction == DIRECTION_LEFT && this->direction == DIRECTION_RIGHT)
-	 || target->sitting != SIT_STAND)
-	{
-		hit_rate -= 40;
-	}
+	this->FormulaVars(formula_vars);
+	target->FormulaVars(formula_vars, "target_");
+	formula_vars["modifier"] = 1.0 / static_cast<double>(this->map->world->config["MobRate"]);
+	formula_vars["damage"] = amount;
+	formula_vars["critical"] = critical;
 
-	hit_rate += int(double(this->Data()->accuracy) / 2.0 * mobrate);
-	hit_rate -= int(double(target->evade) / 2.0);
-	hit_rate = std::min(std::max(hit_rate, 20), 100);
-
-	int origamount = amount;
-	amount -= int(double(target->armor) / 3.0);
-
-	amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
-
-	int rand = util::rand(0, 100);
+	amount = rpn_eval(rpn_parse(this->map->world->formulas_config["damage"]), formula_vars);
+	double hit_rate = rpn_eval(rpn_parse(this->map->world->formulas_config["hit_rate"]), formula_vars);
 
 	if (rand > hit_rate)
 	{
 		amount = 0;
-	}
-
-	if (rand > 92)
-	{
-		critical = true;
-	}
-
-	if (critical)
-	{
-		amount = int(double(amount) * 1.5);
 	}
 
 	amount = std::max(amount, 0);
@@ -854,6 +843,22 @@ void NPC::Attack(Character *target)
 		target->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0);
 	}
 }
+
+#define v(x) vars[prefix + #x] = x;
+#define vv(x, n) vars[prefix + n] = x;
+#define vd(x) vars[prefix + #x] = data->x;
+
+void NPC::FormulaVars(std::map<std::string, double> &vars, std::string prefix)
+{
+	ENF_Data *data = this->Data();
+	vv(1, "npc") v(hp) vv(data->hp, "maxhp")
+	vd(mindam) vd(maxdam)
+	vd(accuracy) vd(evade) vd(armor)
+}
+
+#undef vd
+#undef vv
+#undef v
 
 NPC::~NPC()
 {

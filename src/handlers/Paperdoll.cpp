@@ -23,7 +23,7 @@ CLIENT_F_FUNC(Paperdoll)
 
 			Character *character = this->player->character->map->GetCharacterPID(id);
 
-			if (character)
+			if (!character)
 			{
 				character = this->player->character;
 			}

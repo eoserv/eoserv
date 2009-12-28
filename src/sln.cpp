@@ -43,7 +43,7 @@ void *SLN::RequestThread(void *void_sln)
 
 	std::string url = sln->server->world->config["SLNURL"];
 	url += "check?software=EOSERV";
-	url += std::string("&retry=") + HTTP::URLEncode(sln->server->world->config["SLNPeriod"]);
+	url += std::string("&retry=") + HTTP::URLEncode(util::to_string(static_cast<int>(sln->server->world->config["SLNPeriod"])));
 
 	if (static_cast<std::string>(sln->server->world->config["SLNHost"]).length() > 0)
 	{

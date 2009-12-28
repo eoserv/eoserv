@@ -171,6 +171,8 @@ class Character : public Shared
 		void CalculateStats();
 		void DropAll(Character *killer);
 
+		void FormulaVars(std::map<std::string, double> &vars, std::string prefix = "");
+
 		void Logout();
 		void Save();
 

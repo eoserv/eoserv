@@ -73,6 +73,7 @@ class World : public Shared
 		Config drops_config;
 		Config shops_config;
 		Config arenas_config;
+		Config formulas_config;
 
 		PtrVector<Character> characters;
 		PtrVector<Guild> guilds;
@@ -99,6 +100,7 @@ class World : public Shared
 		void Reboot();
 		void Reboot(int seconds, std::string reason);
 
+		void Rehash();
 		void ReloadPub();
 
 		void Kick(Character *from, Character *victim, bool announce = true);

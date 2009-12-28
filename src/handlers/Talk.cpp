@@ -286,15 +286,7 @@ CLIENT_F_FUNC(Talk)
 				else if (command.length() >= 1 && command.compare(0,1,"r") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["rehash"]))
 				{
 					Console::Out("Config reloaded by %s", this->player->character->name.c_str());
-					try
-					{
-						this->server->world->config.Read("config.ini");
-						this->server->world->admin_config.Read("admin.ini");
-					}
-					catch (std::runtime_error)
-					{
-
-					}
+					this->server->world->Rehash();
 				}
 				else if (command.length() >= 1 && command.compare(0,1,"a") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["arena"]))
 				{

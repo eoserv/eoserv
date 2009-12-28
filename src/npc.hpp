@@ -122,6 +122,7 @@ class NPC : public Shared
 		unsigned char index;
 
 		NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index, bool temporary = false);
+		void LoadShopDrop();
 
 		ENF_Data *Data();
 
@@ -132,6 +133,8 @@ class NPC : public Shared
 		void Damage(Character *from, int amount);
 
 		void Attack(Character *target);
+
+		void FormulaVars(std::map<std::string, double> &vars, std::string prefix = "");
 
 		~NPC();
 

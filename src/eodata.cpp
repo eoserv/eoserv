@@ -77,19 +77,38 @@ void EIF::Read(std::string filename)
 		newdata->accuracy = PacketProcessor::Number(buf[13], buf[14]);
 		newdata->evade = PacketProcessor::Number(buf[15], buf[16]);
 		newdata->armor = PacketProcessor::Number(buf[17], buf[18]);
+
 		newdata->str = PacketProcessor::Number(buf[20]);
 		newdata->intl = PacketProcessor::Number(buf[21]);
 		newdata->wis = PacketProcessor::Number(buf[22]);
 		newdata->agi = PacketProcessor::Number(buf[23]);
 		newdata->con = PacketProcessor::Number(buf[24]);
 		newdata->cha = PacketProcessor::Number(buf[25]);
-		newdata->scrollmap = PacketProcessor::Number(buf[32]);
+
+		newdata->light = PacketProcessor::Number(buf[26]);
+		newdata->dark = PacketProcessor::Number(buf[27]);
+		newdata->earth = PacketProcessor::Number(buf[28]);
+		newdata->air = PacketProcessor::Number(buf[29]);
+		newdata->water = PacketProcessor::Number(buf[30]);
+		newdata->fire = PacketProcessor::Number(buf[31]);
+
+		newdata->scrollmap = PacketProcessor::Number(buf[32], buf[33], buf[34]);
 		newdata->scrollx = PacketProcessor::Number(buf[35]);
 		newdata->scrolly = PacketProcessor::Number(buf[36]);
 
-		newdata->classreq = PacketProcessor::Number(buf[39]);
+		newdata->levelreq = PacketProcessor::Number(buf[37], buf[38]);
+		newdata->classreq = PacketProcessor::Number(buf[39], buf[40]);
+
+		newdata->strreq = PacketProcessor::Number(buf[41], buf[42]);
+		newdata->intreq = PacketProcessor::Number(buf[43], buf[44]);
+		newdata->wisreq = PacketProcessor::Number(buf[45], buf[46]);
+		newdata->agireq = PacketProcessor::Number(buf[47], buf[48]);
+		newdata->conreq = PacketProcessor::Number(buf[49], buf[50]);
+		newdata->chareq = PacketProcessor::Number(buf[51], buf[52]);
 
 		newdata->weight = PacketProcessor::Number(buf[55]);
+
+		newdata->size = static_cast<EIF::Size>(PacketProcessor::Number(buf[57]));
 
 		this->data[i] = newdata;
 
@@ -260,6 +279,21 @@ void ESF::Read(std::string filename)
 		newdata->name = name;
 		newdata->shout = shout;
 
+		newdata->icon = PacketProcessor::Number(buf[0], buf[1]);
+		newdata->graphic = PacketProcessor::Number(buf[2], buf[3]);
+		newdata->tp = PacketProcessor::Number(buf[4], buf[5]);
+		newdata->sp = PacketProcessor::Number(buf[6], buf[7]);
+		newdata->cast_time = PacketProcessor::Number(buf[8]);
+
+		newdata->type = static_cast<ESF::Type>(PacketProcessor::Number(buf[10]));
+		newdata->target_restrict = static_cast<ESF::TargetRestrict>(PacketProcessor::Number(buf[17]));
+		newdata->target = static_cast<ESF::Target>(PacketProcessor::Number(buf[18]));
+
+		newdata->mindam = static_cast<ESF::Target>(PacketProcessor::Number(buf[23], buf[24]));
+		newdata->maxdam = static_cast<ESF::Target>(PacketProcessor::Number(buf[25], buf[26]));
+		newdata->accuracy = static_cast<ESF::Target>(PacketProcessor::Number(buf[27], buf[28]));
+		newdata->hp = static_cast<ESF::Target>(PacketProcessor::Number(buf[34], buf[35]));
+
 		this->data[i] = newdata;
 
 		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
@@ -323,6 +357,8 @@ void ECF::Read(std::string filename)
 
 		newdata->id = i;
 		newdata->name = name;
+
+		newdata->base = PacketProcessor::Number(buf[0]);
 
 		this->data[i] = newdata;
 

@@ -15,6 +15,8 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <stack>
+#include <map>
 
 #include "script.hpp"
 
@@ -572,6 +574,9 @@ typedef variant var;
  * @return number of seconds
  */
 double tdparse(std::string timestr);
+
+std::stack<util::variant> rpn_parse(std::string expr);
+double rpn_eval(std::stack<util::variant>, std::map<std::string, double> vars);
 
 int to_int(const std::string &);
 unsigned int to_uint_raw(const std::string &);

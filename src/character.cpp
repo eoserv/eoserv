@@ -935,7 +935,6 @@ void Character::DropAll(Character *killer)
 			else
 			{
 				map_item->owner = this->player->id;
-				Console::Dbg("ProtectDeathDrop = %g\n", static_cast<double>(this->world->config["ProtectDeathDrop"]));
 				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectDeathDrop"]);
 			}
 
@@ -1033,6 +1032,20 @@ void Character::DropAll(Character *killer)
 	}
 }
 
+#define v(x) vars[prefix + #x] = x;
+#define vv(x, n) vars[prefix + n] = x;
+
+void Character::FormulaVars(std::map<std::string, double> &vars, std::string prefix)
+{
+	v(level) v(exp) v(hp) v(maxhp) v(tp) v(maxtp) v(maxsp)
+	v(weight) v(maxweight) v(karma) v(mindam) v(maxdam)
+	v(str) vv(intl, "int") v(wis) v(agi) v(con) v(cha)
+	v(accuracy) v(evade) v(armor) v(admin)
+}
+
+#undef vv
+#undef v
+
 void Character::Logout()
 {
 	if (!this->online)
@@ -1083,9 +1096,9 @@ void Character::Logout()
 		}
 	}
 
-	this->world->Logout(this);
-
 	this->Save();
+
+	this->world->Logout(this);
 
 	this->online = false;
 }

@@ -68,6 +68,34 @@ class EIF : public Shared
 			Cursed
 		};
 
+		enum Size
+		{
+			Size1x1,
+			Size1x2,
+			Size1x3,
+			Size1x4,
+			Size2x1,
+			Size2x2,
+			Size2x3,
+			Size2x4,
+		};
+
+		static int SizeTiles(Size size)
+		{
+			switch (size)
+			{
+				case Size1x1: return 1;
+				case Size1x2: return 2;
+				case Size1x3: return 3;
+				case Size1x4: return 4;
+				case Size2x1: return 2;
+				case Size2x2: return 4;
+				case Size2x3: return 6;
+				case Size2x4: return 8;
+				default:      return 0;
+			}
+		}
+
 		static const int DATA_SIZE = 58;
 		unsigned char rid[4];
 		unsigned char len[2];
@@ -130,6 +158,17 @@ class EIF : public Shared
 			SCRIPT_REGISTER_ENUM_VALUE(Cursed);
 		SCRIPT_REGISTER_ENUM_END()
 
+		SCRIPT_REGISTER_ENUM("EIF_Size")
+			SCRIPT_REGISTER_ENUM_VALUE(Size1x1);
+			SCRIPT_REGISTER_ENUM_VALUE(Size1x2);
+			SCRIPT_REGISTER_ENUM_VALUE(Size1x3);
+			SCRIPT_REGISTER_ENUM_VALUE(Size1x4);
+			SCRIPT_REGISTER_ENUM_VALUE(Size2x1);
+			SCRIPT_REGISTER_ENUM_VALUE(Size2x2);
+			SCRIPT_REGISTER_ENUM_VALUE(Size2x3);
+			SCRIPT_REGISTER_ENUM_VALUE(Size2x4);
+		SCRIPT_REGISTER_ENUM_END()
+
 		SCRIPT_REGISTER_FACTORY("EIF @f(string filename)", ScriptFactory);
 
 		SCRIPT_REGISTER_VARIABLE("PtrVector<EIF_Data>", data);
@@ -159,39 +198,58 @@ struct EIF_Data : public Shared
 	short evade;
 	short armor;
 
-	short str;
-	short intl;
-	short wis;
-	short agi;
-	short con;
-	short cha;
+	unsigned char str;
+	unsigned char intl;
+	unsigned char wis;
+	unsigned char agi;
+	unsigned char con;
+	unsigned char cha;
+
+	unsigned char light;
+	unsigned char dark;
+	unsigned char earth;
+	unsigned char air;
+	unsigned char water;
+	unsigned char fire;
 
 	union
 	{
-		short scrollmap;
-		short dollgraphic;
-		short expreward;
-		short haircolor;
+		int scrollmap;
+		int dollgraphic;
+		int expreward;
+		int haircolor;
 	};
 
 	union
 	{
-		short gender;
-		short scrollx;
+		unsigned char gender;
+		unsigned char scrollx;
 	};
 
 	union
 	{
-		short scrolly;
+		unsigned char scrolly;
 	};
 
+	short levelreq;
 	short classreq;
 
-	short weight;
+	short strreq;
+	short intreq;
+	short wisreq;
+	short agireq;
+	short conreq;
+	short chareq;
+
+	unsigned char weight;
+
+	EIF::Size size;
 
 	EIF_Data() : id(0), graphic(0), type(EIF::Static), subtype(EIF::None), special(EIF::Normal),
 	hp(0), tp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0), str(0), intl(0), wis(0),
-	agi(0), con(0), cha(0), scrollmap(0), gender(0), scrolly(0), classreq(0), weight(0) {};
+	agi(0), con(0), cha(0), light(0), dark(0), earth(0), air(0), water(0), fire(0), scrollmap(0),
+	gender(0), scrolly(0), levelreq(0), classreq(0), strreq(0), intreq(0), wisreq(0), agireq(0),
+	conreq(0), chareq(0), weight(0), size(EIF::Size1x1) { }
 
 	SCRIPT_REGISTER_REF_DF(EIF_Data)
 		SCRIPT_REGISTER_VARIABLE("int", id);
@@ -207,21 +265,35 @@ struct EIF_Data : public Shared
 		SCRIPT_REGISTER_VARIABLE("int16", accuracy);
 		SCRIPT_REGISTER_VARIABLE("int16", evade);
 		SCRIPT_REGISTER_VARIABLE("int16", armor);
-		SCRIPT_REGISTER_VARIABLE("int16", str);
-		SCRIPT_REGISTER_VARIABLE("int16", intl);
-		SCRIPT_REGISTER_VARIABLE("int16", wis);
-		SCRIPT_REGISTER_VARIABLE("int16", agi);
-		SCRIPT_REGISTER_VARIABLE("int16", con);
-		SCRIPT_REGISTER_VARIABLE("int16", cha);
-		SCRIPT_REGISTER_VARIABLE("int16", scrollmap);
-		SCRIPT_REGISTER_VARIABLE("int16", dollgraphic);
-		SCRIPT_REGISTER_VARIABLE("int16", expreward);
-		SCRIPT_REGISTER_VARIABLE("int16", haircolor);
-		SCRIPT_REGISTER_VARIABLE("int16", gender);
-		SCRIPT_REGISTER_VARIABLE("int16", scrollx);
-		SCRIPT_REGISTER_VARIABLE("int16", scrolly);
+		SCRIPT_REGISTER_VARIABLE("uint8", str);
+		SCRIPT_REGISTER_VARIABLE("uint8", intl);
+		SCRIPT_REGISTER_VARIABLE("uint8", wis);
+		SCRIPT_REGISTER_VARIABLE("uint8", agi);
+		SCRIPT_REGISTER_VARIABLE("uint8", con);
+		SCRIPT_REGISTER_VARIABLE("uint8", cha);
+		SCRIPT_REGISTER_VARIABLE("uint8", light);
+		SCRIPT_REGISTER_VARIABLE("uint8", dark);
+		SCRIPT_REGISTER_VARIABLE("uint8", earth);
+		SCRIPT_REGISTER_VARIABLE("uint8", air);
+		SCRIPT_REGISTER_VARIABLE("uint8", water);
+		SCRIPT_REGISTER_VARIABLE("uint8", fire);
+		SCRIPT_REGISTER_VARIABLE("int", scrollmap);
+		SCRIPT_REGISTER_VARIABLE("int", dollgraphic);
+		SCRIPT_REGISTER_VARIABLE("int", expreward);
+		SCRIPT_REGISTER_VARIABLE("int", haircolor);
+		SCRIPT_REGISTER_VARIABLE("uint8", gender);
+		SCRIPT_REGISTER_VARIABLE("uint8", scrollx);
+		SCRIPT_REGISTER_VARIABLE("uint8", scrolly);
+		SCRIPT_REGISTER_VARIABLE("int16", levelreq);
 		SCRIPT_REGISTER_VARIABLE("int16", classreq);
-		SCRIPT_REGISTER_VARIABLE("int16", weight);
+		SCRIPT_REGISTER_VARIABLE("int16", strreq);
+		SCRIPT_REGISTER_VARIABLE("int16", intreq);
+		SCRIPT_REGISTER_VARIABLE("int16", wisreq);
+		SCRIPT_REGISTER_VARIABLE("int16", agireq);
+		SCRIPT_REGISTER_VARIABLE("int16", conreq);
+		SCRIPT_REGISTER_VARIABLE("int16", chareq);
+		SCRIPT_REGISTER_VARIABLE("uint8", weight);
+		SCRIPT_REGISTER_VARIABLE("EIF_Size", size);
 	SCRIPT_REGISTER_END()
 };
 
@@ -250,6 +322,7 @@ class ENF : public Shared
 			Skills,
 			Quest
 		};
+
 		static const int DATA_SIZE = 39;
 		unsigned char rid[4];
 		unsigned char len[2];
@@ -304,7 +377,7 @@ struct ENF_Data : public Shared
 	ENF::Type type;
 
 	int hp;
-	int exp;
+	unsigned short exp;
 	short mindam;
 	short maxdam;
 
@@ -312,7 +385,7 @@ struct ENF_Data : public Shared
 	short evade;
 	short armor;
 
-	ENF_Data() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), hp(0), exp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0) {}
+	ENF_Data() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), hp(0), exp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0) { }
 
 	SCRIPT_REGISTER_REF_DF(ENF_Data)
 		SCRIPT_REGISTER_VARIABLE("int", id);
@@ -322,7 +395,7 @@ struct ENF_Data : public Shared
 		SCRIPT_REGISTER_VARIABLE("int16", child);
 		SCRIPT_REGISTER_VARIABLE("ENF_Type", type);
 		SCRIPT_REGISTER_VARIABLE("int", hp);
-		SCRIPT_REGISTER_VARIABLE("int", exp);
+		SCRIPT_REGISTER_VARIABLE("uint16", exp);
 		SCRIPT_REGISTER_VARIABLE("int16", mindam);
 		SCRIPT_REGISTER_VARIABLE("int16", maxdam);
 		SCRIPT_REGISTER_VARIABLE("int16", accuracy);
@@ -337,6 +410,28 @@ struct ENF_Data : public Shared
 class ESF : public Shared
 {
 	public:
+		enum Type
+		{
+			Damage,
+			Heal,
+			Bard
+		};
+
+		enum TargetRestrict
+		{
+			Any,
+			Friendly,
+			Opponent
+		};
+
+		enum Target
+		{
+			Normal,
+			Self,
+			Unknown1,
+			Group
+		};
+
 		static const int DATA_SIZE = 51;
 		unsigned char rid[4];
 		unsigned char len[2];
@@ -347,6 +442,25 @@ class ESF : public Shared
 	static ESF *ScriptFactory(std::string filename) { return new ESF(filename); }
 
 	SCRIPT_REGISTER_REF(ESF)
+		SCRIPT_REGISTER_ENUM("ESF_Type")
+			SCRIPT_REGISTER_ENUM_VALUE(Damage);
+			SCRIPT_REGISTER_ENUM_VALUE(Heal);
+			SCRIPT_REGISTER_ENUM_VALUE(Bard);
+		SCRIPT_REGISTER_ENUM_END()
+
+		SCRIPT_REGISTER_ENUM("ESF_TargetRestrict")
+			SCRIPT_REGISTER_ENUM_VALUE(Any);
+			SCRIPT_REGISTER_ENUM_VALUE(Friendly);
+			SCRIPT_REGISTER_ENUM_VALUE(Opponent);
+		SCRIPT_REGISTER_ENUM_END()
+
+		SCRIPT_REGISTER_ENUM("ESF_Target")
+			SCRIPT_REGISTER_ENUM_VALUE(Normal);
+			SCRIPT_REGISTER_ENUM_VALUE(Self);
+			SCRIPT_REGISTER_ENUM_VALUE(Unknown1);
+			SCRIPT_REGISTER_ENUM_VALUE(Group);
+		SCRIPT_REGISTER_ENUM_END()
+
 		SCRIPT_REGISTER_FACTORY("ESF @f(string filename)", ScriptFactory);
 
 		SCRIPT_REGISTER_VARIABLE("PtrVector<ESF_Data>", data);
@@ -363,12 +477,42 @@ struct ESF_Data : public Shared
 	std::string name;
 	std::string shout;
 
-	ESF_Data() : id(0) {}
+	short icon;
+	short graphic;
+
+	short tp;
+	short sp;
+
+	unsigned char cast_time;
+
+	ESF::Type type;
+	ESF::TargetRestrict target_restrict;
+	ESF::Target target;
+
+	short mindam;
+	short maxdam;
+	short accuracy;
+	short hp;
+
+	ESF_Data() : id(0), icon(0), graphic(0), tp(0), sp(0), cast_time(0), type(ESF::Damage),
+	target_restrict(ESF::Any), target(ESF::Normal), mindam(0), maxdam(0), accuracy(0), hp(0) { }
 
 	SCRIPT_REGISTER_REF_DF(ESF_Data)
 		SCRIPT_REGISTER_VARIABLE("int", id);
 		SCRIPT_REGISTER_VARIABLE("string", name);
 		SCRIPT_REGISTER_VARIABLE("string", shout);
+		SCRIPT_REGISTER_VARIABLE("int16", icon);
+		SCRIPT_REGISTER_VARIABLE("int16", graphic);
+		SCRIPT_REGISTER_VARIABLE("int16", tp);
+		SCRIPT_REGISTER_VARIABLE("int16", sp);
+		SCRIPT_REGISTER_VARIABLE("uint8", cast_time);
+		SCRIPT_REGISTER_VARIABLE("ESF_Type", type);
+		SCRIPT_REGISTER_VARIABLE("ESF_TargetRestrict", target_restrict);
+		SCRIPT_REGISTER_VARIABLE("ESF_Target", target);
+		SCRIPT_REGISTER_VARIABLE("int16", mindam);
+		SCRIPT_REGISTER_VARIABLE("int16", maxdam);
+		SCRIPT_REGISTER_VARIABLE("int16", accuracy);
+		SCRIPT_REGISTER_VARIABLE("int16", hp);
 	SCRIPT_REGISTER_END()
 };
 
@@ -403,7 +547,17 @@ struct ECF_Data : public Shared
 	int id;
 	std::string name;
 
-	ECF_Data() : id(0) {}
+	unsigned char base;
+	unsigned char type;
+
+	short str;
+	short intl;
+	short wis;
+	short agi;
+	short con;
+	short cha;
+
+	ECF_Data() : id(0), base(0), type(0), str(0), intl(0), wis(0), agi(0), con(0), cha(9) { }
 
 	SCRIPT_REGISTER_REF_DF(ECF_Data)
 		SCRIPT_REGISTER_VARIABLE("int", id);

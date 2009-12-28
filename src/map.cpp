@@ -1260,52 +1260,39 @@ void Map::Attack(Character *from, Direction direction)
 			return;
 		}
 
-		double mobrate = this->world->config["MobRate"];
 		UTIL_PTR_VECTOR_FOREACH(this->npcs, NPC, npc)
 		{
 			if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive || from->admin > static_cast<int>(this->world->admin_config["killnpcs"]))
 			 && npc->alive && npc->x == target_x && npc->y == target_y)
 			{
 				int amount = util::rand(from->mindam, from->maxdam);
+				double rand = util::rand(0.0, 1.0);
+				// Checks if target is facing you
+				bool critical = std::abs(npc->direction - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
-				// TODO: Revise these stat effects
+				std::map<std::string, double> formula_vars;
 
-				int hit_rate = 120;
-				bool critical = true;
+				from->FormulaVars(formula_vars);
+				npc->FormulaVars(formula_vars, "target_");
+				formula_vars["modifier"] = this->world->config["MobRate"];
+				formula_vars["damage"] = amount;
+				formula_vars["critical"] = critical;
 
-				if ((npc->direction == DIRECTION_UP && from->direction == DIRECTION_DOWN)
-				 || (npc->direction == DIRECTION_RIGHT && from->direction == DIRECTION_LEFT)
-				 || (npc->direction == DIRECTION_DOWN && from->direction == DIRECTION_UP)
-				 || (npc->direction == DIRECTION_LEFT && from->direction == DIRECTION_RIGHT))
-				{
-					critical = false;
-					hit_rate -= 40;
-				}
-
-				hit_rate += int(from->accuracy / 2.0);
-				hit_rate -= int(double(npc->Data()->evade) / 2.0 * mobrate);
-				hit_rate = std::min(std::max(hit_rate, 20), 100);
-
-				int origamount = amount;
-				amount -= int(double(npc->Data()->armor) / 3.0 * mobrate);
-
-				amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
-
-				int rand = util::rand(0, 100);
+				amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
+				double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
 
 				if (rand > hit_rate)
 				{
 					amount = 0;
 				}
 
-				if (rand > 92)
-				{
-					critical = true;
-				}
+				amount = std::max(amount, 0);
 
-				if (critical)
+				int limitamount = std::min(amount, int(npc->hp));
+
+				if (this->world->config["LimitDamage"])
 				{
-					amount = int(double(amount) * 1.5);
+					amount = limitamount;
 				}
 
 				npc->Damage(from, amount);
@@ -1354,7 +1341,6 @@ bool Map::AttackPK(Character *from, Direction direction)
 			return false;
 		}
 
-		double pkrate = this->world->config["PKRate"];
 		UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
 		{
 			if (character->mapid == this->id && !character->nowhere && character->x == target_x && character->y == target_y)
@@ -1363,48 +1349,25 @@ bool Map::AttackPK(Character *from, Direction direction)
 				character_ptr->AddRef();
 
 				int amount = util::rand(from->mindam, from->maxdam);
+				double rand = util::rand(0.0, 1.0);
+				// Checks if target is facing you
+				bool critical = std::abs(character_ptr->direction - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
-				// TODO: Revise these stat effects
+				std::map<std::string, double> formula_vars;
 
-				int hit_rate = 120;
-				bool critical = true;
+				from->FormulaVars(formula_vars);
+				character_ptr->FormulaVars(formula_vars, "target_");
+				formula_vars["modifier"] = this->world->config["PKRate"];
+				formula_vars["damage"] = amount;
+				formula_vars["critical"] = critical;
 
-				if ((character_ptr->direction == DIRECTION_UP && from->direction == DIRECTION_DOWN)
-				 || (character_ptr->direction == DIRECTION_RIGHT && from->direction == DIRECTION_LEFT)
-				 || (character_ptr->direction == DIRECTION_DOWN && from->direction == DIRECTION_UP)
-				 || (character_ptr->direction == DIRECTION_LEFT && from->direction == DIRECTION_RIGHT))
-				{
-					critical = false;
-					hit_rate -= 40;
-				}
-
-				hit_rate += int(from->accuracy / 2.0);
-				hit_rate -= int(double(character_ptr->evade) / 2.0);
-				hit_rate = std::min(std::max(hit_rate, 20), 100);
-
-				int origamount = amount;
-				amount -= int(double(character_ptr->armor) / 3.0);
-
-				amount = std::max(amount, int(std::ceil(double(origamount) * 0.1)));
-
-				int rand = util::rand(0, 100);
+				amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
+				double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
 
 				if (rand > hit_rate)
 				{
 					amount = 0;
 				}
-
-				if (rand > 92)
-				{
-					critical = true;
-				}
-
-				if (critical)
-				{
-					amount = int(double(amount) * 1.5);
-				}
-
-				amount = int(amount * pkrate);
 
 				amount = std::max(amount, 0);
 

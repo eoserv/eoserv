@@ -140,6 +140,17 @@ CLIENT_F_FUNC(Item)
 					}
 					break;
 
+					case EIF::Beer:
+					{
+						this->player->character->DelItem(id, 1);
+						reply.AddInt(this->player->character->HasItem(id));
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
+
+						CLIENT_SEND(reply);
+					}
+					break;
+
 					default:
 						return true;
 				}
