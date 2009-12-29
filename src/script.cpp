@@ -7,6 +7,7 @@
 #include "script.hpp"
 
 #include <cstdio>
+#include <cerrno>
 
 #include "console.hpp"
 

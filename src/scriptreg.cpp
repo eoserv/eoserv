@@ -12,7 +12,6 @@
 #include <angelscript/scriptstdstring.h>
 #include <angelscript/scriptdictionary.h>
 #include <angelscript/scriptfile.h>
-#include "./scriptlibc.h"
 
 #include "container/container.hpp"
 #include "container/iterator.hpp"
@@ -66,11 +65,6 @@ void script_register(World &world)
 	if (world.config["ScriptFileAccess"])
 	{
 		RegisterScriptFile(engine->as);
-	}
-
-	if (world.config["ScriptLibCAccess"])
-	{
-		RegisterScriptLibC(engine->as);
 	}
 
 	// Common things in EOSERV to be exposed to scripts

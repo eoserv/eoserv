@@ -47,7 +47,6 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/party.o \
        $(OBJDIR)/player.o \
        $(OBJDIR)/script.o \
-       $(OBJDIR)/scriptlibc.o \
        $(OBJDIR)/scriptreg.o \
        $(OBJDIR)/sha256.o \
        $(OBJDIR)/shared.o \

@@ -235,8 +235,6 @@
 		<Unit filename="..\src\player.hpp" />
 		<Unit filename="..\src\script.cpp" />
 		<Unit filename="..\src\script.hpp" />
-		<Unit filename="..\src\scriptlibc.cpp" />
-		<Unit filename="..\src\scriptlibc.h" />
 		<Unit filename="..\src\scriptreg.cpp" />
 		<Unit filename="..\src\scriptreg.hpp" />
 		<Unit filename="..\src\sha256.c">

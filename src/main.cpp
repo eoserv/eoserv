@@ -5,6 +5,7 @@
  */
 
 #include <csignal>
+#include <cerrno>
 
 #include "character.hpp"
 #include "config.hpp"
@@ -276,7 +277,6 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "ScriptsFile"        , "./data/scripts.txt");
 		eoserv_config_default(config, "ProtectMaps"        , false);
 		eoserv_config_default(config, "ScriptFileAccess"   , true);
-		eoserv_config_default(config, "ScriptLibCAccess"   , true);
 		eoserv_config_default(config, "ScriptMaxExecTime"  , 1500);
 		eoserv_config_default(config, "SLN"                , true);
 		eoserv_config_default(config, "SLNURL"             , "http://eoserv.net/SLN/");
