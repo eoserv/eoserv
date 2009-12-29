@@ -726,7 +726,7 @@ void NPC::Attack(Character *target)
 	int amount = util::rand(this->Data()->mindam, this->Data()->maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
 	double rand = util::rand(0.0, 1.0);
 	// Checks if target is facing you
-	bool critical = std::abs(target->direction - this->direction) != 2 || rand < static_cast<double>(this->map->world->config["CriticalRate"]);
+	bool critical = std::abs(int(target->direction) - this->direction) != 2 || rand < static_cast<double>(this->map->world->config["CriticalRate"]);
 
 	std::map<std::string, double> formula_vars;
 

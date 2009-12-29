@@ -118,6 +118,7 @@ CLIENT_F_FUNC(Chest)
 		case PACKET_OPEN: // Opening a chest
 		{
 			if (this->state < EOClient::Playing) return false;
+			CLIENT_QUEUE_ACTION(0.0)
 
 			int x = reader.GetChar();
 			int y = reader.GetChar();

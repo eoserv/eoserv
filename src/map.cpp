@@ -1268,7 +1268,7 @@ void Map::Attack(Character *from, Direction direction)
 				int amount = util::rand(from->mindam, from->maxdam);
 				double rand = util::rand(0.0, 1.0);
 				// Checks if target is facing you
-				bool critical = std::abs(npc->direction - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
+				bool critical = std::abs(int(npc->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
 				std::map<std::string, double> formula_vars;
 
@@ -1280,6 +1280,8 @@ void Map::Attack(Character *from, Direction direction)
 
 				amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
 				double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
+
+				printf("damage %i / %g > %g", amount, rand, hit_rate);
 
 				if (rand > hit_rate)
 				{
@@ -1351,7 +1353,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				int amount = util::rand(from->mindam, from->maxdam);
 				double rand = util::rand(0.0, 1.0);
 				// Checks if target is facing you
-				bool critical = std::abs(character_ptr->direction - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
+				bool critical = std::abs(int(character_ptr->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
 				std::map<std::string, double> formula_vars;
 

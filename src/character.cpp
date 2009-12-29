@@ -138,7 +138,7 @@ Character::Character(std::string name, World *world)
 	this->mapid = GetRow<int>(row, "map");
 	this->x = GetRow<int>(row, "x");
 	this->y = GetRow<int>(row, "y");
-	this->direction = GetRow<int>(row, "direction");
+	this->direction = static_cast<Direction>(GetRow<int>(row, "direction"));
 
 	this->spawnmap = GetRow<int>(row, "spawnmap");
 	this->spawnx = GetRow<int>(row, "spawnx");
@@ -183,6 +183,7 @@ Character::Character(std::string name, World *world)
 
 	this->shop_npc = 0;
 	this->bank_npc = 0;
+	this->barber_npc = 0;
 
 	this->next_arena = 0;
 	this->arena = 0;
@@ -640,6 +641,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 
 	this->shop_npc = 0;
 	this->bank_npc = 0;
+	this->barber_npc = 0;
 	this->jukebox_open = true;
 
 	this->warp_anim = animation;

@@ -17,6 +17,7 @@ CLIENT_F_FUNC(Jukebox)
 		case PACKET_OPEN: // Opened the jukebox listing
 		{
 			if (this->state < EOClient::PlayingModal) return false;
+			CLIENT_QUEUE_ACTION(0.0)
 
 			unsigned char x = reader.GetChar();
 			unsigned char y = reader.GetChar();

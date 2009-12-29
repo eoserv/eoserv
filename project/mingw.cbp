@@ -180,6 +180,7 @@
 		<Unit filename="..\src\handlers\AdminInteract.cpp" />
 		<Unit filename="..\src\handlers\Attack.cpp" />
 		<Unit filename="..\src\handlers\Bank.cpp" />
+		<Unit filename="..\src\handlers\Barber.cpp" />
 		<Unit filename="..\src\handlers\Board.cpp" />
 		<Unit filename="..\src\handlers\Book.cpp" />
 		<Unit filename="..\src\handlers\Chair.cpp" />

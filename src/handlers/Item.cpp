@@ -19,6 +19,7 @@ CLIENT_F_FUNC(Item)
 		case PACKET_USE: // Player using an item
 		{
 			if (this->state < EOClient::PlayingModal) return false;
+			CLIENT_QUEUE_ACTION(0.0)
 
 			int id = reader.GetShort();
 
@@ -161,6 +162,7 @@ CLIENT_F_FUNC(Item)
 		case PACKET_DROP: // Drop an item on the ground
 		{
 			if (this->state < EOClient::PlayingModal) return false;
+			CLIENT_QUEUE_ACTION(0.0)
 
 			int id = reader.GetShort();
 			int amount;
@@ -261,6 +263,7 @@ CLIENT_F_FUNC(Item)
 		case PACKET_GET: // Retrieve an item from the ground
 		{
 			if (this->state < EOClient::Playing) return false;
+			CLIENT_QUEUE_ACTION(0.0)
 
 			int uid = reader.GetShort();
 

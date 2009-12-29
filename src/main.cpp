@@ -369,6 +369,8 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "PKRate"             , 0.75);
 		eoserv_config_default(config, "CriticalRate"       , 0.08);
 		eoserv_config_default(config, "SpawnRate"          , 1.0);
+		eoserv_config_default(config, "BarberBase"         , 0);
+		eoserv_config_default(config, "BarberStep"         , 200);
 		eoserv_config_default(config, "BankUpgradeBase"    , 1000);
 		eoserv_config_default(config, "BankUpgradeStep"    , 1000);
 		eoserv_config_default(config, "JukeboxSongs"       , 20);

@@ -19,6 +19,7 @@ CLIENT_F_FUNC(Bank)
 		case PACKET_OPEN: // Talked to a banker NPC
 		{
 			if (this->state < EOClient::Playing) return false;
+			CLIENT_QUEUE_ACTION(0.0)
 
 			short id = reader.GetShort();
 

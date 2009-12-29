@@ -62,6 +62,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/handlers/AdminInteract.o \
        $(OBJDIR)/handlers/Attack.o \
        $(OBJDIR)/handlers/Bank.o \
+       $(OBJDIR)/handlers/Barber.o \
        $(OBJDIR)/handlers/Board.o \
        $(OBJDIR)/handlers/Book.o \
        $(OBJDIR)/handlers/Chair.o \

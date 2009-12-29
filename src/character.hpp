@@ -74,7 +74,8 @@ class Character : public Shared
 		Skin race;
 		unsigned char hairstyle, haircolor;
 		short mapid;
-		unsigned char x, y, direction;
+		unsigned char x, y;
+		Direction direction;
 		short spawnmap;
 		unsigned char spawnx, spawny;
 		unsigned char level;
@@ -110,6 +111,7 @@ class Character : public Shared
 
 		NPC *shop_npc;
 		NPC *bank_npc;
+		NPC *barber_npc;
 		bool jukebox_open;
 
 		WarpAnimation warp_anim;
@@ -208,7 +210,7 @@ class Character : public Shared
 		SCRIPT_REGISTER_VARIABLE("int16", mapid);
 		SCRIPT_REGISTER_VARIABLE("uint8", x);
 		SCRIPT_REGISTER_VARIABLE("uint8", y);
-		SCRIPT_REGISTER_VARIABLE("uint8", direction);
+		SCRIPT_REGISTER_VARIABLE("Direction", direction);
 		SCRIPT_REGISTER_VARIABLE("int16", spawnmap);
 		SCRIPT_REGISTER_VARIABLE("uint8", spawnx);
 		SCRIPT_REGISTER_VARIABLE("uint8", spawny);
@@ -252,6 +254,7 @@ class Character : public Shared
 		SCRIPT_REGISTER_VARIABLE("PartyRequestType", party_send_type);
 		SCRIPT_REGISTER_VARIABLE("NPC @", shop_npc);
 		SCRIPT_REGISTER_VARIABLE("NPC @", bank_npc);
+		SCRIPT_REGISTER_VARIABLE("NPC @", barber_npc);
 		SCRIPT_REGISTER_VARIABLE("bool", jukebox_open);
 		SCRIPT_REGISTER_VARIABLE("WarpAnimation", warp_anim);
 		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", inventory);

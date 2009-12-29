@@ -47,6 +47,7 @@ std::string PacketProcessor::GetFamilyName(PacketFamily family)
 		case PACKET_PING: return "Ping";
 		case PACKET_BANK: return "Bank";
 		case PACKET_LOCKER: return "Locker";
+		case PACKET_BARBER: return "Barber";
 		case PACKET_GUILD: return "Guild";
 		case PACKET_SIT: return "Sit";
 		case PACKET_BOARD: return "Board";

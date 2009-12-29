@@ -152,6 +152,7 @@ class EOClient : public Client
 		CLIENT_F_FUNC(Ping);
 		CLIENT_F_FUNC(Bank);
 		CLIENT_F_FUNC(Locker);
+		CLIENT_F_FUNC(Barber);
 		CLIENT_F_FUNC(Guild);
 		CLIENT_F_FUNC(Sit);
 		CLIENT_F_FUNC(Board);
