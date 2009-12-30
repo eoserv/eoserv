@@ -121,6 +121,7 @@ CLIENT_F_FUNC(Item)
 						reply.AddInt(this->player->character->HasItem(id));
 						reply.AddChar(this->player->character->weight);
 						reply.AddChar(this->player->character->maxweight);
+
 						reply.AddChar(item->haircolor);
 
 						PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE);
@@ -147,6 +148,128 @@ CLIENT_F_FUNC(Item)
 						reply.AddInt(this->player->character->HasItem(id));
 						reply.AddChar(this->player->character->weight);
 						reply.AddChar(this->player->character->maxweight);
+
+						PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE);
+						builder.AddShort(this->player->id);
+						builder.AddChar(SLOT_HAIRCOLOR);
+						builder.AddChar(0); // subloc
+						builder.AddChar(item->haircolor);
+
+						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+						{
+							if (*character != this->player->character && this->player->character->InRange(*character))
+							{
+								character->player->client->SendBuilder(builder);
+							}
+						}
+					}
+					break;
+
+					case EIF::EffectPotion:
+					{
+						this->player->character->DelItem(id, 1);
+						reply.AddInt(this->player->character->HasItem(id));
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
+						reply.AddShort(item->effect);
+
+						this->player->character->Effect(item->effect, false);
+
+						CLIENT_SEND(reply);
+					}
+					break;
+
+					case EIF::CureCurse:
+					{
+						for (std::size_t i = 0; i < this->player->character->paperdoll.size(); ++i)
+						{
+							if (this->server->world->eif->Get(this->player->character->paperdoll[i])->special == EIF::Cursed)
+							{
+								this->player->character->paperdoll[i] = 0;
+							}
+						}
+
+						this->player->character->CalculateStats();
+
+						this->player->character->DelItem(id, 1);
+						reply.AddInt(this->player->character->HasItem(id));
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
+
+						reply.AddShort(this->player->character->maxhp);
+						reply.AddShort(this->player->character->maxtp);
+						reply.AddShort(this->player->character->str);
+						reply.AddShort(this->player->character->intl);
+						reply.AddShort(this->player->character->wis);
+						reply.AddShort(this->player->character->agi);
+						reply.AddShort(this->player->character->con);
+						reply.AddShort(this->player->character->cha);
+						reply.AddShort(this->player->character->mindam);
+						reply.AddShort(this->player->character->maxdam);
+						reply.AddShort(this->player->character->accuracy);
+						reply.AddShort(this->player->character->evade);
+						reply.AddShort(this->player->character->armor);
+
+						PacketBuilder builder;
+						builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
+						builder.AddShort(this->player->id);
+						builder.AddChar(SLOT_CLOTHES);
+						builder.AddChar(0);
+						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
+						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
+						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
+						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
+						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
+
+						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+						{
+							if (*character != this->player->character && this->player->character->InRange(*character))
+							{
+								character->player->client->SendBuilder(builder);
+							}
+						}
+
+						CLIENT_SEND(reply);
+					}
+					break;
+
+					case EIF::EXPReward:
+					{
+						bool level_up = false;
+
+						this->player->character->exp += item->expreward;
+
+						this->player->character->exp = std::min(this->player->character->exp, static_cast<int>(this->player->character->map->world->config["MaxExp"]));
+
+						while (this->player->character->level < static_cast<int>(this->player->character->map->world->config["MaxLevel"])
+						 && this->player->character->exp >= this->player->character->map->world->exp_table[this->player->character->level+1])
+						{
+							level_up = true;
+							++this->player->character->level;
+							this->player->character->statpoints += static_cast<int>(this->player->character->map->world->config["StatPerLevel"]);
+							this->player->character->skillpoints += static_cast<int>(this->player->character->map->world->config["SkillPerLevel"]);
+							this->player->character->CalculateStats();
+						}
+
+						this->player->character->DelItem(id, 1);
+						reply.AddInt(this->player->character->HasItem(id));
+						reply.AddChar(this->player->character->weight);
+						reply.AddChar(this->player->character->maxweight);
+
+						reply.AddInt(this->player->character->exp);
+
+						reply.AddChar(level_up ? this->player->character->level : 0);
+						reply.AddShort(this->player->character->statpoints);
+						reply.AddShort(this->player->character->skillpoints);
+						reply.AddShort(this->player->character->maxhp);
+						reply.AddShort(this->player->character->maxtp);
+						reply.AddShort(this->player->character->maxsp);
+
+						if (level_up)
+						{
+							// TODO: Something better than this
+							this->player->character->Emote(EMOTE_LEVELUP, false);
+						}
 
 						CLIENT_SEND(reply);
 					}

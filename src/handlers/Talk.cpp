@@ -401,7 +401,7 @@ CLIENT_F_FUNC(Talk)
 			message = reader.GetEndString(); // message
 			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
 
-			this->server->world->AdminMsg(this->player->character, message);
+			this->server->world->AdminMsg(this->player->character, message, ADMIN_GUARDIAN, false);
 		}
 		break;
 

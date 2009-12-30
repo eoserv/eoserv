@@ -290,6 +290,25 @@ void Character::Emote(enum Emote emote, bool echo)
 	this->map->Emote(this, emote, echo);
 }
 
+void Character::Effect(int effect, bool echo)
+{
+	PacketBuilder builder;
+
+	builder.SetID(PACKET_EFFECT, PACKET_PLAYER);
+	builder.AddShort(this->player->id);
+	builder.AddThree(effect);
+
+	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	{
+		if (!echo && (*character == this || !this->InRange(*character)))
+		{
+			continue;
+		}
+
+		character->player->client->SendBuilder(builder);
+	}
+}
+
 int Character::HasItem(short item)
 {
 	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, it)

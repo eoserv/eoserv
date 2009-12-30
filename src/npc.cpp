@@ -158,7 +158,6 @@ void NPC::LoadShopDrop()
 					ingredient->id = util::to_int(parts[i+1+ii*2]);
 					ingredient->amount = util::to_int(parts[i+2+ii*2]);
 					ingredients[ii] = ingredient;
-					ingredient->Release();
 				}
 
 				item->ingredients = ingredients;

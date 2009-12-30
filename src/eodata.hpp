@@ -42,12 +42,7 @@ class EIF : public Shared
 			Beer,
 			EffectPotion,
 			HairDye,
-			OtherPotion,
-			CureCurse,
-			UnknownType3,
-			UnknownType4,
-			UnknownType5,
-			UnknownType6
+			CureCurse
 		};
 
 		enum SubType
@@ -134,12 +129,7 @@ class EIF : public Shared
 			SCRIPT_REGISTER_ENUM_VALUE(Beer);
 			SCRIPT_REGISTER_ENUM_VALUE(EffectPotion);
 			SCRIPT_REGISTER_ENUM_VALUE(HairDye);
-			SCRIPT_REGISTER_ENUM_VALUE(OtherPotion);
 			SCRIPT_REGISTER_ENUM_VALUE(CureCurse);
-			SCRIPT_REGISTER_ENUM_VALUE(UnknownType3);
-			SCRIPT_REGISTER_ENUM_VALUE(UnknownType4);
-			SCRIPT_REGISTER_ENUM_VALUE(UnknownType5);
-			SCRIPT_REGISTER_ENUM_VALUE(UnknownType6);
 		SCRIPT_REGISTER_ENUM_END()
 
 		SCRIPT_REGISTER_ENUM("EIF_SubType")
@@ -218,6 +208,7 @@ struct EIF_Data : public Shared
 		int dollgraphic;
 		int expreward;
 		int haircolor;
+		int effect;
 	};
 
 	union
@@ -281,6 +272,7 @@ struct EIF_Data : public Shared
 		SCRIPT_REGISTER_VARIABLE("int", dollgraphic);
 		SCRIPT_REGISTER_VARIABLE("int", expreward);
 		SCRIPT_REGISTER_VARIABLE("int", haircolor);
+		SCRIPT_REGISTER_VARIABLE("int", effect);
 		SCRIPT_REGISTER_VARIABLE("uint8", gender);
 		SCRIPT_REGISTER_VARIABLE("uint8", scrollx);
 		SCRIPT_REGISTER_VARIABLE("uint8", scrolly);
