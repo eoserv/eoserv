@@ -184,6 +184,8 @@ Character::Character(std::string name, World *world)
 	this->shop_npc = 0;
 	this->bank_npc = 0;
 	this->barber_npc = 0;
+	this->board = 0;
+	this->jukebox_open = false;
 
 	this->next_arena = 0;
 	this->arena = 0;
@@ -214,8 +216,6 @@ Character::Character(std::string name, World *world)
 	this->guild_rank = static_cast<int>(row["guild_rank"]);
 	this->party = 0;
 	this->map = this->world->GetMap(0);
-
-	this->jukebox_open = false;
 }
 
 bool Character::ValidName(std::string name)
@@ -661,7 +661,8 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	this->shop_npc = 0;
 	this->bank_npc = 0;
 	this->barber_npc = 0;
-	this->jukebox_open = true;
+	this->board = 0;
+	this->jukebox_open = false;
 
 	this->warp_anim = animation;
 	this->nowhere = false;
@@ -780,21 +781,21 @@ void Character::Refresh()
 	this->player->client->SendBuilder(builder);
 }
 
-void Character::ShowBoard(int boardid)
+void Character::ShowBoard(Board *board)
 {
-	if (static_cast<std::size_t>(boardid) > this->world->boards.size())
+	if (!board)
 	{
-		return;
+		board = this->board;
 	}
 
 	PacketBuilder builder(PACKET_BOARD, PACKET_OPEN);
-	builder.AddChar(boardid);
-	builder.AddChar(this->world->boards[boardid]->posts.size());
+	builder.AddChar(board->id + 1);
+	builder.AddChar(board->posts.size());
 
 	int post_count = 0;
 	int recent_post_count = 0;
 
-	UTIL_PTR_LIST_FOREACH(this->world->boards[boardid]->posts, Board_Post, post)
+	UTIL_PTR_LIST_FOREACH(board->posts, Board_Post, post)
 	{
 		if (post->author == this->player->character->name)
 		{
@@ -809,7 +810,7 @@ void Character::ShowBoard(int boardid)
 
 	int posts_remaining = std::min(static_cast<int>(this->world->config["BoardMaxUserPosts"]) - post_count, static_cast<int>(this->world->config["BoardMaxUserRecentPosts"]) - recent_post_count);
 
-	UTIL_PTR_LIST_FOREACH(this->world->boards[boardid]->posts, Board_Post, post)
+	UTIL_PTR_LIST_FOREACH(board->posts, Board_Post, post)
 	{
 		builder.AddShort(post->id);
 		builder.AddByte(255);

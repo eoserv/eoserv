@@ -90,6 +90,21 @@ void map_spawn_chests(void *map_void)
 	}
 }
 
+struct map_close_door_struct : public Shared
+{
+	Map *map;
+	unsigned char x, y;
+};
+
+void map_close_door(void *map_close_door_struct_void)
+{
+	map_close_door_struct *close(static_cast<map_close_door_struct *>(map_close_door_struct_void));
+
+	close->map->CloseDoor(close->x, close->y);
+
+	close->Release();
+}
+
 int Map_Chest::AddItem(short item, int amount, int slot)
 {
 	if (amount <= 0)
@@ -727,7 +742,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	Map_Warp *warp;
 	if (!admin && (warp = this->GetWarp(target_x, target_y)))
 	{
-		if (from->level >= warp->levelreq)
+		if (from->level >= warp->levelreq && (warp->spec == Map_Warp::NoDoor || warp->open))
 		{
 			from->Warp(warp->map, warp->x, warp->y);
 		}
@@ -1281,8 +1296,6 @@ void Map::Attack(Character *from, Direction direction)
 				amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
 				double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
 
-				printf("damage %i / %g > %g", amount, rand, hit_rate);
-
 				if (rand > hit_rate)
 				{
 					amount = 0;
@@ -1569,13 +1582,18 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 
 	if (Map_Warp *warp = this->GetWarp(x, y))
 	{
-		if (warp->spec == Map_Warp::NoDoor/* || warp->open*/)
+		if (warp->spec == Map_Warp::NoDoor || warp->open)
 		{
 			return false;
 		}
 
-		// TODO: Check for keys
-		// TODO: Check for open/closed doors
+		if (from && warp->spec > Map_Warp::Door)
+		{
+			if (!from->HasItem(this->world->eif->GetKey(warp->spec - static_cast<int>(Map_Warp::Door))))
+			{
+				return false;
+			}
+		}
 
 		PacketBuilder builder;
 		builder.SetID(PACKET_DOOR, PACKET_OPEN);
@@ -1590,11 +1608,34 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 			}
 		}
 
-		/*warp->open = true;*/
+		warp->open = true;
+
+		map_close_door_struct *close = new map_close_door_struct;
+		close->map = this;
+		close->x = x;
+		close->y = y;
+
+		TimeEvent *event = new TimeEvent(map_close_door, close, this->world->config["DoorTimer"], 1); // TODO: Make this a config variable
+		this->world->timer.Register(event);
+		event->Release();
+
 		return true;
 	}
 
 	return false;
+}
+
+void Map::CloseDoor(unsigned char x, unsigned char y)
+{
+	if (Map_Warp *warp = this->GetWarp(x, y))
+	{
+		if (warp->spec == Map_Warp::NoDoor || !warp->open)
+		{
+			return;
+		}
+
+		warp->open = false;
+	}
 }
 
 Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from)

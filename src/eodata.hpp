@@ -99,6 +99,7 @@ class EIF : public Shared
 		void Read(std::string filename);
 
 		EIF_Data *Get(unsigned int id);
+		unsigned int GetKey(int keynum);
 
 	static EIF *ScriptFactory(std::string filename) { return new EIF(filename); }
 
@@ -165,6 +166,7 @@ class EIF : public Shared
 		SCRIPT_REGISTER_FUNCTION("void Read(string filename)", Read);
 
 		SCRIPT_REGISTER_FUNCTION("EIF_Data @Get(uint)", Get);
+		SCRIPT_REGISTER_FUNCTION("uint GetKey(int)", GetKey);
 	SCRIPT_REGISTER_END()
 };
 

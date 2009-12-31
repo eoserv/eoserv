@@ -35,12 +35,17 @@ struct Board_Post : public Shared
 
 struct Board : public Shared
 {
+	int id;
 	short last_id;
 	PtrList<Board_Post> posts;
 
-	Board() : last_id(0) { }
+	Board(int id_) : id(id_), last_id(0) { }
 
-	SCRIPT_REGISTER_REF_DF(Board)
+	static Board *ScriptFactory(int id) { return new Board(id); }
+
+	SCRIPT_REGISTER_REF(Board)
+		SCRIPT_REGISTER_FACTORY("Board @f(int id)", ScriptFactory);
+
 		SCRIPT_REGISTER_VARIABLE("int16", last_id);
 		SCRIPT_REGISTER_VARIABLE("PtrList<Board_Post>", posts);
 	SCRIPT_REGISTER_END()

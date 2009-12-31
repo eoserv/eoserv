@@ -52,7 +52,8 @@ CLIENT_F_FUNC(Walk)
 					this->player->character->shop_npc = 0;
 					this->player->character->bank_npc = 0;
 					this->player->character->barber_npc = 0;
-					this->player->character->jukebox_open = true;
+					this->player->character->board = 0;
+					this->player->character->jukebox_open = false;
 					if (!this->player->character->Walk(direction))
 					{
 						return true;

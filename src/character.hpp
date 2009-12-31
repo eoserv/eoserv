@@ -112,6 +112,7 @@ class Character : public Shared
 		NPC *shop_npc;
 		NPC *bank_npc;
 		NPC *barber_npc;
+		Board *board;
 		bool jukebox_open;
 
 		WarpAnimation warp_anim;
@@ -168,7 +169,7 @@ class Character : public Shared
 		bool InRange(Map_Item *);
 		void Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation = WARP_ANIMATION_NONE);
 		void Refresh();
-		void ShowBoard(int boardid);
+		void ShowBoard(Board *board = 0);
 		std::string PaddedGuildTag();
 		int Usage();
 		void CalculateStats();
@@ -256,6 +257,7 @@ class Character : public Shared
 		SCRIPT_REGISTER_VARIABLE("NPC @", shop_npc);
 		SCRIPT_REGISTER_VARIABLE("NPC @", bank_npc);
 		SCRIPT_REGISTER_VARIABLE("NPC @", barber_npc);
+		SCRIPT_REGISTER_VARIABLE("Board @", board);
 		SCRIPT_REGISTER_VARIABLE("bool", jukebox_open);
 		SCRIPT_REGISTER_VARIABLE("WarpAnimation", warp_anim);
 		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", inventory);
@@ -292,7 +294,7 @@ class Character : public Shared
 		SCRIPT_REGISTER_FUNCTION_PR("bool InRange(Map_Item @)", InRange, (Map_Item *), bool);
 		SCRIPT_REGISTER_FUNCTION("void Warp(int16 map, uint8 x, uint8 y, WarpAnimation animation)", Warp);
 		SCRIPT_REGISTER_FUNCTION("void Refresh()", Refresh);
-		SCRIPT_REGISTER_FUNCTION("void ShowBoard(int boardid)", ShowBoard);
+		SCRIPT_REGISTER_FUNCTION("void ShowBoard(Board @)", ShowBoard);
 		SCRIPT_REGISTER_FUNCTION("string PaddedGuildTag()", PaddedGuildTag);
 		SCRIPT_REGISTER_FUNCTION("int Usage()", Usage);
 		SCRIPT_REGISTER_FUNCTION("void CalculateStats()", CalculateStats);

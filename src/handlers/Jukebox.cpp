@@ -16,7 +16,7 @@ CLIENT_F_FUNC(Jukebox)
 	{
 		case PACKET_OPEN: // Opened the jukebox listing
 		{
-			if (this->state < EOClient::PlayingModal) return false;
+			if (this->state < EOClient::Playing) return false;
 			CLIENT_QUEUE_ACTION(0.0)
 
 			unsigned char x = reader.GetChar();
@@ -44,7 +44,7 @@ CLIENT_F_FUNC(Jukebox)
 
 		case PACKET_MSG: // Requested a song
 		{
-			if (this->state < EOClient::PlayingModal) return false;
+			if (this->state < EOClient::Playing) return false;
 
 			reader.GetChar();
 			reader.GetChar();

@@ -376,6 +376,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "JukeboxSongs"       , 20);
 		eoserv_config_default(config, "JukeboxPrice"       , 25);
 		eoserv_config_default(config, "JukeboxTimer"       , 90);
+		eoserv_config_default(config, "DoorTimer"          , 3.0);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
 		eoserv_config_default(config, "MaxItem"            , 10000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);

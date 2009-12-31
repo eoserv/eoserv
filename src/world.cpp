@@ -222,7 +222,7 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 
 	for (std::size_t i = 0; i < this->boards.size(); ++i)
 	{
-		this->boards[i] = new Board;
+		this->boards[i] = new Board(i);
 	}
 
 	this->hookmanager = new HookManager(this->config["ScriptDir"]);

@@ -162,6 +162,7 @@ struct Map_Tile : public Shared
 			case Board5:
 			case Board6:
 			case Board7:
+			case Board8:
 			case Jukebox:
 				return false;
 			case NPCBoundary:
@@ -338,6 +339,7 @@ class Map : public Shared
 		void Stand(Character *from);
 		void Emote(Character *from, enum Emote emote, bool echo = true);
 		bool OpenDoor(Character *from, unsigned char x, unsigned char y);
+		void CloseDoor(unsigned char x, unsigned char y);
 
 		bool Walk(NPC *from, Direction direction);
 
@@ -413,6 +415,7 @@ class Map : public Shared
 		SCRIPT_REGISTER_FUNCTION("void Stand(Character @from)", Stand);
 		SCRIPT_REGISTER_FUNCTION("void Emote(Character @from, Emote emote, bool echo)", Emote);
 		SCRIPT_REGISTER_FUNCTION("bool OpenDoor(Character @from, uint8 x, uint8 y)", OpenDoor);
+		SCRIPT_REGISTER_FUNCTION("void CloseDoor(uint8 x, uint8 y)", CloseDoor);
 		SCRIPT_REGISTER_FUNCTION_PR("bool Walk(NPC @from, Direction direction)", Walk, (NPC *, Direction), bool);
 		SCRIPT_REGISTER_FUNCTION("Map_Item @AddItem(int16 id, int amount, uint8 x, uint8 y, Character @from)", AddItem);
 		SCRIPT_REGISTER_FUNCTION("void GetItem(int16 uid)", GetItem);

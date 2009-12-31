@@ -59,6 +59,12 @@ CLIENT_F_FUNC(Trade)
 				builder.AddShort(this->player->character->id);
 				builder.AddBreakString(this->player->character->name);
 				CLIENT_SEND(builder);
+
+				builder.Reset();
+				builder.AddShort(this->player->character->id);
+				builder.AddBreakString(this->player->character->name);
+				builder.AddShort(victim->id);
+				builder.AddBreakString(victim->name);
 				victim->player->client->SendBuilder(builder);
 
 				this->player->character->trade_partner = victim;

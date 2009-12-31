@@ -140,6 +140,26 @@ EIF_Data *EIF::Get(unsigned int id)
 	}
 }
 
+unsigned int EIF::GetKey(int keynum)
+{
+	int keycount = 0;
+
+	for (std::size_t i = 0; i < this->data.size(); ++i)
+	{
+		if (this->Get(i)->type == EIF::Key)
+		{
+			if (keycount == keynum)
+			{
+				return i;
+			}
+
+			++keycount;
+		}
+	}
+
+	return 0;
+}
+
 void ENF::Read(std::string filename)
 {
 	this->data.clear();
