@@ -664,6 +664,8 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 
 void Map::Msg(Character *from, std::string message, bool echo)
 {
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
+
 	PacketBuilder builder;
 
 	builder.SetID(PACKET_TALK, PACKET_PLAYER);
@@ -775,6 +777,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	PtrVector<Character> newchars;
 	PtrVector<Character> oldchars;
 	PtrVector<NPC> newnpcs;
+	PtrVector<NPC> oldnpcs;
 	PtrVector<Map_Item> newitems;
 
 	switch (direction)
@@ -862,7 +865,11 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 		for (std::size_t i = 0; i < oldcoords.size(); ++i)
 		{
-			if (checknpc->x == newcoords[i].first && checknpc->y == newcoords[i].second)
+			if (checknpc->x == oldcoords[i].first && checknpc->y == oldcoords[i].second)
+			{
+				oldnpcs.push_back(*checknpc);
+			}
+			else if (checknpc->x == newcoords[i].first && checknpc->y == newcoords[i].second)
 			{
 				newnpcs.push_back(*checknpc);
 			}
@@ -1018,7 +1025,10 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		from->player->client->SendBuilder(builder);
 	}
 
-	// TODO: Find some way to delete NPCs from the client view
+	UTIL_PTR_VECTOR_FOREACH(oldnpcs, NPC, npc)
+	{
+		npc->RemoveFromView(from);
+	}
 
 	return true;
 }
@@ -1092,8 +1102,6 @@ bool Map::Walk(NPC *from, Direction direction)
 
 	PtrVector<Character> newchars;
 	PtrVector<Character> oldchars;
-	PtrVector<NPC> newnpcs;
-	PtrVector<Map_Item> newitems;
 
 	switch (direction)
 	{
@@ -1201,6 +1209,11 @@ bool Map::Walk(NPC *from, Direction direction)
 		}
 
 		character->player->client->SendBuilder(builder);
+	}
+
+	UTIL_PTR_VECTOR_FOREACH(oldchars, Character, character)
+	{
+		from->RemoveFromView(*character);
 	}
 
 	return true;

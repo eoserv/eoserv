@@ -25,5 +25,6 @@
 #define CLIENT_SENDRAW(REPLY) this->Send(REPLY)
 #define CLIENT_SEND(REPLY) this->Send(this->processor.Encode(REPLY))
 #define CLIENT_QUEUE_ACTION(time) if (!act) { this->queue.AddAction(family, action, reader, time); return true; }
+#define CLIENT_FORCE_QUEUE_ACTION(time) { this->queue.AddAction(family, action, reader, time); return true; }
 
 #endif // HANDLERS_H_INCLUDED

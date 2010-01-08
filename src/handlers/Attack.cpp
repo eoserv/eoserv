@@ -6,6 +6,8 @@
 
 #include "handlers.h"
 
+#include "map.hpp"
+
 CLIENT_F_FUNC(Attack)
 {
 	PacketBuilder reply;
@@ -25,10 +27,20 @@ CLIENT_F_FUNC(Attack)
 				return true;
 			}
 
-			if (direction >= 0 && direction <= 3)
+			if (direction != this->player->character->direction)
 			{
-				this->player->character->Attack(direction);
+				if (direction >= 0 && direction <= 3)
+				{
+					this->player->character->map->Face(this->player->character, direction);
+					CLIENT_FORCE_QUEUE_ACTION(0.67)
+				}
+				else
+				{
+					return false;
+				}
 			}
+
+			this->player->character->Attack(direction);
 		}
 		break;
 

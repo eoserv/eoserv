@@ -36,7 +36,7 @@ namespace util
 				for (type as = *util_start; util_i < 1; ++util_i) \
 					for(iterator util_iter = util_start; util_iter != util_end; as = (++util_iter == util_end)?*util_start:*util_iter)
 
-#define UTIL_IFOREACH_GENERIC(iterator, start, end, type, as) \
+#define UTIL_IFOREACH_GENERIC(iterator, start, end, as) \
 	for (int util_i = 0; util_i < 1; ++util_i) \
 		for (iterator util_start = start; util_i < 1; ++util_i) \
 			for (iterator util_end = end; util_i < 1; ++util_i) \
@@ -49,7 +49,14 @@ namespace util
 				for (type as = *util_start; util_i < 1; ++util_i) \
 					for(iterator,iterator2 util_iter = util_start; util_iter != util_end; as = (++util_iter == util_end)?*util_start:*util_iter)
 
-#define UTIL_IFOREACH_GENERIC2(iterator, iterator2, start, end, type, as) \
+#define UTIL_FOREACH_GENERIC22(iterator, iterator2, start, end, type, type2, as) \
+	for (int util_i = 0; util_i < 1; ++util_i) \
+		for (iterator,iterator2 util_start = start; util_i < 1; ++util_i) \
+			for (iterator,iterator2 util_end = end; util_i < 1; ++util_i) \
+				for (type, type2 as = *util_start; util_i < 1; ++util_i) \
+					for(iterator,iterator2 util_iter = util_start; util_iter != util_end; as = (++util_iter == util_end)?*util_start:*util_iter)
+
+#define UTIL_IFOREACH_GENERIC2(iterator, iterator2, start, end, as) \
 	for (int util_i = 0; util_i < 1; ++util_i) \
 		for (iterator,iterator2 util_start = start; util_i < 1; ++util_i) \
 			for (iterator,iterator2 util_end = end; util_i < 1; ++util_i) \
@@ -58,22 +65,22 @@ namespace util
 #define UTIL_ARRAY_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(util::array<type, type2 >::iterator, start, end, type, as)
 #define UTIL_DEQUE_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::deque<type >::iterator, start, end, type, as)
 #define UTIL_LIST_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::list<type >::iterator, start, end, type, as)
-#define UTIL_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(std::map<type, type2>::iterator, start, end, type, as)
+#define UTIL_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC22(std::map<type, type2 >::iterator, start, end, std::pair<type, type2 >, as)
 #define UTIL_MULTIMAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(std::multimap<type >::iterator, start, end, type, as)
 #define UTIL_SET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::set<type >::iterator, start, end, type, as)
 #define UTIL_MULTISET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::multiset<type >::iterator, start, end, type, as)
 #define UTIL_STACK_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::stack<type >::iterator, start, end, type, as)
 #define UTIL_VECTOR_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::vector<type >::iterator, start, end, type, as)
 
-#define UTIL_ARRAY_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(util::array<type, type2 >::iterator, start, end, type, as)
-#define UTIL_DEQUE_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::deque<type >::iterator, start, end, type, as)
-#define UTIL_LIST_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::list<type >::iterator, start, end, type, as)
-#define UTIL_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(std::map<type, type2 >::iterator, start, end, type, as)
-#define UTIL_MULTIMAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(std::multimap<type, type2 >::iterator, start, end, type, as)
-#define UTIL_SET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::set<type >::iterator, start, end, type, as)
-#define UTIL_MULTISET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::multiset<type >::iterator, start, end, type, as)
-#define UTIL_STACK_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::stack<type >::iterator, start, end, type, as)
-#define UTIL_VECTOR_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::vector<type >::iterator, start, end, type, as)
+#define UTIL_ARRAY_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(util::array<type, type2 >::iterator, start, end, as)
+#define UTIL_DEQUE_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::deque<type >::iterator, start, end, as)
+#define UTIL_LIST_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::list<type >::iterator, start, end, as)
+#define UTIL_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(std::map<type, type2 >::iterator, start, end, as)
+#define UTIL_MULTIMAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(std::multimap<type, type2 >::iterator, start, end, as)
+#define UTIL_SET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::set<type >::iterator, start, end, as)
+#define UTIL_MULTISET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::multiset<type >::iterator, start, end, as)
+#define UTIL_STACK_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::stack<type >::iterator, start, end, as)
+#define UTIL_VECTOR_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::vector<type >::iterator, start, end, as)
 
 #define UTIL_ARRAY_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_ARRAY_FOREACH(container.begin(), container.end(), type, type2, as)
 #define UTIL_DEQUE_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_DEQUE_FOREACH(container.begin(), container.end() type, as)
@@ -98,22 +105,22 @@ namespace util
 #define UTIL_TPL_ARRAY_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(class util::array<type, type2 >::iterator, start, end, type, as)
 #define UTIL_TPL_DEQUE_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::deque<type >::iterator, start, end, type, as)
 #define UTIL_TPL_LIST_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::list<type >::iterator, start, end, type, as)
-#define UTIL_TPL_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(class std::map<type >::iterator, start, end, type, as)
+#define UTIL_TPL_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC22(class std::map<type >::iterator, start, end, std::pair<type, type2 >, as)
 #define UTIL_TPL_MULTIMAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(class std::multimap<type >::iterator, start, end, type, as)
 #define UTIL_TPL_SET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::set<type >::iterator, start, end, type, as)
 #define UTIL_TPL_MULTISET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::multiset<type >::iterator, start, end, type, as)
 #define UTIL_TPL_STACK_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::stack<type >::iterator, start, end, type, as)
 #define UTIL_TPL_VECTOR_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::vector<type >::iterator, start, end, type, as)
 
-#define UTIL_TPL_ARRAY_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class util::array<type, type2 >::iterator, start, end, type, as)
-#define UTIL_TPL_DEQUE_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::deque<type >::iterator, start, end, type, as)
-#define UTIL_TPL_LIST_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::list<type >::iterator, start, end, type, as)
-#define UTIL_TPL_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class std::map<type, type2 >::iterator, start, end, type, as)
-#define UTIL_TPL_MULTIMAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class std::multimap<type, type2 >::iterator, start, end, type, as)
-#define UTIL_TPL_SET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::set<type >::iterator, start, end, type, as)
-#define UTIL_TPL_MULTISET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::multiset<type >::iterator, start, end, type, as)
-#define UTIL_TPL_STACK_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::stack<type >::iterator, start, end, type, as)
-#define UTIL_TPL_VECTOR_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::vector<type >::iterator, start, end, type, as)
+#define UTIL_TPL_ARRAY_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class util::array<type, type2 >::iterator, start, end, as)
+#define UTIL_TPL_DEQUE_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::deque<type >::iterator, start, end, as)
+#define UTIL_TPL_LIST_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::list<type >::iterator, start, end, as)
+#define UTIL_TPL_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class std::map<type, type2 >::iterator, start, end, as)
+#define UTIL_TPL_MULTIMAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class std::multimap<type, type2 >::iterator, start, end, as)
+#define UTIL_TPL_SET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::set<type >::iterator, start, end, as)
+#define UTIL_TPL_MULTISET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::multiset<type >::iterator, start, end, as)
+#define UTIL_TPL_STACK_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::stack<type >::iterator, start, end, as)
+#define UTIL_TPL_VECTOR_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::vector<type >::iterator, start, end, as)
 
 #define UTIL_TPL_ARRAY_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_ARRAY_FOREACH(container.begin(), container.end(), type, type2, as)
 #define UTIL_TPL_DEQUE_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_DEQUE_FOREACH(container.begin(), container.end() type, as)
@@ -596,9 +603,14 @@ double rand(double min, double max);
 
 double round(double);
 
+std::string timeago(double time, double current_time);
+
 void sleep(double seconds);
 
-std::string timeago(double time, double current_time);
+int text_width(std::string string);
+int text_max_word_width(std::string string);
+std::string text_cap(std::string string, int width, std::string elipses = "[...]");
+std::string text_word_wrap(std::string string, int width);
 
 /**
  * Finds the distance IN TILES between a pair of x,y coordinates
@@ -627,6 +639,10 @@ inline void ScriptRegister(ScriptEngine &engine)
 	SCRIPT_REGISTER_GLOBAL_FUNCTION("void sleep(double seconds)", sleep);
 	SCRIPT_REGISTER_GLOBAL_FUNCTION("string timeago(double time, double current_time)", timeago);
 	SCRIPT_REGISTER_GLOBAL_FUNCTION("int path_length(int x1, int x2, int y1, int y2)", path_length);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("int text_width(string)", text_width);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("int text_max_word_width(string)", text_max_word_width);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string text_cap(string, int width, string elipses)", text_cap);
+	SCRIPT_REGISTER_GLOBAL_FUNCTION("string text_word_wrap(string, int width)", text_word_wrap);
 }
 
 }

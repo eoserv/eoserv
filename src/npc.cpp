@@ -173,8 +173,21 @@ ENF_Data *NPC::Data()
 	return this->map->world->enf->Get(id);
 }
 
-void NPC::Spawn()
+void NPC::Spawn(NPC *parent)
 {
+	if (this->Data()->boss && !parent)
+	{
+		UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
+		{
+			if (npc->Data()->child)
+			{
+				npc->Spawn(*npc);
+			}
+		}
+	}
+
+	this->parent = parent;
+
 	if (this->spawn_type < 7)
 	{
 		bool found = false;
@@ -248,6 +261,19 @@ void NPC::Spawn()
 
 void NPC::Act()
 {
+	// Needed for the server startup spawn to work properly
+	if (this->Data()->child && !this->parent)
+	{
+		UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
+		{
+			if (npc->Data()->boss)
+			{
+				this->parent = *npc;
+				break;
+			}
+		}
+	}
+
 	this->last_act += double(util::rand(int(this->act_speed * 750.0), int(this->act_speed * 1250.0))) / 1000.0;
 
 	if (this->spawn_type == 7)
@@ -273,6 +299,26 @@ void NPC::Act()
 			attacker = opponent->attacker;
 			attacker_damage = opponent->damage;
 			attacker_distance = distance;
+		}
+	}
+
+	if (this->parent)
+	{
+		UTIL_PTR_LIST_FOREACH(this->parent->damagelist, NPC_Opponent, opponent)
+		{
+			if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
+			{
+				continue;
+			}
+
+			int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, parent->x, parent->y);
+
+			if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
+			{
+				attacker = opponent->attacker;
+				attacker_damage = opponent->damage;
+				attacker_distance = distance;
+			}
 		}
 	}
 
@@ -713,9 +759,64 @@ void NPC::Damage(Character *from, int amount)
 		this->damagelist.clear();
 		this->totaldamage = 0;
 
+		if (this->Data()->boss)
+		{
+			UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
+			{
+				if (npc->Data()->child && !npc->Data()->boss)
+				{
+					npc->Die();
+				}
+			}
+		}
+
 		if (this->temporary)
 		{
 			erase_first(this->map->npcs, this);
+		}
+	}
+}
+
+void NPC::RemoveFromView(Character *target)
+{
+	PacketBuilder builder(PACKET_NPC, PACKET_SPEC);
+	builder.AddShort(0); // killer pid
+	builder.AddChar(0); // killer direction
+	builder.AddShort(this->index);
+/*
+	builder.AddShort(0); // dropped item uid
+	builder.AddShort(0); // dropped item id
+	builder.AddChar(this->x);
+	builder.AddChar(this->y);
+	builder.AddInt(0); // dropped item amount
+	builder.AddThree(0); // damage
+*/
+
+	target->player->client->SendBuilder(builder);
+}
+
+void NPC::Die()
+{
+	this->alive = false;
+	this->dead_since = int(Timer::GetTime());
+
+	PacketBuilder builder(PACKET_NPC, PACKET_SPEC);
+	builder.AddShort(0); // killer pid
+	builder.AddChar(0); // killer direction
+	builder.AddShort(this->index);
+/*
+	builder.AddShort(0); // dropped item uid
+	builder.AddShort(0); // dropped item id
+	builder.AddChar(this->x);
+	builder.AddChar(this->y);
+	builder.AddInt(0); // dropped item amount
+	builder.AddThree(0); // damage
+*/
+	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	{
+		if (character->InRange(this))
+		{
+			character->player->client->SendBuilder(builder);
 		}
 	}
 }
@@ -861,5 +962,12 @@ void NPC::FormulaVars(std::map<std::string, double> &vars, std::string prefix)
 
 NPC::~NPC()
 {
-
+	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	{
+		if (character->npc == this)
+		{
+			character->npc = 0;
+			character->npc_type = ENF::NPC;
+		}
+	}
 }

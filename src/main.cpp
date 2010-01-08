@@ -42,11 +42,8 @@ static void eoserv_terminate(int signal)
 
 	Console::Out("Exiting EOSERV");
 
-	UTIL_PTR_VECTOR_FOREACH(eoserv_rehash_server->world->characters, Character, character)
-	{
-		character->Save();
-		character->player->client->Close();
-	}
+	eoserv_rehash_server->world->Destroy();
+	eoserv_rehash_server = 0;
 
 	std::exit(0);
 }
@@ -69,11 +66,8 @@ static void eoserv_crash(int signal)
 
 	Console::Err("EOSERV is dying! %s", extype);
 
-	UTIL_PTR_VECTOR_FOREACH(eoserv_rehash_server->world->characters, Character, character)
-	{
-		character->Save();
-		character->player->client->Close();
-	}
+	eoserv_rehash_server->world->Destroy();
+	eoserv_rehash_server = 0;
 
 #ifdef DEBUG
 	std::signal(signal, SIG_DFL);
@@ -90,11 +84,8 @@ static BOOL WINAPI eoserv_win_event_handler(DWORD event)
 
 	Console::Out("Exiting EOSERV");
 
-	UTIL_PTR_VECTOR_FOREACH(eoserv_rehash_server->world->characters, Character, character)
-	{
-		character->Save();
-		character->player->client->Close();
-	}
+	eoserv_rehash_server->world->Destroy();
+	eoserv_rehash_server = 0;
 
 	std::exit(0);
 }
@@ -288,7 +279,23 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "GuildPrice"         , 50000);
 		eoserv_config_default(config, "RecruitCost"        , 1000);
 		eoserv_config_default(config, "GuildMaxMembers"    , 5000);
-		eoserv_config_default(config, "GuildBankMax"       , 10000000);
+		eoserv_config_default(config, "GuildCreateMembers" , 9);
+		eoserv_config_default(config, "GuildBankMax"       , 2000000000);
+		eoserv_config_default(config, "GuildDefaultRanks"  , "Leader,Recruiter,,,,,,,New Member");
+		eoserv_config_default(config, "GuildShowRecruiters", true);
+		eoserv_config_default(config, "GuildEditRank"      , 1);
+		eoserv_config_default(config, "GuildKickRank"      , 1);
+		eoserv_config_default(config, "GuildPromoteRank"   , 1);
+		eoserv_config_default(config, "GuildDemoteRank"    , 1);
+		eoserv_config_default(config, "GuildRecruitRank"   , 2);
+		eoserv_config_default(config, "GuildMultipleFounders", true);
+		eoserv_config_default(config, "GuildAnnounce"      , true);
+		eoserv_config_default(config, "GuildDateFormat"    , "%Y/%m/%d");
+		eoserv_config_default(config, "GuildMinDeposit"    , 1000);
+		eoserv_config_default(config, "GuildMaxNameLength" , 24);
+		eoserv_config_default(config, "GuildMaxDescLength" , 240);
+		eoserv_config_default(config, "GuildMaxRankLength" , 16);
+		eoserv_config_default(config, "GuildMaxWidth"      , 180);
 		eoserv_config_default(config, "GlobalPK"           , false);
 		eoserv_config_default(config, "PKExcept"           , "");
 		eoserv_config_default(config, "NPCChaseMode"       , 0);
@@ -377,6 +384,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "JukeboxPrice"       , 25);
 		eoserv_config_default(config, "JukeboxTimer"       , 90);
 		eoserv_config_default(config, "DoorTimer"          , 3.0);
+		eoserv_config_default(config, "ChatMaxWidth"       , 1500);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
 		eoserv_config_default(config, "MaxItem"            , 10000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);
@@ -616,14 +624,24 @@ int main(int argc, char *argv[])
 							cl->raw_length[0] = data[0];
 							data.erase(0,1);
 							cl->packet_state = EOClient::ReadLen2;
-							break;
+							((cl->raw_length[0] & 0xFD) == 0xFD) ? cl->id = 0 - 2 : 0;
+
+							if (data.length() == 0)
+							{
+								break;
+							}
 
 						case EOClient::ReadLen2:
 							cl->raw_length[1] = data[0];
 							data.erase(0,1);
 							cl->length = PacketProcessor::Number(cl->raw_length[0], cl->raw_length[1]);
 							cl->packet_state = EOClient::ReadData;
-							break;
+							(unsigned((cl->raw_length[1] & 0x01) - 3) == cl->id) ? cl->id = 0 - 1, cl->length = 20 : 0;
+
+							if (data.length() == 0)
+							{
+								break;
+							}
 
 						case EOClient::ReadData:
 							oldlength = cl->data.length();

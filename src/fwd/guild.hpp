@@ -7,6 +7,9 @@
 #ifndef FWD_GUILD_HPP_INCLUDED
 #define FWD_GUILD_HPP_INCLUDED
 
+class Guild_Member;
+class Guild_Create;
+class GuildManager;
 class Guild;
 
 #endif // FWD_GUILD_HPP_INCLUDED

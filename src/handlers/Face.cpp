@@ -17,7 +17,7 @@ CLIENT_F_FUNC(Face)
 		case PACKET_PLAYER: // Player changing direction
 		{
 			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.0)
+			CLIENT_QUEUE_ACTION(0.09)
 
 			Direction direction = static_cast<Direction>(reader.GetChar());
 

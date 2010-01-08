@@ -102,12 +102,12 @@ class NPC : public Shared
 		unsigned char spawn_type;
 		short spawn_time;
 		unsigned char spawn_x, spawn_y;
-		NPC *parent;
 		PtrVector<NPC_Drop> drops;
 		std::string shop_name;
 		PtrVector<NPC_Shop_Trade_Item> shop_trade;
 		PtrVector<NPC_Shop_Craft_Item> shop_craft;
 
+		NPC *parent;
 		bool alive;
 		double dead_since;
 		double last_act;
@@ -126,11 +126,13 @@ class NPC : public Shared
 
 		ENF_Data *Data();
 
-		void Spawn();
+		void Spawn(NPC *parent = 0);
 		void Act();
 
 		bool Walk(Direction);
 		void Damage(Character *from, int amount);
+		void RemoveFromView(Character *target);
+		void Die();
 
 		void Attack(Character *target);
 
@@ -152,11 +154,11 @@ class NPC : public Shared
 		SCRIPT_REGISTER_VARIABLE("int16", spawn_time);
 		SCRIPT_REGISTER_VARIABLE("uint8", spawn_x);
 		SCRIPT_REGISTER_VARIABLE("uint8", spawn_y);
-		SCRIPT_REGISTER_VARIABLE("NPC @", parent);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<NPC_Drop>", drops);
 		SCRIPT_REGISTER_VARIABLE("string", shop_name);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<NPC_Shop_Trade_Item>", shop_trade);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<NPC_Shop_Craft_Item>", shop_craft);
+		SCRIPT_REGISTER_VARIABLE("NPC @", parent);
 		SCRIPT_REGISTER_VARIABLE("bool", alive);
 		SCRIPT_REGISTER_VARIABLE("double", dead_since);
 		SCRIPT_REGISTER_VARIABLE("double", last_act);
@@ -169,10 +171,12 @@ class NPC : public Shared
 		SCRIPT_REGISTER_VARIABLE("Map @", map);
 		SCRIPT_REGISTER_VARIABLE("uint8", index);
 		SCRIPT_REGISTER_FUNCTION("ENF_Data @Data()", Data);
-		SCRIPT_REGISTER_FUNCTION("void Spawn()", Spawn);
+		SCRIPT_REGISTER_FUNCTION("void Spawn(NPC @parent)", Spawn);
 		SCRIPT_REGISTER_FUNCTION("void Act()", Act);
 		SCRIPT_REGISTER_FUNCTION("bool Walk(Direction)", Walk);
-		SCRIPT_REGISTER_FUNCTION("void Damage(Character @, int)", Walk);
+		SCRIPT_REGISTER_FUNCTION("void Damage(Character @, int)", Damage);
+		SCRIPT_REGISTER_FUNCTION("void RemoveFromView(Character @)", RemoveFromView);
+		SCRIPT_REGISTER_FUNCTION("void Die()", Die);
 		SCRIPT_REGISTER_FUNCTION("void Attack(Character @)", Attack);
 	SCRIPT_REGISTER_END()
 };

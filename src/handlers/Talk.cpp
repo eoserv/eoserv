@@ -30,7 +30,14 @@ CLIENT_F_FUNC(Talk)
 	{
 		case PACKET_REQUEST: // Guild chat message
 		{
+			if (this->state < EOClient::PlayingModal) return false;
 
+			if (!this->player->character->guild) return false;
+
+			message = reader.GetEndString(); // message
+			limit_message(message, static_cast<int>(this->server->world->config["ChatLength"]));
+
+			this->player->character->guild->Msg(this->player->character, message, false);
 		}
 		break;
 
@@ -357,12 +364,8 @@ CLIENT_F_FUNC(Talk)
 				}
 				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["shutdown"]))
 				{
-					UTIL_PTR_VECTOR_FOREACH(this->server->world->characters, Character, character)
-					{
-						character->Save();
-						character->player->client->Close();
-					}
 					Console::Wrn("Server shut down by %s", this->player->character->name.c_str());
+					this->server->world->Destroy();
 					std::exit(0);
 				}
 				else if (command.length() >= 3 && command.compare(0,3,"obj") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["objects"]))

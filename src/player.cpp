@@ -100,12 +100,11 @@ void Player::ChangePass(std::string password)
 
 void Player::Logout()
 {
-	if (this->character)
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
-		this->character->Logout();
-		this->character->Release();
-		this->character = 0;
+		character->Logout();
 	}
+	this->characters.clear();
 
 	if (this->client)
 	{
@@ -118,7 +117,6 @@ void Player::Logout()
 		this->client->Close();
 		this->client->player = 0;
 		this->client = 0; // Not reference counted!
-		this->characters.clear();
 		this->Release();
 	}
 }

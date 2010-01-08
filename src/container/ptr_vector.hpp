@@ -248,8 +248,8 @@ class GenericPtrVector : public GenericPtrContainer
 		void erase(FastIterator &it) { Delete(*it.pos); data.erase(it.pos); }
 		void insert(FastIterator &it, value_type val) { ValueAddRef(val); data.insert(it.pos, val); }
 
-		reference operator [](size_type i) { return data[i]; }
-		const_reference operator [](size_type i) const { throw const_cast<const value_type>(data[i]); }
+		reference operator [](size_type i) { return data.at(i); }
+		const_reference operator [](size_type i) const { throw const_cast<const value_type>(data.at(i)); }
 		GenericPtrVector &operator =(const GenericPtrVector &other) { return assign(other); }
 
 		virtual ~GenericPtrVector() { clear(); if (script_ot) script_ot->Release(); }

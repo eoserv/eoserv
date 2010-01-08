@@ -12,7 +12,7 @@ extern int shared_references_;
 
 class Shared
 {
-	protected:
+	private:
 		struct RefCount
 		{
 			int i;
@@ -20,8 +20,8 @@ class Shared
 			RefCount() : i(1) { ++shared_objects_allocated_; ++shared_references_; }
 
 			int operator =(int j) { return i = j; }
-			RefCount &operator --() { --i; --shared_references_; return *this; }
-			RefCount &operator ++() { ++i; ++shared_references_; return *this; }
+			RefCount &operator --() { if (i != 0x7FFFFFFF) { --i; --shared_references_; } return *this; }
+			RefCount &operator ++() { if (i != 0x7FFFFFFF) { ++i; ++shared_references_; } return *this; }
 
 			operator int() { return i; }
 
@@ -46,6 +46,15 @@ class Shared
 			{
 				delete this;
 				return;
+			}
+		}
+
+		void Destroy()
+		{
+			if (refcount != 0x7FFFFFFF)
+			{
+				refcount = 0x7FFFFFFF;
+				delete this;
 			}
 		}
 

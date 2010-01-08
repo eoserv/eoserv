@@ -27,7 +27,8 @@ CLIENT_F_FUNC(Barber)
 			{
 				if (npc->index == id && npc->Data()->type == ENF::Barber)
 				{
-					this->player->character->barber_npc = *npc;
+					this->player->character->npc = *npc;
+					this->player->character->npc_type = ENF::Barber;
 
 					reply.SetID(PACKET_BARBER, PACKET_OPEN);
 					reply.AddInt(0); // Session token
@@ -62,7 +63,7 @@ CLIENT_F_FUNC(Barber)
 				return false;
 			}
 
-			if (this->player->character->barber_npc)
+			if (this->player->character->npc_type == ENF::Barber)
 			{
 				this->player->character->DelItem(1, price);
 

@@ -49,7 +49,6 @@ class ActionQueue : public Shared
 
 		double next;
 		void AddAction(PacketFamily family, PacketAction action, PacketReader reader, double time);
-		void Execute();
 
 		ActionQueue() : next(0) {};
 
@@ -58,7 +57,6 @@ class ActionQueue : public Shared
 	SCRIPT_REGISTER_REF_DF(ActionQueue)
 		SCRIPT_REGISTER_VARIABLE("double", next);
 		SCRIPT_REGISTER_FUNCTION("void AddAction(PacketFamily family, PacketAction action, PacketReader reader, double time)", AddAction);
-		SCRIPT_REGISTER_FUNCTION("void Execute()", Execute);
 	SCRIPT_REGISTER_END()
 };
 

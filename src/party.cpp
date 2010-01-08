@@ -33,6 +33,8 @@ Party::Party(World *world, Character *leader, Character *other)
 
 void Party::Msg(Character *from, std::string message, bool echo)
 {
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
+
 	PacketBuilder builder(PACKET_TALK, PACKET_OPEN);
 
 	builder.AddShort(from->player->id);
@@ -103,7 +105,7 @@ void Party::Leave(Character *character)
 	}
 	else
 	{
-		delete this;
+		this->Destroy();
 	}
 }
 

@@ -22,9 +22,9 @@ CLIENT_F_FUNC(Shop)
 			short item = reader.GetShort();
 			/*int shopid = reader.GetInt();*/
 
-			if (this->player->character->shop_npc)
+			if (this->player->character->npc_type == ENF::Shop)
 			{
-				UTIL_PTR_VECTOR_FOREACH(this->player->character->shop_npc->shop_craft, NPC_Shop_Craft_Item, checkitem)
+				UTIL_PTR_VECTOR_FOREACH(this->player->character->npc->shop_craft, NPC_Shop_Craft_Item, checkitem)
 				{
 					if (checkitem->id == item)
 					{
@@ -69,9 +69,9 @@ CLIENT_F_FUNC(Shop)
 
 			if (amount <= 0 || amount > static_cast<int>(this->server->world->config["MaxShopBuy"])) return false;
 
-			if (this->player->character->shop_npc)
+			if (this->player->character->npc_type == ENF::Shop)
 			{
-				UTIL_PTR_VECTOR_FOREACH(this->player->character->shop_npc->shop_trade, NPC_Shop_Trade_Item, checkitem)
+				UTIL_PTR_VECTOR_FOREACH(this->player->character->npc->shop_trade, NPC_Shop_Trade_Item, checkitem)
 				{
 					int cost = amount * checkitem->buy;
 
@@ -106,9 +106,9 @@ CLIENT_F_FUNC(Shop)
 
 			if (amount <= 0) return true;
 
-			if (this->player->character->shop_npc)
+			if (this->player->character->npc_type == ENF::Shop)
 			{
-				UTIL_PTR_VECTOR_FOREACH(this->player->character->shop_npc->shop_trade, NPC_Shop_Trade_Item, checkitem)
+				UTIL_PTR_VECTOR_FOREACH(this->player->character->npc->shop_trade, NPC_Shop_Trade_Item, checkitem)
 				{
 					if (checkitem->id == item && checkitem->sell != 0 && this->player->character->HasItem(item) >= amount)
 					{
@@ -141,7 +141,8 @@ CLIENT_F_FUNC(Shop)
 			{
 				if (npc->index == id && (npc->shop_trade.size() > 0 || npc->shop_craft.size() > 0))
 				{
-					this->player->character->shop_npc = *npc;
+					this->player->character->npc = *npc;
+					this->player->character->npc_type = ENF::Shop;
 
 					reply.SetID(PACKET_SHOP, PACKET_OPEN);
 					reply.AddShort(npc->id);

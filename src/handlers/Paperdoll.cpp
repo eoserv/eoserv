@@ -33,16 +33,51 @@ CLIENT_F_FUNC(Paperdoll)
 			reply.AddBreakString(character->home);
 			reply.AddBreakString(character->partner);
 			reply.AddBreakString(character->title);
-			reply.AddBreakString("Guild Name");
-			reply.AddBreakString("Guild Rank");
-			reply.AddShort(character->player->id); // ?
+			reply.AddBreakString(character->guild ? character->guild->name : "");
+			reply.AddBreakString(character->guild ? character->guild->GetRank(character->guild_rank) : "");
+			reply.AddShort(character->player->id);
 			reply.AddChar(character->clas);
 			reply.AddChar(character->gender);
-			reply.AddChar(0); // admin/party flag?
+			reply.AddChar(0);
 			UTIL_ARRAY_FOREACH_ALL(character->paperdoll, int, 15, item)
 			{
 				reply.AddShort(item);
 			}
+
+			if (character->admin >= ADMIN_HGM)
+			{
+				if (character->party)
+				{
+					reply.AddChar(ICON_HGM_PARTY);
+				}
+				else
+				{
+					reply.AddChar(ICON_HGM);
+				}
+			}
+			else if (character->admin >= ADMIN_GUIDE)
+			{
+				if (character->party)
+				{
+					reply.AddChar(ICON_GM_PARTY);
+				}
+				else
+				{
+					reply.AddChar(ICON_GM);
+				}
+			}
+			else
+			{
+				if (character->party)
+				{
+					reply.AddChar(ICON_PARTY);
+				}
+				else
+				{
+					reply.AddChar(ICON_NORMAL);
+				}
+			}
+
 			CLIENT_SEND(reply);
 		}
 		break;

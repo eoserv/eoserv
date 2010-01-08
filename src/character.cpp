@@ -181,11 +181,12 @@ Character::Character(std::string name, World *world)
 	this->party_trust_send = 0;
 	this->party_trust_recv = 0;
 
-	this->shop_npc = 0;
-	this->bank_npc = 0;
-	this->barber_npc = 0;
+	this->npc = 0;
+	this->npc_type = ENF::NPC;
 	this->board = 0;
 	this->jukebox_open = false;
+
+	this->last_guild_action = 0.0;
 
 	this->next_arena = 0;
 	this->arena = 0;
@@ -211,9 +212,19 @@ Character::Character(std::string name, World *world)
 	this->paperdoll = DollUnserialize(row["paperdoll"]);
 
 	this->player = 0;
-	this->guild = 0;
-	this->guild_tag = util::trim(static_cast<std::string>(row["guild"]));
-	this->guild_rank = static_cast<int>(row["guild_rank"]);
+	std::string guild_tag = util::trim(static_cast<std::string>(row["guild"]));
+
+	if (!guild_tag.empty())
+	{
+		this->guild = this->world->guildmanager->GetGuild(guild_tag);
+		this->guild_rank = static_cast<int>(row["guild_rank"]);
+	}
+	else
+	{
+		this->guild = 0;
+		this->guild_rank = 0;
+	}
+
 	this->party = 0;
 	this->map = this->world->GetMap(0);
 }
@@ -243,9 +254,9 @@ bool Character::ValidName(std::string name)
 
 void Character::Msg(Character *from, std::string message)
 {
-	PacketBuilder builder;
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
 
-	builder.SetID(PACKET_TALK, PACKET_TELL);
+	PacketBuilder builder(PACKET_TALK, PACKET_TELL);
 	builder.AddBreakString(from->name);
 	builder.AddBreakString(message);
 	this->player->client->SendBuilder(builder);
@@ -253,9 +264,9 @@ void Character::Msg(Character *from, std::string message)
 
 void Character::ServerMsg(std::string message)
 {
-	PacketBuilder builder;
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width("Server  "));
 
-	builder.SetID(PACKET_TALK, PACKET_SERVER);
+	PacketBuilder builder(PACKET_TALK, PACKET_SERVER);
 	builder.AddString(message);
 	this->player->client->SendBuilder(builder);
 }
@@ -658,11 +669,12 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	this->y = y;
 	this->sitting = SIT_STAND;
 
-	this->shop_npc = 0;
-	this->bank_npc = 0;
-	this->barber_npc = 0;
+	this->npc = 0;
+	this->npc_type = ENF::NPC;
 	this->board = 0;
 	this->jukebox_open = false;
+	this->guild_join = "";
+	this->guild_invite = "";
 
 	this->warp_anim = animation;
 	this->nowhere = false;
@@ -851,7 +863,7 @@ std::string Character::PaddedGuildTag()
 	}
 	else
 	{
-		tag = this->guild_tag;
+		tag = this->guild ? this->guild->tag : "";
 	}
 
 	for (std::size_t i = tag.length(); i < 3; ++i)
@@ -896,6 +908,11 @@ void Character::CalculateStats()
 	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, item)
 	{
 		this->weight += this->world->eif->Get(item->id)->weight * item->amount;
+
+		if (this->weight >= 250)
+		{
+			break;
+		}
 	}
 
 	UTIL_ARRAY_FOREACH_ALL(this->paperdoll, int, 15, i)
@@ -919,6 +936,12 @@ void Character::CalculateStats()
 			calccha += item->cha;
 		}
 	}
+
+	if (this->weight < 0 || this->weight > 250)
+	{
+		this->weight = 250;
+	}
+
 	this->maxhp += 10 + calccon*3;
 	this->maxtp += 10 + calcwis*3;
 	this->mindam += 1 + calcstr/2;
@@ -1072,6 +1095,12 @@ void Character::Logout()
 {
 	if (!this->online)
 	{
+		if (this->guild)
+		{
+			this->guild->Release();
+			this->guild = 0;
+		}
+
 		return;
 	}
 
@@ -1118,11 +1147,11 @@ void Character::Logout()
 		}
 	}
 
+	this->online = false;
+
 	this->Save();
 
 	this->world->Logout(this);
-
-	this->online = false;
 }
 
 void Character::Save()
@@ -1139,7 +1168,7 @@ void Character::Save()
 		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
-		DollSerialize(this->paperdoll).c_str(), "", this->guild_tag.c_str(), this->guild_rank, this->name.c_str());
+		DollSerialize(this->paperdoll).c_str(), "", (this->guild ? this->guild->tag.c_str() : ""), this->guild_rank, this->name.c_str());
 }
 
 Character::~Character()

@@ -68,6 +68,8 @@ class World : public Shared
 
 		HookManager *hookmanager;
 
+		GuildManager *guildmanager;
+
 		EIF *eif;
 		ENF *enf;
 		ESF *esf;
@@ -131,6 +133,8 @@ class World : public Shared
 
 		bool PKExcept(const Map *map);
 		bool PKExcept(int mapid);
+
+		~World();
 
 	SCRIPT_REGISTER_REF(World)
 		SCRIPT_REGISTER_VARIABLE("Timer", timer);

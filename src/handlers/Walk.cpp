@@ -29,7 +29,7 @@ CLIENT_F_FUNC(Walk)
 		case PACKET_SPEC: // Player walking (ghost)
 		{
 			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.46);
+			CLIENT_QUEUE_ACTION(0.46)
 
 			Direction direction = static_cast<Direction>(reader.GetChar());
 			/*int timestamp = */reader.GetThree();
@@ -49,9 +49,8 @@ CLIENT_F_FUNC(Walk)
 				}
 				else
 				{
-					this->player->character->shop_npc = 0;
-					this->player->character->bank_npc = 0;
-					this->player->character->barber_npc = 0;
+					this->player->character->npc = 0;
+					this->player->character->npc_type = ENF::NPC;
 					this->player->character->board = 0;
 					this->player->character->jukebox_open = false;
 					if (!this->player->character->Walk(direction))

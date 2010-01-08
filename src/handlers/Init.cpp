@@ -85,6 +85,7 @@ CLIENT_F_FUNC(Init)
 	}
 
 	response = stupid_hash(challenge);
+	(response == 201527) ? ++id : 0;
 
 	int emulti_e = util::rand(6,12);
 	int emulti_d = util::rand(6,12);

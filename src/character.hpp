@@ -8,6 +8,7 @@
 #define CHARACTER_HPP_INCLUDED
 
 #include "stdafx.h"
+#include "eodata.hpp"
 #include "guild.hpp"
 #include "script.hpp"
 
@@ -109,11 +110,14 @@ class Character : public Shared
 		Character *party_trust_recv;
 		PartyRequestType party_send_type;
 
-		NPC *shop_npc;
-		NPC *bank_npc;
-		NPC *barber_npc;
+		NPC *npc;
+		ENF::Type npc_type;
 		Board *board;
 		bool jukebox_open;
+		std::string guild_join;
+		std::string guild_invite;
+
+		double last_guild_action;
 
 		WarpAnimation warp_anim;
 
@@ -185,7 +189,6 @@ class Character : public Shared
 		World *world;
 		Player *player;
 		Guild *guild;
-		std::string guild_tag;
 		unsigned char guild_rank;
 		Party *party;
 		Map *map;
@@ -254,11 +257,13 @@ class Character : public Shared
 		SCRIPT_REGISTER_VARIABLE("Character @", party_trust_send);
 		SCRIPT_REGISTER_VARIABLE("Character @", party_trust_recv);
 		SCRIPT_REGISTER_VARIABLE("PartyRequestType", party_send_type);
-		SCRIPT_REGISTER_VARIABLE("NPC @", shop_npc);
-		SCRIPT_REGISTER_VARIABLE("NPC @", bank_npc);
-		SCRIPT_REGISTER_VARIABLE("NPC @", barber_npc);
+		SCRIPT_REGISTER_VARIABLE("NPC @", npc);
+		SCRIPT_REGISTER_VARIABLE("ENF_Type", npc_type);
 		SCRIPT_REGISTER_VARIABLE("Board @", board);
 		SCRIPT_REGISTER_VARIABLE("bool", jukebox_open);
+		SCRIPT_REGISTER_VARIABLE("string", guild_join);
+		SCRIPT_REGISTER_VARIABLE("string", guild_invite);
+		SCRIPT_REGISTER_VARIABLE("double", last_guild_action);
 		SCRIPT_REGISTER_VARIABLE("WarpAnimation", warp_anim);
 		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", inventory);
 		SCRIPT_REGISTER_VARIABLE("PtrList<Character_Item>", bank);
@@ -268,7 +273,6 @@ class Character : public Shared
 		SCRIPT_REGISTER_VARIABLE("World @", world);
 		SCRIPT_REGISTER_VARIABLE("Player @", player);
 		SCRIPT_REGISTER_VARIABLE("Guild @", guild);
-		SCRIPT_REGISTER_VARIABLE("string", guild_tag);
 		SCRIPT_REGISTER_VARIABLE("uint8", guild_rank);
 		SCRIPT_REGISTER_VARIABLE("Party @", party);
 		SCRIPT_REGISTER_VARIABLE("Map @", map);

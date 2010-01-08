@@ -34,7 +34,7 @@ void world_spawn_npcs(void *world_void)
 	{
 		UTIL_PTR_VECTOR_FOREACH(map->npcs, NPC, npc)
 		{
-			if (!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time)
+			if (!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time && !npc->Data()->child)
 			{
 #ifdef DEBUG
 				Console::Dbg("Spawning NPC %i on map %i", npc->id, map->id);
@@ -126,6 +126,8 @@ void world_timed_save(void *world_void)
 	{
 		character->Save();
 	}
+
+	world->guildmanager->SaveAll();
 }
 
 World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
@@ -227,6 +229,8 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 
 	this->hookmanager = new HookManager(this->config["ScriptDir"]);
 
+	this->guildmanager = new GuildManager(this);
+
 	script_register(*this); // See scriptreg.cpp
 
 	FILE *fh = fopen(static_cast<std::string>(this->config["ScriptsFile"]).c_str(), "rt");
@@ -292,24 +296,17 @@ void World::Logout(Character *character)
 	if (this->GetMap(character->mapid)->exists)
 	{
 		this->GetMap(character->mapid)->Leave(character);
-
-		erase_first(this->characters, character);
 	}
+
+	erase_first(this->characters, character);
 }
 
 void World::Msg(Character *from, std::string message, bool echo)
 {
-	PacketBuilder builder;
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
 
-	builder.SetID(PACKET_TALK, PACKET_MSG);
-	if (from)
-	{
-		builder.AddBreakString(from->name);
-	}
-	else
-	{
-		builder.AddBreakString("Server");
-	}
+	PacketBuilder builder(PACKET_TALK, PACKET_MSG);
+	builder.AddBreakString(from ? from->name : "Server");
 	builder.AddBreakString(message);
 
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
@@ -325,17 +322,10 @@ void World::Msg(Character *from, std::string message, bool echo)
 
 void World::AdminMsg(Character *from, std::string message, int minlevel, bool echo)
 {
-	PacketBuilder builder;
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
 
-	builder.SetID(PACKET_TALK, PACKET_ADMIN);
-	if (from)
-	{
-		builder.AddBreakString(from->name);
-	}
-	else
-	{
-		builder.AddBreakString("Server");
-	}
+	PacketBuilder builder(PACKET_TALK, PACKET_ADMIN);
+	builder.AddBreakString(from ? from->name : "Server");
 	builder.AddBreakString(message);
 
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
@@ -351,17 +341,10 @@ void World::AdminMsg(Character *from, std::string message, int minlevel, bool ec
 
 void World::AnnounceMsg(Character *from, std::string message, bool echo)
 {
-	PacketBuilder builder;
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
 
-	builder.SetID(PACKET_TALK, PACKET_ANNOUNCE);
-	if (from)
-	{
-		builder.AddBreakString(from->name);
-	}
-	else
-	{
-		builder.AddBreakString("Server");
-	}
+	PacketBuilder builder(PACKET_TALK, PACKET_ANNOUNCE);
+	builder.AddBreakString(from ? from->name : "Server");
 	builder.AddBreakString(message);
 
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
@@ -377,9 +360,9 @@ void World::AnnounceMsg(Character *from, std::string message, bool echo)
 
 void World::ServerMsg(std::string message)
 {
-	PacketBuilder builder;
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width("Server  "));
 
-	builder.SetID(PACKET_TALK, PACKET_SERVER);
+	PacketBuilder builder(PACKET_TALK, PACKET_SERVER);
 	builder.AddString(message);
 
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
@@ -753,3 +736,14 @@ bool World::PKExcept(int mapid)
 	return std::find(except_list.begin(), except_list.end(), mapid) != except_list.end();
 }
 
+World::~World()
+{
+	while (!this->characters.empty())
+	{
+		this->characters.back()->player->client->Close(true);
+		this->characters.back()->Destroy();
+	}
+
+	this->hookmanager->Release();
+	this->guildmanager->Release();
+}

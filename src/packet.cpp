@@ -90,6 +90,8 @@ std::string PacketProcessor::GetActionName(PacketAction action)
 		case PACKET_DROP: return "Drop";
 		case PACKET_JUNK: return "Junk";
 		case PACKET_GET: return "Get";
+		case PACKET_KICK: return "Kick";
+		case PACKET_RANK: return "Rank";
 		case PACKET_NET: return "Net";
 		case PACKET_NET2: return "Net2";
 		case PACKET_NET3: return "Net3";

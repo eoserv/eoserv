@@ -112,6 +112,9 @@ void script_register(World &world)
 	REG_T<ESF_Data>();
 	REG_T<ECF>();
 	REG_T<ECF_Data>();
+	REG_T<Guild_Member>();
+	REG_T<Guild_Create>();
+	REG_T<GuildManager>();
 	REG_T<Guild>();
 	REG_T<HookManager>();
 	REG_T<HTTP>();
@@ -142,8 +145,19 @@ void script_register(World &world)
 	REG_T<CharacterEvent>();
 
 	// Any new script-visible classes must be added here (yes, again)
-	REG_T<ActionQueue_Action>();
-	REG_T<ActionQueue>();
+
+	// TODO: Let enums be registered before reaching here so I can put these back in order
+	REG<EIF>();
+	REG<EIF_Data>();
+	REG<ENF>();
+	REG<ENF_Data>();
+	REG<ESF>();
+	REG<ESF_Data>();
+	REG<ECF>();
+	REG<ECF_Data>();
+
+	//REG<ActionQueue_Action>();
+	//REG<ActionQueue>();
 	REG<Arena>();
 	REG<Arena_Spawn>();
 	REG<Board_Post>();
@@ -155,14 +169,9 @@ void script_register(World &world)
 	REG<Database>();
 	REG<EOClient>();
 	REG<EOServer>();
-	REG<EIF>();
-	REG<EIF_Data>();
-	REG<ENF>();
-	REG<ENF_Data>();
-	REG<ESF>();
-	REG<ESF_Data>();
-	REG<ECF>();
-	REG<ECF_Data>();
+	REG<Guild_Member>();
+	REG<Guild_Create>();
+	REG<GuildManager>();
 	REG<Guild>();
 	REG<HookManager>();
 	REG<HTTP>();

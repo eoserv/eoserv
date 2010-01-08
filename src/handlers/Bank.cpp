@@ -27,7 +27,8 @@ CLIENT_F_FUNC(Bank)
 			{
 				if (npc->index == id && npc->Data()->type == ENF::Bank)
 				{
-					this->player->character->bank_npc = *npc;
+					this->player->character->npc = *npc;
+					this->player->character->npc_type = ENF::Bank;
 
 					reply.SetID(PACKET_BANK, PACKET_OPEN);
 					reply.AddInt(this->player->character->goldbank);
@@ -53,7 +54,7 @@ CLIENT_F_FUNC(Bank)
 
 			amount = std::min(amount, this->player->character->HasItem(1));
 
-			if (this->player->character->bank_npc)
+			if (this->player->character->npc_type == ENF::Bank)
 			{
 				int newgold = this->player->character->goldbank + amount;
 
@@ -81,7 +82,7 @@ CLIENT_F_FUNC(Bank)
 
 			if (amount <= 0) return true;
 
-			if (this->player->character->bank_npc)
+			if (this->player->character->npc_type == ENF::Bank)
 			{
 				int newgold = this->player->character->goldbank - amount;
 

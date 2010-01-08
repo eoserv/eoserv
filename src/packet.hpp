@@ -84,6 +84,8 @@ enum PacketAction UTIL_EXTEND_ENUM(unsigned char)
 	PACKET_DROP = 24,
 	PACKET_JUNK = 25,
 	PACKET_GET = 27,
+	PACKET_KICK = 28,
+	PACKET_RANK = 29,
 	PACKET_EXP = 33, // Tentative name
 
 	PACKET_INTERNAL_NULL = 128,

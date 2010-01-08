@@ -96,8 +96,8 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddByte(this->server->world->ecf->len[1]);
 			reply.AddBreakString(this->player->character->name);
 			reply.AddBreakString(this->player->character->title);
-			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Name
-			reply.AddBreakString(this->player->character->guild?this->player->character->guild->name:""); // Guild Rank
+			reply.AddBreakString(this->player->character->guild ? this->player->character->guild->name : ""); // Guild Name
+			reply.AddBreakString(this->player->character->guild ? this->player->character->guild->GetRank(this->player->character->guild_rank) : ""); // Guild Rank
 			reply.AddChar(this->player->character->clas);
 			reply.AddString(this->player->character->PaddedGuildTag());
 			// Tell a guardian's client they're a GM so they can use #nowall
@@ -118,6 +118,7 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddShort(this->player->character->accuracy);
 			reply.AddShort(this->player->character->evade);
 			reply.AddShort(this->player->character->armor);
+
 			if (this->version < 28)
 			{
 				reply.AddChar(this->player->character->str);
@@ -136,6 +137,34 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(this->player->character->con);
 				reply.AddShort(this->player->character->cha);
 			}
+
+			UTIL_ARRAY_FOREACH_ALL(this->player->character->paperdoll, int, 15, item)
+			{
+				reply.AddShort(item);
+			}
+
+			int leader_rank = std::max(std::max(std::max(static_cast<int>(this->server->world->config["GuildEditRank"]), static_cast<int>(this->server->world->config["GuildKickRank"])),
+			                           static_cast<int>(this->server->world->config["GuildPromoteRank"])), static_cast<int>(this->server->world->config["GuildDemoteRank"]));
+
+			if (this->player->character->guild_rank <= leader_rank && this->player->character->guild)
+			{
+				reply.AddChar(1); // Allows client access to the guild management tools
+			}
+			else
+			{
+				reply.AddChar(this->player->character->guild_rank);
+			}
+
+			reply.AddShort(static_cast<int>(this->server->world->config["JailMap"]));
+			reply.AddShort(4); // ?
+			reply.AddChar(24); // ?
+			reply.AddChar(24); // ?
+			reply.AddShort(10); // ?
+			reply.AddShort(10); // ?
+			reply.AddShort(2); // ?
+			reply.AddShort(2); // ?
+			reply.AddChar(4); // ?
+			reply.AddByte(255);
 
 			CLIENT_SEND(reply);
 		}

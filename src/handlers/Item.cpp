@@ -73,6 +73,9 @@ CLIENT_F_FUNC(Item)
 							tpgain = std::min(tpgain, this->player->character->maxtp - this->player->character->tp);
 						}
 
+						hpgain = std::max(hpgain, 0);
+						tpgain = std::max(tpgain, 0);
+
 						this->player->character->hp += hpgain;
 						this->player->character->tp += tpgain;
 

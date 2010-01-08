@@ -165,7 +165,7 @@ CLIENT_F_FUNC(Locker)
 		{
 			if (this->state < EOClient::Playing) return false;
 
-			if (this->player->character->bank_npc)
+			if (this->player->character->npc_type == ENF::Bank)
 			{
 				int cost = static_cast<int>(this->server->world->config["BankUpgradeBase"]) + this->player->character->bankmax * static_cast<int>(this->server->world->config["BankUpgradeStep"]);
 
