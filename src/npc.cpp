@@ -779,20 +779,38 @@ void NPC::Damage(Character *from, int amount)
 
 void NPC::RemoveFromView(Character *target)
 {
-	PacketBuilder builder(PACKET_NPC, PACKET_SPEC);
-	builder.AddShort(0); // killer pid
-	builder.AddChar(0); // killer direction
-	builder.AddShort(this->index);
+	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER);
+	builder.AddChar(this->index);
+	if (target->x > 200 && target->y > 200)
+	{
+		builder.AddChar(0); // x
+		builder.AddChar(0); // y
+	}
+	else
+	{
+		builder.AddChar(252); // x
+		builder.AddChar(252); // y
+	}
+	builder.AddChar(0); // direction
+	builder.AddByte(255);
+	builder.AddByte(255);
+	builder.AddByte(255);
+
+	PacketBuilder builder2(PACKET_NPC, PACKET_SPEC);
+	builder2.AddShort(0); // killer pid
+	builder2.AddChar(0); // killer direction
+	builder2.AddShort(this->index);
 /*
-	builder.AddShort(0); // dropped item uid
-	builder.AddShort(0); // dropped item id
-	builder.AddChar(this->x);
-	builder.AddChar(this->y);
-	builder.AddInt(0); // dropped item amount
-	builder.AddThree(0); // damage
+	builder2.AddShort(0); // dropped item uid
+	builder2.AddShort(0); // dropped item id
+	builder2.AddChar(this->x);
+	builder2.AddChar(this->y);
+	builder2.AddInt(0); // dropped item amount
+	builder2.AddThree(0); // damage
 */
 
 	target->player->client->SendBuilder(builder);
+	target->player->client->SendBuilder(builder2);
 }
 
 void NPC::Die()
@@ -804,14 +822,13 @@ void NPC::Die()
 	builder.AddShort(0); // killer pid
 	builder.AddChar(0); // killer direction
 	builder.AddShort(this->index);
-/*
 	builder.AddShort(0); // dropped item uid
 	builder.AddShort(0); // dropped item id
 	builder.AddChar(this->x);
 	builder.AddChar(this->y);
 	builder.AddInt(0); // dropped item amount
-	builder.AddThree(0); // damage
-*/
+	builder.AddThree(this->hp); // damage
+
 	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 	{
 		if (character->InRange(this))

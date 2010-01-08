@@ -42,54 +42,65 @@ CLIENT_F_FUNC(Guild)
 			{
 				if (!this->player->character->guild)
 				{
-					Guild *guild = this->server->world->guildmanager->GetGuild(tag);
-
-					if (!guild)
+					if (static_cast<int>(this->server->world->config["GuildCreateMembers"]) > 0)
 					{
-						guild = this->server->world->guildmanager->GetGuildName(name);
-					}
+						Guild *guild = this->server->world->guildmanager->GetGuild(tag);
 
-					if (!guild)
-					{
-						if (Guild::ValidTag(tag) && Guild::ValidName(name))
+						if (!guild)
 						{
-							if (this->player->character->HasItem(1) >= static_cast<int>(this->server->world->config["GuildPrice"]))
+							guild = this->server->world->guildmanager->GetGuildName(name);
+						}
+
+						if (!guild)
+						{
+							if (Guild::ValidTag(tag) && Guild::ValidName(name))
 							{
-								Guild_Create *create = this->server->world->guildmanager->BeginCreate(tag, name, this->player->character);
-
-								reply.SetID(PACKET_GUILD, PACKET_REPLY);
-								reply.AddChar(GUILD_CREATE_BEGIN);
-								CLIENT_SEND(reply);
-
-								PacketBuilder builder(PACKET_GUILD, PACKET_REQUEST);
-								builder.AddShort(create->leader->player->id);
-								builder.AddString(util::ucfirst(util::lowercase(name)) + " (" + util::uppercase(tag) + ")");
-
-								UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+								if (this->player->character->HasItem(1) >= static_cast<int>(this->server->world->config["GuildPrice"]))
 								{
-									if (*character != this->player->character && !character->guild)
-									{
-										character->guild_invite = tag;
-										character->player->client->SendBuilder(builder);
-									}
-								}
+									Guild_Create *create = this->server->world->guildmanager->BeginCreate(tag, name, this->player->character);
 
-								create->Release();
+									reply.SetID(PACKET_GUILD, PACKET_REPLY);
+									reply.AddChar(GUILD_CREATE_BEGIN);
+									CLIENT_SEND(reply);
+
+									PacketBuilder builder(PACKET_GUILD, PACKET_REQUEST);
+									builder.AddShort(create->leader->player->id);
+									builder.AddString(util::ucfirst(util::lowercase(name)) + " (" + util::uppercase(tag) + ")");
+
+									UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+									{
+										if (*character != this->player->character && !character->guild)
+										{
+											character->guild_invite = tag;
+											character->player->client->SendBuilder(builder);
+										}
+									}
+
+									if (static_cast<int>(this->server->world->config["GuildCreateMembers"]) == 1)
+									{
+										PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
+										builder.AddShort(GUILD_CREATE_ADD_CONFIRM);
+										builder.AddString("");
+										this->player->client->SendBuilder(builder);
+									}
+
+									create->Release();
+								}
+							}
+							else
+							{
+								reply.SetID(PACKET_GUILD, PACKET_REPLY);
+								reply.AddChar(GUILD_NOT_APPROVED);
+								CLIENT_SEND(reply);
 							}
 						}
 						else
 						{
 							reply.SetID(PACKET_GUILD, PACKET_REPLY);
-							reply.AddChar(GUILD_NOT_APPROVED);
+							reply.AddChar(GUILD_EXISTS);
 							CLIENT_SEND(reply);
+							guild->Release();
 						}
-					}
-					else
-					{
-						reply.SetID(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_EXISTS);
-						CLIENT_SEND(reply);
-						guild->Release();
 					}
 				}
 			}
