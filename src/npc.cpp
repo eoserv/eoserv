@@ -58,6 +58,8 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 		this->direction = DIRECTION_DOWN;
 	}
 
+	this->parent = 0;
+
 	this->LoadShopDrop();
 }
 
@@ -181,12 +183,15 @@ void NPC::Spawn(NPC *parent)
 		{
 			if (npc->Data()->child)
 			{
-				npc->Spawn(*npc);
+				npc->Spawn(this);
 			}
 		}
 	}
 
-	this->parent = parent;
+	if (parent)
+	{
+		this->parent = parent;
+	}
 
 	if (this->spawn_type < 7)
 	{
@@ -310,8 +315,7 @@ void NPC::Act()
 			{
 				continue;
 			}
-
-			int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, parent->x, parent->y);
+			int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
 
 			if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
 			{
@@ -759,14 +763,35 @@ void NPC::Damage(Character *from, int amount)
 		this->damagelist.clear();
 		this->totaldamage = 0;
 
+		short childid = -1;
+
 		if (this->Data()->boss)
 		{
 			UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
 			{
 				if (npc->Data()->child && !npc->Data()->boss)
 				{
-					npc->Die();
+					if (childid == -1 || childid == npc->Data()->id)
+					{
+						npc->Die(false);
+						childid = npc->Data()->id;
+					}
+					else
+					{
+						npc->Die(true);
+					}
 				}
+			}
+		}
+
+		if (childid != -1)
+		{
+			PacketBuilder builder(PACKET_NPC, PACKET_JUNK);
+			builder.AddShort(childid);
+
+			UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+			{
+				character->player->client->SendBuilder(builder);
 			}
 		}
 
@@ -813,27 +838,38 @@ void NPC::RemoveFromView(Character *target)
 	target->player->client->SendBuilder(builder2);
 }
 
-void NPC::Die()
+void NPC::Die(bool show)
 {
 	this->alive = false;
 	this->dead_since = int(Timer::GetTime());
 
-	PacketBuilder builder(PACKET_NPC, PACKET_SPEC);
-	builder.AddShort(0); // killer pid
-	builder.AddChar(0); // killer direction
-	builder.AddShort(this->index);
-	builder.AddShort(0); // dropped item uid
-	builder.AddShort(0); // dropped item id
-	builder.AddChar(this->x);
-	builder.AddChar(this->y);
-	builder.AddInt(0); // dropped item amount
-	builder.AddThree(this->hp); // damage
-
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, opponent)
 	{
-		if (character->InRange(this))
+		erase_first(opponent->attacker->unregister_npc, this);
+	}
+
+	this->damagelist.clear();
+	this->totaldamage = 0;
+
+	if (show)
+	{
+		PacketBuilder builder(PACKET_NPC, PACKET_SPEC);
+		builder.AddShort(0); // killer pid
+		builder.AddChar(0); // killer direction
+		builder.AddShort(this->index);
+		builder.AddShort(0); // dropped item uid
+		builder.AddShort(0); // dropped item id
+		builder.AddChar(this->x);
+		builder.AddChar(this->y);
+		builder.AddInt(0); // dropped item amount
+		builder.AddThree(this->hp); // damage
+
+		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
 		{
-			character->player->client->SendBuilder(builder);
+			if (character->InRange(this))
+			{
+				character->player->client->SendBuilder(builder);
+			}
 		}
 	}
 }

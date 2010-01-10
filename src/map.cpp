@@ -618,7 +618,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 	builder.AddChar(character->sitting);
-	builder.AddChar(0); // visible
+	builder.AddChar(character->hidden);
 	builder.AddChar(animation);
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
@@ -687,8 +687,6 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 {
 	PacketBuilder builder;
 	int seedistance = this->world->config["SeeDistance"];
-
-	// TODO: Check for open/closed doors
 
 	unsigned char target_x = from->x;
 	unsigned char target_y = from->y;
@@ -932,7 +930,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Shield])->dollgraphic);
 	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Weapon])->dollgraphic);
 	builder.AddChar(from->sitting);
-	builder.AddChar(0); // visible
+	builder.AddChar(from->hidden);
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
@@ -969,7 +967,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 		rbuilder.AddChar(character->sitting);
-		rbuilder.AddChar(0); // visible
+		rbuilder.AddChar(character->hidden);
 		rbuilder.AddByte(255);
 		rbuilder.AddChar(1); // 0 = NPC, 1 = player
 
@@ -1628,7 +1626,7 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 		close->x = x;
 		close->y = y;
 
-		TimeEvent *event = new TimeEvent(map_close_door, close, this->world->config["DoorTimer"], 1); // TODO: Make this a config variable
+		TimeEvent *event = new TimeEvent(map_close_door, close, this->world->config["DoorTimer"], 1);
 		this->world->timer.Register(event);
 		event->Release();
 

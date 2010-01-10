@@ -504,5 +504,7 @@ Guild::~Guild()
 		}
 	}
 
+	this->Save();
+
 	this->manager->Release();
 }

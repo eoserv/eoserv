@@ -132,7 +132,7 @@ class NPC : public Shared
 		bool Walk(Direction);
 		void Damage(Character *from, int amount);
 		void RemoveFromView(Character *target);
-		void Die();
+		void Die(bool show = true);
 
 		void Attack(Character *target);
 
@@ -176,7 +176,7 @@ class NPC : public Shared
 		SCRIPT_REGISTER_FUNCTION("bool Walk(Direction)", Walk);
 		SCRIPT_REGISTER_FUNCTION("void Damage(Character @, int)", Damage);
 		SCRIPT_REGISTER_FUNCTION("void RemoveFromView(Character @)", RemoveFromView);
-		SCRIPT_REGISTER_FUNCTION("void Die()", Die);
+		SCRIPT_REGISTER_FUNCTION("void Die(bool show)", Die);
 		SCRIPT_REGISTER_FUNCTION("void Attack(Character @)", Attack);
 	SCRIPT_REGISTER_END()
 };

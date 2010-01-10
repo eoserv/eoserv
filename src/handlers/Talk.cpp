@@ -89,7 +89,7 @@ CLIENT_F_FUNC(Talk)
 				}
 			}
 
-			if (to)
+			if (to && !to->hidden)
 			{
 				to->Msg(this->player->character, message);
 				to->Release();
@@ -133,6 +133,20 @@ CLIENT_F_FUNC(Talk)
 						if (victim->admin < this->player->character->admin)
 						{
 							this->server->world->Kick(this->player->character, victim, command[0] != 's');
+						}
+					}
+				}
+				else if (command.length() >= 2 && command.compare(0,2,"bo") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["board"]))
+				{
+					short boardid = ((arguments.size() >= 1) ? util::to_int(arguments[0]) : static_cast<int>(this->server->world->config["AdminBoard"])) - 1;
+
+					if (boardid != static_cast<int>(this->server->world->config["AdminBoard"]) - 1
+					 || this->player->character->admin >= static_cast<int>(this->server->world->admin_config["reports"]))
+					{
+						if (static_cast<std::size_t>(boardid) < this->server->world->boards.size())
+						{
+							this->player->character->board = this->server->world->boards[boardid];
+							this->player->character->ShowBoard();
 						}
 					}
 				}
@@ -386,6 +400,17 @@ CLIENT_F_FUNC(Talk)
 				{
 					int strength = (arguments.size() >= 1)?std::min(8,std::max(1,util::to_int(arguments[0]))):5;
 					this->player->character->map->Effect(MAP_EFFECT_QUAKE, strength);
+				}
+				else if (command.length() >= 1 && command.compare(0,1,"h") == 0 && this->player->character->admin >= static_cast<int>(this->server->world->admin_config["hide"]))
+				{
+					if (this->player->character->hidden)
+					{
+						this->player->character->Unhide();
+					}
+					else
+					{
+						this->player->character->Hide();
+					}
 				}
 			}
 			else

@@ -87,7 +87,7 @@ class Character : public Shared
 		short weight, maxweight;
 		short karma;
 		SitAction sitting;
-		unsigned char visible;
+		bool hidden;
 		int bankmax;
 		int goldbank;
 		int usage;
@@ -178,6 +178,8 @@ class Character : public Shared
 		int Usage();
 		void CalculateStats();
 		void DropAll(Character *killer);
+		void Hide();
+		void Unhide();
 
 		void FormulaVars(std::map<std::string, double> &vars, std::string prefix = "");
 
@@ -197,6 +199,24 @@ class Character : public Shared
 
 	SCRIPT_REGISTER_REF(Character)
 		SCRIPT_REGISTER_FACTORY("Character @f(string name, World @)", ScriptFactory);
+
+		SCRIPT_REGISTER_ENUM("EquipLocation")
+			SCRIPT_REGISTER_ENUM_VALUE(Boots);
+			SCRIPT_REGISTER_ENUM_VALUE(Accessory);
+			SCRIPT_REGISTER_ENUM_VALUE(Gloves);
+			SCRIPT_REGISTER_ENUM_VALUE(Belt);
+			SCRIPT_REGISTER_ENUM_VALUE(Armor);
+			SCRIPT_REGISTER_ENUM_VALUE(Necklace);
+			SCRIPT_REGISTER_ENUM_VALUE(Hat);
+			SCRIPT_REGISTER_ENUM_VALUE(Shield);
+			SCRIPT_REGISTER_ENUM_VALUE(Weapon);
+			SCRIPT_REGISTER_ENUM_VALUE(Ring1);
+			SCRIPT_REGISTER_ENUM_VALUE(Ring2);
+			SCRIPT_REGISTER_ENUM_VALUE(Armlet1);
+			SCRIPT_REGISTER_ENUM_VALUE(Armlet2);
+			SCRIPT_REGISTER_ENUM_VALUE(Bracer1);
+			SCRIPT_REGISTER_ENUM_VALUE(Bracer2);
+		SCRIPT_REGISTER_ENUM_END()
 
 		SCRIPT_REGISTER_VARIABLE("int", login_time);
 		SCRIPT_REGISTER_VARIABLE("bool", online);
@@ -235,7 +255,7 @@ class Character : public Shared
 		SCRIPT_REGISTER_VARIABLE("int16", maxweight);
 		SCRIPT_REGISTER_VARIABLE("int16", karma);
 		SCRIPT_REGISTER_VARIABLE("SitAction", sitting);
-		SCRIPT_REGISTER_VARIABLE("uint8", visible);
+		SCRIPT_REGISTER_VARIABLE("bool", hidden);
 		SCRIPT_REGISTER_VARIABLE("int", bankmax);
 		SCRIPT_REGISTER_VARIABLE("int", goldbank);
 		SCRIPT_REGISTER_VARIABLE("int", usage);
@@ -303,6 +323,9 @@ class Character : public Shared
 		SCRIPT_REGISTER_FUNCTION("int Usage()", Usage);
 		SCRIPT_REGISTER_FUNCTION("void CalculateStats()", CalculateStats);
 		SCRIPT_REGISTER_FUNCTION("void DropAll(Character @killer)", DropAll);
+		SCRIPT_REGISTER_FUNCTION("void Hide()", Hide);
+		SCRIPT_REGISTER_FUNCTION("void Unhide()", Unhide);
+		SCRIPT_REGISTER_FUNCTION("void Logout()", Logout);
 		SCRIPT_REGISTER_FUNCTION("void Save()", Save);
 
 		SCRIPT_REGISTER_GLOBAL_FUNCTION("bool Character_ValidName(string name)", ValidName);

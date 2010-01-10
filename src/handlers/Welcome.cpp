@@ -100,8 +100,42 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddBreakString(this->player->character->guild ? this->player->character->guild->GetRank(this->player->character->guild_rank) : ""); // Guild Rank
 			reply.AddChar(this->player->character->clas);
 			reply.AddString(this->player->character->PaddedGuildTag());
-			// Tell a guardian's client they're a GM so they can use #nowall
-			reply.AddChar((this->player->character->admin == ADMIN_GUARDIAN) ? ADMIN_GM : this->player->character->admin);
+
+			// Tell a player's client they're a higher level admin than they are to enable some features
+
+			AdminLevel lowest_command = ADMIN_HGM;
+
+			UTIL_MAP_FOREACH_ALL(this->server->world->admin_config, std::string, util::variant, ac)
+			{
+				if (ac.first == "killnpc"
+				 || ac.first == "reports")
+				{
+					continue;
+				}
+
+				lowest_command = std::min<AdminLevel>(lowest_command, static_cast<AdminLevel>(util::to_int(ac.second)));
+			}
+
+			if (this->player->character->admin >= static_cast<int>(this->server->world->admin_config["seehide"])
+			 && this->player->character->admin < ADMIN_HGM)
+			{
+				reply.AddChar(ADMIN_HGM);
+			}
+			else if (this->player->character->admin >= static_cast<int>(this->server->world->admin_config["nowall"])
+			 && this->player->character->admin < ADMIN_GM)
+			{
+				reply.AddChar(ADMIN_GM);
+			}
+			else if (this->player->character->admin >= lowest_command
+			 && this->player->character->admin < ADMIN_GUIDE)
+			{
+				reply.AddChar(ADMIN_GUIDE);
+			}
+			else
+			{
+				reply.AddChar(this->player->character->admin);
+			}
+
 			reply.AddChar(this->player->character->level);
 			reply.AddInt(this->player->character->exp);
 			reply.AddInt(this->player->character->usage);
@@ -161,9 +195,9 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddChar(24); // ?
 			reply.AddShort(10); // ?
 			reply.AddShort(10); // ?
+			reply.AddShort(0); // Admin command flood rate
 			reply.AddShort(2); // ?
-			reply.AddShort(2); // ?
-			reply.AddChar(4); // ?
+			reply.AddChar(0); // Login warning message
 			reply.AddByte(255);
 
 			CLIENT_SEND(reply);
@@ -316,7 +350,7 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddChar(character->sitting);
-				reply.AddChar(0); // visible
+				reply.AddChar(character->hidden);
 				reply.AddByte(255);
 			}
 			UTIL_PTR_VECTOR_FOREACH(updatenpcs, NPC, npc)

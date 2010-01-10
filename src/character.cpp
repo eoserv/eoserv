@@ -114,7 +114,8 @@ Character::Character(std::string name, World *world)
 
 	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`, `map`,"
 	"`x`, `y`, `direction`, `spawnmap`, `spawnx`, `spawny`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
-	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank` FROM `characters` WHERE `name` = '$'", name.c_str());
+	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` FROM `characters` "
+	"WHERE `name` = '$'", name.c_str());
 	std::map<std::string, util::variant> row = res.front();
 
 	this->login_time = std::time(0);
@@ -194,6 +195,7 @@ Character::Character(std::string name, World *world)
 	this->warp_anim = WARP_ANIMATION_INVALID;
 
 	this->sitting = static_cast<SitAction>(GetRow<int>(row, "sitting"));
+	this->hidden = false;
 
 	this->bankmax = GetRow<int>(row, "bankmax");
 
@@ -763,7 +765,7 @@ void Character::Refresh()
 		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 		builder.AddChar(character->sitting);
-		builder.AddChar(0); // visible
+		builder.AddChar(character->hidden);
 		builder.AddByte(255);
 	}
 
@@ -1077,6 +1079,32 @@ void Character::DropAll(Character *killer)
 	}
 }
 
+void Character::Hide()
+{
+	this->hidden = true;
+
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REMOVE);
+	builder.AddShort(this->player->id);
+
+	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	{
+		character->player->client->SendBuilder(builder);
+	}
+}
+
+void Character::Unhide()
+{
+	this->hidden = false;
+
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_AGREE);
+	builder.AddShort(this->player->id);
+
+	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	{
+		character->player->client->SendBuilder(builder);
+	}
+}
+
 #define v(x) vars[prefix + #x] = x;
 #define vv(x, n) vars[prefix + n] = x;
 
@@ -1163,12 +1191,12 @@ void Character::Save()
 		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
 		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, "
 		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
-		"`spells` = '$', `guild` = '$', guild_rank = # WHERE `name` = '$'",
+		"`spells` = '$', `guild` = '$', guild_rank = #, `quest` = '$', `vars` = '$' WHERE `name` = '$'",
 		this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
 		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
-		DollSerialize(this->paperdoll).c_str(), "", (this->guild ? this->guild->tag.c_str() : ""), this->guild_rank, this->name.c_str());
+		DollSerialize(this->paperdoll).c_str(), "", (this->guild ? this->guild->tag.c_str() : ""), this->guild_rank, "", "", this->name.c_str());
 }
 
 Character::~Character()

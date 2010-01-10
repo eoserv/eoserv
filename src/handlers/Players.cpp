@@ -19,7 +19,7 @@ CLIENT_F_FUNC(Players)
 			std::string name = reader.GetEndString();
 			Character *victim = this->server->world->GetCharacter(name);
 
-			if (victim)
+			if (victim && !victim->hidden)
 			{
 				if (victim->mapid == this->player->character->mapid && !victim->nowhere)
 				{
@@ -39,14 +39,30 @@ CLIENT_F_FUNC(Players)
 			CLIENT_SEND(reply);
 		}
 
+		case PACKET_LIST: // Opened friends list
 		case PACKET_REQUEST: // Requested a list of online players
 		{
+			int online = this->server->world->characters.size();
+
+			UTIL_PTR_VECTOR_FOREACH(this->server->world->characters, Character, character)
+			{
+				if (character->hidden)
+				{
+					--online;
+				}
+			}
+
 			reply.SetID(0);
-			reply.AddChar(INIT_PLAYERS);
-			reply.AddShort(this->server->world->characters.size());
+			reply.AddChar(action == PACKET_LIST ? INIT_FRIEND_LIST_PLAYERS : INIT_PLAYERS);
+			reply.AddShort(online);
 			reply.AddByte(255);
 			UTIL_PTR_VECTOR_FOREACH(this->server->world->characters, Character, character)
 			{
+				if (character->hidden)
+				{
+					continue;
+				}
+
 				reply.AddBreakString(character->name);
 				reply.AddBreakString(character->title);
 				reply.AddChar(0); // ?

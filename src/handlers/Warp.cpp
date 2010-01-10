@@ -97,7 +97,7 @@ CLIENT_F_FUNC(Warp)
 				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddChar(character->sitting);
-				reply.AddChar(0); // visible
+				reply.AddChar(character->hidden);
 				reply.AddByte(255);
 			}
 			UTIL_PTR_VECTOR_FOREACH(updatenpcs, NPC, npc)

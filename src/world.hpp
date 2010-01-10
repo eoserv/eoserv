@@ -103,6 +103,8 @@ class World : public Shared
 		void AdminMsg(Character *from, std::string message, int minlevel = ADMIN_GUARDIAN, bool echo = true);
 		void AnnounceMsg(Character *from, std::string message, bool echo = true);
 		void ServerMsg(std::string message);
+		void AdminReport(Character *from, std::string reportee, std::string message);
+		void AdminRequest(Character *from, std::string message);
 
 		void Reboot();
 		void Reboot(int seconds, std::string reason);
@@ -163,6 +165,8 @@ class World : public Shared
 		SCRIPT_REGISTER_FUNCTION("void AdminMsg(Character @, string, int minlevel, bool echo)", AdminMsg);
 		SCRIPT_REGISTER_FUNCTION("void AnnounceMsg(Character @, string, bool echo)", AnnounceMsg);
 		SCRIPT_REGISTER_FUNCTION("void ServerMsg(string)", ServerMsg);
+		SCRIPT_REGISTER_FUNCTION("void AdminReport(Character @, string reportee, string message)", AdminReport);
+		SCRIPT_REGISTER_FUNCTION("void AdminRequest(Character @, string message)", AdminRequest);
 		//SCRIPT_REGISTER_FUNCTION_PR("void Reboot()", Reboot, (), void);
 		//SCRIPT_REGISTER_FUNCTION_PR("void Reboot(int, string)", Reboot, (int, std::string), void);
 		SCRIPT_REGISTER_FUNCTION("void Kick(Character @, Character @, bool announce)", Kick);

@@ -309,6 +309,8 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "BoardMaxSubjectLength", 32);
 		eoserv_config_default(config, "BoardMaxPostLength" , 2048);
 		eoserv_config_default(config, "BoardDatePosts"     , true);
+		eoserv_config_default(config, "AdminBoard"         , 8);
+		eoserv_config_default(config, "AdminBoardLimit"    , 100);
 		eoserv_config_default(config, "ShowLevel"          , false);
 		eoserv_config_default(config, "WarpBubbles"        , true);
 		eoserv_config_default(config, "HideGlobal"         , false);
@@ -383,6 +385,8 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "JukeboxSongs"       , 20);
 		eoserv_config_default(config, "JukeboxPrice"       , 25);
 		eoserv_config_default(config, "JukeboxTimer"       , 90);
+		eoserv_config_default(config, "RespawnBossChildren", true);
+		eoserv_config_default(config, "OldReports"         , false);
 		eoserv_config_default(config, "DoorTimer"          , 3.0);
 		eoserv_config_default(config, "ChatMaxWidth"       , 1500);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
@@ -414,12 +418,14 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "warp"          , 2);
 		eoserv_config_default(aconfig, "warptome"      , 2);
 		eoserv_config_default(aconfig, "warpmeto"      , 2);
+		eoserv_config_default(aconfig, "hide"          , 2);
 		eoserv_config_default(aconfig, "evacuate"      , 2);
 		eoserv_config_default(aconfig, "remap"         , 4);
-		eoserv_config_default(aconfig, "repub"         , 4);
 		eoserv_config_default(aconfig, "arena"         , 1);
+		eoserv_config_default(aconfig, "board"         , 1);
 		eoserv_config_default(aconfig, "shutdown"      , 4);
 		eoserv_config_default(aconfig, "rehash"        , 4);
+		eoserv_config_default(aconfig, "repub"         , 4);
 		eoserv_config_default(aconfig, "sitem"         , 3);
 		eoserv_config_default(aconfig, "ditem"         , 3);
 		eoserv_config_default(aconfig, "snpc"          , 3);
@@ -452,6 +458,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "killnpc"       , 2);
 		eoserv_config_default(aconfig, "boardmod"      , 1);
 		eoserv_config_default(aconfig, "reports"       , 1);
+		eoserv_config_default(aconfig, "seehide"       , 4);
 
 		Console::Styled[1] = Console::Styled[0] = config["StyleConsole"];
 

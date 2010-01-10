@@ -34,7 +34,8 @@ void world_spawn_npcs(void *world_void)
 	{
 		UTIL_PTR_VECTOR_FOREACH(map->npcs, NPC, npc)
 		{
-			if (!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time && !npc->Data()->child)
+			if ((!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time)
+			 && (!npc->Data()->child || (npc->parent && npc->parent->alive && world->config["RespawnBossChildren"])))
 			{
 #ifdef DEBUG
 				Console::Dbg("Spawning NPC %i on map %i", npc->id, map->id);
@@ -368,6 +369,89 @@ void World::ServerMsg(std::string message)
 	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
 	{
 		character->player->client->SendBuilder(builder);
+	}
+}
+
+void World::AdminReport(Character *from, std::string reportee, std::string message)
+{
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  reports: " + reportee + ", "));
+
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY);
+	builder.AddChar(2); // message type
+	builder.AddByte(255);
+	builder.AddBreakString(from->name);
+	builder.AddBreakString(message);
+	builder.AddBreakString(reportee);
+
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
+	{
+		if (character->admin >= static_cast<int>(this->admin_config["reports"]))
+		{
+			character->player->client->SendBuilder(builder);
+		}
+	}
+
+	short boardid = static_cast<int>(this->server->world->config["AdminBoard"]) - 1;
+
+	if (static_cast<std::size_t>(boardid) < this->server->world->boards.size())
+	{
+		Board *admin_board = this->server->world->boards[boardid];
+
+		Board_Post *newpost = new Board_Post;
+		newpost->id = ++admin_board->last_id;
+		newpost->author = from->name;
+		newpost->author_admin = from->admin;
+		newpost->subject = std::string(" [Report] ") + util::ucfirst(from->name) + " reports: " + reportee;
+		newpost->body = message;
+		newpost->time = Timer::GetTime();
+
+		admin_board->posts.push_front(newpost);
+
+		if (admin_board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server->world->config["AdminBoardLimit"])))
+		{
+			admin_board->posts.pop_back();
+		}
+	}
+}
+
+void World::AdminRequest(Character *from, std::string message)
+{
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  needs help: "));
+
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY);
+	builder.AddChar(1); // message type
+	builder.AddByte(255);
+	builder.AddBreakString(from->name);
+	builder.AddBreakString(message);
+
+	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
+	{
+		if (character->admin >= static_cast<int>(this->admin_config["reports"]))
+		{
+			character->player->client->SendBuilder(builder);
+		}
+	}
+
+	short boardid = static_cast<int>(this->server->world->config["AdminBoard"]) - 1;
+
+	if (static_cast<std::size_t>(boardid) < this->server->world->boards.size())
+	{
+		Board *admin_board = this->server->world->boards[boardid];
+
+		Board_Post *newpost = new Board_Post;
+		newpost->id = ++admin_board->last_id;
+		newpost->author = from->name;
+		newpost->author_admin = from->admin;
+		newpost->subject = std::string(" [Request] ") + util::ucfirst(from->name) + " needs help";
+		newpost->body = message;
+		newpost->time = Timer::GetTime();
+
+		admin_board->posts.push_front(newpost);
+
+		if (admin_board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server->world->config["AdminBoardLimit"])))
+		{
+			admin_board->posts.pop_back();
+		}
 	}
 }
 

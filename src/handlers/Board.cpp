@@ -111,9 +111,19 @@ CLIENT_F_FUNC(Board)
 
 				this->player->character->board->posts.push_front(newpost);
 
-				if (this->player->character->board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server->world->config["BoardMaxPosts"])))
+				if (this->player->character->board->id == static_cast<int>(this->server->world->config["AdminBoard"]))
 				{
-					this->player->character->board->posts.pop_back();
+					if (this->player->character->board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server->world->config["AdminBoardLimit"])))
+					{
+						this->player->character->board->posts.pop_back();
+					}
+				}
+				else
+				{
+					if (this->player->character->board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server->world->config["BoardMaxPosts"])))
+					{
+						this->player->character->board->posts.pop_back();
+					}
 				}
 
 				// Not in the official EO servers, but nice to use
@@ -158,14 +168,18 @@ CLIENT_F_FUNC(Board)
 				return true;
 			}
 
-			for (std::size_t y = 0; y < this->player->character->map->height; ++y)
+			if (boardid != static_cast<int>(this->server->world->config["AdminBoard"]) - 1
+			 || this->player->character->admin >= static_cast<int>(this->server->world->admin_config["reports"]))
 			{
-				for (std::size_t x = 0; x < this->player->character->map->width; ++x)
+				for (std::size_t y = 0; y < this->player->character->map->height; ++y)
 				{
-					if (this->player->character->InRange(x, y)
-					 && this->player->character->map->GetSpec(x, y) == static_cast<Map_Tile::TileSpec>(Map_Tile::Board1 + boardid))
+					for (std::size_t x = 0; x < this->player->character->map->width; ++x)
 					{
-						this->player->character->board = this->server->world->boards[boardid];
+						if (this->player->character->InRange(x, y)
+						 && this->player->character->map->GetSpec(x, y) == static_cast<Map_Tile::TileSpec>(Map_Tile::Board1 + boardid))
+						{
+							this->player->character->board = this->server->world->boards[boardid];
+						}
 					}
 				}
 			}
