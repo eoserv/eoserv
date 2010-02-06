@@ -189,7 +189,7 @@ void NPC::LoadShopDrop()
 			this->citizenship->home = parts[0];
 			goto restart_loop;
 		}
-		else if (this->citizenship && parts[1].substr(0, parts[1].length() - 1) == "question")
+		else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "question")
 		{
 			int index = parts[1][parts[1].length() - 1] - '1';
 
@@ -200,7 +200,7 @@ void NPC::LoadShopDrop()
 
 			this->citizenship->questions[index] = static_cast<std::string>(hc.second);
 		}
-		else if (this->citizenship && parts[1].substr(0, parts[1].length() - 1) == "answer")
+		else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "answer")
 		{
 			int index = parts[1][parts[1].length() - 1] - '1';
 
