@@ -181,12 +181,6 @@ bool IPAddress::operator ==(const IPAddress &other) const
 	return (this->address == other.address);
 }
 
-bool IPAddress::operator <(const IPAddress &other) const
-{
-	return (this->address < other.address);
-}
-
-
 Client::Client()
 {
 	Socket_WSAStartup();
@@ -562,7 +556,7 @@ Client *Server::Poll()
 }
 
 #if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
-PtrVector<Client> &Server::Select(double timeout)
+PtrVector<Client> *Server::Select(double timeout)
 {
 	static PtrVector<Client> selected;
 	std::vector<pollfd> fds;
@@ -575,7 +569,7 @@ PtrVector<Client> &Server::Select(double timeout)
 	fd.events = POLLERR;
 	fds.push_back(fd);
 
-	UTIL_LIST_FOREACH_ALL(this->clients, Client, client)
+	UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
 	{
 		fd.fd = client->sock;
 
@@ -656,7 +650,7 @@ PtrVector<Client> &Server::Select(double timeout)
 	{
 		if (client->connected || client->recv_buffer.length() > 0)
 		{
-			selected.push_back(client);
+			selected.push_back(*client);
 		}
 	}
 

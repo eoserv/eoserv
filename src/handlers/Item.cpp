@@ -51,7 +51,7 @@ CLIENT_F_FUNC(Item)
 
 						if (item->scrollmap == 0)
 						{
-							this->player->character->Warp(this->player->character->spawnmap, this->player->character->spawnx, this->player->character->spawny, WARP_ANIMATION_SCROLL);
+							this->player->character->Warp(this->player->character->SpawnMap(), this->player->character->SpawnX(), this->player->character->SpawnY(), WARP_ANIMATION_SCROLL);
 						}
 						else
 						{
@@ -152,19 +152,7 @@ CLIENT_F_FUNC(Item)
 						reply.AddChar(this->player->character->weight);
 						reply.AddChar(this->player->character->maxweight);
 
-						PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE);
-						builder.AddShort(this->player->id);
-						builder.AddChar(SLOT_HAIRCOLOR);
-						builder.AddChar(0); // subloc
-						builder.AddChar(item->haircolor);
-
-						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
-						{
-							if (*character != this->player->character && this->player->character->InRange(*character))
-							{
-								character->player->client->SendBuilder(builder);
-							}
-						}
+						CLIENT_SEND(reply);
 					}
 					break;
 

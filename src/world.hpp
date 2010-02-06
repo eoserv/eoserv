@@ -51,6 +51,27 @@ struct Board : public Shared
 	SCRIPT_REGISTER_END()
 };
 
+struct Home : public Shared
+{
+	std::string id;
+	std::string name;
+	short map;
+	unsigned char x;
+	unsigned char y;
+	int level;
+
+	Home() : map(1), x(0), y(0), level(-1) { }
+
+	SCRIPT_REGISTER_REF_DF(Home)
+		SCRIPT_REGISTER_VARIABLE("string", id);
+		SCRIPT_REGISTER_VARIABLE("string", name);
+		SCRIPT_REGISTER_VARIABLE("int16", map);
+		SCRIPT_REGISTER_VARIABLE("uint8", x);
+		SCRIPT_REGISTER_VARIABLE("uint8", y);
+		SCRIPT_REGISTER_VARIABLE("int", level);
+	SCRIPT_REGISTER_END()
+};
+
 /**
  * Object which holds and manages all maps and characters on the server, as well as timed events
  * Only one of these should exist per server
@@ -81,17 +102,20 @@ class World : public Shared
 		Config shops_config;
 		Config arenas_config;
 		Config formulas_config;
+		Config home_config;
 
 		PtrVector<Character> characters;
 		PtrVector<Guild> guilds;
 		PtrVector<Party> parties;
 		PtrVector<Map> maps;
+		PtrVector<Home> homes;
 
 		util::array<Board *, 8> boards;
 
 		util::array<int, 254> exp_table;
 
 		World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config);
+		void LoadHome();
 
 		int GenerateCharacterID();
 		int GeneratePlayerID();
@@ -123,6 +147,8 @@ class World : public Shared
 		Character *GetCharacterCID(unsigned int id);
 
 		Map *GetMap(short id);
+		Home *GetHome(Character *);
+		Home *GetHome(std::string);
 
 		bool CharacterExists(std::string name);
 		Character *CreateCharacter(Player *, std::string name, Gender, int hairstyle, int haircolor, Skin);
@@ -151,14 +177,17 @@ class World : public Shared
 		SCRIPT_REGISTER_VARIABLE("Config", drops_config);
 		SCRIPT_REGISTER_VARIABLE("Config", shops_config);
 		SCRIPT_REGISTER_VARIABLE("Config", arenas_config);
+		SCRIPT_REGISTER_VARIABLE("Config", formulas_config);
+		SCRIPT_REGISTER_VARIABLE("Config", home_config);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<Character @>", characters);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<Guild @>", guilds);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<Party @>", parties);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<Map @>", maps);
 		//SCRIPT_REGISTER_VARIABLE("Array<Board @, 8>", boards);
 		//SCRIPT_REGISTER_VARIABLE("Array<int, 254>", exp_table);
+		SCRIPT_REGISTER_FUNCTION("void LoadHome()", LoadHome);
 		SCRIPT_REGISTER_FUNCTION("int GenerateCharacterID()", GenerateCharacterID);
-		SCRIPT_REGISTER_FUNCTION("int GeneratePlayerID()", GenerateCharacterID);
+		SCRIPT_REGISTER_FUNCTION("int GeneratePlayerID()", GeneratePlayerID);
 		SCRIPT_REGISTER_FUNCTION_PR("void Login(Character @)", Login, (Character *), void);
 		SCRIPT_REGISTER_FUNCTION("void Logout(Character @)", Logout);
 		SCRIPT_REGISTER_FUNCTION("void Msg(Character @, string, bool echo)", Msg);
@@ -177,6 +206,8 @@ class World : public Shared
 		SCRIPT_REGISTER_FUNCTION("Character @GetCharacterPID(uint)", GetCharacterPID);
 		SCRIPT_REGISTER_FUNCTION("Character @GetCharacterCID(uint)", GetCharacterCID);
 		SCRIPT_REGISTER_FUNCTION_PR("Map @GetMap(int16)", GetMap, (short), Map *);
+		SCRIPT_REGISTER_FUNCTION_PR("Home @GetHome(Character @)", GetHome, (Character *), Home *);
+		SCRIPT_REGISTER_FUNCTION_PR("Home @GetHome(string)", GetHome, (std::string), Home *);
 		SCRIPT_REGISTER_FUNCTION("bool CharacterExists(string)", CharacterExists);
 		SCRIPT_REGISTER_FUNCTION("Character @CreateCharacter(Player @, string, Gender, int, int, Skin)", CreateCharacter);
 		SCRIPT_REGISTER_FUNCTION("void DeleteCharacter(string)", DeleteCharacter);

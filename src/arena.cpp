@@ -25,13 +25,13 @@ void arena_spawn(void *arena_void)
 Arena::Arena(Map *map, int time, int block)
 {
 	this->map = map;
+	map->AddRef();
 	this->time = time;
 	this->block = block;
 	this->occupants = 0;
 
-	TimeEvent *event = new TimeEvent(arena_spawn, this, time, Timer::FOREVER);
-	this->map->world->timer.Register(event);
-	event->Release();
+	this->spawn_timer = new TimeEvent(arena_spawn, this, time, Timer::FOREVER);
+	this->map->world->timer.Register(this->spawn_timer);
 }
 
 void Arena::Spawn(bool force)
@@ -159,4 +159,10 @@ void Arena::Attack(Character *from, Direction direction)
 
 		character_ptr->Release();
 	}
+}
+
+Arena::~Arena()
+{
+	this->map->Release();
+	this->spawn_timer->Release();
 }

@@ -103,7 +103,7 @@ util::array<int, 15> DollUnserialize(std::string serialized)
 	return list;
 }
 
-template <typename T> T GetRow(std::map<std::string, util::variant> &row, const char *col)
+template <typename T> T GetRow(std::tr1::unordered_map<std::string, util::variant> &row, const char *col)
 {
 	return row[col];
 }
@@ -112,11 +112,11 @@ Character::Character(std::string name, World *world)
 {
 	this->world = world;
 
-	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`, `map`,"
-	"`x`, `y`, `direction`, `spawnmap`, `spawnx`, `spawny`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
+	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `fiance`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`,"
+	"`map`, `x`, `y`, `direction`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
 	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` FROM `characters` "
 	"WHERE `name` = '$'", name.c_str());
-	std::map<std::string, util::variant> row = res.front();
+	std::tr1::unordered_map<std::string, util::variant> row = res.front();
 
 	this->login_time = std::time(0);
 
@@ -140,10 +140,6 @@ Character::Character(std::string name, World *world)
 	this->x = GetRow<int>(row, "x");
 	this->y = GetRow<int>(row, "y");
 	this->direction = static_cast<Direction>(GetRow<int>(row, "direction"));
-
-	this->spawnmap = GetRow<int>(row, "spawnmap");
-	this->spawnx = GetRow<int>(row, "spawnx");
-	this->spawny = GetRow<int>(row, "spawny");
 
 	this->level = GetRow<int>(row, "level");
 	this->exp = GetRow<int>(row, "exp");
@@ -881,6 +877,21 @@ int Character::Usage()
 	return this->usage + (std::time(0) - this->login_time) / 60;
 }
 
+short Character::SpawnMap()
+{
+	return this->world->GetHome(this)->map;
+}
+
+unsigned char Character::SpawnX()
+{
+	return this->world->GetHome(this)->x;
+}
+
+unsigned char Character::SpawnY()
+{
+	return this->world->GetHome(this)->y;
+}
+
 // TODO: calculate equipment bonuses, check formulas
 void Character::CalculateStats()
 {
@@ -1108,7 +1119,7 @@ void Character::Unhide()
 #define v(x) vars[prefix + #x] = x;
 #define vv(x, n) vars[prefix + n] = x;
 
-void Character::FormulaVars(std::map<std::string, double> &vars, std::string prefix)
+void Character::FormulaVars(std::tr1::unordered_map<std::string, double> &vars, std::string prefix)
 {
 	v(level) v(exp) v(hp) v(maxhp) v(tp) v(maxtp) v(maxsp)
 	v(weight) v(maxweight) v(karma) v(mindam) v(maxdam)

@@ -262,6 +262,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "ShopsFile"          , "./data/shops.ini");
 		eoserv_config_default(config, "ArenasFile"         , "./data/arenas.ini");
 		eoserv_config_default(config, "FormulasFile"       , "./data/formulas.ini");
+		eoserv_config_default(config, "HomeFile"           , "./data/home.ini");
 		eoserv_config_default(config, "MapDir"             , "./data/maps/");
 		eoserv_config_default(config, "Maps"               , 278);
 		eoserv_config_default(config, "ScriptDir"          , "./data/scripts/");
@@ -349,9 +350,6 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "StartMap"           , 0);
 		eoserv_config_default(config, "StartX"             , 0);
 		eoserv_config_default(config, "StartY"             , 0);
-		eoserv_config_default(config, "SpawnMap"           , 0);
-		eoserv_config_default(config, "SpawnX"             , 0);
-		eoserv_config_default(config, "SpawnY"             , 0);
 		eoserv_config_default(config, "JailMap"            , 76);
 		eoserv_config_default(config, "JailX"              , 6);
 		eoserv_config_default(config, "JailY"              , 5);
@@ -442,11 +440,9 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "setstatpoints" , 3);
 		eoserv_config_default(aconfig, "setskillpoints", 3);
 		eoserv_config_default(aconfig, "settitle"      , 3);
+		eoserv_config_default(aconfig, "setfiance"     , 3);
 		eoserv_config_default(aconfig, "setpartner"    , 3);
 		eoserv_config_default(aconfig, "sethome"       , 3);
-		eoserv_config_default(aconfig, "sethomemap"    , 3);
-		eoserv_config_default(aconfig, "sethomex"      , 3);
-		eoserv_config_default(aconfig, "sethomey"      , 3);
 		eoserv_config_default(aconfig, "setgender"     , 3);
 		eoserv_config_default(aconfig, "sethairstyle"  , 3);
 		eoserv_config_default(aconfig, "sethaircolor"  , 3);
@@ -555,13 +551,13 @@ int main(int argc, char *argv[])
 		{
 			if ((newclient = server.Poll()) != 0)
 			{
-				static std::map<IPAddress, double> connection_log;
+				static std::tr1::unordered_map<IPAddress, double, std::tr1::hash<IPAddress> > connection_log;
 				int ip_connections = 0;
 				bool throttle = false;
 				IPAddress remote_addr = newclient->GetRemoteAddr();
 
 				restart_loop:
-				UTIL_MAP_IFOREACH_ALL(connection_log, IPAddress, double, connection)
+				UTIL_UNORDERED_MAP_IFOREACH_ALL(connection_log, IPAddress, double, connection)
 				{
 					if (connection->second + static_cast<int>(config["IPReconnectLimit"]) < Timer::GetTime())
 					{
@@ -629,7 +625,7 @@ int main(int argc, char *argv[])
 					{
 						case EOClient::ReadLen1:
 							cl->raw_length[0] = data[0];
-							data.erase(0,1);
+							data.erase(0, 1);
 							cl->packet_state = EOClient::ReadLen2;
 							((cl->raw_length[0] & 0xFD) == 0xFD) ? cl->id = 0 - 2 : 0;
 
@@ -640,7 +636,7 @@ int main(int argc, char *argv[])
 
 						case EOClient::ReadLen2:
 							cl->raw_length[1] = data[0];
-							data.erase(0,1);
+							data.erase(0, 1);
 							cl->length = PacketProcessor::Number(cl->raw_length[0], cl->raw_length[1]);
 							cl->packet_state = EOClient::ReadData;
 							(unsigned((cl->raw_length[1] & 0x01) - 3) == cl->id) ? cl->id = 0 - 1, cl->length = 20 : 0;
@@ -653,6 +649,7 @@ int main(int argc, char *argv[])
 						case EOClient::ReadData:
 							oldlength = cl->data.length();
 							cl->data += data.substr(0, cl->length);
+							data.erase(0, cl->length);
 							cl->length -= cl->data.length() - oldlength;
 							if (cl->length == 0)
 							{

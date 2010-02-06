@@ -67,7 +67,7 @@ class Database_QueryFailed : public Database_Exception
 /**
  * Result from a Database Query containing the SELECTed rows, and/or affected row counts and error information
  */
-class Database_Result : public std::vector<std::map<std::string, util::variant> >
+class Database_Result : public std::vector<std::tr1::unordered_map<std::string, util::variant> >
 {
 	protected:
 		int affected_rows;

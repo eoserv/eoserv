@@ -269,7 +269,6 @@ class IPAddress : public Shared
 		operator std::string() const;
 
 		bool operator ==(const IPAddress &) const;
-		bool operator <(const IPAddress &) const;
 
 	static IPAddress *ScriptFactoryCopy(IPAddress &other) { return new IPAddress(other); }
 	static IPAddress *ScriptFactoryInt(unsigned int addr) { return new IPAddress(addr); }
@@ -290,6 +289,20 @@ class IPAddress : public Shared
 		SCRIPT_REGISTER_GLOBAL_FUNCTION("IPAddress @IPAddress_Lookup(string host)", Lookup);
 	SCRIPT_REGISTER_END()
 };
+
+namespace std
+{
+	namespace tr1
+	{
+		template <> struct hash<IPAddress> : public unary_function<IPAddress, size_t>
+		{
+			std::size_t operator()(const IPAddress &ipaddress) const
+			{
+				return ipaddress.GetInt();
+			}
+		};
+    }
+}
 
 /**
  * Generic TCP client class.

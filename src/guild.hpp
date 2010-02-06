@@ -82,8 +82,8 @@ class GuildManager : public Shared
 {
 	public:
 		bool cache_clearing;
-		std::map<std::string, Guild *> cache;
-		std::map<std::string, Guild_Create *> create_cache;
+		std::tr1::unordered_map<std::string, Guild *> cache;
+		std::tr1::unordered_map<std::string, Guild_Create *> create_cache;
 		World *world;
 
 		GuildManager(World *world_) : cache_clearing(false), world(world_) { world->AddRef(); }

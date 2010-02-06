@@ -31,7 +31,7 @@ class Arena : public Shared
 		int time;
 		int block;
 
-		Timer *spawn_timer;
+		TimeEvent *spawn_timer;
 		Map *map;
 		PtrVector<Arena_Spawn> spawns;
 
@@ -41,11 +41,13 @@ class Arena : public Shared
 
 		void Attack(Character *from, Direction);
 
+		~Arena();
+
 	SCRIPT_REGISTER_REF(Arena)
 		SCRIPT_REGISTER_VARIABLE("int", occupants);
 		SCRIPT_REGISTER_VARIABLE("int", time);
 		SCRIPT_REGISTER_VARIABLE("int", block);
-		SCRIPT_REGISTER_VARIABLE("Timer @", spawn_timer);
+		SCRIPT_REGISTER_VARIABLE("TimeEvent @", spawn_timer);
 		SCRIPT_REGISTER_VARIABLE("Map @", map);
 		SCRIPT_REGISTER_VARIABLE("PtrVector<Arena_Spawn>", spawns);
 		SCRIPT_REGISTER_FUNCTION("void Spawn(bool force)", Spawn);

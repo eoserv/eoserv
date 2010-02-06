@@ -323,6 +323,7 @@ class Map : public Shared
 		Arena *arena;
 
 		Map(int id, World *server);
+		void LoadArena();
 
 		int GenerateItemID();
 		unsigned char GenerateNPCIndex();
@@ -402,6 +403,7 @@ class Map : public Shared
 		SCRIPT_REGISTER_VARIABLE("double", jukebox_protect);
 		SCRIPT_REGISTER_VARIABLE("string", jukebox_player);
 		SCRIPT_REGISTER_VARIABLE("Arena @", arena);
+		SCRIPT_REGISTER_FUNCTION("void LoadArena()", LoadArena);
 		SCRIPT_REGISTER_FUNCTION("int GenerateItemID()", GenerateItemID);
 		SCRIPT_REGISTER_FUNCTION("uint8 GenerateNPCIndex()", GenerateNPCIndex);
 		SCRIPT_REGISTER_FUNCTION("void Enter(Character @, WarpAnimation animation)", Enter);

@@ -48,7 +48,7 @@ class Hook : public Shared
 class HookManager : public Shared
 {
 	public:
-		std::map<std::string, PtrList<Hook> > hooks;
+		std::tr1::unordered_map<std::string, PtrList<Hook> > hooks;
 
 		ScriptEngine engine;
 		ScriptContext *current_context;

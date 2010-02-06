@@ -228,6 +228,36 @@ Map::Map(int id, World *world)
 	this->world = world;
 	this->exists = false;
 	this->jukebox_protect = 0.0;
+	this->arena = 0;
+
+	this->LoadArena();
+
+	this->Load();
+
+	if (!this->chests.empty())
+	{
+		TimeEvent *event = new TimeEvent(map_spawn_chests, this, 60.0, Timer::FOREVER);
+		this->world->timer.Register(event);
+		event->Release();
+	}
+}
+
+void Map::LoadArena()
+{
+	PtrList<Character> update_characters;
+
+	if (this->arena)
+	{
+		UTIL_PTR_LIST_FOREACH(this->arena->map->characters, Character, character)
+		{
+			if (character->arena == this->arena)
+			{
+				update_characters.push_back(*character);
+			}
+		}
+
+		delete this->arena;
+	}
 
 	if (world->arenas_config[util::to_string(id) + ".enabled"])
 	{
@@ -280,13 +310,14 @@ Map::Map(int id, World *world)
 		this->arena = 0;
 	}
 
-	this->Load();
-
-	if (!this->chests.empty())
+	UTIL_PTR_LIST_FOREACH(update_characters, Character, character)
 	{
-		TimeEvent *event = new TimeEvent(map_spawn_chests, this, 60.0, Timer::FOREVER);
-		this->world->timer.Register(event);
-		event->Release();
+		character->arena = this->arena;
+
+		if (!this->arena)
+		{
+			character->Warp(character->map->id, character->map->relog_x, character->map->relog_y);
+		}
 	}
 }
 
@@ -1296,7 +1327,7 @@ void Map::Attack(Character *from, Direction direction)
 				// Checks if target is facing you
 				bool critical = std::abs(int(npc->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
-				std::map<std::string, double> formula_vars;
+				std::tr1::unordered_map<std::string, double> formula_vars;
 
 				from->FormulaVars(formula_vars);
 				npc->FormulaVars(formula_vars, "target_");
@@ -1379,7 +1410,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				// Checks if target is facing you
 				bool critical = std::abs(int(character_ptr->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
-				std::map<std::string, double> formula_vars;
+				std::tr1::unordered_map<std::string, double> formula_vars;
 
 				from->FormulaVars(formula_vars);
 				character_ptr->FormulaVars(formula_vars, "target_");
@@ -1434,10 +1465,10 @@ bool Map::AttackPK(Character *from, Direction direction)
 					character_ptr->map->Leave(character_ptr, WARP_ANIMATION_NONE, true);
 
 					character_ptr->nowhere = true;
-					character_ptr->map = this->world->GetMap(character_ptr->spawnmap);
-					character_ptr->mapid = character_ptr->spawnmap;
-					character_ptr->x = character_ptr->spawnx;
-					character_ptr->y = character_ptr->spawny;
+					character_ptr->map = this->world->GetMap(character_ptr->SpawnMap());
+					character_ptr->mapid = character_ptr->SpawnMap();
+					character_ptr->x = character_ptr->SpawnX();
+					character_ptr->y = character_ptr->SpawnY();
 
 					PacketReader reader("");
 

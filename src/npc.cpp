@@ -60,6 +60,8 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 
 	this->parent = 0;
 
+	this->citizenship = 0;
+
 	this->LoadShopDrop();
 }
 
@@ -166,6 +168,48 @@ void NPC::LoadShopDrop()
 
 				this->shop_craft[i/9] = item;
 			}
+		}
+	}
+
+	this->citizenship = 0;
+
+	restart_loop:
+	UTIL_UNORDERED_MAP_FOREACH_ALL(this->map->world->home_config, std::string, util::variant, hc)
+	{
+		std::vector<std::string> parts = util::explode('.', hc.first);
+
+		if (parts.size() < 2)
+		{
+			continue;
+		}
+
+		if (!this->citizenship && parts[1] == "innkeeper" && util::to_int(hc.second) == this->id)
+		{
+			this->citizenship = new NPC_Citizenship;
+			this->citizenship->home = parts[0];
+			goto restart_loop;
+		}
+		else if (this->citizenship && parts[1].substr(0, parts[1].length() - 1) == "question")
+		{
+			int index = parts[1][parts[1].length() - 1] - '1';
+
+			if (index < 0 || index >= 3)
+			{
+				Console::Wrn("Exactly 3 questions must be specified");
+			}
+
+			this->citizenship->questions[index] = static_cast<std::string>(hc.second);
+		}
+		else if (this->citizenship && parts[1].substr(0, parts[1].length() - 1) == "answer")
+		{
+			int index = parts[1][parts[1].length() - 1] - '1';
+
+			if (index < 0 || index >= 3)
+			{
+				Console::Wrn("Exactly 3 answers must be specified");
+			}
+
+			this->citizenship->answers[index] = static_cast<std::string>(hc.second);
 		}
 	}
 }
@@ -881,7 +925,7 @@ void NPC::Attack(Character *target)
 	// Checks if target is facing you
 	bool critical = std::abs(int(target->direction) - this->direction) != 2 || rand < static_cast<double>(this->map->world->config["CriticalRate"]);
 
-	std::map<std::string, double> formula_vars;
+	std::tr1::unordered_map<std::string, double> formula_vars;
 
 	this->FormulaVars(formula_vars);
 	target->FormulaVars(formula_vars, "target_");
@@ -985,10 +1029,10 @@ void NPC::Attack(Character *target)
 		target->map->Leave(target, WARP_ANIMATION_NONE, true);
 
 		target->nowhere = true;
-		target->map = this->map->world->GetMap(target->spawnmap);
-		target->mapid = target->spawnmap;
-		target->x = target->spawnx;
-		target->y = target->spawny;
+		target->map = this->map->world->GetMap(target->SpawnMap());
+		target->mapid = target->SpawnMap();
+		target->x = target->SpawnX();
+		target->y = target->SpawnY();
 
 		PacketReader reader("");
 
@@ -1001,7 +1045,7 @@ void NPC::Attack(Character *target)
 #define vv(x, n) vars[prefix + n] = x;
 #define vd(x) vars[prefix + #x] = data->x;
 
-void NPC::FormulaVars(std::map<std::string, double> &vars, std::string prefix)
+void NPC::FormulaVars(std::tr1::unordered_map<std::string, double> &vars, std::string prefix)
 {
 	ENF_Data *data = this->Data();
 	vv(1, "npc") v(hp) vv(data->hp, "maxhp")

@@ -90,6 +90,26 @@ struct NPC_Shop_Craft_Item : public Shared
 };
 
 /**
+ * Used by the NPC class to store innkeeper citizenship information
+ */
+struct NPC_Citizenship : public Shared
+{
+	std::string home;
+	util::array<std::string, 3> questions;
+	util::array<std::string, 3> answers;
+
+	SCRIPT_REGISTER_REF_DF(NPC_Citizenship)
+		SCRIPT_REGISTER_VARIABLE("string", home);
+		SCRIPT_REGISTER_VARIABLE_NAME("string", questions[0], "questions_0");
+		SCRIPT_REGISTER_VARIABLE_NAME("string", questions[1], "questions_1");
+		SCRIPT_REGISTER_VARIABLE_NAME("string", questions[2], "questions_2");
+		SCRIPT_REGISTER_VARIABLE_NAME("string", answers[0], "answers_0");
+		SCRIPT_REGISTER_VARIABLE_NAME("string", answers[1], "answers_1");
+		SCRIPT_REGISTER_VARIABLE_NAME("string", answers[2], "answers_2");
+	SCRIPT_REGISTER_END()
+};
+
+/**
  * An instance of an NPC created and managed by a Map
  */
 class NPC : public Shared
@@ -106,6 +126,7 @@ class NPC : public Shared
 		std::string shop_name;
 		PtrVector<NPC_Shop_Trade_Item> shop_trade;
 		PtrVector<NPC_Shop_Craft_Item> shop_craft;
+		NPC_Citizenship *citizenship;
 
 		NPC *parent;
 		bool alive;
@@ -136,7 +157,7 @@ class NPC : public Shared
 
 		void Attack(Character *target);
 
-		void FormulaVars(std::map<std::string, double> &vars, std::string prefix = "");
+		void FormulaVars(std::tr1::unordered_map<std::string, double> &vars, std::string prefix = "");
 
 		~NPC();
 
@@ -170,6 +191,7 @@ class NPC : public Shared
 		SCRIPT_REGISTER_VARIABLE("PtrList<NPC_Opponent>", damagelist);
 		SCRIPT_REGISTER_VARIABLE("Map @", map);
 		SCRIPT_REGISTER_VARIABLE("uint8", index);
+		SCRIPT_REGISTER_FUNCTION("void LoadShopDrop()", LoadShopDrop);
 		SCRIPT_REGISTER_FUNCTION("ENF_Data @Data()", Data);
 		SCRIPT_REGISTER_FUNCTION("void Spawn(NPC @parent)", Spawn);
 		SCRIPT_REGISTER_FUNCTION("void Act()", Act);

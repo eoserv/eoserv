@@ -10,7 +10,7 @@
 
 int sqlite_callback(void *data, int num, char *fields[], char *columns[])
 {
-	std::map<std::string, util::variant> result;
+	std::tr1::unordered_map<std::string, util::variant> result;
 	std::string column;
 	util::variant field;
 	int i;
@@ -262,7 +262,7 @@ Database_Result Database::Query(const char *format, ...)
 			int i = 0;
 			for (MYSQL_ROW row = mysql_fetch_row(mresult); row != 0; row = mysql_fetch_row(mresult))
 			{
-				std::map<std::string, util::variant> resrow;
+				std::tr1::unordered_map<std::string, util::variant> resrow;
 				for (int ii = 0; ii < num_fields; ++ii)
 				{
 					util::variant rescell;

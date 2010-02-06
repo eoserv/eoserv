@@ -77,8 +77,6 @@ class Character : public Shared
 		short mapid;
 		unsigned char x, y;
 		Direction direction;
-		short spawnmap;
-		unsigned char spawnx, spawny;
 		unsigned char level;
 		int exp;
 		short hp, tp;
@@ -176,12 +174,15 @@ class Character : public Shared
 		void ShowBoard(Board *board = 0);
 		std::string PaddedGuildTag();
 		int Usage();
+		short SpawnMap();
+		unsigned char SpawnX();
+		unsigned char SpawnY();
 		void CalculateStats();
 		void DropAll(Character *killer);
 		void Hide();
 		void Unhide();
 
-		void FormulaVars(std::map<std::string, double> &vars, std::string prefix = "");
+		void FormulaVars(std::tr1::unordered_map<std::string, double> &vars, std::string prefix = "");
 
 		void Logout();
 		void Save();
@@ -236,9 +237,6 @@ class Character : public Shared
 		SCRIPT_REGISTER_VARIABLE("uint8", x);
 		SCRIPT_REGISTER_VARIABLE("uint8", y);
 		SCRIPT_REGISTER_VARIABLE("Direction", direction);
-		SCRIPT_REGISTER_VARIABLE("int16", spawnmap);
-		SCRIPT_REGISTER_VARIABLE("uint8", spawnx);
-		SCRIPT_REGISTER_VARIABLE("uint8", spawny);
 		SCRIPT_REGISTER_VARIABLE("uint8", level);
 		SCRIPT_REGISTER_VARIABLE("int", exp);
 		SCRIPT_REGISTER_VARIABLE("int16", hp);
@@ -321,6 +319,9 @@ class Character : public Shared
 		SCRIPT_REGISTER_FUNCTION("void ShowBoard(Board @)", ShowBoard);
 		SCRIPT_REGISTER_FUNCTION("string PaddedGuildTag()", PaddedGuildTag);
 		SCRIPT_REGISTER_FUNCTION("int Usage()", Usage);
+		SCRIPT_REGISTER_FUNCTION("int16 SpawnMap()", SpawnMap);
+		SCRIPT_REGISTER_FUNCTION("uint8 SpawnX()", SpawnX);
+		SCRIPT_REGISTER_FUNCTION("uint8 SpawnY()", SpawnY);
 		SCRIPT_REGISTER_FUNCTION("void CalculateStats()", CalculateStats);
 		SCRIPT_REGISTER_FUNCTION("void DropAll(Character @killer)", DropAll);
 		SCRIPT_REGISTER_FUNCTION("void Hide()", Hide);

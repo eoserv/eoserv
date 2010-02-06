@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`account`     VARCHAR(16)          DEFAULT NULL,
 	`title`       VARCHAR(32)          DEFAULT NULL,
 	`home`        VARCHAR(32)          DEFAULT NULL,
+	`fiance`      VARCHAR(16)          DEFAULT NULL,
 	`partner`     VARCHAR(16)          DEFAULT NULL,
 	`admin`       INTEGER     NOT NULL DEFAULT 0,
 	`class`       INTEGER     NOT NULL DEFAULT 0,
@@ -33,9 +34,6 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`x`           INTEGER     NOT NULL DEFAULT 7,
 	`y`           INTEGER     NOT NULL DEFAULT 6,
 	`direction`   INTEGER     NOT NULL DEFAULT 2,
-	`spawnmap`    INTEGER     NOT NULL DEFAULT 192,
-	`spawnx`      INTEGER     NOT NULL DEFAULT 7,
-	`spawny`      INTEGER     NOT NULL DEFAULT 6,
 	`level`       INTEGER     NOT NULL DEFAULT 0,
 	`exp`         INTEGER     NOT NULL DEFAULT 0,
 	`hp`          INTEGER     NOT NULL DEFAULT 10,
@@ -60,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`guild`       CHAR(3)              DEFAULT NULL,
 	`guild_rank`  INTEGER              DEFAULT NULL,
 	`quest`       TEXT        NOT NULL,
-	`vars`        TEXT        NOT NULL
+	`vars`        TEXT        NOT NULL,
 
 	PRIMARY KEY (`name`)
 );

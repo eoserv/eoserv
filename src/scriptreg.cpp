@@ -118,6 +118,7 @@ void script_register(World &world)
 	REG_T<Guild>();
 	REG_T<HookManager>();
 	REG_T<HTTP>();
+	REG_T<Home>();
 	REG_T<IPAddress>();
 	REG_T<Map_Chest_Item>();
 	REG_T<Map_Chest_Spawn>();
@@ -175,6 +176,7 @@ void script_register(World &world)
 	REG<Guild>();
 	REG<HookManager>();
 	REG<HTTP>();
+	REG<Home>();
 	REG<IPAddress>();
 	REG<Map_Chest_Item>();
 	REG<Map_Chest_Spawn>();

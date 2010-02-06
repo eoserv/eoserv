@@ -13,7 +13,7 @@
  * Reads configuration data from a file.
  * Does not support sections in files (they're usually ignored).
  */
-class Config : public std::map<std::string, util::variant>
+class Config : public std::tr1::unordered_map<std::string, util::variant>
 {
 	protected:
 		/**

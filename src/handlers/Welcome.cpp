@@ -105,7 +105,7 @@ CLIENT_F_FUNC(Welcome)
 
 			AdminLevel lowest_command = ADMIN_HGM;
 
-			UTIL_MAP_FOREACH_ALL(this->server->world->admin_config, std::string, util::variant, ac)
+			UTIL_UNORDERED_MAP_FOREACH_ALL(this->server->world->admin_config, std::string, util::variant, ac)
 			{
 				if (ac.first == "killnpc"
 				 || ac.first == "reports")
@@ -213,10 +213,10 @@ CLIENT_F_FUNC(Welcome)
 
 			if (!this->player->character->world->GetMap(this->player->character->mapid)->exists)
 			{
-				if (this->player->character->world->GetMap(this->player->character->spawnmap)->exists)
+				if (this->player->character->world->GetMap(this->player->character->SpawnMap())->exists)
 				{
 					Console::Wrn("Player logged in to non-existent map (%s, map %i) - Position reset", this->player->character->name.c_str(), this->player->character->mapid);
-					this->player->character->Warp(this->player->character->spawnmap, this->player->character->spawnx, this->player->character->spawny);
+					this->player->character->Warp(this->player->character->SpawnMap(), this->player->character->SpawnX(), this->player->character->SpawnY());
 				}
 				else
 				{

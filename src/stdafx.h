@@ -19,7 +19,7 @@
 #include <iterator>
 #include <limits>
 #include <list>
-#include <map>
+#include <tr1/unordered_map>
 #include <queue>
 #include <set>
 #include <stdexcept>

@@ -30,7 +30,7 @@ CLIENT_F_FUNC(Paperdoll)
 
 			reply.SetID(PACKET_PAPERDOLL, PACKET_REPLY);
 			reply.AddBreakString(character->name);
-			reply.AddBreakString(character->home);
+			reply.AddBreakString(this->server->world->GetHome(character)->name);
 			reply.AddBreakString(character->partner);
 			reply.AddBreakString(character->title);
 			reply.AddBreakString(character->guild ? character->guild->name : "");

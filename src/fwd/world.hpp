@@ -11,5 +11,6 @@ class World;
 
 struct Board;
 struct Board_Post;
+struct Home;
 
 #endif // FWD_WORLD_HPP_INCLUDED

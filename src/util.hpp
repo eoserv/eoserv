@@ -17,6 +17,7 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <tr1/unordered_map>
 
 #include "script.hpp"
 
@@ -71,6 +72,7 @@ namespace util
 #define UTIL_MULTISET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::multiset<type >::iterator, start, end, type, as)
 #define UTIL_STACK_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::stack<type >::iterator, start, end, type, as)
 #define UTIL_VECTOR_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::vector<type >::iterator, start, end, type, as)
+#define UTIL_UNORDERED_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC22(std::tr1::unordered_map<type, type2 >::iterator, start, end, std::pair<type, type2 >, as)
 
 #define UTIL_ARRAY_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(util::array<type, type2 >::iterator, start, end, as)
 #define UTIL_DEQUE_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::deque<type >::iterator, start, end, as)
@@ -81,6 +83,7 @@ namespace util
 #define UTIL_MULTISET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::multiset<type >::iterator, start, end, as)
 #define UTIL_STACK_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::stack<type >::iterator, start, end, as)
 #define UTIL_VECTOR_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::vector<type >::iterator, start, end, as)
+#define UTIL_UNORDERED_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(std::tr1::unordered_map<type, type2 >::iterator, start, end, as)
 
 #define UTIL_ARRAY_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_ARRAY_FOREACH(container.begin(), container.end(), type, type2, as)
 #define UTIL_DEQUE_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_DEQUE_FOREACH(container.begin(), container.end() type, as)
@@ -91,6 +94,7 @@ namespace util
 #define UTIL_MULTISET_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_MULTISET_FOREACH(container.begin(), container.end(), type, as)
 #define UTIL_STACK_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_STACK_FOREACH(container.begin(), container.end(), type, as)
 #define UTIL_VECTOR_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_VECTOR_FOREACH(container.begin(), container.end(), type, as)
+#define UTIL_UNORDERED_MAP_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_UNORDERED_MAP_FOREACH(container.begin(), container.end(), type, type2, as)
 
 #define UTIL_ARRAY_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_ARRAY_IFOREACH(container.begin(), container.end(), type, type2, as)
 #define UTIL_DEQUE_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_DEQUE_IFOREACH(container.begin(), container.end(), type, as)
@@ -101,6 +105,7 @@ namespace util
 #define UTIL_MULTISET_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_MULTISET_IFOREACH(container.begin(), container.end(), type, as)
 #define UTIL_STACK_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_STACK_IFOREACH(container.begin(), container.end(), type, as)
 #define UTIL_VECTOR_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_VECTOR_IFOREACH(container.begin(), container.end(), type, as)
+#define UTIL_UNORDERED_MAP_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_UNORDERED_MAP_IFOREACH(container.begin(), container.end(), type, type2, as)
 
 #define UTIL_TPL_ARRAY_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(class util::array<type, type2 >::iterator, start, end, type, as)
 #define UTIL_TPL_DEQUE_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::deque<type >::iterator, start, end, type, as)
@@ -111,6 +116,7 @@ namespace util
 #define UTIL_TPL_MULTISET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::multiset<type >::iterator, start, end, type, as)
 #define UTIL_TPL_STACK_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::stack<type >::iterator, start, end, type, as)
 #define UTIL_TPL_VECTOR_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::vector<type >::iterator, start, end, type, as)
+#define UTIL_TPL_UNORDERED_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC22(class std::tr1::unordered_map<type >::iterator, start, end, std::pair<type, type2 >, as)
 
 #define UTIL_TPL_ARRAY_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class util::array<type, type2 >::iterator, start, end, as)
 #define UTIL_TPL_DEQUE_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::deque<type >::iterator, start, end, as)
@@ -121,6 +127,7 @@ namespace util
 #define UTIL_TPL_MULTISET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::multiset<type >::iterator, start, end, as)
 #define UTIL_TPL_STACK_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::stack<type >::iterator, start, end, as)
 #define UTIL_TPL_VECTOR_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::vector<type >::iterator, start, end, as)
+#define UTIL_TPL_UNORDERED_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class std::tr1::unordered_map<type, type2 >::iterator, start, end, as)
 
 #define UTIL_TPL_ARRAY_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_ARRAY_FOREACH(container.begin(), container.end(), type, type2, as)
 #define UTIL_TPL_DEQUE_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_DEQUE_FOREACH(container.begin(), container.end() type, as)
@@ -131,6 +138,7 @@ namespace util
 #define UTIL_TPL_MULTISET_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_MULTISET_FOREACH(container.begin(), container.end(), type, as)
 #define UTIL_TPL_STACK_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_STACK_FOREACH(container.begin(), container.end(), type, as)
 #define UTIL_TPL_VECTOR_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_VECTOR_FOREACH(container.begin(), container.end(), type, as)
+#define UTIL_TPL_UNORDERED_MAP_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_UNORDERED_MAP_FOREACH(container.begin(), container.end(), type, type2, as)
 
 #define UTIL_TPL_ARRAY_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_ARRAY_IFOREACH(container.begin(), container.end(), type, type2, as)
 #define UTIL_TPL_DEQUE_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_DEQUE_IFOREACH(container.begin(), container.end(), type, as)
@@ -141,6 +149,7 @@ namespace util
 #define UTIL_TPL_MULTISET_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_MULTISET_IFOREACH(container.begin(), container.end(), type, as)
 #define UTIL_TPL_STACK_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_STACK_IFOREACH(container.begin(), container.end(), type, as)
 #define UTIL_TPL_VECTOR_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_VECTOR_IFOREACH(container.begin(), container.end(), type, as)
+#define UTIL_TPL_UNORDERED_MAP_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_UNORDERED_MAP_IFOREACH(container.begin(), container.end(), type, type2, as)
 
 #define UTIL_CARRAY_FOREACH(array, start, end, type, as) \
 	for (int util_i = 0; util_i < 1; ++util_i) \
@@ -583,7 +592,7 @@ typedef variant var;
 double tdparse(std::string timestr);
 
 std::stack<util::variant> rpn_parse(std::string expr);
-double rpn_eval(std::stack<util::variant>, std::map<std::string, double> vars);
+double rpn_eval(std::stack<util::variant>, std::tr1::unordered_map<std::string, double> vars);
 
 int to_int(const std::string &);
 unsigned int to_uint_raw(const std::string &);

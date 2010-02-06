@@ -158,20 +158,21 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 
 	try
 	{
-		this->drops_config.Read(static_cast<std::string>(this->config["DropsFile"]));
-		this->shops_config.Read(static_cast<std::string>(this->config["ShopsFile"]));
-		this->arenas_config.Read(static_cast<std::string>(this->config["ArenasFile"]));
-		this->formulas_config.Read(static_cast<std::string>(this->config["FormulasFile"]));
+		this->drops_config.Read(this->config["DropsFile"]);
+		this->shops_config.Read(this->config["ShopsFile"]);
+		this->arenas_config.Read(this->config["ArenasFile"]);
+		this->formulas_config.Read(this->config["FormulasFile"]);
+		this->home_config.Read(this->config["HomeFile"]);
 	}
 	catch (std::runtime_error &e)
 	{
 		Console::Wrn(e.what());
 	}
 
-	this->eif = new EIF(static_cast<std::string>(this->config["EIF"]));
-	this->enf = new ENF(static_cast<std::string>(this->config["ENF"]));
-	this->esf = new ESF(static_cast<std::string>(this->config["ESF"]));
-	this->ecf = new ECF(static_cast<std::string>(this->config["ECF"]));
+	this->eif = new EIF(this->config["EIF"]);
+	this->enf = new ENF(this->config["ENF"]);
+	this->esf = new ESF(this->config["ESF"]);
+	this->ecf = new ECF(this->config["ECF"]);
 
 	this->maps.resize(static_cast<int>(this->config["Maps"])+1);
 	this->maps[0] = new Map(1, this); // Just in case
@@ -232,6 +233,8 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 
 	this->guildmanager = new GuildManager(this);
 
+	this->LoadHome();
+
 	script_register(*this); // See scriptreg.cpp
 
 	FILE *fh = fopen(static_cast<std::string>(this->config["ScriptsFile"]).c_str(), "rt");
@@ -257,6 +260,70 @@ World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, co
 	}
 
 	fclose(fh);
+}
+
+void World::LoadHome()
+{
+	this->homes.clear();
+
+	std::tr1::unordered_map<std::string, Home *> temp_homes;
+
+	UTIL_UNORDERED_MAP_FOREACH_ALL(this->home_config, std::string, util::variant, hc)
+	{
+		std::vector<std::string> parts = util::explode('.', hc.first);
+
+		if (parts.size() < 2)
+		{
+			continue;
+		}
+
+		if (parts[0] == "level")
+		{
+			int level = util::to_int(parts[1]);
+
+			std::tr1::unordered_map<std::string, Home *>::iterator home_iter = temp_homes.find(hc.second);
+
+			if (home_iter == temp_homes.end())
+			{
+				Home *home = new Home;
+				home->id = static_cast<std::string>(hc.second);
+				temp_homes[hc.second] = home;
+				home->level = level;
+			}
+			else
+			{
+				home_iter->second->level = level;
+			}
+
+			continue;
+		}
+
+		Home *&home = temp_homes[parts[0]];
+
+		if (!home)
+		{
+			temp_homes[parts[0]] = home = new Home;
+			home->id = parts[0];
+		}
+
+		if (parts[1] == "name")
+		{
+			home->name = home->name = static_cast<std::string>(hc.second);
+		}
+		else if (parts[1] == "location")
+		{
+			std::vector<std::string> locparts = util::explode(',', hc.second);
+			home->map = locparts.size() >= 1 ? util::to_int(locparts[0]) : 1;
+			home->x = locparts.size() >= 2 ? util::to_int(locparts[1]) : 0;
+			home->y = locparts.size() >= 3 ? util::to_int(locparts[2]) : 0;
+		}
+	}
+
+	UTIL_UNORDERED_MAP_FOREACH_ALL(temp_homes, std::string, Home *, home)
+	{
+		this->homes.push_back(home.second);
+		home.second->Release();
+	}
 }
 
 int World::GenerateCharacterID()
@@ -465,14 +532,19 @@ void World::Rehash()
 		this->shops_config.Read(this->config["ShopsFile"]);
 		this->arenas_config.Read(this->config["ArenasFile"]);
 		this->formulas_config.Read(this->config["FormulasFile"]);
+		this->home_config.Read(this->config["HomeFile"]);
 	}
 	catch (std::runtime_error &e)
 	{
 		Console::Err(e.what());
 	}
 
+	this->LoadHome();
+
 	UTIL_PTR_VECTOR_FOREACH(this->maps, Map, map)
 	{
+		map->LoadArena();
+
 		UTIL_PTR_VECTOR_FOREACH(map->npcs, NPC, npc)
 		{
 			npc->LoadShopDrop();
@@ -589,6 +661,50 @@ Map *World::GetMap(short id)
 	}
 }
 
+Home *World::GetHome(Character *character)
+{
+	Home *home = 0;
+	static Home *null_home = new Home;
+
+	UTIL_PTR_VECTOR_FOREACH(this->homes, Home, h)
+	{
+		if (h->id == character->home)
+		{
+			return *h;
+		}
+	}
+
+	int current_home_level = -2;
+	UTIL_PTR_VECTOR_FOREACH(this->homes, Home, h)
+	{
+		if (h->level <= character->level && h->level > current_home_level)
+		{
+			home = *h;
+			current_home_level = h->level;
+		}
+	}
+
+	if (!home)
+	{
+		home = null_home;
+	}
+
+	return home;
+}
+
+Home *World::GetHome(std::string id)
+{
+	UTIL_PTR_VECTOR_FOREACH(this->homes, Home, h)
+	{
+		if (h->id == id)
+		{
+			return *h;
+		}
+	}
+
+	return 0;
+}
+
 bool World::CharacterExists(std::string name)
 {
 	Database_Result res = this->db.Query("SELECT 1 FROM `characters` WHERE `name` = '$'", name.c_str());
@@ -600,8 +716,6 @@ Character *World::CreateCharacter(Player *player, std::string name, Gender gende
 	char buffer[1024];
 	std::string startmapinfo;
 	std::string startmapval;
-	std::string spawnmapinfo;
-	std::string spawnmapval;
 
 	if (static_cast<int>(this->config["StartMap"]))
 	{
@@ -610,17 +724,10 @@ Character *World::CreateCharacter(Player *player, std::string name, Gender gende
 		startmapval = buffer;
 	}
 
-	if (static_cast<int>(this->config["SpawnMap"]))
-	{
-		spawnmapinfo = ", `spawnmap`, `spawnx`, `spawny`";
-		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(this->config["SpawnMap"]), static_cast<int>(this->config["SpawnX"]), static_cast<int>(this->config["SpawnY"]));
-		spawnmapval = buffer;
-	}
-
-	this->db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`@@) VALUES ('$','$',#,#,#,#,'$','','$','$'@@)",
-		startmapinfo.c_str(), spawnmapinfo.c_str(), name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race,
+	this->db.Query("INSERT INTO `characters` (`name`, `account`, `gender`, `hairstyle`, `haircolor`, `race`, `inventory`, `bank`, `paperdoll`, `spells`, `quest`, `vars`@) VALUES ('$','$',#,#,#,#,'$','','$','$','',''@)",
+		startmapinfo.c_str(), name.c_str(), player->username.c_str(), gender, hairstyle, haircolor, race,
 		static_cast<std::string>(this->config["StartItems"]).c_str(), static_cast<std::string>(gender?this->config["StartEquipMale"]:this->config["StartEquipFemale"]).c_str(),
-		static_cast<std::string>(this->config["StartSpells"]).c_str(), startmapval.c_str(), spawnmapval.c_str());
+		static_cast<std::string>(this->config["StartSpells"]).c_str(), startmapval.c_str());
 
 	return new Character(name, this);
 }
@@ -638,7 +745,7 @@ Player *World::Login(std::string username, std::string password)
 	{
 		return 0;
 	}
-	std::map<std::string, util::variant> row = res.front();
+	std::tr1::unordered_map<std::string, util::variant> row = res.front();
 
 	return new Player(username, this);
 }
