@@ -129,7 +129,7 @@ Client *EOServer::ClientFactory(SOCKET sock, sockaddr_in sin)
 	return new EOClient(sock, sin, this);
 }
 
-void EOServer::Initialize(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
+void EOServer::Initialize(util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	this->world = new World(dbinfo, eoserv_config, admin_config);
 

@@ -114,7 +114,7 @@ class World : public Shared
 
 		util::array<int, 254> exp_table;
 
-		World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config);
+		World(util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 		void LoadHome();
 
 		int GenerateCharacterID();

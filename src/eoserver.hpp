@@ -20,7 +20,7 @@ void server_pump_queue(void *server_void);
 class EOServer : public Server
 {
 	private:
-		void Initialize(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config);
+		void Initialize(util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 
 	protected:
 		Client *ClientFactory(SOCKET sock, sockaddr_in sin);
@@ -30,7 +30,7 @@ class EOServer : public Server
 		double start;
 		SLN *sln;
 
-		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
+		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
 		{
 			this->Initialize(dbinfo, eoserv_config, admin_config);
 		}

@@ -131,7 +131,7 @@ void world_timed_save(void *world_void)
 	world->guildmanager->SaveAll();
 }
 
-World::World(util::array<std::string, 5> dbinfo, const Config &eoserv_config, const Config &admin_config)
+World::World(util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	if (int(this->timer.resolution * 1000.0) > 1)
 	{

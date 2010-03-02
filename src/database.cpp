@@ -80,6 +80,7 @@ void Database::Connect(Database::Engine type, std::string host, std::string user
 	this->host = host;
 	this->user = user;
 	this->pass = pass;
+	this->port = util::to_int(port);
 	this->db = db;
 
 	if (this->connected)
@@ -95,7 +96,7 @@ void Database::Connect(Database::Engine type, std::string host, std::string user
 			{
 				throw Database_OpenFailed(mysql_error(this->mysql_handle));
 			}
-			if (mysql_real_connect(this->mysql_handle, host.c_str(), user.c_str(), pass.c_str(), 0, 0, 0, 0) != this->mysql_handle)
+			if (mysql_real_connect(this->mysql_handle, host.c_str(), user.c_str(), pass.c_str(), 0, this->port, 0, 0) != this->mysql_handle)
 			{
 				throw Database_OpenFailed(mysql_error(this->mysql_handle));
 			}

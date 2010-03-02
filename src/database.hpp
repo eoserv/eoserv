@@ -114,6 +114,7 @@ class Database
 		Engine engine;
 
 		std::string host, user, pass, db;
+		unsigned int port;
 
 	public:
 		/**

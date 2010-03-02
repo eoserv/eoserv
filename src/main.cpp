@@ -253,6 +253,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "DBUser"             , "eoserv");
 		eoserv_config_default(config, "DBPass"             , "eoserv");
 		eoserv_config_default(config, "DBName"             , "eoserv");
+		eoserv_config_default(config, "DBPort"             , 0);
 		eoserv_config_default(config, "EIF"                , "./data/pub/dat001.eif");
 		eoserv_config_default(config, "ENF"                , "./data/pub/dtn001.enf");
 		eoserv_config_default(config, "ESF"                , "./data/pub/dsl001.esf");
@@ -513,12 +514,13 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		util::array<std::string, 5> dbinfo;
+		util::array<std::string, 6> dbinfo;
 		dbinfo[0] = static_cast<std::string>(config["DBType"]);
 		dbinfo[1] = static_cast<std::string>(config["DBHost"]);
 		dbinfo[2] = static_cast<std::string>(config["DBUser"]);
 		dbinfo[3] = static_cast<std::string>(config["DBPass"]);
 		dbinfo[4] = static_cast<std::string>(config["DBName"]);
+		dbinfo[5] = static_cast<std::string>(config["DBPort"]);
 
 		EOServer server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config, aconfig);
 		eoserv_rehash_server = &server;
