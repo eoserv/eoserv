@@ -128,14 +128,14 @@ class Database
 		 * @throw Database_InvalidEngine
 		 * @throw Database_OpenFailed
 		 */
-		Database(Database::Engine type, std::string host, std::string user, std::string pass, std::string db, bool connectnow = true);
+		Database(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db, bool connectnow = true);
 
 		/**
 		 * Opens a connection to a database
 		 * @throw Database_InvalidEngine
 		 * @throw Database_OpenFailed
 		 */
-		void Connect(Database::Engine type, std::string host, std::string user, std::string pass, std::string db);
+		void Connect(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db);
 
 		/**
 		 * Disconnects from the database

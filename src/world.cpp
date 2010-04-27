@@ -109,11 +109,13 @@ void world_despawn_items(void *world_void)
 
 	UTIL_PTR_VECTOR_FOREACH(world->maps, Map, map)
 	{
+		restart_loop:
 		UTIL_PTR_LIST_FOREACH(map->items, Map_Item, item)
 		{
 			if (item->unprotecttime < (Timer::GetTime() - static_cast<double>(world->config["ItemDespawnRate"])))
 			{
 				map->DelItem(item->uid, 0);
+				goto restart_loop;
 			}
 		}
 	}
@@ -154,7 +156,7 @@ World::World(util::array<std::string, 6> dbinfo, const Config &eoserv_config, co
 	{
 		engine = Database::MySQL;
 	}
-	this->db.Connect(engine, dbinfo[1], dbinfo[2], dbinfo[3], dbinfo[4]);
+	this->db.Connect(engine, dbinfo[1], util::to_int(dbinfo[5]), dbinfo[2], dbinfo[3], dbinfo[4]);
 
 	try
 	{

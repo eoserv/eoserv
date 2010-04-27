@@ -58,7 +58,7 @@ Database::Database()
 	this->connected = false;
 }
 
-Database::Database(Database::Engine type, std::string host, std::string user, std::string pass, std::string db, bool connectnow)
+Database::Database(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db, bool connectnow)
 {
 	this->connected = false;
 
@@ -66,21 +66,22 @@ Database::Database(Database::Engine type, std::string host, std::string user, st
 	this->host = host;
 	this->user = user;
 	this->pass = pass;
+	this->port = port;
 	this->db = db;
 
 	if (connectnow)
 	{
-		this->Connect(type, host, user, pass, db);
+		this->Connect(type, host, port, user, pass, db);
 	}
 }
 
-void Database::Connect(Database::Engine type, std::string host, std::string user, std::string pass, std::string db)
+void Database::Connect(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db)
 {
 	this->engine = type;
 	this->host = host;
 	this->user = user;
 	this->pass = pass;
-	this->port = util::to_int(port);
+	this->port = port;
 	this->db = db;
 
 	if (this->connected)
@@ -156,7 +157,7 @@ Database_Result Database::Query(const char *format, ...)
 {
 	if (!this->connected)
 	{
-		this->Connect(this->engine, this->host, this->user, this->pass, this->db);
+		this->Connect(this->engine, this->host, this->port, this->user, this->pass, this->db);
 	}
 
 	va_list ap;
@@ -233,7 +234,7 @@ Database_Result Database::Query(const char *format, ...)
 				if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
 				{
 					this->Close();
-					this->Connect(this->engine, this->host, this->user, this->pass, this->db);
+					this->Connect(this->engine, this->host, this->port, this->user, this->pass, this->db);
 					goto exec_query;
 				}
 				else
