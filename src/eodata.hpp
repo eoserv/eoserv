@@ -551,11 +551,21 @@ struct ECF_Data : public Shared
 	short con;
 	short cha;
 
-	ECF_Data() : id(0), base(0), type(0), str(0), intl(0), wis(0), agi(0), con(0), cha(9) { }
+	ECF_Data() : id(0), base(0), type(0), str(0), intl(0), wis(0), agi(0), con(0), cha(0) { }
 
 	SCRIPT_REGISTER_REF_DF(ECF_Data)
 		SCRIPT_REGISTER_VARIABLE("int", id);
 		SCRIPT_REGISTER_VARIABLE("string", name);
+
+		SCRIPT_REGISTER_VARIABLE("uint8", base);
+		SCRIPT_REGISTER_VARIABLE("uint8", type);
+
+		SCRIPT_REGISTER_VARIABLE("int16", str);
+		SCRIPT_REGISTER_VARIABLE("int16", intl);
+		SCRIPT_REGISTER_VARIABLE("int16", wis);
+		SCRIPT_REGISTER_VARIABLE("int16", agi);
+		SCRIPT_REGISTER_VARIABLE("int16", con);
+		SCRIPT_REGISTER_VARIABLE("int16", cha);
 	SCRIPT_REGISTER_END()
 };
 

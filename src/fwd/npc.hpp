@@ -16,4 +16,6 @@ struct NPC_Shop_Craft_Ingredient;
 struct NPC_Shop_Craft_Item;
 struct NPC_Citizenship;
 
+struct NPCEvent;
+
 #endif // FWD_NPC_HPP_INCLUDED

@@ -659,7 +659,7 @@ Map *World::GetMap(short id)
 	}
 	catch (...)
 	{
-		return this->maps.at(0);
+		return this->maps.at(1);
 	}
 }
 

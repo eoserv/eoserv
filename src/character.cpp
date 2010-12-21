@@ -224,7 +224,7 @@ Character::Character(std::string name, World *world)
 	}
 
 	this->party = 0;
-	this->map = this->world->GetMap(0);
+	this->map = this->world->GetMap(GetRow<int>(row, "map"));
 }
 
 bool Character::ValidName(std::string name)

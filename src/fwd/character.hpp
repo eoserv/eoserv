@@ -12,4 +12,6 @@ class Character;
 struct Character_Item;
 struct Character_Spell;
 
+struct CharacterEvent;
+
 #endif // FWD_CHARACTER_HPP_INCLUDED

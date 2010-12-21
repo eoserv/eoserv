@@ -144,6 +144,7 @@ void script_register(World &world)
 	REG_T<World>();
 
 	REG_T<CharacterEvent>();
+	REG_T<NPCEvent>();
 
 	// Any new script-visible classes must be added here (yes, again)
 
@@ -202,4 +203,5 @@ void script_register(World &world)
 	REG<World>();
 
 	REG<CharacterEvent>();
+	REG<NPCEvent>();
 }

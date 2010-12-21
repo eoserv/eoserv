@@ -203,4 +203,19 @@ class NPC : public Shared
 	SCRIPT_REGISTER_END()
 };
 
+struct NPCEvent : public Shared
+{
+	NPC *npc;
+	Character *target_character;
+	std::string target_character_name;
+
+	NPCEvent() : npc(0), target_character(0) { }
+
+	SCRIPT_REGISTER_REF_DF(NPCEvent)
+		SCRIPT_REGISTER_VARIABLE("NPC @", npc);
+		SCRIPT_REGISTER_VARIABLE("Character @", target_character);
+		SCRIPT_REGISTER_VARIABLE("string", target_character_name);
+	SCRIPT_REGISTER_END()
+};
+
 #endif // NPC_HPP_INCLUDED
