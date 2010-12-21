@@ -43,18 +43,18 @@ CLIENT_F_FUNC(Login)
 				return false;
 			}
 
-			if (this->server->world->PlayerOnline(username))
-			{
-				reply.AddShort(LOGIN_LOGGEDIN);
-				CLIENT_SEND(reply);
-				return true;
-			}
-
 			this->player = this->server->world->Login(username, password);
 
 			if (!this->player)
 			{
 				reply.AddShort(LOGIN_WRONG_USERPASS);
+				CLIENT_SEND(reply);
+				return true;
+			}
+
+			if (this->server->world->PlayerOnline(username))
+			{
+				reply.AddShort(LOGIN_LOGGEDIN);
 				CLIENT_SEND(reply);
 				return true;
 			}

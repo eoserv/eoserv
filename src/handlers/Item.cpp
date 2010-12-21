@@ -258,8 +258,14 @@ CLIENT_F_FUNC(Item)
 
 						if (level_up)
 						{
+							PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY);
+							builder.AddInt(this->player->character->exp);
+							builder.AddShort(this->player->character->karma);
+							builder.AddChar(this->player->character->level);
+							builder.AddShort(this->player->character->statpoints);
+							builder.AddShort(this->player->character->skillpoints);
 							// TODO: Something better than this
-							this->player->character->Emote(EMOTE_LEVELUP, false);
+							this->player->character->Emote(EMOTE_LEVELUP, true);
 						}
 
 						CLIENT_SEND(reply);
