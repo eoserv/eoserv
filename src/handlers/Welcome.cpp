@@ -27,6 +27,9 @@ CLIENT_F_FUNC(Welcome)
 
 			reply.SetID(PACKET_WELCOME, PACKET_REPLY);
 
+			if (!this->player->character)
+				this->player->character->Release();
+
 			this->player->character = 0;
 
 			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
@@ -206,7 +209,7 @@ CLIENT_F_FUNC(Welcome)
 
 		case PACKET_MSG: // Welcome message after you login.
 		{
-			if (this->state != EOClient::LoggedIn) return false;
+			if (this->state != EOClient::LoggedIn || !this->player->character) return false;
 
 			reader.GetThree(); // ??
 			id = reader.GetInt(); // Character ID
@@ -379,7 +382,7 @@ CLIENT_F_FUNC(Welcome)
 
 		case PACKET_AGREE: // Client wants a file
 		{
-			if (this->state != EOClient::LoggedIn) return false;
+			if (this->state != EOClient::LoggedIn || !this->player->character) return false;
 
 			std::string content;
 			char mapbuf[6] = {0};
