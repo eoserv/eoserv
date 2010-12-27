@@ -20,7 +20,7 @@ Player::Player(std::string username, World *world)
 	Database_Result res = this->world->db.Query("SELECT `username`, `password` FROM `accounts` WHERE `username` = '$'", username.c_str());
 	if (res.empty())
 	{
-		return;
+		throw std::runtime_error("Player not found (" + username + ")");
 	}
 	std::tr1::unordered_map<std::string, util::variant> row = res.front();
 

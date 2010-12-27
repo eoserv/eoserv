@@ -42,19 +42,22 @@ CLIENT_F_FUNC(Login)
 				this->Close();
 				return false;
 			}
+			
+			LoginReply login_reply = this->server->world->LoginCheck(username, password);
 
-			this->player = this->server->world->Login(username, password);
-
-			if (!this->player)
+			if (login_reply != LOGIN_OK)
 			{
-				reply.AddShort(LOGIN_WRONG_USERPASS);
+				reply.AddShort(login_reply);
 				CLIENT_SEND(reply);
 				return true;
 			}
 
-			if (this->server->world->PlayerOnline(username))
+			this->player = this->server->world->Login(username);
+
+			if (!this->player)
 			{
-				reply.AddShort(LOGIN_LOGGEDIN);
+				// Someone deleted the account between checking it and logging in
+				reply.AddShort(LOGIN_WRONG_USER);
 				CLIENT_SEND(reply);
 				return true;
 			}

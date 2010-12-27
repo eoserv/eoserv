@@ -11,6 +11,7 @@
 #include "console.hpp"
 #include "database.hpp"
 #include "eoclient.hpp"
+#include "eoconst.hpp"
 #include "eodata.hpp"
 #include "eoserver.hpp"
 #include "guild.hpp"
@@ -747,9 +748,45 @@ Player *World::Login(std::string username, std::string password)
 	{
 		return 0;
 	}
-	std::tr1::unordered_map<std::string, util::variant> row = res.front();
 
-	return new Player(username, this);
+	try
+	{
+		return new Player(username, this);
+	}
+	catch (std::runtime_error &)
+	{
+		return 0;
+	}
+}
+
+Player *World::Login(std::string username)
+{
+	try
+	{
+		return new Player(username, this);
+	}
+	catch (std::runtime_error &)
+	{
+		return 0;
+	}
+}
+
+LoginReply World::LoginCheck(std::string username, std::string password)
+{
+	password = sha256(static_cast<std::string>(this->config["PasswordSalt"]) + username + password);
+	Database_Result res = this->db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.c_str());
+	if (res.empty())
+	{
+		return LOGIN_WRONG_USERPASS;
+	}
+	else if (this->PlayerOnline(username))
+	{
+		return LOGIN_LOGGEDIN;
+	}
+	else
+	{
+		return LOGIN_OK;
+	}
 }
 
 bool World::CreatePlayer(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid, std::string ip)
