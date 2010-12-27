@@ -156,6 +156,7 @@ class World : public Shared
 		void DeleteCharacter(std::string name);
 
 		Player *Login(std::string username, std::string password);
+		Player *Login(std::string username);
 		LoginReply LoginCheck(std::string username, std::string password);
 		bool CreatePlayer(std::string username, std::string password, std::string fullname, std::string location, std::string email, std::string computer, std::string hdid, std::string ip);
 		bool PlayerExists(std::string username);
