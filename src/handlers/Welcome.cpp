@@ -27,7 +27,7 @@ CLIENT_F_FUNC(Welcome)
 
 			reply.SetID(PACKET_WELCOME, PACKET_REPLY);
 
-			if (!this->player->character)
+			if (this->player->character)
 				this->player->character->Release();
 
 			this->player->character = 0;
