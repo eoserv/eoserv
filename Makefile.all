@@ -33,7 +33,6 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/console.o \
        $(OBJDIR)/config.o \
        $(OBJDIR)/database.o \
-       $(OBJDIR)/dialog.o \
        $(OBJDIR)/eoclient.o \
        $(OBJDIR)/eodata.o \
        $(OBJDIR)/eoserver.o \
@@ -81,17 +80,13 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/handlers/Jukebox.o \
        $(OBJDIR)/handlers/Locker.o \
        $(OBJDIR)/handlers/Login.o \
-       $(OBJDIR)/handlers/Marriage.o \
-       $(OBJDIR)/handlers/Message.o \
        $(OBJDIR)/handlers/Paperdoll.o \
        $(OBJDIR)/handlers/Party.o \
+       $(OBJDIR)/handlers/Ping.o \
        $(OBJDIR)/handlers/Players.o \
-       $(OBJDIR)/handlers/Priest.o \
-       $(OBJDIR)/handlers/Quest.o \
        $(OBJDIR)/handlers/Refresh.o \
        $(OBJDIR)/handlers/Shop.o \
        $(OBJDIR)/handlers/Sit.o \
-       $(OBJDIR)/handlers/Spell.o \
        $(OBJDIR)/handlers/StatSkill.o \
        $(OBJDIR)/handlers/Talk.o \
        $(OBJDIR)/handlers/Trade.o \
