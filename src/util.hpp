@@ -20,6 +20,7 @@
 #include <tr1/unordered_map>
 
 #include "script.hpp"
+#include "shared.hpp"
 
 /**
  * Utility functions to assist with common tasks

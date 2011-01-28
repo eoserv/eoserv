@@ -16,10 +16,12 @@ GenericPtrVector::value_type GenericPtrVector::SafeIterator::Dereference()
 		throw std::out_of_range("GenericPtrVector::SafeIterator::Dereference");
 	}
 
+#ifndef NOSCRIPT
 	if (this->v->script_ot)
 	{
 		this->v->script_ot->GetEngine()->AddRefScriptObject(this->v->data[this->pos], this->v->script_ot->GetSubTypeId());
 	}
+#endif // NOSCRIPT
 
 	return this->v->data[this->pos];
 }

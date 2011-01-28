@@ -30,12 +30,19 @@ class HookManager;
 class Hook : public Shared
 {
 	public:
+#ifndef NOSCRIPT
 		ScriptContext *ctx;
+#endif // NOSCRIPT
 		std::string func;
 		bool autofree;
 
+#ifdef NOSCRIPT
+		Hook(void *ctx_, std::string func_, bool autofree_ = true) : func(func_), autofree(autofree_) { }
+#else // NOSCRIPT
 		Hook(ScriptContext *ctx_, std::string func_, bool autofree_ = true) : ctx(ctx_), func(func_), autofree(autofree_) { }
+#endif // NOSCRIPT
 
+#ifndef NOSCRIPT
 		~Hook()
 		{
 			if (autofree)
@@ -43,6 +50,7 @@ class Hook : public Shared
 				delete this->ctx;
 			}
 		}
+#endif // NOSCRIPT
 };
 
 class HookManager : public Shared
@@ -50,6 +58,18 @@ class HookManager : public Shared
 	public:
 		std::tr1::unordered_map<std::string, PtrList<Hook> > hooks;
 
+#ifdef NOSCRIPT
+		HookManager(std::string scriptpath) { }
+
+		void Register(std::string trigger, Hook *hook) { (void)trigger; (void)hook; }
+		void Unregister(std::string trigger, Hook *hook) { (void)trigger; (void)hook; }
+
+		void Register_(std::string trigger, std::string function) { (void)trigger; (void)function; }
+		void Unregister_(std::string trigger, std::string function) { (void)trigger; (void)function; }
+
+		void InitCall(std::string filename) { (void)filename; }
+		Hook_Call Call(std::string trigger);
+#else // NOSCRIPT
 		ScriptEngine engine;
 		ScriptContext *current_context;
 
@@ -63,6 +83,7 @@ class HookManager : public Shared
 
 		void InitCall(std::string filename);
 		Hook_Call Call(std::string trigger);
+#endif // NOSCRIPT
 
 		SCRIPT_REGISTER_REF(HookManager)
 			SCRIPT_REGISTER_FUNCTION("void Register(string, string)", Register_);
@@ -83,21 +104,30 @@ class Hook_Call : public Shared
 		{
 			UTIL_PTR_LIST_FOREACH(this->hookmanager.hooks[this->trigger], Hook, hook)
 			{
+#ifndef NOSCRIPT
 				if (hook->ctx->Prepare(hook->func) < 0)
 				{
 					return;
 				}
+#endif // NOSCRIPT
 			}
 		}
 
-		template <typename T> static void SetArg(ScriptContext *ctx, int argc, T arg) { ctx->as->SetArgObject(argc, arg); }
+#ifndef NOSCRIPT
+		template <typename T> static void SetArg(ScriptContext *ctx, int argc, T arg)
+		{
+			ctx->as->SetArgObject(argc, arg);
+		}
+#endif // NOSCRIPT
 
 		template <typename T> Hook_Call &operator [](T arg)
 		{
+#ifndef NOSCRIPT
 			UTIL_PTR_LIST_FOREACH(this->hookmanager.hooks[this->trigger], Hook, hook)
 			{
 				Hook_Call::SetArg<T>(hook->ctx, argc, arg);
 			}
+#endif // NOSCRIPT
 
 			++argc;
 
@@ -107,6 +137,7 @@ class Hook_Call : public Shared
 		bool operator ()();
 };
 
+#ifndef NOSCRIPT
 template <> void Hook_Call::SetArg<Shared *>(ScriptContext *ctx, int argc, Shared *arg);
 template <> void Hook_Call::SetArg<asBYTE>(ScriptContext *ctx, int argc, asBYTE arg);
 	template <> void Hook_Call::SetArg<char>(ScriptContext *ctx, int argc, char arg);
@@ -119,5 +150,6 @@ template <> void Hook_Call::SetArg<asDWORD>(ScriptContext *ctx, int argc, asDWOR
 //template <> void Hook_Call::SetArg<asQWORD>(ScriptContext *ctx, int argc, asQWORD arg);
 template <> void Hook_Call::SetArg<float>(ScriptContext *ctx, int argc, float arg);
 template <> void Hook_Call::SetArg<double>(ScriptContext *ctx, int argc, double arg);
+#endif // NOSCRIPT
 
 #endif //HOOK_HPP_INCLUDED

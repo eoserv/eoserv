@@ -16,10 +16,12 @@ GenericPtrList::value_type GenericPtrList::SafeIterator::Dereference()
 		throw std::out_of_range("GenericPtrList::SafeIterator::Dereference");
 	}
 
+#ifndef NOSCRIPT
 	if (this->list->script_ot)
 	{
 		this->list->script_ot->GetEngine()->AddRefScriptObject(*it, this->list->script_ot->GetSubTypeId());
 	}
+#endif // NOSCRIPT
 
 	return *this->it;
 }
@@ -41,10 +43,12 @@ const GenericPtrList::value_type GenericPtrList::SafeConstIterator::Dereference(
 		throw std::out_of_range("GenericPtrList::SafeIterator::Dereference");
 	}
 
+#ifndef NOSCRIPT
 	if (this->list->script_ot)
 	{
 		this->list->script_ot->GetEngine()->AddRefScriptObject(*this->it, this->list->script_ot->GetSubTypeId());
 	}
+#endif // NOSCRIPT
 
 	return *this->it;
 }

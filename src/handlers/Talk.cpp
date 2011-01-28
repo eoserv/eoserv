@@ -7,6 +7,7 @@
 #include "handlers.h"
 
 #include "arena.hpp"
+#include "console.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
 #include "npc.hpp"

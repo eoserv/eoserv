@@ -21,16 +21,20 @@ class GenericPtrVector : public GenericPtrContainer
 {
 	private:
 		std::vector<value_type> data;
+#ifndef NOSCRIPT
 		asIObjectType *script_ot;
+#endif // NOSCRIPT
 
 		void ValueAddRef(value_type val)
 		{
+#ifndef NOSCRIPT
 			if (script_ot)
 			{
 				// I don't understand exactly why, but it's not needed.
 				// script_ot->GetEngine()->AddRefScriptObject(val, script_ot->GetSubTypeId());
 			}
 			else
+#endif // NOSCRIPT
 			{
 				val->AddRef();
 			}
@@ -38,11 +42,13 @@ class GenericPtrVector : public GenericPtrContainer
 
 		void ValueRelease(value_type val)
 		{
+#ifndef NOSCRIPT
 			if (script_ot)
 			{
 				script_ot->GetEngine()->ReleaseScriptObject(val, script_ot->GetSubTypeId());
 			}
 			else
+#endif // NOSCRIPT
 			{
 				val->Release();
 			}
@@ -80,12 +86,14 @@ class GenericPtrVector : public GenericPtrContainer
 				value_type Dereference();
 				void Set(const value_type);
 
+#ifndef NOSCRIPT
 			static GenericPtrVector::SafeIterator *ScriptFactory(asIObjectType *ot, GenericPtrVector *v_)
 			{
 				GenericPtrVector::SafeIterator *temp = new GenericPtrVector::SafeIterator(*v_);
 				temp->AddRef();
 				return temp;
 			}
+#endif // NOSCRIPT
 
 			SCRIPT_REGISTER_REF_TPL_NAMED(GenericPtrVector::SafeIterator, "PtrVector_Iterator")
 				SCRIPT_REGISTER_FACTORY("PtrVector_Iterator<T> @f(int &in, const GenericPtrVector @)", ScriptFactory);
@@ -159,12 +167,14 @@ class GenericPtrVector : public GenericPtrContainer
 
 				const value_type Dereference();
 
+#ifndef NOSCRIPT
 			static GenericPtrVector::SafeConstIterator *ScriptFactory(asIObjectType *ot, GenericPtrVector *v_)
 			{
 				GenericPtrVector::SafeConstIterator *temp = new GenericPtrVector::SafeConstIterator(*v_);
 				temp->AddRef();
 				return temp;
 			}
+#endif // NOSCRIPT
 
 			SCRIPT_REGISTER_REF_TPL_NAMED(GenericPtrVector::SafeConstIterator, "PtrVector_ConstIterator")
 				SCRIPT_REGISTER_FACTORY("PtrVector_ConstIterator<T> @f(int &in, const GenericPtrVector @)", ScriptFactory);
@@ -215,9 +225,14 @@ class GenericPtrVector : public GenericPtrContainer
 			friend class GenericPtrVector;
 		};
 
+#ifdef NOSCRIPT
+		GenericPtrVector() { }
+		GenericPtrVector(const GenericPtrVector &other) { this->assign(other); }
+#else // NOSCRIPT
 		GenericPtrVector() : script_ot(0) { }
 		GenericPtrVector(asIObjectType *ot) : script_ot(ot) { if (ot) ot->AddRef(); }
 		GenericPtrVector(const GenericPtrVector &other) : script_ot(0) { this->assign(other); }
+#endif // NOSCRIPT
 
 		size_type size() const { return data.size(); }
 		size_type max_size() const { return data.max_size(); }
@@ -252,14 +267,24 @@ class GenericPtrVector : public GenericPtrContainer
 		const_reference operator [](size_type i) const { throw const_cast<const value_type>(data.at(i)); }
 		GenericPtrVector &operator =(const GenericPtrVector &other) { return assign(other); }
 
-		virtual ~GenericPtrVector() { clear(); if (script_ot) script_ot->Release(); }
+		virtual ~GenericPtrVector()
+		{
+			clear();
 
+#ifndef NOSCRIPT
+			if (script_ot)
+				script_ot->Release();
+#endif // NOSCRIPT
+		}
+
+#ifndef NOSCRIPT
 	static GenericPtrVector *ScriptFactory(asIObjectType *ot)
 	{
 		GenericPtrVector *temp = new GenericPtrVector(ot);
 		temp->AddRef();
 		return temp;
 	}
+#endif // NOSCRIPT
 
 	SCRIPT_REGISTER_REF(GenericPtrVector)
 		SCRIPT_REGISTER_FACTORY("GenericPtrVector @f(int &in)", ScriptFactory);
@@ -366,12 +391,14 @@ class ScriptPtrVector : public GenericPtrVector
 {
 	public:
 
+#ifndef NOSCRIPT
 	static GenericPtrVector *ScriptFactory(asIObjectType *ot)
 	{
 		GenericPtrVector *temp = new GenericPtrVector(ot);
 		temp->AddRef();
 		return temp;
 	}
+#endif // NOSCRIPT
 
 	SCRIPT_REGISTER_REF_TPL_NAMED(ScriptPtrVector, "PtrVector")
 		SCRIPT_REGISTER_FACTORY("PtrVector<T> @f(int &in)", ScriptFactory);

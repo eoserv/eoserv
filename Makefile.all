@@ -13,13 +13,13 @@ OPTIMIZATION_LEVEL = -O3
 CFLAGS = -DEOSERV_MAKEFILE -fno-inline
 CXXFLAGS = $(CFLAGS)
 LDFLAGS = 
-LIBS = $(PTHREAD_LIB) -langelscript -las_scriptmath -las_scriptstdstring -las_scriptfile
+LIBS = $(PTHREAD_LIB)
 
 ifeq ($(DEBUG),1)
 	BIN = $(DEBUG_BIN)
 	OBJDIR = $(DEBUG_OBJDIR)
-	CFLAGS += $(DEBUG_FORMAT) -DDEBUG -DDATABASE_DEBUG
-	CXXFLAGS += $(DEBUG_FORMAT) -DDEBUG -DDATABASE_DEBUG
+	CFLAGS += $(DEBUG_FORMAT) -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -DDEBUG -DDATABASE_DEBUG
+	CXXFLAGS += $(DEBUG_FORMAT) -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -DDEBUG -DDATABASE_DEBUG
 else
 	BIN = $(RELEASE_BIN)
 	OBJDIR = $(RELEASE_OBJDIR)
@@ -33,6 +33,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/console.o \
        $(OBJDIR)/config.o \
        $(OBJDIR)/database.o \
+       $(OBJDIR)/dialog.o \
        $(OBJDIR)/eoclient.o \
        $(OBJDIR)/eodata.o \
        $(OBJDIR)/eoserver.o \
@@ -80,13 +81,17 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/handlers/Jukebox.o \
        $(OBJDIR)/handlers/Locker.o \
        $(OBJDIR)/handlers/Login.o \
+       $(OBJDIR)/handlers/Marriage.o \
+       $(OBJDIR)/handlers/Message.o \
        $(OBJDIR)/handlers/Paperdoll.o \
        $(OBJDIR)/handlers/Party.o \
-       $(OBJDIR)/handlers/Ping.o \
        $(OBJDIR)/handlers/Players.o \
+       $(OBJDIR)/handlers/Priest.o \
+       $(OBJDIR)/handlers/Quest.o \
        $(OBJDIR)/handlers/Refresh.o \
        $(OBJDIR)/handlers/Shop.o \
        $(OBJDIR)/handlers/Sit.o \
+       $(OBJDIR)/handlers/Spell.o \
        $(OBJDIR)/handlers/StatSkill.o \
        $(OBJDIR)/handlers/Talk.o \
        $(OBJDIR)/handlers/Trade.o \
@@ -104,6 +109,13 @@ ifeq ($(SQLITE),1)
 	LIBS += $(SQLITE_LIB)
 	CFLAGS += -DDATABASE_SQLITE
 	CXXFLAGS += -DDATABASE_SQLITE
+endif
+
+ifeq ($(NOSCRIPT),1)
+	CFLAGS += -DNOSCRIPT
+	CXXFLAGS += -DNOSCRIPT
+else
+	LIBS += -langelscript -las_scriptmath -las_scriptstdstring -las_scriptfile
 endif
 
 include $(MAKEFILE_INC)

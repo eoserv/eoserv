@@ -6,6 +6,7 @@
 
 #include "handlers.h"
 
+#include "console.hpp"
 #include "eodata.hpp"
 #include "guild.hpp"
 #include "map.hpp"

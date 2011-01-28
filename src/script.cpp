@@ -6,6 +6,8 @@
 
 #include "script.hpp"
 
+#ifndef NOSCRIPT
+
 #include <cstdio>
 #include <cerrno>
 
@@ -161,3 +163,5 @@ ScriptEngine::~ScriptEngine()
 {
 	this->as->Release();
 }
+
+#endif // NOSCRIPT

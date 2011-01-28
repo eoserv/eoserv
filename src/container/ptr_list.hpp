@@ -21,16 +21,20 @@ class GenericPtrList : public GenericPtrContainer
 	private:
 		std::list<value_type> data;
 		unsigned long rev;
+#ifndef NOSCRIPT
 		asIObjectType *script_ot;
+#endif // NOSCRIPT
 
 		void ValueAddRef(value_type val)
 		{
+#ifndef NOSCRIPT
 			if (script_ot)
 			{
 				// I don't understand exactly why, but it's not needed.
 				// script_ot->GetEngine()->AddRefScriptObject(val, script_ot->GetSubTypeId());
 			}
 			else
+#endif // NOSCRIPT
 			{
 				val->AddRef();
 			}
@@ -38,11 +42,13 @@ class GenericPtrList : public GenericPtrContainer
 
 		void ValueRelease(value_type val)
 		{
+#ifndef NOSCRIPT
 			if (script_ot)
 			{
 				script_ot->GetEngine()->ReleaseScriptObject(val, script_ot->GetSubTypeId());
 			}
 			else
+#endif // NOSCRIPT
 			{
 				val->Release();
 			}
@@ -112,7 +118,9 @@ class GenericPtrList : public GenericPtrContainer
 				value_type Dereference();
 				void Set(const value_type);
 
+#ifndef NOSCRIPT
 			static GenericPtrList::SafeIterator *ScriptFactory(asIObjectType *ot, GenericPtrList *v_) { return new GenericPtrList::SafeIterator(*v_); }
+#endif // NOSCRIPT
 
 			SCRIPT_REGISTER_REF_TPL_NAMED(GenericPtrList::SafeIterator, "PtrList_Iterator")
 				SCRIPT_REGISTER_FACTORY("PtrList_Iterator<T> @f(int &in, const GenericPtrList @)", ScriptFactory);
@@ -243,7 +251,9 @@ class GenericPtrList : public GenericPtrContainer
 
 				const value_type Dereference();
 
+#ifndef NOSCRIPT
 			static GenericPtrList::SafeIterator *ScriptFactory(asIObjectType *ot, GenericPtrList *v_) { return new GenericPtrList::SafeIterator(*v_); }
+#endif // NOSCRIPT
 
 			SCRIPT_REGISTER_REF_TPL_NAMED(GenericPtrList::SafeIterator, "PtrList_Iterator")
 				SCRIPT_REGISTER_FACTORY("PtrList_Iterator<T> @f(int &in, const GenericPtrList @)", ScriptFactory);
@@ -311,9 +321,14 @@ class GenericPtrList : public GenericPtrContainer
 			friend class GenericPtrList;
 		};
 
+#ifdef NOSCRIPT
+		GenericPtrList() : rev(0) { }
+		GenericPtrList(const GenericPtrList &other) : rev(0) { this->assign(other); }
+#else // NOSCRIPT
 		GenericPtrList() : rev(0), script_ot(0) { }
 		GenericPtrList(asIObjectType *ot) : rev(0), script_ot(ot) { if (ot) ot->AddRef(); }
 		GenericPtrList(const GenericPtrList &other) : rev(0), script_ot(0) { this->assign(other); }
+#endif // NOSCRIPT
 
 		reference front() { return data.front(); }
 		const_reference front() const { return data.front(); }
@@ -341,9 +356,19 @@ class GenericPtrList : public GenericPtrContainer
 
 		GenericPtrList &operator =(const GenericPtrList &other) { return assign(other); }
 
-		virtual ~GenericPtrList() { clear(); if (script_ot) script_ot->Release(); }
+		virtual ~GenericPtrList()
+		{
+			clear();
 
+#ifndef NOSCRIPT
+			if (script_ot)
+				script_ot->Release();
+#endif // NOSCRIPT
+		}
+
+#ifndef NOSCRIPT
 	static GenericPtrList *ScriptFactory(asIObjectType *ot) { return new GenericPtrList; }
+#endif // NOSCRIPT
 
 	SCRIPT_REGISTER_REF(GenericPtrList)
 		SCRIPT_REGISTER_FACTORY("GenericPtrList @f(int &in)", ScriptFactory);
@@ -448,7 +473,9 @@ class ScriptPtrList : public GenericPtrList
 {
 	public:
 
+#ifndef NOSCRIPT
 	static GenericPtrList *ScriptFactory(asIObjectType *ot) { return new GenericPtrList(ot); }
+#endif // NOSCRIPT
 
 	SCRIPT_REGISTER_REF_TPL_NAMED(ScriptPtrList, "PtrList")
 		SCRIPT_REGISTER_FACTORY("PtrList<T> @f(int &in)", ScriptFactory);

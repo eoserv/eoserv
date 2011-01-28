@@ -6,6 +6,7 @@
 
 #include "handlers.h"
 
+#include "console.hpp"
 #include "map.hpp"
 
 CLIENT_F_FUNC(Internal)

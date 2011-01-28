@@ -6,6 +6,20 @@
 
 #include "hook.hpp"
 
+#ifdef NOSCRIPT
+
+Hook_Call HookManager::Call(std::string trigger)
+{
+	return Hook_Call(*this, trigger);
+}
+
+bool Hook_Call::operator ()()
+{
+	return false;
+}
+
+#else // NOSCRIPT
+
 bool Hook_Call::operator ()()
 {
 	UTIL_PTR_LIST_FOREACH(this->hookmanager.hooks[this->trigger], Hook, hook)
@@ -84,3 +98,5 @@ template <> void Hook_Call::SetArg<asDWORD>(ScriptContext *ctx, int argc, asDWOR
 //template <> void Hook_Call::SetArg<asQWORD>(ScriptContext *ctx, int argc, asQWORD arg) { ctx->as->SetArgQWord(argc, arg);  }
 template <> void Hook_Call::SetArg<float>(ScriptContext *ctx, int argc, float arg)     { ctx->as->SetArgFloat(argc, arg);  }
 template <> void Hook_Call::SetArg<double>(ScriptContext *ctx, int argc, double arg)   { ctx->as->SetArgDouble(argc, arg); }
+
+#endif // NOSCRIPT

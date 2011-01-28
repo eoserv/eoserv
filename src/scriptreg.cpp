@@ -6,6 +6,18 @@
 
 #include "scriptreg.hpp"
 
+#ifdef NOSCRIPT
+
+#include "console.hpp"
+#include "world.hpp"
+
+void script_register(World &world)
+{
+	Console::Out("Scripting disabled at compile time");
+}
+
+#else // NOSCRIPT
+
 #include <string>
 
 #include <angelscript/scriptmath.h>
@@ -205,3 +217,5 @@ void script_register(World &world)
 	REG<CharacterEvent>();
 	REG<NPCEvent>();
 }
+
+#endif // NOSCRIPT

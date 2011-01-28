@@ -35,6 +35,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 					<Add option="-DDEBUG" />
 					<Add option="-DDATABASE_DEBUG" />
 					<Add option="-DDATABASE_MYSQL" />
@@ -51,6 +53,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 					<Add option="-DDEBUG" />
 					<Add option="-DDATABASE_DEBUG" />
 					<Add option="-DDATABASE_SQLITE" />
@@ -100,6 +104,115 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-DDATABASE_SQLITE" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="NOSCRIPT+DEBUG+MYSQL+SQLITE">
+				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
+					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_MYSQL" />
+					<Add option="-DDATABASE_SQLITE" />
+					<Add option="-DNOSCRIPT" />
+				</Compiler>
+				<Linker>
+					<Add library="mysql" />
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="NOSCRIPT+DEBUG+MYSQL">
+				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
+					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_MYSQL" />
+					<Add option="-DNOSCRIPT" />
+				</Compiler>
+				<Linker>
+					<Add library="mysql" />
+				</Linker>
+			</Target>
+			<Target title="NOSCRIPT+DEBUG+SQLITE">
+				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
+					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_SQLITE" />
+					<Add option="-DNOSCRIPT" />
+				</Compiler>
+				<Linker>
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="NOSCRIPT+MYSQL+SQLITE">
+				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Release\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DDATABASE_MYSQL" />
+					<Add option="-DDATABASE_SQLITE" />
+					<Add option="-DNOSCRIPT" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="mysql" />
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="NOSCRIPT+MYSQL">
+				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Release\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DDATABASE_MYSQL" />
+					<Add option="-DNOSCRIPT" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="mysql" />
+				</Linker>
+			</Target>
+			<Target title="NOSCRIPT+SQLITE">
+				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="..\obj\Release\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DDATABASE_SQLITE" />
+					<Add option="-DNOSCRIPT" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -199,13 +312,17 @@
 		<Unit filename="..\src\handlers\Jukebox.cpp" />
 		<Unit filename="..\src\handlers\Locker.cpp" />
 		<Unit filename="..\src\handlers\Login.cpp" />
+		<Unit filename="..\src\handlers\Marriage.cpp" />
+		<Unit filename="..\src\handlers\Message.cpp" />
 		<Unit filename="..\src\handlers\Paperdoll.cpp" />
 		<Unit filename="..\src\handlers\Party.cpp" />
-		<Unit filename="..\src\handlers\Ping.cpp" />
 		<Unit filename="..\src\handlers\Players.cpp" />
+		<Unit filename="..\src\handlers\Priest.cpp" />
+		<Unit filename="..\src\handlers\Quest.cpp" />
 		<Unit filename="..\src\handlers\Refresh.cpp" />
 		<Unit filename="..\src\handlers\Shop.cpp" />
 		<Unit filename="..\src\handlers\Sit.cpp" />
+		<Unit filename="..\src\handlers\Spell.cpp" />
 		<Unit filename="..\src\handlers\StatSkill.cpp" />
 		<Unit filename="..\src\handlers\Talk.cpp" />
 		<Unit filename="..\src\handlers\Trade.cpp" />

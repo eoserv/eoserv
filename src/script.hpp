@@ -7,6 +7,62 @@
 #ifndef SCRIPT_HPP_INCLUDED
 #define SCRIPT_HPP_INCLUDED
 
+#ifdef NOSCRIPT
+
+#define SCRIPT_REGISTER_TYPESET(type, typer)
+
+#define SCRIPT_REGISTER_AFTER_TYPE()
+
+#define SCRIPT_REGISTER(type)
+#define SCRIPT_REGISTER_REF(type)
+#define SCRIPT_REGISTER_REF_DF(type)
+#define SCRIPT_REGISTER_REF_TPL(type)
+#define SCRIPT_REGISTER_NAMED(type, name)
+#define SCRIPT_REGISTER_REF_NAMED(type, name)
+#define SCRIPT_REGISTER_REF_DF_NAMED(type, name)
+#define SCRIPT_REGISTER_REF_TPL_NAMED(type, name)
+
+#define SCRIPT_REGISTER_END()
+
+#define SCRIPT_DEFAULT_CONSTRUCTOR(type)
+
+#define SCRIPT_DEFAULT_FACTORY(type)
+
+#define SCRIPT_REGISTER_FUNCTION(declaration, function)
+#define SCRIPT_REGISTER_FUNCTION_PR(declaration, function, p, r)
+
+#define SCRIPT_REGISTER_GLOBAL_FUNCTION(declaration, function)
+#define SCRIPT_REGISTER_GLOBAL_FUNCTION_PR(declaration, function, p, r)
+
+#define SCRIPT_REGISTER_VARIABLE(type, name)
+#define SCRIPT_REGISTER_VARIABLE_NAME(type, name, scriptname)
+
+#define SCRIPT_REGISTER_ENUM(name)
+
+#define SCRIPT_REGISTER_ENUM_VALUE(val)
+
+#define SCRIPT_REGISTER_ENUM_END()
+
+#define SCRIPT_REGISTER_BEHAVIOUR(behaviour, declaration, function)
+#define SCRIPT_REGISTER_BEHAVIOUR_PR(behaviour, declaration, function, p, r)
+#define SCRIPT_REGISTER_BEHAVIOUR_STATIC(behaviour, declaration, function)
+#define SCRIPT_REGISTER_BEHAVIOUR_STATIC_PR(behaviour, declaration, function, p, r)
+#define SCRIPT_REGISTER_BEHAVIOUR_STATIC_CC(behaviour, declaration, function, cc)
+#define SCRIPT_REGISTER_BEHAVIOUR_STATIC_PR_CC(behaviour, declaration, function, p, r, cc)
+
+#define SCRIPT_REGISTER_DEFAULT_CONSTRUCTOR()
+#define SCRIPT_REGISTER_DEFAULT_FACTORY()
+
+#define SCRIPT_REGISTER_FACTORY(declaration, function)
+
+#ifndef SCRIPT_ASSERT
+#define SCRIPT_ASSERT(expr, format, ...)
+#endif
+
+class ScriptEngine { };
+
+#else // NOSCRIPT
+
 #include <cassert>
 
 #include <angelscript.h>
@@ -313,5 +369,7 @@ template <class T> class ScriptRefTplObject : public ScriptRefObject<T>
 
 		virtual ~ScriptRefTplObject() { }
 };
+
+#endif // NOSCRIPT
 
 #endif // SCRIPT_HPP_INCLUDED

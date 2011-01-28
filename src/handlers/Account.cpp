@@ -6,6 +6,8 @@
 
 #include "handlers.h"
 
+#include "console.hpp"
+
 CLIENT_F_FUNC(Account)
 {
 	PacketBuilder reply;
