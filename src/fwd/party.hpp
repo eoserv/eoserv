@@ -9,4 +9,10 @@
 
 class Party;
 
+enum PartyRequestType
+{
+	PARTY_REQUEST_JOIN = 0,
+	PARTY_REQUEST_INVITE = 1,
+};
+
 #endif // FWD_PARTY_HPP_INCLUDED

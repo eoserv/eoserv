@@ -6,8 +6,10 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
 #include "map.hpp"
 #include "party.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Party)
 {
@@ -83,7 +85,7 @@ CLIENT_F_FUNC(Party)
 
 					if (!this->player->character->party)
 					{
-						new Party(this->server->world, this->player->character, inviter);
+						new Party(this->server()->world, this->player->character, inviter);
 					}
 					else
 					{
@@ -99,7 +101,7 @@ CLIENT_F_FUNC(Party)
 
 					if (!inviter->party)
 					{
-						new Party(this->server->world, inviter, this->player->character);
+						new Party(this->server()->world, inviter, this->player->character);
 					}
 					else
 					{
@@ -122,7 +124,7 @@ CLIENT_F_FUNC(Party)
 
 			if (id == this->player->id || this->player->character == this->player->character->party->leader)
 			{
-				this->player->character->party->Leave(this->server->world->GetCharacterPID(id));
+				this->player->character->party->Leave(this->server()->world->GetCharacterPID(id));
 			}
 			else
 			{

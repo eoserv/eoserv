@@ -6,6 +6,9 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
+#include "player.hpp"
+
 CLIENT_F_FUNC(Emote)
 {
 	PacketBuilder reply;

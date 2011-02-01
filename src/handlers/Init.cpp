@@ -6,6 +6,10 @@
 
 #include "handlers.h"
 
+#include <cmath>
+
+#include "world.hpp"
+
 static unsigned int stupid_hash(unsigned int i)
 {
 	++i;
@@ -43,7 +47,7 @@ CLIENT_F_FUNC(Init)
 
 	int ban_expires;
 	IPAddress remote_addr = this->GetRemoteAddr();
-	if ((ban_expires = this->server->world->CheckBan(0, &remote_addr, &this->hdid)) != -1)
+	if ((ban_expires = this->server()->world->CheckBan(0, &remote_addr, &this->hdid)) != -1)
 	{
 		reply.AddByte(INIT_BANNED);
 		if (ban_expires == 0)
@@ -61,19 +65,19 @@ CLIENT_F_FUNC(Init)
 		return false;
 	}
 
-	int minversion = this->server->world->config["MinVersion"];
+	int minversion = this->server()->world->config["MinVersion"];
 	if (!minversion)
 	{
 		minversion = 27;
 	}
 
-	int maxversion = this->server->world->config["MaxVersion"];
+	int maxversion = this->server()->world->config["MaxVersion"];
 	if (!maxversion)
 	{
 		maxversion = 28;
 	}
 
-	if (this->server->world->config["CheckVersion"] && (this->version < minversion || this->version > maxversion))
+	if (this->server()->world->config["CheckVersion"] && (this->version < minversion || this->version > maxversion))
 	{
 		reply.AddByte(INIT_OUT_OF_DATE);
 		reply.AddChar(0);
@@ -85,7 +89,6 @@ CLIENT_F_FUNC(Init)
 	}
 
 	response = stupid_hash(challenge);
-	(response == 201527) ? ++id : 0;
 
 	int emulti_e = util::rand(6,12);
 	int emulti_d = util::rand(6,12);

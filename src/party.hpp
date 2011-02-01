@@ -7,7 +7,13 @@
 #ifndef PARTY_HPP_INCLUDED
 #define PARTY_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "container/ptr_vector.hpp"
+#include "script.hpp"
+#include "shared.hpp"
+
+#include "fwd/character.hpp"
+#include "fwd/map.hpp"
+#include "fwd/world.hpp"
 
 /**
  * A temporary group of Characters

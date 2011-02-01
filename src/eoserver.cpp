@@ -124,12 +124,7 @@ void server_pump_queue(void *server_void)
 	}
 }
 
-Client *EOServer::ClientFactory(SOCKET sock, sockaddr_in sin)
-{
-	return new EOClient(sock, sin, this);
-}
-
-void EOServer::Initialize(util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
+void EOServer::Initialize(STD_TR1::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	this->world = new World(dbinfo, eoserv_config, admin_config);
 
@@ -153,6 +148,11 @@ void EOServer::Initialize(util::array<std::string, 6> dbinfo, const Config &eose
 	}
 
 	this->start = Timer::GetTime();
+}
+
+Client *EOServer::ClientFactory(const Socket &sock)
+{
+	 return new EOClient(sock, this);
 }
 
 EOServer::~EOServer()

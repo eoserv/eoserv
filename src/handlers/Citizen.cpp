@@ -6,8 +6,13 @@
 
 #include "handlers.h"
 
+#include "util.hpp"
+
+#include "character.hpp"
+#include "eodata.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Citizen)
 {

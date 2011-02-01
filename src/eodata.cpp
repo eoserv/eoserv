@@ -6,6 +6,9 @@
 
 #include "eodata.hpp"
 
+#include <cstdio>
+#include <cstdlib>
+
 #include "console.hpp"
 #include "packet.hpp"
 

@@ -6,11 +6,13 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
 #include "console.hpp"
 #include "eodata.hpp"
 #include "guild.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Welcome)
 {
@@ -60,44 +62,44 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddInt(this->player->character->id);
 			reply.AddShort(this->player->character->mapid); // Map ID
 
-			if (this->server->world->config["GlobalPK"] && !this->server->world->PKExcept(this->player->character->mapid))
+			if (this->server()->world->config["GlobalPK"] && !this->server()->world->PKExcept(this->player->character->mapid))
 			{
 				reply.AddByte(0xFF);
 				reply.AddByte(0x01);
 			}
 			else
 			{
-				reply.AddByte(this->server->world->GetMap(this->player->character->mapid)->rid[0]);
-				reply.AddByte(this->server->world->GetMap(this->player->character->mapid)->rid[1]);
+				reply.AddByte(this->server()->world->GetMap(this->player->character->mapid)->rid[0]);
+				reply.AddByte(this->server()->world->GetMap(this->player->character->mapid)->rid[1]);
 			}
 
-			reply.AddByte(this->server->world->GetMap(this->player->character->mapid)->rid[2]);
-			reply.AddByte(this->server->world->GetMap(this->player->character->mapid)->rid[3]);
-			reply.AddThree(this->server->world->GetMap(this->player->character->mapid)->filesize);
-			reply.AddByte(this->server->world->eif->rid[0]);
-			reply.AddByte(this->server->world->eif->rid[1]);
-			reply.AddByte(this->server->world->eif->rid[2]);
-			reply.AddByte(this->server->world->eif->rid[3]);
-			reply.AddByte(this->server->world->eif->len[0]);
-			reply.AddByte(this->server->world->eif->len[1]);
-			reply.AddByte(this->server->world->enf->rid[0]);
-			reply.AddByte(this->server->world->enf->rid[1]);
-			reply.AddByte(this->server->world->enf->rid[2]);
-			reply.AddByte(this->server->world->enf->rid[3]);
-			reply.AddByte(this->server->world->enf->len[0]);
-			reply.AddByte(this->server->world->enf->len[1]);
-			reply.AddByte(this->server->world->esf->rid[0]);
-			reply.AddByte(this->server->world->esf->rid[1]);
-			reply.AddByte(this->server->world->esf->rid[2]);
-			reply.AddByte(this->server->world->esf->rid[3]);
-			reply.AddByte(this->server->world->esf->len[0]);
-			reply.AddByte(this->server->world->esf->len[1]);
-			reply.AddByte(this->server->world->ecf->rid[0]);
-			reply.AddByte(this->server->world->ecf->rid[1]);
-			reply.AddByte(this->server->world->ecf->rid[2]);
-			reply.AddByte(this->server->world->ecf->rid[3]);
-			reply.AddByte(this->server->world->ecf->len[0]);
-			reply.AddByte(this->server->world->ecf->len[1]);
+			reply.AddByte(this->server()->world->GetMap(this->player->character->mapid)->rid[2]);
+			reply.AddByte(this->server()->world->GetMap(this->player->character->mapid)->rid[3]);
+			reply.AddThree(this->server()->world->GetMap(this->player->character->mapid)->filesize);
+			reply.AddByte(this->server()->world->eif->rid[0]);
+			reply.AddByte(this->server()->world->eif->rid[1]);
+			reply.AddByte(this->server()->world->eif->rid[2]);
+			reply.AddByte(this->server()->world->eif->rid[3]);
+			reply.AddByte(this->server()->world->eif->len[0]);
+			reply.AddByte(this->server()->world->eif->len[1]);
+			reply.AddByte(this->server()->world->enf->rid[0]);
+			reply.AddByte(this->server()->world->enf->rid[1]);
+			reply.AddByte(this->server()->world->enf->rid[2]);
+			reply.AddByte(this->server()->world->enf->rid[3]);
+			reply.AddByte(this->server()->world->enf->len[0]);
+			reply.AddByte(this->server()->world->enf->len[1]);
+			reply.AddByte(this->server()->world->esf->rid[0]);
+			reply.AddByte(this->server()->world->esf->rid[1]);
+			reply.AddByte(this->server()->world->esf->rid[2]);
+			reply.AddByte(this->server()->world->esf->rid[3]);
+			reply.AddByte(this->server()->world->esf->len[0]);
+			reply.AddByte(this->server()->world->esf->len[1]);
+			reply.AddByte(this->server()->world->ecf->rid[0]);
+			reply.AddByte(this->server()->world->ecf->rid[1]);
+			reply.AddByte(this->server()->world->ecf->rid[2]);
+			reply.AddByte(this->server()->world->ecf->rid[3]);
+			reply.AddByte(this->server()->world->ecf->len[0]);
+			reply.AddByte(this->server()->world->ecf->len[1]);
 			reply.AddBreakString(this->player->character->name);
 			reply.AddBreakString(this->player->character->title);
 			reply.AddBreakString(this->player->character->guild ? this->player->character->guild->name : ""); // Guild Name
@@ -109,7 +111,7 @@ CLIENT_F_FUNC(Welcome)
 
 			AdminLevel lowest_command = ADMIN_HGM;
 
-			UTIL_UNORDERED_MAP_FOREACH_ALL(this->server->world->admin_config, std::string, util::variant, ac)
+			UTIL_UNORDERED_MAP_FOREACH_ALL(this->server()->world->admin_config, std::string, util::variant, ac)
 			{
 				if (ac.first == "killnpc"
 				 || ac.first == "reports")
@@ -120,12 +122,12 @@ CLIENT_F_FUNC(Welcome)
 				lowest_command = std::min<AdminLevel>(lowest_command, static_cast<AdminLevel>(util::to_int(ac.second)));
 			}
 
-			if (this->player->character->admin >= static_cast<int>(this->server->world->admin_config["seehide"])
+			if (this->player->character->admin >= static_cast<int>(this->server()->world->admin_config["seehide"])
 			 && this->player->character->admin < ADMIN_HGM)
 			{
 				reply.AddChar(ADMIN_HGM);
 			}
-			else if (this->player->character->admin >= static_cast<int>(this->server->world->admin_config["nowall"])
+			else if (this->player->character->admin >= static_cast<int>(this->server()->world->admin_config["nowall"])
 			 && this->player->character->admin < ADMIN_GM)
 			{
 				reply.AddChar(ADMIN_GM);
@@ -181,8 +183,8 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(item);
 			}
 
-			int leader_rank = std::max(std::max(std::max(static_cast<int>(this->server->world->config["GuildEditRank"]), static_cast<int>(this->server->world->config["GuildKickRank"])),
-			                           static_cast<int>(this->server->world->config["GuildPromoteRank"])), static_cast<int>(this->server->world->config["GuildDemoteRank"]));
+			int leader_rank = std::max(std::max(std::max(static_cast<int>(this->server()->world->config["GuildEditRank"]), static_cast<int>(this->server()->world->config["GuildKickRank"])),
+			                           static_cast<int>(this->server()->world->config["GuildPromoteRank"])), static_cast<int>(this->server()->world->config["GuildDemoteRank"]));
 
 			if (this->player->character->guild_rank <= leader_rank && this->player->character->guild)
 			{
@@ -193,7 +195,7 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddChar(this->player->character->guild_rank);
 			}
 
-			reply.AddShort(static_cast<int>(this->server->world->config["JailMap"]));
+			reply.AddShort(static_cast<int>(this->server()->world->config["JailMap"]));
 			reply.AddShort(4); // ?
 			reply.AddChar(24); // ?
 			reply.AddChar(24); // ?
@@ -230,7 +232,7 @@ CLIENT_F_FUNC(Welcome)
 				}
 			}
 
-			this->server->world->Login(this->player->character);
+			this->server()->world->Login(this->player->character);
 
 			this->state = EOClient::Playing;
 
@@ -241,12 +243,12 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddByte(255);
 
 			char newsbuf[4096] = "";
-			std::FILE *newsfh = std::fopen(static_cast<std::string>(this->server->world->config["NewsFile"]).c_str(), "rt");
+			std::FILE *newsfh = std::fopen(static_cast<std::string>(this->server()->world->config["NewsFile"]).c_str(), "rt");
 			bool newseof = (newsfh == 0);
 
 			if (newseof)
 			{
-				Console::Wrn("Could not load news file '%s'", static_cast<std::string>(this->server->world->config["NewsFile"]).c_str());
+				Console::Wrn("Could not load news file '%s'", static_cast<std::string>(this->server()->world->config["NewsFile"]).c_str());
 			}
 
 			for (int i = 0; i < 9; ++i)
@@ -344,15 +346,15 @@ CLIENT_F_FUNC(Welcome)
 				reply.AddShort(character->maxtp);
 				reply.AddShort(character->tp);
 				// equipment
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 				reply.AddShort(0); // ??
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddChar(character->sitting);
 				reply.AddChar(character->hidden);
 				reply.AddByte(255);
@@ -388,7 +390,7 @@ CLIENT_F_FUNC(Welcome)
 			std::string content;
 			char mapbuf[6] = {0};
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
-			std::string filename = this->server->world->config["MapDir"];
+			std::string filename = this->server()->world->config["MapDir"];
 			std::FILE *fh;
 			InitReply replycode = INIT_FILE_MAP;
 			char fileid = 0;
@@ -401,10 +403,10 @@ CLIENT_F_FUNC(Welcome)
 			switch (file)
 			{
 				case FILE_MAP: break; // Map file is pre-loaded in to the variable
-				case FILE_ITEM: filename = static_cast<std::string>(this->server->world->config["EIF"]); replycode = INIT_FILE_EIF; fileid = 1; break;
-				case FILE_NPC: filename = static_cast<std::string>(this->server->world->config["ENF"]); replycode = INIT_FILE_ENF; fileid = 1; break;
-				case FILE_SPELL: filename = static_cast<std::string>(this->server->world->config["ESF"]); replycode = INIT_FILE_ESF; fileid = 1; break;
-				case FILE_CLASS: filename = static_cast<std::string>(this->server->world->config["ECF"]); replycode = INIT_FILE_ECF; fileid = 1; break;
+				case FILE_ITEM: filename = static_cast<std::string>(this->server()->world->config["EIF"]); replycode = INIT_FILE_EIF; fileid = 1; break;
+				case FILE_NPC: filename = static_cast<std::string>(this->server()->world->config["ENF"]); replycode = INIT_FILE_ENF; fileid = 1; break;
+				case FILE_SPELL: filename = static_cast<std::string>(this->server()->world->config["ESF"]); replycode = INIT_FILE_ESF; fileid = 1; break;
+				case FILE_CLASS: filename = static_cast<std::string>(this->server()->world->config["ECF"]); replycode = INIT_FILE_ECF; fileid = 1; break;
 				default: return false;
 			}
 
@@ -434,7 +436,7 @@ CLIENT_F_FUNC(Welcome)
 				char buf[4096];
 				int len = std::fread(buf, sizeof(char), 4096, fh);
 
-				if (file == FILE_MAP && this->server->world->config["GlobalPK"] && !this->server->world->PKExcept(this->player->character->mapid))
+				if (file == FILE_MAP && this->server()->world->config["GlobalPK"] && !this->server()->world->PKExcept(this->player->character->mapid))
 				{
 					if (p + len >= 0x04 && 0x03 - p > 0) buf[0x03 - p] = 0xFF;
 					if (p + len >= 0x05 && 0x04 - p > 0) buf[0x04 - p] = 0x01;
@@ -456,7 +458,7 @@ CLIENT_F_FUNC(Welcome)
 			reply.AddString(content);
 			CLIENT_SENDRAW(reply);
 
-			if (this->server->world->config["ProtectMaps"])
+			if (this->server()->world->config["ProtectMaps"])
 			{
 				reply.Reset();
 				reply.AddChar(INIT_BANNED);

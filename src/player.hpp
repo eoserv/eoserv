@@ -7,7 +7,16 @@
 #ifndef PLAYER_HPP_INCLUDED
 #define PLAYER_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/player.hpp"
+
+#include <string>
+
+#include "container/ptr_vector.hpp"
+#include "shared.hpp"
+
+#include "fwd/character.hpp"
+#include "fwd/eoclient.hpp"
+#include "fwd/world.hpp"
 
 /**
  * Object representing a player, but not a character

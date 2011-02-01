@@ -13,12 +13,14 @@
 #include <string>
 #include <vector>
 
+#include "container/algorithm.hpp"
+
+#include "character.hpp"
 #include "config.hpp"
 #include "console.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
-#include "npc.hpp"
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
@@ -925,7 +927,7 @@ void NPC::Attack(Character *target)
 	// Checks if target is facing you
 	bool critical = std::abs(int(target->direction) - this->direction) != 2 || rand < static_cast<double>(this->map->world->config["CriticalRate"]);
 
-	std::tr1::unordered_map<std::string, double> formula_vars;
+	STD_TR1::unordered_map<std::string, double> formula_vars;
 
 	this->FormulaVars(formula_vars);
 	target->FormulaVars(formula_vars, "target_");
@@ -1045,7 +1047,7 @@ void NPC::Attack(Character *target)
 #define vv(x, n) vars[prefix + n] = x;
 #define vd(x) vars[prefix + #x] = data->x;
 
-void NPC::FormulaVars(std::tr1::unordered_map<std::string, double> &vars, std::string prefix)
+void NPC::FormulaVars(STD_TR1::unordered_map<std::string, double> &vars, std::string prefix)
 {
 	ENF_Data *data = this->Data();
 	vv(1, "npc") v(hp) vv(data->hp, "maxhp")

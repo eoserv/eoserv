@@ -6,6 +6,11 @@
 
 #include "party.hpp"
 
+#include <cmath>
+
+#include "container/algorithm.hpp"
+#include "util.hpp"
+
 #include "character.hpp"
 #include "eoclient.hpp"
 #include "packet.hpp"

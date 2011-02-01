@@ -6,9 +6,12 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
 #include "party.hpp"
+#include "player.hpp"
+#include "world.hpp"
 
 CLIENT_F_FUNC(Item)
 {
@@ -25,7 +28,7 @@ CLIENT_F_FUNC(Item)
 
 			if (this->player->character->HasItem(id))
 			{
-				EIF_Data *item = this->server->world->eif->Get(id);
+				EIF_Data *item = this->server()->world->eif->Get(id);
 				reply.SetID(PACKET_ITEM, PACKET_REPLY);
 				reply.AddChar(item->type);
 				reply.AddShort(id);
@@ -67,7 +70,7 @@ CLIENT_F_FUNC(Item)
 						int hpgain = item->hp;
 						int tpgain = item->tp;
 
-						if (this->server->world->config["LimitDamage"])
+						if (this->server()->world->config["LimitDamage"])
 						{
 							hpgain = std::min(hpgain, this->player->character->maxhp - this->player->character->hp);
 							tpgain = std::min(tpgain, this->player->character->maxtp - this->player->character->tp);
@@ -79,7 +82,7 @@ CLIENT_F_FUNC(Item)
 						this->player->character->hp += hpgain;
 						this->player->character->tp += tpgain;
 
-						if (!this->server->world->config["LimitDamage"])
+						if (!this->server()->world->config["LimitDamage"])
 						{
 							this->player->character->hp = std::min(this->player->character->hp, this->player->character->maxhp);
 							this->player->character->tp = std::min(this->player->character->tp, this->player->character->maxtp);
@@ -174,7 +177,7 @@ CLIENT_F_FUNC(Item)
 					{
 						for (std::size_t i = 0; i < this->player->character->paperdoll.size(); ++i)
 						{
-							if (this->server->world->eif->Get(this->player->character->paperdoll[i])->special == EIF::Cursed)
+							if (this->server()->world->eif->Get(this->player->character->paperdoll[i])->special == EIF::Cursed)
 							{
 								this->player->character->paperdoll[i] = 0;
 							}
@@ -206,11 +209,11 @@ CLIENT_F_FUNC(Item)
 						builder.AddShort(this->player->id);
 						builder.AddChar(SLOT_CLOTHES);
 						builder.AddChar(0);
-						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
-						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
-						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
-						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
-						builder.AddShort(this->server->world->eif->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
+						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
+						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
+						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
+						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
+						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
 						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
 						{
@@ -287,7 +290,7 @@ CLIENT_F_FUNC(Item)
 			int id = reader.GetShort();
 			int amount;
 
-			if (this->server->world->eif->Get(id)->special == EIF::Lore)
+			if (this->server()->world->eif->Get(id)->special == EIF::Lore)
 			{
 				return true;
 			}
@@ -303,7 +306,7 @@ CLIENT_F_FUNC(Item)
 			unsigned char x = reader.GetByte(); // ?
 			unsigned char y = reader.GetByte(); // ?
 
-			amount = std::min<int>(amount, this->server->world->config["MaxDrop"]);
+			amount = std::min<int>(amount, this->server()->world->config["MaxDrop"]);
 
 			if (amount == 0)
 			{
@@ -324,7 +327,7 @@ CLIENT_F_FUNC(Item)
 
 			int distance = util::path_length(x, y, this->player->character->x, this->player->character->y);
 
-			if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
+			if (distance > static_cast<int>(this->server()->world->config["DropDistance"]))
 			{
 				return true;
 			}
@@ -334,13 +337,13 @@ CLIENT_F_FUNC(Item)
 				return true;
 			}
 
-			if (this->player->character->HasItem(id) >= amount && this->player->character->mapid != static_cast<int>(this->server->world->config["JailMap"]))
+			if (this->player->character->HasItem(id) >= amount && this->player->character->mapid != static_cast<int>(this->server()->world->config["JailMap"]))
 			{
 				Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
 				if (item)
 				{
 					item->owner = this->player->id;
-					item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server->world->config["ProtectPlayerDrop"]);
+					item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server()->world->config["ProtectPlayerDrop"]);
 					this->player->character->DelItem(id, amount);
 
 					reply.SetID(PACKET_ITEM, PACKET_DROP);
@@ -392,7 +395,7 @@ CLIENT_F_FUNC(Item)
 			{
 				int distance = util::path_length(item->x, item->y, this->player->character->x, this->player->character->y);
 
-				if (distance > static_cast<int>(this->server->world->config["DropDistance"]))
+				if (distance > static_cast<int>(this->server()->world->config["DropDistance"]))
 				{
 					break;
 				}

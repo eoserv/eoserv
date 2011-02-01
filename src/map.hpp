@@ -7,7 +7,19 @@
 #ifndef MAP_HPP_INCLUDED
 #define MAP_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/map.hpp"
+
+#include <string>
+
+#include "container/ptr_list.hpp"
+#include "container/ptr_vector.hpp"
+#include "script.hpp"
+#include "shared.hpp"
+
+#include "fwd/arena.hpp"
+#include "fwd/character.hpp"
+#include "fwd/npc.hpp"
+#include "fwd/world.hpp"
 
 /**
  * Object representing an item on the floor of a map
@@ -336,7 +348,7 @@ class Map : public Shared
 		void Attack(Character *from, Direction direction);
 		bool AttackPK(Character *from, Direction direction);
 		void Face(Character *from, Direction direction);
-		void Sit(Character *from, SitAction sit_type);
+		void Sit(Character *from, SitState sit_type);
 		void Stand(Character *from);
 		void Emote(Character *from, enum Emote emote, bool echo = true);
 		bool OpenDoor(Character *from, unsigned char x, unsigned char y);
@@ -413,7 +425,7 @@ class Map : public Shared
 		SCRIPT_REGISTER_FUNCTION("void Attack(Character @from, Direction direction)", Attack);
 		SCRIPT_REGISTER_FUNCTION("bool AttackPK(Character @from, Direction direction)", AttackPK);
 		SCRIPT_REGISTER_FUNCTION("void Face(Character @from, Direction direction)", Face);
-		SCRIPT_REGISTER_FUNCTION("void Sit(Character @from, SitAction sit_type)", Sit);
+		SCRIPT_REGISTER_FUNCTION("void Sit(Character @from, SitState sit_type)", Sit);
 		SCRIPT_REGISTER_FUNCTION("void Stand(Character @from)", Stand);
 		SCRIPT_REGISTER_FUNCTION("void Emote(Character @from, Emote emote, bool echo)", Emote);
 		SCRIPT_REGISTER_FUNCTION("bool OpenDoor(Character @from, uint8 x, uint8 y)", OpenDoor);

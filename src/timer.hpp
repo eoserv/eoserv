@@ -7,9 +7,12 @@
 #ifndef TIMER_HPP_INCLUDED
 #define TIMER_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/timer.hpp"
+
+#include <set>
 
 #include "script.hpp"
+#include "shared.hpp"
 
 /**
  * Manages and calls TimerEvent objects

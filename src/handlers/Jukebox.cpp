@@ -6,7 +6,9 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
 #include "map.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Jukebox)
 {
@@ -52,16 +54,16 @@ CLIENT_F_FUNC(Jukebox)
 
 			if (!this->player->character->jukebox_open
 			 || this->player->character->map->jukebox_protect > Timer::GetTime()
-			 || (track < 0 || track > static_cast<int>(this->server->world->config["JukeboxSongs"]))
-			 || this->player->character->HasItem(1) < static_cast<int>(this->server->world->config["JukeboxPrice"]))
+			 || (track < 0 || track > static_cast<int>(this->server()->world->config["JukeboxSongs"]))
+			 || this->player->character->HasItem(1) < static_cast<int>(this->server()->world->config["JukeboxPrice"]))
 			{
 				return true;
 			}
 
-			this->player->character->DelItem(1, static_cast<int>(this->server->world->config["JukeboxPrice"]));
+			this->player->character->DelItem(1, static_cast<int>(this->server()->world->config["JukeboxPrice"]));
 
 			this->player->character->map->jukebox_player = this->player->character->name;
-			this->player->character->map->jukebox_protect = Timer::GetTime() + static_cast<int>(this->server->world->config["JukeboxTimer"]);
+			this->player->character->map->jukebox_protect = Timer::GetTime() + static_cast<int>(this->server()->world->config["JukeboxTimer"]);
 
 			reply.SetID(PACKET_JUKEBOX, PACKET_AGREE);
 			reply.AddInt(this->player->character->HasItem(1));

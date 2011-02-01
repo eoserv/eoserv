@@ -6,7 +6,11 @@
 
 #include "handlers.h"
 
+#include "util.hpp"
+
+#include "character.hpp"
 #include "map.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Chair)
 {
@@ -20,7 +24,7 @@ CLIENT_F_FUNC(Chair)
 
 			int action = reader.GetChar();
 
-			if (action == SIT_SITTING && this->player->character->sitting == SIT_STAND)
+			if (action == SIT_ACT_SIT && this->player->character->sitting == SIT_STAND)
 			{
 				int x = reader.GetChar();
 				int y = reader.GetChar();

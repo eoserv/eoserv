@@ -6,7 +6,13 @@
 
 #include "handlers.h"
 
+#include "util.hpp"
+
+#include "character.hpp"
 #include "eodata.hpp"
+#include "eoserver.hpp"
+#include "player.hpp"
+#include "world.hpp"
 
 CLIENT_F_FUNC(Login)
 {
@@ -23,7 +29,7 @@ CLIENT_F_FUNC(Login)
 
 			username = util::lowercase(username);
 
-			if (this->server->world->CheckBan(&username, 0, 0) != -1)
+			if (this->server()->world->CheckBan(&username, 0, 0) != -1)
 			{
 				reply.SetID(0);
 				reply.AddByte(INIT_BANNED);
@@ -35,15 +41,15 @@ CLIENT_F_FUNC(Login)
 
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
 
-			if (this->server->world->characters.size() >= static_cast<std::size_t>(static_cast<int>(this->server->world->config["MaxPlayers"])))
+			if (this->server()->world->characters.size() >= static_cast<std::size_t>(static_cast<int>(this->server()->world->config["MaxPlayers"])))
 			{
 				reply.AddShort(LOGIN_BUSY);
 				CLIENT_SEND(reply);
 				this->Close();
 				return false;
 			}
-			
-			LoginReply login_reply = this->server->world->LoginCheck(username, password);
+
+			LoginReply login_reply = this->server()->world->LoginCheck(username, password);
 
 			if (login_reply != LOGIN_OK)
 			{
@@ -52,7 +58,7 @@ CLIENT_F_FUNC(Login)
 				return true;
 			}
 
-			this->player = this->server->world->Login(username);
+			this->player = this->server()->world->Login(username);
 
 			if (!this->player)
 			{
@@ -80,11 +86,11 @@ CLIENT_F_FUNC(Login)
 				reply.AddChar(character->haircolor);
 				reply.AddChar(character->race);
 				reply.AddChar(character->admin);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddByte(255);
 			}
 			CLIENT_SEND(reply);

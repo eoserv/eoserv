@@ -6,16 +6,19 @@
 
 #include "map.hpp"
 
+#include "container/algorithm.hpp"
+#include "console.hpp"
+#include "timer.hpp"
+#include "util.hpp"
+
 #include "arena.hpp"
 #include "character.hpp"
-#include "console.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
 #include "eoserver.hpp"
 #include "npc.hpp"
 #include "packet.hpp"
 #include "player.hpp"
-#include "timer.hpp"
 #include "world.hpp"
 
 static const char *safe_fail_filename;
@@ -1327,7 +1330,7 @@ void Map::Attack(Character *from, Direction direction)
 				// Checks if target is facing you
 				bool critical = std::abs(int(npc->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
-				std::tr1::unordered_map<std::string, double> formula_vars;
+				STD_TR1::unordered_map<std::string, double> formula_vars;
 
 				from->FormulaVars(formula_vars);
 				npc->FormulaVars(formula_vars, "target_");
@@ -1410,7 +1413,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				// Checks if target is facing you
 				bool critical = std::abs(int(character_ptr->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
-				std::tr1::unordered_map<std::string, double> formula_vars;
+				STD_TR1::unordered_map<std::string, double> formula_vars;
 
 				from->FormulaVars(formula_vars);
 				character_ptr->FormulaVars(formula_vars, "target_");
@@ -1513,7 +1516,7 @@ void Map::Face(Character *from, Direction direction)
 	}
 }
 
-void Map::Sit(Character *from, SitAction sit_type)
+void Map::Sit(Character *from, SitState sit_type)
 {
 	PacketBuilder builder;
 

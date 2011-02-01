@@ -12,7 +12,7 @@
 #include "world.hpp"
 #include "player.hpp"
 
-std::string RankSerialize(util::array<std::string, 9> list)
+std::string RankSerialize(STD_TR1::array<std::string, 9> list)
 {
 	std::string serialized;
 
@@ -25,9 +25,9 @@ std::string RankSerialize(util::array<std::string, 9> list)
 	return serialized;
 }
 
-util::array<std::string, 9> RankUnserialize(std::string serialized)
+STD_TR1::array<std::string, 9> RankUnserialize(std::string serialized)
 {
-	util::array<std::string, 9> list;
+	STD_TR1::array<std::string, 9> list;
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	int i = 0;
@@ -92,7 +92,7 @@ Guild_Create::~Guild_Create()
 
 	if (!this->manager->cache_clearing)
 	{
-		std::tr1::unordered_map<std::string, Guild *>::iterator findentry = this->manager->cache.find(tag);
+		STD_TR1::unordered_map<std::string, Guild *>::iterator findentry = this->manager->cache.find(tag);
 
 		if (findentry != this->manager->cache.end())
 		{
@@ -108,7 +108,7 @@ Guild *GuildManager::GetGuild(std::string tag)
 {
 	tag = util::uppercase(tag);
 
-	std::tr1::unordered_map<std::string, Guild *>::iterator findguild = this->cache.find(tag);
+	STD_TR1::unordered_map<std::string, Guild *>::iterator findguild = this->cache.find(tag);
 
 	if (findguild != this->cache.end())
 	{
@@ -124,7 +124,7 @@ Guild *GuildManager::GetGuild(std::string tag)
 			return 0;
 		}
 
-		std::tr1::unordered_map<std::string, util::variant> row = res.front();
+		STD_TR1::unordered_map<std::string, util::variant> row = res.front();
 		Guild *guild = new Guild(this);
 		guild->tag = static_cast<std::string>(row["tag"]);
 		guild->name = static_cast<std::string>(row["name"]);
@@ -135,7 +135,7 @@ Guild *GuildManager::GetGuild(std::string tag)
 
 		res = this->world->db.Query("SELECT `name`, `guild_rank` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", tag.c_str());
 
-		typedef std::tr1::unordered_map<std::string, util::variant> Database_Row;
+		typedef STD_TR1::unordered_map<std::string, util::variant> Database_Row;
 		UTIL_VECTOR_FOREACH_ALL(res, Database_Row, row)
 		{
 			Guild_Member *member = new Guild_Member(row["name"], row["guild_rank"]);
@@ -167,7 +167,7 @@ Guild *GuildManager::GetGuildName(std::string name)
 		return 0;
 	}
 
-	std::tr1::unordered_map<std::string, util::variant> row = res.front();
+	STD_TR1::unordered_map<std::string, util::variant> row = res.front();
 	Guild *guild = new Guild(this);
 	guild->tag = static_cast<std::string>(row["tag"]);
 	guild->name = static_cast<std::string>(row["name"]);
@@ -178,7 +178,7 @@ Guild *GuildManager::GetGuildName(std::string name)
 
 	res = this->world->db.Query("SELECT `name`, `guild_rank` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", static_cast<std::string>(row["tag"]).c_str());
 
-	typedef std::tr1::unordered_map<std::string, util::variant> Database_Row;
+	typedef STD_TR1::unordered_map<std::string, util::variant> Database_Row;
 	UTIL_VECTOR_FOREACH_ALL(res, Database_Row, row)
 	{
 		Guild_Member *member = new Guild_Member(row["name"], row["guild_rank"]);
@@ -193,7 +193,7 @@ Guild_Create *GuildManager::GetCreate(std::string tag)
 {
 	tag = util::uppercase(tag);
 
-	std::tr1::unordered_map<std::string, Guild_Create *>::iterator findcreate = this->create_cache.find(tag);
+	STD_TR1::unordered_map<std::string, Guild_Create *>::iterator findcreate = this->create_cache.find(tag);
 
 	if (findcreate != this->create_cache.end())
 	{
@@ -495,7 +495,7 @@ Guild::~Guild()
 {
 	if (!this->manager->cache_clearing)
 	{
-		std::tr1::unordered_map<std::string, Guild *>::iterator findentry = this->manager->cache.find(tag);
+		STD_TR1::unordered_map<std::string, Guild *>::iterator findentry = this->manager->cache.find(tag);
 
 		if (findentry != this->manager->cache.end())
 		{

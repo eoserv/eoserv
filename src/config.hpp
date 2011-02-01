@@ -7,13 +7,19 @@
 #ifndef CONFIG_HPP_INCLUDED
 #define CONFIG_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/config.hpp"
+
+#include <cstddef>
+#include <string>
+#include <tr1/unordered_map>
+
+#include "util.hpp"
 
 /**
  * Reads configuration data from a file.
  * Does not support sections in files (they're usually ignored).
  */
-class Config : public std::tr1::unordered_map<std::string, util::variant>
+class Config : public STD_TR1::unordered_map<std::string, util::variant>
 {
 	protected:
 		/**

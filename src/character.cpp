@@ -69,7 +69,7 @@ PtrList<Character_Item> ItemUnserialize(std::string serialized)
 	return list;
 }
 
-std::string DollSerialize(util::array<int, 15> list)
+std::string DollSerialize(STD_TR1::array<int, 15> list)
 {
 	std::string serialized;
 
@@ -82,9 +82,9 @@ std::string DollSerialize(util::array<int, 15> list)
 	return serialized;
 }
 
-util::array<int, 15> DollUnserialize(std::string serialized)
+STD_TR1::array<int, 15> DollUnserialize(std::string serialized)
 {
-	util::array<int, 15> list(0);
+	STD_TR1::array<int, 15> list;
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	int i = 0;
@@ -103,7 +103,7 @@ util::array<int, 15> DollUnserialize(std::string serialized)
 	return list;
 }
 
-template <typename T> T GetRow(std::tr1::unordered_map<std::string, util::variant> &row, const char *col)
+template <typename T> T GetRow(STD_TR1::unordered_map<std::string, util::variant> &row, const char *col)
 {
 	return row[col];
 }
@@ -116,7 +116,7 @@ Character::Character(std::string name, World *world)
 	"`map`, `x`, `y`, `direction`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
 	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` FROM `characters` "
 	"WHERE `name` = '$'", name.c_str());
-	std::tr1::unordered_map<std::string, util::variant> row = res.front();
+	STD_TR1::unordered_map<std::string, util::variant> row = res.front();
 
 	this->login_time = std::time(0);
 
@@ -190,7 +190,7 @@ Character::Character(std::string name, World *world)
 
 	this->warp_anim = WARP_ANIMATION_INVALID;
 
-	this->sitting = static_cast<SitAction>(GetRow<int>(row, "sitting"));
+	this->sitting = static_cast<SitState>(GetRow<int>(row, "sitting"));
 	this->hidden = false;
 
 	this->bankmax = GetRow<int>(row, "bankmax");
@@ -284,7 +284,7 @@ void Character::Attack(Direction direction)
 	this->map->Attack(this, direction);
 }
 
-void Character::Sit(SitAction sit_type)
+void Character::Sit(SitState sit_type)
 {
 	this->map->Sit(this, sit_type);
 }
@@ -1119,7 +1119,7 @@ void Character::Unhide()
 #define v(x) vars[prefix + #x] = x;
 #define vv(x, n) vars[prefix + n] = x;
 
-void Character::FormulaVars(std::tr1::unordered_map<std::string, double> &vars, std::string prefix)
+void Character::FormulaVars(STD_TR1::unordered_map<std::string, double> &vars, std::string prefix)
 {
 	v(level) v(exp) v(hp) v(maxhp) v(tp) v(maxtp) v(maxsp)
 	v(weight) v(maxweight) v(karma) v(mindam) v(maxdam)

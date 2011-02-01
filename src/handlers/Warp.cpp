@@ -6,10 +6,12 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
 #include "console.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Warp)
 {
@@ -88,15 +90,15 @@ CLIENT_F_FUNC(Warp)
 				reply.AddShort(character->maxtp);
 				reply.AddShort(character->tp);
 				// equipment
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
 				reply.AddShort(0); // ??
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 				reply.AddShort(0); // ??
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-				reply.AddShort(this->server->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				reply.AddChar(character->sitting);
 				reply.AddChar(character->hidden);
 				reply.AddByte(255);
@@ -132,7 +134,7 @@ CLIENT_F_FUNC(Warp)
 
 			char mapbuf[6] = {0};
 			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
-			std::string filename = this->server->world->config["MapDir"];
+			std::string filename = this->server()->world->config["MapDir"];
 			std::string content;
 			std::FILE *fh;
 
@@ -152,7 +154,7 @@ CLIENT_F_FUNC(Warp)
 				char buf[4096];
 				int len = std::fread(buf, sizeof(char), 4096, fh);
 
-				if (this->server->world->config["GlobalPK"] && !this->server->world->PKExcept(this->player->character->mapid))
+				if (this->server()->world->config["GlobalPK"] && !this->server()->world->PKExcept(this->player->character->mapid))
 				{
 					if (p + len >= 0x04 && 0x03 - p > 0) buf[0x03 - p] = 0xFF;
 					if (p + len >= 0x05 && 0x04 - p > 0) buf[0x04 - p] = 0x01;
@@ -170,7 +172,7 @@ CLIENT_F_FUNC(Warp)
 			reply.AddString(content);
 			CLIENT_SENDRAW(reply);
 
-			if (this->server->world->config["ProtectMaps"])
+			if (this->server()->world->config["ProtectMaps"])
 			{
 				reply.Reset();
 				reply.AddChar(INIT_BANNED);

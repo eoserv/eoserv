@@ -6,8 +6,11 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
+#include "player.hpp"
+#include "world.hpp"
 
 CLIENT_F_FUNC(Chest)
 {
@@ -24,7 +27,7 @@ CLIENT_F_FUNC(Chest)
 			int id = reader.GetShort();
 			int amount = reader.GetThree();
 
-			if (this->server->world->eif->Get(id)->special == EIF::Lore)
+			if (this->server()->world->eif->Get(id)->special == EIF::Lore)
 			{
 				return true;
 			}

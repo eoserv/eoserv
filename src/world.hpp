@@ -7,13 +7,24 @@
 #ifndef WORLD_HPP_INCLUDED
 #define WORLD_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/world.hpp"
+
+#include <string>
 
 #include "config.hpp"
 #include "database.hpp"
-#include "eoconst.hpp"
+#include "hook.hpp"
 #include "script.hpp"
+#include "socket.hpp"
 #include "timer.hpp"
+
+#include "fwd/character.hpp"
+#include "fwd/eodata.hpp"
+#include "fwd/eoserver.hpp"
+#include "fwd/guild.hpp"
+#include "fwd/map.hpp"
+#include "fwd/party.hpp"
+#include "fwd/player.hpp"
 
 struct Board_Post : public Shared
 {
@@ -111,11 +122,11 @@ class World : public Shared
 		PtrVector<Map> maps;
 		PtrVector<Home> homes;
 
-		util::array<Board *, 8> boards;
+		STD_TR1::array<Board *, 8> boards;
 
-		util::array<int, 254> exp_table;
+		STD_TR1::array<int, 254> exp_table;
 
-		World(util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
+		World(STD_TR1::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 		void LoadHome();
 
 		int GenerateCharacterID();

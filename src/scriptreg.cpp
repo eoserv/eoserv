@@ -35,6 +35,7 @@ void script_register(World &world)
 #include "console.hpp"
 #include "character.hpp"
 #include "eoclient.hpp"
+#include "eoconst.hpp"
 #include "eodata.hpp"
 #include "eoserver.hpp"
 #include "hash.hpp"

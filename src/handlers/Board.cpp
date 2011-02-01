@@ -6,7 +6,12 @@
 
 #include "handlers.h"
 
+#include "util.hpp"
+
+#include "character.hpp"
 #include "map.hpp"
+#include "player.hpp"
+#include "world.hpp"
 
 CLIENT_F_FUNC(Board)
 {
@@ -23,7 +28,7 @@ CLIENT_F_FUNC(Board)
 
 			if (this->player->character->board)
 			{
-				if (this->player->character->admin < static_cast<int>(this->server->world->admin_config["boardmod"]))
+				if (this->player->character->admin < static_cast<int>(this->server()->world->admin_config["boardmod"]))
 				{
 					// Not in the official EO servers, but nice to use
 					this->player->character->ShowBoard();
@@ -66,8 +71,8 @@ CLIENT_F_FUNC(Board)
 				}
 			}
 
-			subject = subject.substr(0, static_cast<int>(this->server->world->config["BoardMaxSubjectLength"]));
-			body = body.substr(0, static_cast<int>(this->server->world->config["BoardMaxPostLength"]));
+			subject = subject.substr(0, static_cast<int>(this->server()->world->config["BoardMaxSubjectLength"]));
+			body = body.substr(0, static_cast<int>(this->server()->world->config["BoardMaxPostLength"]));
 
 			int post_count = 0;
 			int recent_post_count = 0;
@@ -80,18 +85,18 @@ CLIENT_F_FUNC(Board)
 					{
 						++post_count;
 
-						if (post_count >= static_cast<int>(this->server->world->config["BoardMaxUserPosts"]))
+						if (post_count >= static_cast<int>(this->server()->world->config["BoardMaxUserPosts"]))
 						{
 							// Not in the official EO servers, but nice to use
 							this->player->character->ShowBoard();
 							return true;
 						}
 
-						if (post->time + static_cast<int>(this->server->world->config["BoardRecentPostTime"]) > Timer::GetTime())
+						if (post->time + static_cast<int>(this->server()->world->config["BoardRecentPostTime"]) > Timer::GetTime())
 						{
 							++recent_post_count;
 
-							if (recent_post_count >= static_cast<int>(this->server->world->config["BoardMaxUserRecentPosts"]))
+							if (recent_post_count >= static_cast<int>(this->server()->world->config["BoardMaxUserRecentPosts"]))
 							{
 								// Not in the official EO servers, but nice to use
 								this->player->character->ShowBoard();
@@ -111,16 +116,16 @@ CLIENT_F_FUNC(Board)
 
 				this->player->character->board->posts.push_front(newpost);
 
-				if (this->player->character->board->id == static_cast<int>(this->server->world->config["AdminBoard"]))
+				if (this->player->character->board->id == static_cast<int>(this->server()->world->config["AdminBoard"]))
 				{
-					if (this->player->character->board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server->world->config["AdminBoardLimit"])))
+					if (this->player->character->board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server()->world->config["AdminBoardLimit"])))
 					{
 						this->player->character->board->posts.pop_back();
 					}
 				}
 				else
 				{
-					if (this->player->character->board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server->world->config["BoardMaxPosts"])))
+					if (this->player->character->board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server()->world->config["BoardMaxPosts"])))
 					{
 						this->player->character->board->posts.pop_back();
 					}
@@ -163,13 +168,13 @@ CLIENT_F_FUNC(Board)
 
 			short boardid = reader.GetShort();
 
-			if (static_cast<std::size_t>(boardid) >= this->server->world->boards.size())
+			if (static_cast<std::size_t>(boardid) >= this->server()->world->boards.size())
 			{
 				return true;
 			}
 
-			if (boardid != static_cast<int>(this->server->world->config["AdminBoard"]) - 1
-			 || this->player->character->admin >= static_cast<int>(this->server->world->admin_config["reports"]))
+			if (boardid != static_cast<int>(this->server()->world->config["AdminBoard"]) - 1
+			 || this->player->character->admin >= static_cast<int>(this->server()->world->admin_config["reports"]))
 			{
 				for (std::size_t y = 0; y < this->player->character->map->height; ++y)
 				{
@@ -178,7 +183,7 @@ CLIENT_F_FUNC(Board)
 						if (this->player->character->InRange(x, y)
 						 && this->player->character->map->GetSpec(x, y) == static_cast<Map_Tile::TileSpec>(Map_Tile::Board1 + boardid))
 						{
-							this->player->character->board = this->server->world->boards[boardid];
+							this->player->character->board = this->server()->world->boards[boardid];
 						}
 					}
 				}

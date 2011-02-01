@@ -6,7 +6,11 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
+#include "eoserver.hpp"
 #include "map.hpp"
+#include "player.hpp"
+#include "world.hpp"
 
 static void add_common(PacketBuilder &reply, Character *character, short item, int amount)
 {
@@ -46,7 +50,7 @@ CLIENT_F_FUNC(Locker)
 			if (amount <= 0) return true;
 			if (this->player->character->HasItem(item) < amount) return true;
 
-			std::size_t lockermax = static_cast<int>(this->server->world->config["BaseBankSize"]) + this->player->character->bankmax * static_cast<int>(this->server->world->config["BankSizeStep"]);
+			std::size_t lockermax = static_cast<int>(this->server()->world->config["BaseBankSize"]) + this->player->character->bankmax * static_cast<int>(this->server()->world->config["BankSizeStep"]);
 
 			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
 			{
@@ -61,7 +65,7 @@ CLIENT_F_FUNC(Locker)
 								return true;
 							}
 
-							amount = std::min<int>(amount, static_cast<int>(this->server->world->config["MaxBank"]) - it->amount);
+							amount = std::min<int>(amount, static_cast<int>(this->server()->world->config["MaxBank"]) - it->amount);
 
 							it->amount += amount;
 
@@ -76,7 +80,7 @@ CLIENT_F_FUNC(Locker)
 						return true;
 					}
 
-					amount = std::min<int>(amount, static_cast<int>(this->server->world->config["MaxBank"]));
+					amount = std::min<int>(amount, static_cast<int>(this->server()->world->config["MaxBank"]));
 
 					Character_Item *newitem(new Character_Item);
 
@@ -167,9 +171,9 @@ CLIENT_F_FUNC(Locker)
 
 			if (this->player->character->npc_type == ENF::Bank)
 			{
-				int cost = static_cast<int>(this->server->world->config["BankUpgradeBase"]) + this->player->character->bankmax * static_cast<int>(this->server->world->config["BankUpgradeStep"]);
+				int cost = static_cast<int>(this->server()->world->config["BankUpgradeBase"]) + this->player->character->bankmax * static_cast<int>(this->server()->world->config["BankUpgradeStep"]);
 
-				if (this->player->character->bankmax >= static_cast<int>(this->server->world->config["MaxBankUpgrades"]))
+				if (this->player->character->bankmax >= static_cast<int>(this->server()->world->config["MaxBankUpgrades"]))
 				{
 					return true;
 				}

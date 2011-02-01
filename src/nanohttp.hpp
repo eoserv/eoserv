@@ -7,9 +7,11 @@
 #ifndef NANOHTTP_HPP_INCLUDED
 #define NANOHTTP_HPP_INCLUDED
 
-#include "stdafx.h"
+#include <string>
 
 #include "socket.hpp"
+#include "script.hpp"
+#include "shared.hpp"
 
 /**
  * Super simple HTTP client

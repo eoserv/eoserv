@@ -7,7 +7,7 @@
 #ifndef SCRIPTREG_HPP_INCLUDED
 #define SCRIPTREG_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/world.hpp"
 
 void script_register(World &world);
 

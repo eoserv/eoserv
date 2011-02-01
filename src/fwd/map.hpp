@@ -16,4 +16,9 @@ struct Map_Chest_Item;
 struct Map_Chest_Spawn;
 struct Map_Chest;
 
+enum MapEffect
+{
+	MAP_EFFECT_QUAKE = 1
+};
+
 #endif // FWD_MAP_HPP_INCLUDED

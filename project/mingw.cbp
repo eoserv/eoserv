@@ -222,22 +222,16 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-fno-inline" />
+			<Add option="-include stdafx.h" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
+			<Add option="-DSTD_TR1=std::tr1" />
 			<Add directory="..\src\" />
-			<Add directory="..\src\extra\" />
-			<Add directory="..\src\handlers\" />
-			<Add directory="..\src\container\" />
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
-			<Add library="angelscript" />
-			<Add library="as_scriptmath" />
-			<Add library="as_scriptstdstring" />
-			<Add library="as_scriptfile" />
 		</Linker>
 		<Unit filename="winres.rc">
 			<Option compilerVar="WINDRES" />
@@ -259,6 +253,7 @@
 		<Unit filename="..\src\container\ptr_vector.hpp" />
 		<Unit filename="..\src\database.cpp" />
 		<Unit filename="..\src\database.hpp" />
+		<Unit filename="..\src\database_impl.hpp" />
 		<Unit filename="..\src\eoclient.cpp" />
 		<Unit filename="..\src\eoclient.hpp" />
 		<Unit filename="..\src\eoconst.hpp" />
@@ -326,7 +321,6 @@
 		<Unit filename="..\src\handlers\Warp.cpp" />
 		<Unit filename="..\src\handlers\Welcome.cpp" />
 		<Unit filename="..\src\handlers\handlers.h">
-			<Option compile="1" />
 			<Option weight="0" />
 		</Unit>
 		<Unit filename="..\src\hash.cpp" />
@@ -360,6 +354,7 @@
 		<Unit filename="..\src\sln.hpp" />
 		<Unit filename="..\src\socket.cpp" />
 		<Unit filename="..\src\socket.hpp" />
+		<Unit filename="..\src\socket_impl.hpp" />
 		<Unit filename="..\src\stdafx.h">
 			<Option compile="1" />
 			<Option weight="0" />

@@ -7,11 +7,17 @@
 #ifndef EOCLIENT_HPP_INCLUDED
 #define EOCLIENT_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/eoclient.hpp"
 
+#include <queue>
+
+#include "shared.hpp"
+#include "socket.hpp"
+
+#include "fwd/character.hpp"
+#include "fwd/player.hpp"
 #include "eoserver.hpp"
 #include "packet.hpp"
-#include "socket.hpp"
 
 #define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(PacketFamily family, PacketAction action, PacketReader &reader, int act)
 
@@ -87,7 +93,7 @@ class EOClient : public Client
 		EOClient();
 
 	public:
-		EOServer *server;
+		EOServer *server() { return static_cast<EOServer *>(Client::server); };
 		int version;
 		Player *player;
 		unsigned int id;
@@ -104,12 +110,12 @@ class EOClient : public Client
 
 		PacketProcessor processor;
 
-		EOClient(EOServer *server_) : Client(server_), server(server_)
+		EOClient(EOServer *server_) : Client(server_)
 		{
 			this->Initialize();
 		}
 
-		EOClient(SOCKET s, sockaddr_in sa, EOServer *server_) : Client(s, sa, server_), server(server_)
+		EOClient(const Socket &sock, EOServer *server_) : Client(sock, server_)
 		{
 			this->Initialize();
 		}

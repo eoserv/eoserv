@@ -7,9 +7,21 @@
 #ifndef NPC_HPP_INCLUDED
 #define NPC_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/npc.hpp"
 
-#include "character.hpp"
+#include <string>
+#include <tr1/array>
+#include <tr1/unordered_map>
+
+#include "container/ptr_list.hpp"
+#include "container/ptr_vector.hpp"
+#include "script.hpp"
+#include "shared.hpp"
+
+#include "fwd/character.hpp"
+#include "fwd/eodata.hpp"
+#include "fwd/map.hpp"
+
 
 /**
  * Used by the NPC class to store information about an attacker
@@ -95,8 +107,8 @@ struct NPC_Shop_Craft_Item : public Shared
 struct NPC_Citizenship : public Shared
 {
 	std::string home;
-	util::array<std::string, 3> questions;
-	util::array<std::string, 3> answers;
+	STD_TR1::array<std::string, 3> questions;
+	STD_TR1::array<std::string, 3> answers;
 
 	SCRIPT_REGISTER_REF_DF(NPC_Citizenship)
 		SCRIPT_REGISTER_VARIABLE("string", home);
@@ -157,7 +169,7 @@ class NPC : public Shared
 
 		void Attack(Character *target);
 
-		void FormulaVars(std::tr1::unordered_map<std::string, double> &vars, std::string prefix = "");
+		void FormulaVars(STD_TR1::unordered_map<std::string, double> &vars, std::string prefix = "");
 
 		~NPC();
 

@@ -22,7 +22,7 @@ Player::Player(std::string username, World *world)
 	{
 		throw std::runtime_error("Player not found (" + username + ")");
 	}
-	std::tr1::unordered_map<std::string, util::variant> row = res.front();
+	STD_TR1::unordered_map<std::string, util::variant> row = res.front();
 
 	this->login_time = std::time(0);
 
@@ -34,7 +34,7 @@ Player::Player(std::string username, World *world)
 
 	res = this->world->db.Query("SELECT `name` FROM `characters` WHERE `account` = '$'", username.c_str());
 
-	typedef std::tr1::unordered_map<std::string, util::variant> Database_Row;
+	typedef STD_TR1::unordered_map<std::string, util::variant> Database_Row;
 	UTIL_VECTOR_FOREACH_ALL(res, Database_Row, row)
 	{
 		Character *newchar = new Character(row["name"], world);

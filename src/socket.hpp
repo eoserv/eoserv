@@ -15,75 +15,16 @@
 #include <ctime>
 #include <exception>
 #include <list>
+#include <memory>
 #include <string>
+#include <tr1/cstdint>
+#include <tr1/unordered_map>
 #include <vector>
 
 #include "shared.hpp"
-#include "util.hpp"
 
 #include "container/ptr_list.hpp"
 #include "container/ptr_vector.hpp"
-
-#if defined(WIN32) || defined(WIN64)
-#include <windows.h>
-#include <winsock2.h>
-#ifdef NTDDI_WIN2K
-#include <Wspiapi.h>
-#else // NTDDI_WIN2K
-#ifdef __MINGW32__
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
-#endif //  __MINGW32__
-#include <ws2tcpip.h>
-#endif // NTDDI_WIN2K
-
-/**
- * Stores the initialization state of WinSock.
- */
-extern bool socket_ws_init;
-
-/**
- * Stores internal WinSock information.
- */
-extern WSADATA socket_wsadata;
-
-/**
- * Type for storing the size of a POSIX sockaddr_in struct.
- * Defined here because it does not exist in MinGW's winsock headers.
- */
-typedef int socklen_t;
-
-#else // defined(WIN32) || defined(WIN64)
-// Stop doxygen generating a gigantic include graph
-#ifndef DOXYGEN
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#ifdef SOCKET_POLL
-#include <sys/poll.h>
-#endif // SOCKET_POLL
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <netdb.h>
-#endif // DOXYGEN
-
-/**
- * Type for storing a socket handle.
- * Defined here because it does not exist in linux headers.
- */
-typedef int SOCKET;
-
-/**
- * Socket handle representing an invalid socket.
- */
-const SOCKET INVALID_SOCKET = -1;
-
-/**
- * Return code representing a socket error.
- */
-const int SOCKET_ERROR = -1;
-#endif // defined(WIN32) || defined(WIN64)
 
 /**
  * Generic Socket exception type
@@ -138,22 +79,24 @@ class Socket_SelectFailed : public Socket_Exception
 		const char *what() { return "Socket_SelectFailed"; }
 };
 
-#if defined(WIN32) || defined(WIN64)
-inline void _Socket_WSAStartup()
+/**
+ * Static initialization helper for socket subsystem
+ */
+struct Socket_Init
 {
-	if (!socket_ws_init)
+	Socket_Init()
 	{
-		if (WSAStartup(MAKEWORD(2,0), &socket_wsadata) != 0)
+		static bool initialized = false;
+
+		if (!initialized)
 		{
-			throw Socket_InitFailed(OSErrorString());
+			initialized = true;
+			init();
 		}
-		socket_ws_init = true;
 	}
-}
-#define Socket_WSAStartup() _Socket_WSAStartup()
-#else // defined(WIN32) || defined(WIN64)
-#define Socket_WSAStartup()
-#endif // defined(WIN32) || defined(WIN64)
+
+	void init();
+};
 
 /**
  * Stores an IP address and converts between string and numeric formats.
@@ -164,7 +107,7 @@ class IPAddress : public Shared
 		/**
 		 * Integer version of the IP address.
 		 */
-		uint32_t address;
+		STD_TR1::uint32_t address;
 
 	public:
 		/**
@@ -186,11 +129,6 @@ class IPAddress : public Shared
 		 * Initialize the address using a string (eg 255.255.255.255).
 		 */
 		IPAddress(const char *);
-
-		/**
-		 * Initialize the address using a POSIX in_addr struct.
-		 */
-		IPAddress(in_addr);
 
 		/**
 		 * Initialize the address using a string (eg 255.255.255.255).
@@ -234,11 +172,6 @@ class IPAddress : public Shared
 		IPAddress &operator =(const char *);
 
 		/**
-		 * Set the address using a POSIX in_addr struct.
-		 */
-		IPAddress &operator =(in_addr);
-
-		/**
 		 * Set the address using a string (eg 255.255.255.255).
 		 */
 		IPAddress &operator =(std::string);
@@ -257,11 +190,6 @@ class IPAddress : public Shared
 		 * Return the IP address as an integer.
 		 */
 		operator unsigned int() const;
-
-		/**
-		 * Return the IP address as a POSIX in_addr struct.
-		 */
-		operator in_addr() const;
 
 		/**
 		 * Return the IP address as a string (eg 255.255.255.255).
@@ -294,7 +222,7 @@ namespace std
 {
 	namespace tr1
 	{
-		template <> struct hash<IPAddress> : public unary_function<IPAddress, size_t>
+		template <> struct hash<IPAddress> : public unary_function<IPAddress, std::size_t>
 		{
 			std::size_t operator()(const IPAddress &ipaddress) const
 			{
@@ -304,42 +232,50 @@ namespace std
     }
 }
 
+// Temporary
+// TODO: Merge Client and Server with Socket
+
+struct Socket;
+
 /**
  * Generic TCP client class.
  */
 class Client : public Shared
 {
+	private:
+		struct impl_;
+		std::auto_ptr<impl_> impl;
+
 	protected:
 		bool connected;
-		time_t closed_time;
-		SOCKET sock;
-		sockaddr_in sin;
+		std::time_t closed_time;
 		std::string send_buffer;
 		std::string recv_buffer;
 		Server *server;
 		std::size_t recv_buffer_max;
 		std::size_t send_buffer_max;
-		time_t connect_time;
+		std::time_t connect_time;
 
 	public:
 		Client();
-		Client(const IPAddress &addr, uint16_t port);
+		Client(const IPAddress &addr, STD_TR1::uint16_t port);
 		Client(Server *);
-		Client(SOCKET, sockaddr_in, Server *);
-		bool Connect(const IPAddress &addr, uint16_t port);
-		void Bind(const IPAddress &addr, uint16_t port);
+		Client(const Socket &, Server *);
+		bool Connect(const IPAddress &addr, STD_TR1::uint16_t port);
+		void Bind(const IPAddress &addr, STD_TR1::uint16_t port);
 		std::string Recv(std::size_t length);
 		void Send(const std::string &data);
 		void Tick(double timeout);
 		bool Connected();
 		IPAddress GetRemoteAddr();
 		void Close(bool force = false);
-		time_t ConnectTime();
+		std::time_t ConnectTime();
 		virtual ~Client();
 
+	// TODO: Separate Socket type
 	friend class Server;
 
-	static Client *ScriptFactoryIPPort(IPAddress addr, uint16_t port) { return new Client(addr, port); }
+	static Client *ScriptFactoryIPPort(IPAddress addr, STD_TR1::uint16_t port) { return new Client(addr, port); }
 	static Client *ScriptFactoryServer(Server *server) { return new Client(server); }
 
 	SCRIPT_REGISTER_REF_DF(Client)
@@ -387,45 +323,14 @@ class Server : public Shared
 			Listening
 		};
 
-		/**
-		 * Stores file descriptors for Select().
-		 */
-		fd_set read_fds;
-
-		/**
-		 * Stores file descriptors for Select().
-		 */
-		fd_set write_fds;
-
-		/**
-		 * Stores file descriptors for Select().
-		 */
-		fd_set except_fds;
-
-		/**
-		 * Maximum amount of data that will be buffered for recieving per client.
-		 */
-		std::size_t recv_buffer_max;
-
-		/**
-		 * Maximum amount of data that will be buffered for sending per client.
-		 */
-		std::size_t send_buffer_max;
-
-		/**
-		 * Maximum number of connections the server will hold at one time.
-		 */
-		unsigned int maxconn;
-
 	private:
-		/**
-		 * Initializes all data and WinSock if required.
-		 * This is called by every Socket constructor.
-		 * @throw Socket_InitFailed
-		 */
-		void Initialize();
+		struct impl_;
+
+		impl_ *impl;
 
 	protected:
+		virtual Client *ClientFactory(const Socket &sock) { return new Client(sock, this); }
+
 		/**
 		 * The address the server will listen on.
 		 */
@@ -442,17 +347,25 @@ class Server : public Shared
 		uint16_t portn;
 
 		/**
-		 * Socket handle of the listener.
-		 */
-		SOCKET server;
-
-		/**
 		 * Current server state.
 		 * @sa State
 		 */
 		State state;
 
-		virtual Client *ClientFactory(SOCKET sock, sockaddr_in sin);
+		/**
+		 * Maximum amount of data that will be buffered for recieving per client.
+		 */
+		std::size_t recv_buffer_max;
+
+		/**
+		 * Maximum amount of data that will be buffered for sending per client.
+		 */
+		std::size_t send_buffer_max;
+
+		/**
+		 * Maximum number of connections the server will hold at one time.
+		 */
+		unsigned int maxconn;
 
 	public:
 		/**
@@ -463,21 +376,14 @@ class Server : public Shared
 		/**
 		 * Initializes the Server.
 		 */
-		Server()
-		{
-			this->Initialize();
-		}
+		Server();
 
 		/**
 		 * Initializes the Server and binds to the specified address and port.
 		 * @param addr Address to bind to
 		 * @param port Port number to bind to
 		 */
-		Server(const IPAddress &addr, uint16_t port)
-		{
-			this->Initialize();
-			this->Bind(addr, port);
-		}
+		Server(const IPAddress &addr, uint16_t port);
 
 		/**
 		 * Bind the Server to the specified address and port.
@@ -533,14 +439,7 @@ class Server : public Shared
 			return this->maxconn;
 		}
 
-		virtual ~Server()
-		{
-#if defined(WIN32) || defined(WIN64)
-			closesocket(this->server);
-#else // defined(WIN32) || defined(WIN64)
-			close(this->server);
-#endif // defined(WIN32) || defined(WIN64)
-		}
+		virtual ~Server();
 
 	static Server *ScriptFactoryIPPort(const IPAddress &addr, uint16_t port) { return new Server(addr, port); }
 

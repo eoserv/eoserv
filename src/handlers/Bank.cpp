@@ -6,9 +6,13 @@
 
 #include "handlers.h"
 
+#include "util.hpp"
+
+#include "character.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Bank)
 {
@@ -58,7 +62,7 @@ CLIENT_F_FUNC(Bank)
 			{
 				int newgold = this->player->character->goldbank + amount;
 
-				if (newgold < this->player->character->goldbank || newgold > static_cast<int>(this->server->world->config["MaxBankGold"]))
+				if (newgold < this->player->character->goldbank || newgold > static_cast<int>(this->server()->world->config["MaxBankGold"]))
 				{
 					return true;
 				}

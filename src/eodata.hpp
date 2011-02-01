@@ -7,7 +7,13 @@
 #ifndef EODATA_HPP_INCLUDED
 #define EODATA_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/eodata.hpp"
+
+#include <string>
+
+#include "container/ptr_vector.hpp"
+#include "script.hpp"
+#include "shared.hpp"
 
 /**
  * Loads and stores information on all items from an EIF file

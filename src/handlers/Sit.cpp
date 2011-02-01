@@ -6,6 +6,9 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
+#include "player.hpp"
+
 CLIENT_F_FUNC(Sit)
 {
 	PacketBuilder reply;
@@ -19,7 +22,7 @@ CLIENT_F_FUNC(Sit)
 
 			int action = reader.GetChar();
 
-			if (action == SIT_SITTING && this->player->character->sitting == SIT_STAND)
+			if (action == SIT_ACT_SIT && this->player->character->sitting == SIT_STAND)
 			{
 				reply.SetID(PACKET_SIT, PACKET_PLAYER);
 				reply.AddShort(this->player->id);

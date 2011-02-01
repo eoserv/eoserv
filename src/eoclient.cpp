@@ -38,7 +38,7 @@ ActionQueue::~ActionQueue()
 
 void EOClient::Initialize()
 {
-	this->id = this->server->world->GeneratePlayerID();
+	this->id = this->server()->world->GeneratePlayerID();
 	this->length = 0;
 	this->packet_state = EOClient::ReadLen1;
 	this->state = EOClient::Uninitialized;

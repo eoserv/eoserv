@@ -6,24 +6,27 @@
 
 #include "world.hpp"
 
-#include "character.hpp"
-#include "config.hpp"
+#include <cmath>
+
+#include "container/algorithm.hpp"
 #include "console.hpp"
 #include "database.hpp"
+#include "hash.hpp"
+#include "hook.hpp"
+#include "util.hpp"
+
+#include "character.hpp"
+#include "config.hpp"
 #include "eoclient.hpp"
-#include "eoconst.hpp"
 #include "eodata.hpp"
 #include "eoserver.hpp"
 #include "guild.hpp"
-#include "hash.hpp"
-#include "hook.hpp"
 #include "map.hpp"
 #include "npc.hpp"
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
 #include "scriptreg.hpp"
-#include "util.hpp"
 
 void world_spawn_npcs(void *world_void)
 {
@@ -134,7 +137,7 @@ void world_timed_save(void *world_void)
 	world->guildmanager->SaveAll();
 }
 
-World::World(util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
+World::World(STD_TR1::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	if (int(this->timer.resolution * 1000.0) > 1)
 	{
@@ -269,7 +272,7 @@ void World::LoadHome()
 {
 	this->homes.clear();
 
-	std::tr1::unordered_map<std::string, Home *> temp_homes;
+	STD_TR1::unordered_map<std::string, Home *> temp_homes;
 
 	UTIL_UNORDERED_MAP_FOREACH_ALL(this->home_config, std::string, util::variant, hc)
 	{
@@ -284,7 +287,7 @@ void World::LoadHome()
 		{
 			int level = util::to_int(parts[1]);
 
-			std::tr1::unordered_map<std::string, Home *>::iterator home_iter = temp_homes.find(hc.second);
+			STD_TR1::unordered_map<std::string, Home *>::iterator home_iter = temp_homes.find(hc.second);
 
 			if (home_iter == temp_homes.end())
 			{

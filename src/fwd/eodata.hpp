@@ -17,4 +17,13 @@ struct ENF_Data;
 struct ESF_Data;
 struct ECF_Data;
 
+enum FileType
+{
+	FILE_MAP = 1,
+	FILE_ITEM = 2,
+	FILE_NPC = 3,
+	FILE_SPELL = 4,
+	FILE_CLASS = 5
+};
+
 #endif // FWD_EODATA_HPP_INCLUDED

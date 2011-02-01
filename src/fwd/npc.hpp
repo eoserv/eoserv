@@ -18,4 +18,10 @@ struct NPC_Citizenship;
 
 struct NPCEvent;
 
+enum InnUnsubscribeReply
+{
+	UNSUBSCRIBE_NOT_CITIZEN = 0,
+	UNSUBSCRIBE_UNSUBSCRIBED = 1,
+};
+
 #endif // FWD_NPC_HPP_INCLUDED

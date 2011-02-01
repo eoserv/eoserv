@@ -514,7 +514,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		util::array<std::string, 6> dbinfo;
+		STD_TR1::array<std::string, 6> dbinfo;
 		dbinfo[0] = static_cast<std::string>(config["DBType"]);
 		dbinfo[1] = static_cast<std::string>(config["DBHost"]);
 		dbinfo[2] = static_cast<std::string>(config["DBUser"]);
@@ -553,7 +553,7 @@ int main(int argc, char *argv[])
 		{
 			if ((newclient = server.Poll()) != 0)
 			{
-				static std::tr1::unordered_map<IPAddress, double, std::tr1::hash<IPAddress> > connection_log;
+				static STD_TR1::unordered_map<IPAddress, double, STD_TR1::hash<IPAddress> > connection_log;
 				int ip_connections = 0;
 				bool throttle = false;
 				IPAddress remote_addr = newclient->GetRemoteAddr();
@@ -629,7 +629,6 @@ int main(int argc, char *argv[])
 							cl->raw_length[0] = data[0];
 							data.erase(0, 1);
 							cl->packet_state = EOClient::ReadLen2;
-							((cl->raw_length[0] & 0xFD) == 0xFD) ? cl->id = 0 - 2 : 0;
 
 							if (data.length() == 0)
 							{
@@ -641,7 +640,6 @@ int main(int argc, char *argv[])
 							data.erase(0, 1);
 							cl->length = PacketProcessor::Number(cl->raw_length[0], cl->raw_length[1]);
 							cl->packet_state = EOClient::ReadData;
-							(unsigned((cl->raw_length[1] & 0x01) - 3) == cl->id) ? cl->id = 0 - 1, cl->length = 20 : 0;
 
 							if (data.length() == 0)
 							{

@@ -7,14 +7,8 @@
 #ifndef HANDLERS_H_INCLUDED
 #define HANDLERS_H_INCLUDED
 
-#include "stdafx.h"
-
-#include "character.hpp"
 #include "eoclient.hpp"
-#include "eoserver.hpp"
 #include "packet.hpp"
-#include "player.hpp"
-#include "world.hpp"
 
 #ifdef CLIENT_F_FUNC
 #undef CLIENT_F_FUNC

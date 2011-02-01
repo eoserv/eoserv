@@ -8,6 +8,10 @@
 
 #include "console.hpp"
 
+#include "eoserver.hpp"
+#include "player.hpp"
+#include "world.hpp"
+
 CLIENT_F_FUNC(Account)
 {
 	PacketBuilder reply;
@@ -27,7 +31,7 @@ CLIENT_F_FUNC(Account)
 				reply.AddShort(ACCOUNT_NOT_APPROVED);
 				reply.AddString("NO");
 			}
-			else if (this->server->world->PlayerExists(username))
+			else if (this->server()->world->PlayerExists(username))
 			{
 				reply.AddShort(ACCOUNT_EXISTS);
 				reply.AddString("NO");
@@ -73,7 +77,7 @@ CLIENT_F_FUNC(Account)
 				reply.AddShort(ACCOUNT_NOT_APPROVED);
 				reply.AddString("NO");
 			}
-			else if (this->server->world->PlayerExists(username))
+			else if (this->server()->world->PlayerExists(username))
 			{
 				reply.AddShort(ACCOUNT_EXISTS);
 				reply.AddString("NO");
@@ -82,7 +86,7 @@ CLIENT_F_FUNC(Account)
 			{
 				username = util::lowercase(username);
 
-				this->server->world->CreatePlayer(username, password, fullname, location, email, computer, util::to_string(hdid), static_cast<std::string>(this->GetRemoteAddr()));
+				this->server()->world->CreatePlayer(username, password, fullname, location, email, computer, util::to_string(hdid), static_cast<std::string>(this->GetRemoteAddr()));
 				reply.AddShort(ACCOUNT_CREATED);
 				reply.AddString("OK");
 				Console::Out("New account: %s", username.c_str());
@@ -108,12 +112,12 @@ CLIENT_F_FUNC(Account)
 				CLIENT_SEND(reply);
 				return true;
 			}
-			else if (!this->server->world->PlayerExists(username))
+			else if (!this->server()->world->PlayerExists(username))
 			{
 				return true;
 			}
 
-			Player *changepass = this->server->world->Login(username, oldpassword);
+			Player *changepass = this->server()->world->Login(username, oldpassword);
 
 			if (!changepass)
 			{

@@ -7,7 +7,15 @@
 #ifndef ARENA_HPP_INCLUDED
 #define ARENA_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/arena.hpp"
+
+#include "fwd/timer.hpp"
+#include "container/ptr_vector.hpp"
+#include "script.hpp"
+#include "shared.hpp"
+
+#include "fwd/character.hpp"
+#include "fwd/map.hpp"
 
 struct Arena_Spawn : public Shared
 {

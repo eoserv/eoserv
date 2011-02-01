@@ -8,9 +8,24 @@
 
 #include "console.hpp"
 
-int sqlite_callback(void *data, int num, char *fields[], char *columns[])
+#include "database_impl.hpp"
+
+struct Database::impl_
 {
-	std::tr1::unordered_map<std::string, util::variant> result;
+	union
+	{
+#ifdef DATABASE_MYSQL
+		MYSQL *mysql_handle;
+#endif // DATABASE_MYSQL
+#ifdef DATABASE_SQLITE
+		sqlite3 *sqlite_handle;
+#endif // DATABASE_SQLITE
+	};
+};
+
+static int sqlite_callback(void *data, int num, char *fields[], char *columns[])
+{
+	STD_TR1::unordered_map<std::string, util::variant> result;
 	std::string column;
 	util::variant field;
 	int i;
@@ -53,10 +68,10 @@ bool Database_Result::Error()
 }
 
 Database::Database()
-{
-	this->engine = (Engine)0;
-	this->connected = false;
-}
+	: impl(new impl_)
+	, connected(false)
+	, engine(Engine(0))
+{ }
 
 Database::Database(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db, bool connectnow)
 {
@@ -93,17 +108,17 @@ void Database::Connect(Database::Engine type, std::string host, unsigned short p
 	{
 #ifdef DATABASE_MYSQL
 		case MySQL:
-			if ((this->mysql_handle = mysql_init(0)) == 0)
+			if ((this->impl->mysql_handle = mysql_init(0)) == 0)
 			{
-				throw Database_OpenFailed(mysql_error(this->mysql_handle));
+				throw Database_OpenFailed(mysql_error(this->impl->mysql_handle));
 			}
-			if (mysql_real_connect(this->mysql_handle, host.c_str(), user.c_str(), pass.c_str(), 0, this->port, 0, 0) != this->mysql_handle)
+			if (mysql_real_connect(this->impl->mysql_handle, host.c_str(), user.c_str(), pass.c_str(), 0, this->port, 0, 0) != this->impl->mysql_handle)
 			{
-				throw Database_OpenFailed(mysql_error(this->mysql_handle));
+				throw Database_OpenFailed(mysql_error(this->impl->mysql_handle));
 			}
-			if (mysql_select_db(this->mysql_handle, db.c_str()) != 0)
+			if (mysql_select_db(this->impl->mysql_handle, db.c_str()) != 0)
 			{
-				throw Database_OpenFailed(mysql_error(this->mysql_handle));
+				throw Database_OpenFailed(mysql_error(this->impl->mysql_handle));
 			}
 
 			this->connected = true;
@@ -113,9 +128,9 @@ void Database::Connect(Database::Engine type, std::string host, unsigned short p
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
-			if (sqlite3_open(host.c_str(), &this->sqlite_handle) != SQLITE_OK)
+			if (sqlite3_open(host.c_str(), &this->impl->sqlite_handle) != SQLITE_OK)
 			{
-				throw Database_OpenFailed(sqlite3_errmsg(this->sqlite_handle));
+				throw Database_OpenFailed(sqlite3_errmsg(this->impl->sqlite_handle));
 			}
 
 			this->connected = true;
@@ -141,13 +156,13 @@ void Database::Close()
 	{
 #ifdef DATABASE_MYSQL
 		case MySQL:
-			mysql_close(this->mysql_handle);
+			mysql_close(this->impl->mysql_handle);
 			break;
 #endif // DATABASE_MYSQL
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
-			sqlite3_close(this->sqlite_handle);
+			sqlite3_close(this->impl->sqlite_handle);
 			break;
 #endif // DATABASE_SQLITE
 	}
@@ -190,7 +205,7 @@ Database_Result Database::Query(const char *format, ...)
 				case MySQL:
 					tempi = strlen(tempc);
 					escret = new char[tempi*2+1];
-					mysql_real_escape_string(this->mysql_handle, escret, tempc, tempi);
+					mysql_real_escape_string(this->impl->mysql_handle, escret, tempc, tempi);
 					finalquery += escret;
 					delete[] escret;
 					break;
@@ -227,9 +242,9 @@ Database_Result Database::Query(const char *format, ...)
 			int num_fields;
 
 			exec_query:
-			if (mysql_real_query(this->mysql_handle, finalquery.c_str(), finalquery.length()) != 0)
+			if (mysql_real_query(this->impl->mysql_handle, finalquery.c_str(), finalquery.length()) != 0)
 			{
-				int myerr = mysql_errno(this->mysql_handle);
+				int myerr = mysql_errno(this->impl->mysql_handle);
 
 				if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
 				{
@@ -239,22 +254,22 @@ Database_Result Database::Query(const char *format, ...)
 				}
 				else
 				{
-					throw Database_QueryFailed(mysql_error(this->mysql_handle));
+					throw Database_QueryFailed(mysql_error(this->impl->mysql_handle));
 				}
 			}
 
-			num_fields = mysql_field_count(this->mysql_handle);
+			num_fields = mysql_field_count(this->impl->mysql_handle);
 
-			if ((mresult = mysql_store_result(this->mysql_handle)) == 0)
+			if ((mresult = mysql_store_result(this->impl->mysql_handle)) == 0)
 			{
 				if (num_fields == 0)
 				{
-					result.affected_rows = mysql_affected_rows(this->mysql_handle);
+					result.affected_rows = mysql_affected_rows(this->impl->mysql_handle);
 					return result;
 				}
 				else
 				{
-					throw Database_QueryFailed(mysql_error(this->mysql_handle));
+					throw Database_QueryFailed(mysql_error(this->impl->mysql_handle));
 				}
 			}
 
@@ -264,7 +279,7 @@ Database_Result Database::Query(const char *format, ...)
 			int i = 0;
 			for (MYSQL_ROW row = mysql_fetch_row(mresult); row != 0; row = mysql_fetch_row(mresult))
 			{
-				std::tr1::unordered_map<std::string, util::variant> resrow;
+				STD_TR1::unordered_map<std::string, util::variant> resrow;
 				for (int ii = 0; ii < num_fields; ++ii)
 				{
 					util::variant rescell;
@@ -302,9 +317,9 @@ Database_Result Database::Query(const char *format, ...)
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
-			if (sqlite3_exec(this->sqlite_handle, finalquery.c_str(), sqlite_callback, (void *)this, 0) != SQLITE_OK)
+			if (sqlite3_exec(this->impl->sqlite_handle, finalquery.c_str(), sqlite_callback, (void *)this, 0) != SQLITE_OK)
 			{
-				throw Database_QueryFailed(sqlite3_errmsg(this->sqlite_handle));
+				throw Database_QueryFailed(sqlite3_errmsg(this->impl->sqlite_handle));
 			}
 			result = this->callbackdata;
 			this->callbackdata.clear();
@@ -324,7 +339,7 @@ std::string Database::Escape(std::string raw)
 #ifdef DATABASE_MYSQL
 		case MySQL:
 			escret = new char[raw.length()*2+1];
-			mysql_real_escape_string(this->mysql_handle, escret, raw.c_str(), raw.length());
+			mysql_real_escape_string(this->impl->mysql_handle, escret, raw.c_str(), raw.length());
 			raw = escret;
 			delete[] escret;
 			break;

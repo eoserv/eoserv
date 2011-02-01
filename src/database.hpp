@@ -7,16 +7,13 @@
 #ifndef DATABASE_HPP_INCLUDED
 #define DATABASE_HPP_INCLUDED
 
-#include "stdafx.h"
+#include <exception>
+#include <memory>
+#include <string>
+#include <tr1/unordered_map>
+#include <vector>
 
-#ifdef DATABASE_MYSQL
-#include "socket.hpp"
-#include <mysql.h>
-#include <errmsg.h>
-#endif // DATABASE_MYSQL
-#ifdef DATABASE_SQLITE
-#include <sqlite3.h>
-#endif // DATABASE_SQLITE
+#include "util.hpp"
 
 #ifndef DATABASE_MYSQL
 #ifndef DATABASE_SQLITE
@@ -67,7 +64,7 @@ class Database_QueryFailed : public Database_Exception
 /**
  * Result from a Database Query containing the SELECTed rows, and/or affected row counts and error information
  */
-class Database_Result : public std::vector<std::tr1::unordered_map<std::string, util::variant> >
+class Database_Result : public std::vector<STD_TR1::unordered_map<std::string, util::variant> >
 {
 	protected:
 		int affected_rows;
@@ -100,15 +97,9 @@ class Database
 		};
 
 	protected:
-		union
-		{
-#ifdef DATABASE_MYSQL
-			MYSQL *mysql_handle;
-#endif // DATABASE_MYSQL
-#ifdef DATABASE_SQLITE
-			sqlite3 *sqlite_handle;
-#endif // DATABASE_SQLITE
-		};
+		struct impl_;
+
+		std::auto_ptr<impl_> impl;
 
 		bool connected;
 		Engine engine;

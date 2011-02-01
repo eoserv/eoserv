@@ -6,6 +6,12 @@
 
 #include "handlers.h"
 
+#include <string>
+
+#include "character.hpp"
+#include "player.hpp"
+#include "world.hpp"
+
 CLIENT_F_FUNC(Players)
 {
 	PacketBuilder reply;
@@ -17,7 +23,7 @@ CLIENT_F_FUNC(Players)
 			if (this->state < EOClient::PlayingModal) return false;
 
 			std::string name = reader.GetEndString();
-			Character *victim = this->server->world->GetCharacter(name);
+			Character *victim = this->server()->world->GetCharacter(name);
 
 			if (victim && !victim->hidden)
 			{
@@ -42,9 +48,9 @@ CLIENT_F_FUNC(Players)
 		case PACKET_LIST: // Opened friends list
 		case PACKET_REQUEST: // Requested a list of online players
 		{
-			int online = this->server->world->characters.size();
+			int online = this->server()->world->characters.size();
 
-			UTIL_PTR_VECTOR_FOREACH(this->server->world->characters, Character, character)
+			UTIL_PTR_VECTOR_FOREACH(this->server()->world->characters, Character, character)
 			{
 				if (character->hidden)
 				{
@@ -56,7 +62,7 @@ CLIENT_F_FUNC(Players)
 			reply.AddChar(action == PACKET_LIST ? INIT_FRIEND_LIST_PLAYERS : INIT_PLAYERS);
 			reply.AddShort(online);
 			reply.AddByte(255);
-			UTIL_PTR_VECTOR_FOREACH(this->server->world->characters, Character, character)
+			UTIL_PTR_VECTOR_FOREACH(this->server()->world->characters, Character, character)
 			{
 				if (character->hidden)
 				{

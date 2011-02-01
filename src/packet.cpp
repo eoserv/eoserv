@@ -6,6 +6,8 @@
 
 #include "packet.hpp"
 
+#include <algorithm>
+
 PacketProcessor::PacketProcessor()
 {
 	this->firstdec = true;
@@ -268,16 +270,16 @@ unsigned int PacketProcessor::Number(unsigned char b1, unsigned char b2, unsigne
 	return (b4*PacketProcessor::MAX3 + b3*PacketProcessor::MAX2 + b2*PacketProcessor::MAX1 + b1);
 }
 
-util::quadchar PacketProcessor::ENumber(unsigned int number)
+STD_TR1::array<unsigned char, 4> PacketProcessor::ENumber(unsigned int number)
 {
 	std::size_t throwaway;
 
 	return PacketProcessor::ENumber(number, throwaway);
 }
 
-util::quadchar PacketProcessor::ENumber(unsigned int number, std::size_t &size)
+STD_TR1::array<unsigned char, 4> PacketProcessor::ENumber(unsigned int number, std::size_t &size)
 {
-	util::quadchar bytes(254);
+	STD_TR1::array<unsigned char, 4> bytes = {{254, 254, 254, 254}};
 	unsigned int onumber = number;
 
 	if (onumber >= PacketProcessor::MAX3)
@@ -322,14 +324,11 @@ unsigned short PacketProcessor::PID(PacketFamily b1, PacketAction b2)
 	return b1 + b2*256;
 }
 
-util::pairchar PacketProcessor::EPID(unsigned short pid)
+STD_TR1::array<unsigned char, 2> PacketProcessor::EPID(unsigned short pid)
 {
-	util::pairchar bytes;
+	STD_TR1::array<unsigned char, 2> b = {{pid / 256, pid % 256}};
 
-	bytes[1] = pid % 256;
-	bytes[0] = pid / 256;
-
-	return bytes;
+	return b;
 }
 
 PacketReader::PacketReader(const std::string &data)
@@ -556,7 +555,7 @@ unsigned char PacketBuilder::AddByte(unsigned char byte)
 
 unsigned char PacketBuilder::AddChar(unsigned char num)
 {
-	util::quadchar bytes;
+	STD_TR1::array<unsigned char, 4> bytes;
 	++this->length;
 	bytes = PacketProcessor::ENumber(num);
 	this->data += bytes[0];
@@ -565,7 +564,7 @@ unsigned char PacketBuilder::AddChar(unsigned char num)
 
 unsigned short PacketBuilder::AddShort(unsigned short num)
 {
-	util::quadchar bytes;
+	STD_TR1::array<unsigned char, 4> bytes;
 	this->length += 2;
 	bytes = PacketProcessor::ENumber(num);
 	this->data += bytes[0];
@@ -575,7 +574,7 @@ unsigned short PacketBuilder::AddShort(unsigned short num)
 
 unsigned int PacketBuilder::AddThree(unsigned int num)
 {
-	util::quadchar bytes;
+	STD_TR1::array<unsigned char, 4> bytes;
 	this->length += 3;
 	bytes = PacketProcessor::ENumber(num);
 	this->data += bytes[0];
@@ -586,7 +585,7 @@ unsigned int PacketBuilder::AddThree(unsigned int num)
 
 unsigned int PacketBuilder::AddInt(unsigned int num)
 {
-	util::quadchar bytes;
+	STD_TR1::array<unsigned char, 4> bytes;
 	this->length += 4;
 	bytes = PacketProcessor::ENumber(num);
 	this->data += bytes[0];
@@ -663,8 +662,8 @@ void PacketBuilder::Reset()
 std::string PacketBuilder::Get() const
 {
 	std::string retdata;
-	util::pairchar id = PacketProcessor::EPID(this->id);
-	util::quadchar length = PacketProcessor::ENumber(this->length + 2);
+	STD_TR1::array<unsigned char, 2> id = PacketProcessor::EPID(this->id);
+	STD_TR1::array<unsigned char, 4> length = PacketProcessor::ENumber(this->length + 2);
 
 	retdata += length[0];
 	retdata += length[1];

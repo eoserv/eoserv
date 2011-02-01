@@ -6,9 +6,13 @@
 
 #include "handlers.h"
 
+#include "util.hpp"
+
+#include "character.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Barber)
 {
@@ -49,14 +53,14 @@ CLIENT_F_FUNC(Barber)
 			unsigned char style = reader.GetChar();
 			unsigned char color = reader.GetChar();
 
-			if (style < 0 || style > static_cast<int>(this->server->world->config["MaxHairStyle"])
-			 || color < 0 || color > static_cast<int>(this->server->world->config["MaxHairColor"]))
+			if (style < 0 || style > static_cast<int>(this->server()->world->config["MaxHairStyle"])
+			 || color < 0 || color > static_cast<int>(this->server()->world->config["MaxHairColor"]))
 			{
 				return false;
 			}
 
-			int price = this->server->world->config["BarberBase"];
-			price += std::max(1, int(this->player->character->level)) * static_cast<int>(this->server->world->config["BarberStep"]);
+			int price = this->server()->world->config["BarberBase"];
+			price += std::max(1, int(this->player->character->level)) * static_cast<int>(this->server()->world->config["BarberStep"]);
 
 			if (this->player->character->HasItem(1) < price)
 			{

@@ -7,8 +7,11 @@
 #include "util.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <cstdio>
 #include <ctime>
 #include <limits>
+#include <stdexcept>
 
 #if defined(WIN32) || defined(WIN64)
 #include <windows.h>
@@ -521,7 +524,7 @@ static double rpn_eval_eq(std::vector<double> args)    { return args[0] == args[
 static double rpn_eval_gt(std::vector<double> args)    { return args[0] > args[1]; }
 static double rpn_eval_gte(std::vector<double> args)   { return args[0] >= args[1]; }
 
-double rpn_eval(std::stack<util::variant> stack, std::tr1::unordered_map<std::string, double> vars)
+double rpn_eval(std::stack<util::variant> stack, STD_TR1::unordered_map<std::string, double> vars)
 {
 	struct rpn_eval_func
 	{
@@ -599,7 +602,7 @@ double rpn_eval(std::stack<util::variant> stack, std::tr1::unordered_map<std::st
 			}
 		}
 
-		std::tr1::unordered_map<std::string, double>::iterator findvar = vars.find(val);
+		STD_TR1::unordered_map<std::string, double>::iterator findvar = vars.find(val);
 
 		if (findvar != vars.end())
 		{

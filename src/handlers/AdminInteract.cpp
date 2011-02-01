@@ -6,6 +6,12 @@
 
 #include "handlers.h"
 
+#include <string>
+
+#include "character.hpp"
+#include "player.hpp"
+#include "world.hpp"
+
 CLIENT_F_FUNC(AdminInteract)
 {
 	PacketBuilder reply;
@@ -18,14 +24,14 @@ CLIENT_F_FUNC(AdminInteract)
 
 			std::string message = reader.GetEndString();
 
-			if (this->server->world->config["OldReports"])
+			if (this->server()->world->config["OldReports"])
 			{
 				message = "[Request] " + message;
-				this->server->world->AdminMsg(this->player->character, message, static_cast<int>(this->server->world->admin_config["reports"]));
+				this->server()->world->AdminMsg(this->player->character, message, static_cast<int>(this->server()->world->admin_config["reports"]));
 			}
 			else
 			{
-				this->server->world->AdminRequest(this->player->character, message);
+				this->server()->world->AdminRequest(this->player->character, message);
 			}
 		}
 		break;
@@ -37,14 +43,14 @@ CLIENT_F_FUNC(AdminInteract)
 			std::string reportee = reader.GetBreakString();
 			std::string message = reader.GetEndString();
 
-			if (this->server->world->config["OldReports"])
+			if (this->server()->world->config["OldReports"])
 			{
 				message = "[Report:" + reportee + "] " + message;
-				this->server->world->AdminMsg(this->player->character, message, static_cast<int>(this->server->world->admin_config["reports"]));
+				this->server()->world->AdminMsg(this->player->character, message, static_cast<int>(this->server()->world->admin_config["reports"]));
 			}
 			else
 			{
-				this->server->world->AdminReport(this->player->character, reportee, message);
+				this->server()->world->AdminReport(this->player->character, reportee, message);
 			}
 		}
 		break;

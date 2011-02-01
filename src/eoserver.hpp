@@ -7,9 +7,17 @@
 #ifndef EOSERVER_HPP_INCLUDED
 #define EOSERVER_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/eoserver.hpp"
+
+#include <tr1/array>
+#include <string>
 
 #include "socket.hpp"
+
+#include "fwd/config.hpp"
+#include "fwd/eoclient.hpp"
+#include "fwd/sln.hpp"
+#include "fwd/world.hpp"
 
 void server_ping_all(void *server_void);
 void server_pump_queue(void *server_void);
@@ -20,17 +28,17 @@ void server_pump_queue(void *server_void);
 class EOServer : public Server
 {
 	private:
-		void Initialize(util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
+		void Initialize(STD_TR1::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 
 	protected:
-		Client *ClientFactory(SOCKET sock, sockaddr_in sin);
+		virtual Client *ClientFactory(const Socket &);
 
 	public:
 		World *world;
 		double start;
 		SLN *sln;
 
-		EOServer(IPAddress addr, unsigned short port, util::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
+		EOServer(IPAddress addr, unsigned short port, STD_TR1::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
 		{
 			this->Initialize(dbinfo, eoserv_config, admin_config);
 		}

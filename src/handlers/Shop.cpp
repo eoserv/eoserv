@@ -6,8 +6,12 @@
 
 #include "handlers.h"
 
+#include "util.hpp"
+
+#include "character.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Shop)
 {
@@ -67,7 +71,7 @@ CLIENT_F_FUNC(Shop)
 			int amount = reader.GetInt();
 			/*int shopid = reader.GetInt();*/
 
-			if (amount <= 0 || amount > static_cast<int>(this->server->world->config["MaxShopBuy"])) return false;
+			if (amount <= 0 || amount > static_cast<int>(this->server()->world->config["MaxShopBuy"])) return false;
 
 			if (this->player->character->npc_type == ENF::Shop)
 			{
@@ -153,7 +157,7 @@ CLIENT_F_FUNC(Shop)
 						reply.AddShort(item->id);
 						reply.AddThree(item->buy);
 						reply.AddThree(item->sell);
-						reply.AddChar(static_cast<int>(this->server->world->config["MaxShopBuy"]));
+						reply.AddChar(static_cast<int>(this->server()->world->config["MaxShopBuy"]));
 					}
 					reply.AddByte(255);
 

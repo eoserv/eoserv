@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <limits>
 #include <stdexcept>
 #include <typeinfo>
 

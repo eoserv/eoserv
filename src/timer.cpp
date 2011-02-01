@@ -6,6 +6,8 @@
 
 #include "timer.hpp"
 
+#include "util.hpp"
+
 #ifdef WIN32
 #include <windows.h>
 #else // WIN32

@@ -6,8 +6,10 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Trade)
 {
@@ -204,7 +206,7 @@ CLIENT_F_FUNC(Trade)
 			int itemid = reader.GetShort();
 			int amount = reader.GetInt();
 
-			if (this->server->world->eif->Get(id)->special == EIF::Lore)
+			if (this->server()->world->eif->Get(id)->special == EIF::Lore)
 			{
 				return true;
 			}

@@ -6,6 +6,9 @@
 
 #include "config.hpp"
 
+#include <cstdio>
+#include <stdexcept>
+
 #include "console.hpp"
 
 Config::Config(std::string filename)

@@ -6,7 +6,9 @@
 
 #include "handlers.h"
 
+#include "character.hpp"
 #include "map.hpp"
+#include "player.hpp"
 
 CLIENT_F_FUNC(Door)
 {

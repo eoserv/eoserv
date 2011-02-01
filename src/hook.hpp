@@ -7,9 +7,15 @@
 #ifndef HOOK_HPP_INCLUDED
 #define HOOK_HPP_INCLUDED
 
-#include "stdafx.h"
+#include "fwd/hook.hpp"
 
+#include <string>
+#include <tr1/unordered_map>
+
+#include "container/ptr_list.hpp"
 #include "script.hpp"
+#include "shared.hpp"
+#include "util.hpp"
 
 #define HOOK_BEGIN(type, hm_, hook_) \
 { \
@@ -22,10 +28,6 @@
 #define HOOK_END() \
 	e->Release(); \
 }
-
-class Hook;
-class Hook_Call;
-class HookManager;
 
 class Hook : public Shared
 {
@@ -56,7 +58,7 @@ class Hook : public Shared
 class HookManager : public Shared
 {
 	public:
-		std::tr1::unordered_map<std::string, PtrList<Hook> > hooks;
+		STD_TR1::unordered_map<std::string, PtrList<Hook> > hooks;
 
 #ifdef NOSCRIPT
 		HookManager(std::string scriptpath) { }
