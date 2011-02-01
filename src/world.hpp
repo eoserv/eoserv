@@ -9,6 +9,7 @@
 
 #include "fwd/world.hpp"
 
+#include <algorithm>
 #include <string>
 
 #include "config.hpp"

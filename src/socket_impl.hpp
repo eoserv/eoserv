@@ -8,8 +8,8 @@
 #define SOCKET_IMPL_HPP_INCLUDED
 
 #if defined(WIN32) || defined(WIN64)
-#include <windows.h>
 #include <winsock2.h>
+#include <windows.h>
 #ifdef NTDDI_WIN2K
 #include <Wspiapi.h>
 #else // NTDDI_WIN2K

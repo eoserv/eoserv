@@ -3,7 +3,7 @@ DEBUG_BIN = eoserv-debug.exe
 RELEASE_BIN = eoserv.exe
 
 CFLAGS += -DEOSERV_MAKEFILE_MGW
-CXXFLAGS += -DEOSERV_MAKEFILE_MGW
+CXXFLAGS += -DSTD_TR1=std::tr1 -DEOSERV_MAKEFILE_MGW
 LIBS += -lws2_32 -lwinmm
 
 MYSQL_LIB = -lmysql
