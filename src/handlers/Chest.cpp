@@ -36,7 +36,7 @@ CLIENT_F_FUNC(Chest)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::Chest)
 				{
-					UTIL_PTR_VECTOR_FOREACH(this->player->character->map->chests, Map_Chest, chest)
+					UTIL_FOREACH(this->player->character->map->chests, chest)
 					{
 						if (chest->x == x && chest->y == y)
 						{
@@ -51,7 +51,7 @@ CLIENT_F_FUNC(Chest)
 								reply.AddChar(this->player->character->weight);
 								reply.AddChar(this->player->character->maxweight);
 
-								UTIL_PTR_LIST_FOREACH(chest->items, Map_Chest_Item, item)
+								UTIL_FOREACH(chest->items, item)
 								{
 									if (item->id != 0)
 									{
@@ -82,7 +82,7 @@ CLIENT_F_FUNC(Chest)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::Chest)
 				{
-					UTIL_PTR_VECTOR_FOREACH(this->player->character->map->chests, Map_Chest, chest)
+					UTIL_FOREACH(this->player->character->map->chests, chest)
 					{
 						if (chest->x == x && chest->y == y)
 						{
@@ -99,7 +99,7 @@ CLIENT_F_FUNC(Chest)
 								reply.AddChar(this->player->character->weight);
 								reply.AddChar(this->player->character->maxweight);
 
-								UTIL_PTR_LIST_FOREACH(chest->items, Map_Chest_Item, item)
+								UTIL_FOREACH(chest->items, item)
 								{
 									if (item->id != 0)
 									{
@@ -134,11 +134,11 @@ CLIENT_F_FUNC(Chest)
 					reply.AddChar(x);
 					reply.AddChar(y);
 
-					UTIL_PTR_VECTOR_FOREACH(this->player->character->map->chests, Map_Chest, chest)
+					UTIL_FOREACH(this->player->character->map->chests, chest)
 					{
 						if (chest->x == x && chest->y == y)
 						{
-							UTIL_PTR_LIST_FOREACH(chest->items, Map_Chest_Item, item)
+							UTIL_FOREACH(chest->items, item)
 							{
 								if (item->id != 0)
 								{

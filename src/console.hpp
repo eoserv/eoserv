@@ -11,8 +11,6 @@
 
 #include <string>
 
-#include "script.hpp"
-
 namespace Console
 {
 
@@ -54,14 +52,6 @@ void Out(std::string f, ...);
 void Wrn(std::string f, ...);
 void Err(std::string f, ...);
 void Dbg(std::string f, ...);
-
-inline void ScriptRegister(ScriptEngine &engine)
-{
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("void Out(string)", Out);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("void Wrn(string)", Wrn);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("void Err(string)", Err);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("void Dbg(string)", Dbg);
-}
 
 }
 

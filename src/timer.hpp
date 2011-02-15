@@ -11,13 +11,10 @@
 
 #include <set>
 
-#include "script.hpp"
-#include "shared.hpp"
-
 /**
  * Manages and calls TimerEvent objects
  */
-class Timer : public Shared
+class Timer
 {
 	protected:
 		/**
@@ -74,19 +71,12 @@ class Timer : public Shared
 		 * Delete any remaining autofree TimeEvent objects
 		 */
 		~Timer();
-
-	SCRIPT_REGISTER_REF_DF(Timer)
-		SCRIPT_REGISTER_VARIABLE("double", resolution);
-		SCRIPT_REGISTER_FUNCTION("void Tick()", Tick);
-		SCRIPT_REGISTER_FUNCTION("void Register(TimeEvent @)", Register);
-		SCRIPT_REGISTER_FUNCTION("void Unregister(TimeEvent @)", Unregister);
-	SCRIPT_REGISTER_END();
 };
 
 /**
  * A timed event that should be managed by a Timer object
  */
-struct TimeEvent : public Shared
+struct TimeEvent
 {
 	/**
 	 * Pointer to the Timer object that owns it
@@ -128,15 +118,6 @@ struct TimeEvent : public Shared
 	 * Unregister the object from it's owning Timer object if it has one
 	 */
 	~TimeEvent();
-
-	SCRIPT_REGISTER_REF(TimeEvent)
-		SCRIPT_REGISTER_VARIABLE("Timer @", manager);
-		//SCRIPT_REGISTER_VARIABLE("TimerCallback", callback);
-		//SCRIPT_REGISTER_VARIABLE("void_ptr", param);
-		SCRIPT_REGISTER_VARIABLE("double", speed);
-		SCRIPT_REGISTER_VARIABLE("double", lasttime);
-		SCRIPT_REGISTER_VARIABLE("int", lifetime);
-	SCRIPT_REGISTER_END()
 };
 
 #endif // TIMER_HPP_INCLUDED

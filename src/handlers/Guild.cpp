@@ -6,6 +6,9 @@
 
 #include "handlers.h"
 
+#include <list>
+#include <memory>
+
 #include "character.hpp"
 #include "eodata.hpp"
 #include "guild.hpp"
@@ -40,13 +43,19 @@ CLIENT_F_FUNC(Guild)
 			std::string tag = reader.GetBreakString();
 			std::string name = reader.GetBreakString();
 
+			if (tag.length() > 3
+			 || name.length() > std::size_t(int(this->server()->world->config["GuildMaxNameLength"])))
+			{
+				return false;
+			}
+
 			if (this->player->character->npc_type == ENF::Guild)
 			{
 				if (!this->player->character->guild)
 				{
 					if (static_cast<int>(this->server()->world->config["GuildCreateMembers"]) > 0)
 					{
-						Guild *guild = this->server()->world->guildmanager->GetGuild(tag);
+						std::shared_ptr<Guild> guild(this->server()->world->guildmanager->GetGuild(tag));
 
 						if (!guild)
 						{
@@ -59,7 +68,8 @@ CLIENT_F_FUNC(Guild)
 							{
 								if (this->player->character->HasItem(1) >= static_cast<int>(this->server()->world->config["GuildPrice"]))
 								{
-									Guild_Create *create = this->server()->world->guildmanager->BeginCreate(tag, name, this->player->character);
+									std::shared_ptr<Guild_Create> create = this->server()->world->guildmanager->BeginCreate(tag, name, this->player->character);
+									this->player->character->guild_create = create;
 
 									reply.SetID(PACKET_GUILD, PACKET_REPLY);
 									reply.AddChar(GUILD_CREATE_BEGIN);
@@ -69,9 +79,9 @@ CLIENT_F_FUNC(Guild)
 									builder.AddShort(create->leader->player->id);
 									builder.AddString(util::ucfirst(util::lowercase(name)) + " (" + util::uppercase(tag) + ")");
 
-									UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+									UTIL_FOREACH(this->player->character->map->characters, character)
 									{
-										if (*character != this->player->character && !character->guild)
+										if (character != this->player->character && !character->guild)
 										{
 											character->guild_invite = tag;
 											character->player->client->SendBuilder(builder);
@@ -85,8 +95,6 @@ CLIENT_F_FUNC(Guild)
 										builder.AddString("");
 										this->player->client->SendBuilder(builder);
 									}
-
-									create->Release();
 								}
 							}
 							else
@@ -101,7 +109,6 @@ CLIENT_F_FUNC(Guild)
 							reply.SetID(PACKET_GUILD, PACKET_REPLY);
 							reply.AddChar(GUILD_EXISTS);
 							CLIENT_SEND(reply);
-							guild->Release();
 						}
 					}
 				}
@@ -115,7 +122,7 @@ CLIENT_F_FUNC(Guild)
 
 			if (!this->player->character->guild_invite.empty())
 			{
-				Guild_Create *create = this->server()->world->guildmanager->GetCreate(this->player->character->guild_invite);
+				std::shared_ptr<Guild_Create> create = this->server()->world->guildmanager->GetCreate(this->player->character->guild_invite);
 
 				if (create)
 				{
@@ -134,8 +141,6 @@ CLIENT_F_FUNC(Guild)
 
 					builder.AddString(this->player->character->name);
 					create->leader->player->client->SendBuilder(builder);
-
-					create->Release();
 				}
 
 				this->player->character->guild_invite = "";
@@ -176,7 +181,14 @@ CLIENT_F_FUNC(Guild)
 						{
 							if (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildEditRank"]))
 							{
-								this->player->character->guild->SetDescription(reader.GetEndString());
+								std::string description = reader.GetEndString();
+
+								if (description.length() > std::size_t(int(this->server()->world->config["GuildMaxDescLength"])))
+								{
+									return false;
+								}
+
+								this->player->character->guild->SetDescription(description);
 
 								reply.SetID(PACKET_GUILD, PACKET_REPLY);
 								reply.AddChar(GUILD_UPDATED);
@@ -189,6 +201,16 @@ CLIENT_F_FUNC(Guild)
 						{
 							if (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildEditRank"]))
 							{
+								for (std::size_t i = 0; i < this->player->character->guild->ranks.size(); ++i)
+								{
+									std::string rank = reader.GetEndString();
+
+									if (rank.length() > std::size_t(int(this->server()->world->config["GuildMaxRankLength"])))
+									{
+										return false;
+									}
+								}
+
 								for (std::size_t i = 0; i < this->player->character->guild->ranks.size(); ++i)
 								{
 									this->player->character->guild->ranks[i] = reader.GetBreakString();
@@ -218,17 +240,24 @@ CLIENT_F_FUNC(Guild)
 			std::string name = reader.GetBreakString();
 			std::string description = reader.GetBreakString();
 
+			if (tag.length() > 3
+			 || name.length() > std::size_t(int(this->server()->world->config["GuildMaxNameLength"]))
+			 || description.length() > std::size_t(int(this->server()->world->config["GuildMaxDescLength"])))
+			{
+				return false;
+			}
+
 			if (this->player->character->npc_type == ENF::Guild)
 			{
 				if (!this->player->character->guild
 				 && this->player->character->HasItem(1) >= static_cast<int>(this->server()->world->config["GuildPrice"]))
 				{
-					Guild_Create *create = this->server()->world->guildmanager->GetCreate(tag);
+					std::shared_ptr<Guild_Create> create = this->server()->world->guildmanager->GetCreate(tag);
 
 					if (create && create->leader == this->player->character
 					 && create->members.size() >= static_cast<std::size_t>(static_cast<int>(this->server()->world->config["GuildCreateMembers"])))
 					{
-						Guild *guild = this->server()->world->guildmanager->CreateGuild(create, description);
+						std::shared_ptr<Guild> guild = this->server()->world->guildmanager->CreateGuild(create, description);
 
 						this->player->character->DelItem(1, this->server()->world->config["GuildPrice"]);
 
@@ -241,8 +270,7 @@ CLIENT_F_FUNC(Guild)
 						reply.AddInt(this->player->character->HasItem(1));
 						CLIENT_SEND(reply);
 
-						guild->Release();
-						create->Release();
+						this->player->character->guild_create.reset();
 					}
 				}
 			}
@@ -257,6 +285,12 @@ CLIENT_F_FUNC(Guild)
 			reader.GetByte();
 			std::string tag = util::uppercase(reader.GetBreakString());
 			std::string recruiter_name = util::lowercase(reader.GetBreakString());
+
+			if (tag.length() > 3
+			 || recruiter_name.length() > 12)
+			{
+				return false;
+			}
 
 			if (this->player->character->npc_type == ENF::Guild)
 			{
@@ -434,11 +468,11 @@ CLIENT_F_FUNC(Guild)
 
 			short id = reader.GetShort();
 
-			UTIL_PTR_VECTOR_FOREACH(this->player->character->map->npcs, NPC, npc)
+			UTIL_FOREACH(this->player->character->map->npcs, npc)
 			{
 				if (npc->index == id && npc->Data()->type == ENF::Guild)
 				{
-					this->player->character->npc = *npc;
+					this->player->character->npc = npc;
 					this->player->character->npc_type = ENF::Guild;
 
 					reply.SetID(PACKET_GUILD, PACKET_OPEN);
@@ -459,9 +493,14 @@ CLIENT_F_FUNC(Guild)
 			/*int session = */reader.GetInt();
 			std::string tag = reader.GetEndString();
 
+			if (tag.length() > std::size_t(int(this->server()->world->config["GuildMaxNameLength"])))
+			{
+				return false;
+			}
+
 			if (this->player->character->npc_type == ENF::Guild)
 			{
-				Guild *guild;
+				std::shared_ptr<Guild> guild;
 
 				if (tag.length() == 2 || tag.length() == 3)
 				{
@@ -483,15 +522,13 @@ CLIENT_F_FUNC(Guild)
 					reply.AddShort(guild->members.size());
 					reply.AddByte(255);
 
-					UTIL_PTR_VECTOR_FOREACH(guild->members, Guild_Member, member)
+					UTIL_FOREACH(guild->members, member)
 					{
 						reply.AddChar(member->rank);
 						reply.AddByte(255);
 						reply.AddBreakString(member->name);
 						reply.AddBreakString(guild->GetRank(member->rank));
 					}
-
-					guild->Release();
 				}
 
 				CLIENT_SEND(reply);
@@ -506,9 +543,14 @@ CLIENT_F_FUNC(Guild)
 			/*int session =*/ reader.GetInt();
 			std::string tag = reader.GetEndString();
 
+			if (tag.length() > std::size_t(int(this->server()->world->config["GuildMaxNameLength"])))
+			{
+				return false;
+			}
+
 			if (this->player->character->npc_type == ENF::Guild)
 			{
-				Guild *guild;
+				std::shared_ptr<Guild> guild;
 
 				if (tag.length() == 2 || tag.length() == 3)
 				{
@@ -529,24 +571,24 @@ CLIENT_F_FUNC(Guild)
 					int leader_rank = std::max(static_cast<int>(this->server()->world->config["GuildEditRank"]), static_cast<int>(this->server()->world->config["GuildKickRank"]));
 					int recruiter_rank = this->server()->world->config["GuildRecruitRank"];
 
-					PtrList<Guild_Member> leaders;
-					PtrList<Guild_Member> recruiters;
+					std::list<std::shared_ptr<Guild_Member>> leaders;
+					std::list<std::shared_ptr<Guild_Member>> recruiters;
 
-					UTIL_PTR_VECTOR_FOREACH(guild->members, Guild_Member, member)
+					UTIL_FOREACH(guild->members, member)
 					{
 						if (member->rank <= leader_rank)
 						{
-							leaders.push_back(*member);
+							leaders.push_back(member);
 						}
 					}
 
 					if (this->server()->world->config["GuildShowRecruiters"])
 					{
-						UTIL_PTR_VECTOR_FOREACH(guild->members, Guild_Member, member)
+						UTIL_FOREACH(guild->members, member)
 						{
 							if (member->rank > leader_rank && member->rank <= recruiter_rank)
 							{
-								recruiters.push_back(*member);
+								recruiters.push_back(member);
 							}
 						}
 					}
@@ -579,21 +621,19 @@ CLIENT_F_FUNC(Guild)
 					reply.AddShort(leaders.size() + recruiters.size());
 					reply.AddByte(255);
 
-					UTIL_PTR_LIST_FOREACH(leaders, Guild_Member, member)
+					UTIL_FOREACH(leaders, member)
 					{
 						reply.AddChar(1);
 						reply.AddByte(255);
 						reply.AddBreakString(member->name + (member->rank == 0 ? " (founder)" : ""));
 					}
 
-					UTIL_PTR_LIST_FOREACH(recruiters, Guild_Member, member)
+					UTIL_FOREACH(recruiters, member)
 					{
 						reply.AddChar(2);
 						reply.AddByte(255);
 						reply.AddBreakString(member->name);
 					}
-
-					guild->Release();
 				}
 
 				CLIENT_SEND(reply);
@@ -624,13 +664,18 @@ CLIENT_F_FUNC(Guild)
 			/*int session = */reader.GetInt();
 			std::string name = reader.GetEndString();
 
+			if (name.length() > 12)
+			{
+				return false;
+			}
+
 			if (this->player->character->npc_type == ENF::Guild)
 			{
 				if (this->player->character->guild)
 				{
 					if (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildKickRank"]))
 					{
-						Guild_Member *target = this->player->character->guild->GetMember(name);
+						std::shared_ptr<Guild_Member> target = this->player->character->guild->GetMember(name);
 
 						if (target)
 						{
@@ -668,7 +713,8 @@ CLIENT_F_FUNC(Guild)
 			int rank = reader.GetChar();
 			std::string name = util::lowercase(reader.GetEndString());
 
-			if (rank < 0 || rank > 10)
+			if (rank < 0 || rank > 10
+			 || name.length() > 12)
 			{
 				return false;
 			}
@@ -677,7 +723,7 @@ CLIENT_F_FUNC(Guild)
 			{
 				if (this->player->character->guild)
 				{
-					Guild_Member *target = this->player->character->guild->GetMember(name);
+					std::shared_ptr<Guild_Member> target = this->player->character->guild->GetMember(name);
 
 					if (target)
 					{

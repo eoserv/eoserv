@@ -35,8 +35,10 @@ void server_ping_all(void *server_void)
 	builder.AddShort(0);
 	builder.AddChar(0);
 
-	UTIL_PTR_LIST_FOREACH(server->clients, EOClient, client)
+	UTIL_FOREACH(server->clients, rawclient)
 	{
+		EOClient *client = static_cast<EOClient *>(rawclient);
+
 		if (client->needpong)
 		{
 			client->Close();
@@ -54,8 +56,10 @@ void server_pump_queue(void *server_void)
 	EOServer *server = static_cast<EOServer *>(server_void);
 	double now = Timer::GetTime();
 
-	UTIL_PTR_LIST_FOREACH(server->clients, EOClient, client)
+	UTIL_FOREACH(server->clients, rawclient)
 	{
+		EOClient *client = static_cast<EOClient *>(rawclient);
+
 		std::size_t size = client->queue.queue.size();
 
 		if (size > 40)
@@ -117,6 +121,8 @@ void server_pump_queue(void *server_void)
 				default: ; // Keep the compiler quiet until all packet types are handled
 			}
 
+			(void)result;
+
 			client->queue.next = now + action->time;
 
 			delete action;
@@ -124,17 +130,15 @@ void server_pump_queue(void *server_void)
 	}
 }
 
-void EOServer::Initialize(STD_TR1::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
+void EOServer::Initialize(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	this->world = new World(dbinfo, eoserv_config, admin_config);
 
 	TimeEvent *event = new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER);
 	this->world->timer.Register(event);
-	event->Release();
 
 	event = new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER);
 	this->world->timer.Register(event);
-	event->Release();
 
 	this->world->server = this;
 
@@ -157,10 +161,6 @@ Client *EOServer::ClientFactory(const Socket &sock)
 
 EOServer::~EOServer()
 {
-	if (this->sln)
-	{
-		this->sln->Release();
-	}
-
-	this->world->Release();
+	delete this->sln;
+	delete this->world;
 }

@@ -6,6 +6,8 @@
 
 #include "handlers.h"
 
+#include <csignal>
+
 #include "arena.hpp"
 #include "character.hpp"
 #include "console.hpp"
@@ -14,6 +16,8 @@
 #include "npc.hpp"
 #include "party.hpp"
 #include "player.hpp"
+
+extern volatile std::sig_atomic_t eoserv_sig_abort;
 
 static void limit_message(std::string &message, std::size_t chatlength)
 {
@@ -82,12 +86,11 @@ CLIENT_F_FUNC(Talk)
 			limit_message(message, static_cast<int>(this->server()->world->config["ChatLength"]));
 			Character *to = 0;
 
-			UTIL_PTR_VECTOR_FOREACH(this->server()->world->characters, Character, character)
+			UTIL_FOREACH(this->server()->world->characters, character)
 			{
 				if (character->name == name)
 				{
-					to = *character;
-					to->AddRef();
+					to = character;
 					break;
 				}
 			}
@@ -95,7 +98,6 @@ CLIENT_F_FUNC(Talk)
 			if (to && !to->hidden)
 			{
 				to->Msg(this->player->character, message);
-				to->Release();
 			}
 			else
 			{
@@ -260,7 +262,6 @@ CLIENT_F_FUNC(Talk)
 						NPC *npc = new NPC(this->player->character->map, id, this->player->character->x, this->player->character->y, 1, 1, index, true);
 						this->player->character->map->npcs.push_back(npc);
 						npc->Spawn();
-						npc->Release();
 					}
 				}
 				else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && this->player->character->admin >= static_cast<int>(this->server()->world->admin_config["warpmeto"]))
@@ -382,16 +383,7 @@ CLIENT_F_FUNC(Talk)
 				else if (command.length() == 8 && command.compare(0,8,"shutdown") == 0 && this->player->character->admin >= static_cast<int>(this->server()->world->admin_config["shutdown"]))
 				{
 					Console::Wrn("Server shut down by %s", this->player->character->name.c_str());
-					this->server()->world->Destroy();
-					std::exit(0);
-				}
-				else if (command.length() >= 3 && command.compare(0,3,"obj") == 0 && this->player->character->admin >= static_cast<int>(this->server()->world->admin_config["objects"]))
-				{
-					std::string buffer = "Objects: ";
-					buffer += util::to_string(shared_objects_allocated_);
-					buffer += "  References: ";
-					buffer += util::to_string(shared_references_);
-					this->player->character->ServerMsg(buffer);
+					eoserv_sig_abort = true;
 				}
 				else if (command.length() >= 2 && command.compare(0,2,"up") == 0 && this->player->character->admin >= static_cast<int>(this->server()->world->admin_config["uptime"]))
 				{

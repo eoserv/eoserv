@@ -59,6 +59,18 @@ CLIENT_F_FUNC(Account)
 			std::string email = reader.GetBreakString();
 			std::string computer = reader.GetBreakString();
 
+			if (username.length() < std::size_t(int(this->server()->world->config["AccountMinLength"]))
+			 || username.length() > std::size_t(int(this->server()->world->config["AccountMaxLength"]))
+			 || password.length() < std::size_t(int(this->server()->world->config["PasswordMinLength"]))
+			 || password.length() > std::size_t(int(this->server()->world->config["PasswordMaxLength"]))
+			 || fullname.length() > std::size_t(int(this->server()->world->config["RealNameMaxLength"]))
+			 || location.length() > std::size_t(int(this->server()->world->config["LocationMaxLength"]))
+			 || email.length() > std::size_t(int(this->server()->world->config["EmailMaxLength"]))
+			 || computer.length() > std::size_t(int(this->server()->world->config["ComputerNameLength"])))
+			{
+				return false;
+			}
+
 			int hdid;
 			try
 			{
@@ -104,6 +116,16 @@ CLIENT_F_FUNC(Account)
 			std::string oldpassword = reader.GetBreakString();
 			std::string newpassword = reader.GetBreakString();
 
+			if (username.length() < std::size_t(int(this->server()->world->config["AccountMinLength"]))
+			 || username.length() > std::size_t(int(this->server()->world->config["AccountMaxLength"]))
+			 || oldpassword.length() < std::size_t(int(this->server()->world->config["PasswordMinLength"]))
+			 || oldpassword.length() > std::size_t(int(this->server()->world->config["PasswordMaxLength"]))
+			 || newpassword.length() < std::size_t(int(this->server()->world->config["PasswordMinLength"]))
+			 || newpassword.length() > std::size_t(int(this->server()->world->config["PasswordMaxLength"])))
+			{
+				return false;
+			}
+
 			if (!Player::ValidName(username))
 			{
 				reply.SetID(PACKET_ACCOUNT, PACKET_REPLY);
@@ -134,8 +156,6 @@ CLIENT_F_FUNC(Account)
 			reply.AddShort(ACCOUNT_CHANGED);
 			reply.AddString("OK");
 			CLIENT_SEND(reply);
-
-			changepass->Release();
 		}
 		break;
 

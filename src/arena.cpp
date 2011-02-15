@@ -25,7 +25,6 @@ void arena_spawn(void *arena_void)
 Arena::Arena(Map *map, int time, int block)
 {
 	this->map = map;
-	map->AddRef();
 	this->time = time;
 	this->block = block;
 	this->occupants = 0;
@@ -38,9 +37,9 @@ void Arena::Spawn(bool force)
 {
 	int newplayers = 0;
 
-	UTIL_PTR_VECTOR_FOREACH(this->spawns, Arena_Spawn, spawn)
+	UTIL_FOREACH(this->spawns, spawn)
 	{
-		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+		UTIL_FOREACH(this->map->characters, character)
 		{
 			if (character->x == spawn->sx && character->y == spawn->sy)
 			{
@@ -58,7 +57,7 @@ void Arena::Spawn(bool force)
 	{
 		PacketBuilder builder(PACKET_ARENA, PACKET_DROP);
 
-		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+		UTIL_FOREACH(this->map->characters, character)
 		{
 			character->player->client->SendBuilder(builder);
 		}
@@ -66,9 +65,9 @@ void Arena::Spawn(bool force)
 		return;
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(this->spawns, Arena_Spawn, spawn)
+	UTIL_FOREACH(this->spawns, spawn)
 	{
-		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+		UTIL_FOREACH(this->map->characters, character)
 		{
 			if (character->x == spawn->sx && character->y == spawn->sy)
 			{
@@ -83,7 +82,7 @@ void Arena::Spawn(bool force)
 	PacketBuilder builder(PACKET_ARENA, PACKET_USE);
 	builder.AddChar(newplayers);
 
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
@@ -113,15 +112,12 @@ void Arena::Attack(Character *from, Direction direction)
 			break;
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
-		Character *character_ptr = *character;
-		character_ptr->AddRef();
-
-		if (character_ptr->arena == this && character_ptr->x == target_x && character_ptr->y == target_y)
+		if (character->arena == this && character->x == target_x && character->y == target_y)
 		{
 			++from->arena_kills;
-			character_ptr->Warp(this->map->id, this->map->relog_x, this->map->relog_y);
+			character->Warp(this->map->id, this->map->relog_x, this->map->relog_y);
 
 			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC);
 			builder.AddShort(0); // ?
@@ -132,9 +128,9 @@ void Arena::Attack(Character *from, Direction direction)
 			builder.AddChar(0); // ?
 			builder.AddByte(255);
 			builder.AddBreakString(from->name);
-			builder.AddBreakString(character_ptr->name);
+			builder.AddBreakString(character->name);
 
-			UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+			UTIL_FOREACH(this->map->characters, character)
 			{
 				character->player->client->SendBuilder(builder);
 			}
@@ -147,22 +143,17 @@ void Arena::Attack(Character *from, Direction direction)
 				builder.SetID(PACKET_ARENA, PACKET_ACCEPT);
 				builder.AddBreakString(from->name);
 
-				UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+				UTIL_FOREACH(this->map->characters, character)
 				{
 					character->player->client->SendBuilder(builder);
 				}
 			}
-
-			character_ptr->Release();
 			break;
 		}
-
-		character_ptr->Release();
 	}
 }
 
 Arena::~Arena()
 {
-	this->map->Release();
-	this->spawn_timer->Release();
+	delete this->spawn_timer;
 }

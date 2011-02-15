@@ -7,14 +7,12 @@
 #ifndef UTIL_HPP_INCLUDED
 #define UTIL_HPP_INCLUDED
 
+#include <array>
+#include <iterator>
 #include <string>
 #include <stack>
-#include <tr1/array>
-#include <tr1/unordered_map>
+#include <unordered_map>
 #include <vector>
-
-#include "script.hpp"
-#include "shared.hpp"
 
 /**
  * Utility functions to assist with common tasks
@@ -22,170 +20,84 @@
 namespace util
 {
 
-// A gigantic pile of fail
-// Uglified it to make it generate standard C++ code
+// std::begin/end Not implemented in gcc 4.5
 
-#define UTIL_FOREACH_GENERIC(iterator, start, end, type, as) \
-	for (int util_i = 0; util_i < 1; ++util_i) \
-		for (iterator util_start = start; util_i < 1; ++util_i) \
-			for (iterator util_end = end; util_i < 1; ++util_i) \
-				for (type as = *util_start; util_i < 1; ++util_i) \
-					for(iterator util_iter = util_start; util_iter != util_end; as = (++util_iter == util_end)?*util_start:*util_iter)
+template <class T> inline auto begin(T &c) -> decltype(c.begin()) { return c.begin(); }
+template <class T> inline auto begin(const T &c) -> decltype(c.begin()) { return c.begin(); }
+template <class T, size_t N> inline const T* begin(T(&a)[N]) { return a; }
+template <class T> inline auto end(T &c) -> decltype(c.begin()) { return c.end(); }
+template <class T> inline auto end(const T &c) -> decltype(c.begin()) { return c.end(); }
+template <class T, size_t N> inline const T* end(T(&a)[N]) { return a + N; }
 
-#define UTIL_IFOREACH_GENERIC(iterator, start, end, as) \
-	for (int util_i = 0; util_i < 1; ++util_i) \
-		for (iterator util_start = start; util_i < 1; ++util_i) \
-			for (iterator util_end = end; util_i < 1; ++util_i) \
-				for (iterator as = util_start; as != util_end; ++as)
+template <class T> inline auto cbegin(T &c) -> decltype(c.cbegin()) { return c.cbegin(); }
+template <class T> inline auto cbegin(const T &c) -> decltype(c.cbegin()) { return c.cbegin(); }
+template <class T, size_t N> inline const T* cbegin(T(&a)[N]) { return a; }
+template <class T> inline auto cend(T &c) -> decltype(c.cbegin()) { return c.cend(); }
+template <class T> inline auto cend(const T &c) -> decltype(c.cbegin()) { return c.cend(); }
+template <class T, size_t N> inline const T* cend(T(&a)[N]) { return a + N; }
 
-#define UTIL_FOREACH_GENERIC2(iterator, iterator2, start, end, type, as) \
-	for (int util_i = 0; util_i < 1; ++util_i) \
-		for (iterator,iterator2 util_start = start; util_i < 1; ++util_i) \
-			for (iterator,iterator2 util_end = end; util_i < 1; ++util_i) \
-				for (type as = *util_start; util_i < 1; ++util_i) \
-					for(iterator,iterator2 util_iter = util_start; util_iter != util_end; as = (++util_iter == util_end)?*util_start:*util_iter)
+// C++0x for-range loops are still fairly unsupported
 
-#define UTIL_FOREACH_GENERIC22(iterator, iterator2, start, end, type, type2, as) \
-	for (int util_i = 0; util_i < 1; ++util_i) \
-		for (iterator,iterator2 util_start = start; util_i < 1; ++util_i) \
-			for (iterator,iterator2 util_end = end; util_i < 1; ++util_i) \
-				for (type, type2 as = *util_start; util_i < 1; ++util_i) \
-					for(iterator,iterator2 util_iter = util_start; util_iter != util_end; as = (++util_iter == util_end)?*util_start:*util_iter)
+template <class T> struct foreach_helper
+{
+	typedef T iterator;
+	iterator it;
+	iterator end;
 
-#define UTIL_IFOREACH_GENERIC2(iterator, iterator2, start, end, as) \
-	for (int util_i = 0; util_i < 1; ++util_i) \
-		for (iterator,iterator2 util_start = start; util_i < 1; ++util_i) \
-			for (iterator,iterator2 util_end = end; util_i < 1; ++util_i) \
-				for (iterator,iterator2 as = util_start; as != util_end; ++as)
+	foreach_helper(iterator begin, iterator end)
+		: it(begin)
+		, end(end)
+	{ }
 
-#define UTIL_ARRAY_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(STD_TR1::array<type, type2 >::iterator, start, end, type, as)
-#define UTIL_DEQUE_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::deque<type >::iterator, start, end, type, as)
-#define UTIL_LIST_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::list<type >::iterator, start, end, type, as)
-#define UTIL_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC22(std::map<type, type2 >::iterator, start, end, std::pair<type, type2 >, as)
-#define UTIL_MULTIMAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(std::multimap<type >::iterator, start, end, type, as)
-#define UTIL_SET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::set<type >::iterator, start, end, type, as)
-#define UTIL_MULTISET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::multiset<type >::iterator, start, end, type, as)
-#define UTIL_STACK_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::stack<type >::iterator, start, end, type, as)
-#define UTIL_VECTOR_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(std::vector<type >::iterator, start, end, type, as)
-#define UTIL_UNORDERED_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC22(STD_TR1::unordered_map<type, type2 >::iterator, start, end, std::pair<type, type2 >, as)
+	iterator operator ++(int)
+	{
+		return ++it;
+	}
 
-#define UTIL_ARRAY_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(STD_TR1::array<type, type2 >::iterator, start, end, as)
-#define UTIL_DEQUE_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::deque<type >::iterator, start, end, as)
-#define UTIL_LIST_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::list<type >::iterator, start, end, as)
-#define UTIL_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(std::map<type, type2 >::iterator, start, end, as)
-#define UTIL_MULTIMAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(std::multimap<type, type2 >::iterator, start, end, as)
-#define UTIL_SET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::set<type >::iterator, start, end, as)
-#define UTIL_MULTISET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::multiset<type >::iterator, start, end, as)
-#define UTIL_STACK_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::stack<type >::iterator, start, end, as)
-#define UTIL_VECTOR_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(std::vector<type >::iterator, start, end, as)
-#define UTIL_UNORDERED_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(STD_TR1::unordered_map<type, type2 >::iterator, start, end, as)
+	iterator operator ++()
+	{
+		return it++;
+	}
 
-#define UTIL_ARRAY_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_ARRAY_FOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_DEQUE_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_DEQUE_FOREACH(container.begin(), container.end() type, as)
-#define UTIL_LIST_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_LIST_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_MAP_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_MAP_FOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_MULTIMAP_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_MULTIMAP_FOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_SET_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_SET_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_MULTISET_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_MULTISET_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_STACK_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_STACK_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_VECTOR_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_VECTOR_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_UNORDERED_MAP_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_UNORDERED_MAP_FOREACH(container.begin(), container.end(), type, type2, as)
+	operator bool() const
+	{
+		return it != end;
+	}
 
-#define UTIL_ARRAY_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_ARRAY_IFOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_DEQUE_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_DEQUE_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_LIST_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_LIST_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_MAP_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_MAP_IFOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_MULTIMAP_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_MULTIMAP_IFOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_SET_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_SET_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_MULTISET_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_MULTISET_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_STACK_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_STACK_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_VECTOR_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_VECTOR_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_UNORDERED_MAP_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_UNORDERED_MAP_IFOREACH(container.begin(), container.end(), type, type2, as)
+	iterator get() const
+	{
+		return it;
+	}
+};
 
-#define UTIL_TPL_ARRAY_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(class STD_TR1::array<type, type2 >::iterator, start, end, type, as)
-#define UTIL_TPL_DEQUE_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::deque<type >::iterator, start, end, type, as)
-#define UTIL_TPL_LIST_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::list<type >::iterator, start, end, type, as)
-#define UTIL_TPL_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC22(class std::map<type >::iterator, start, end, std::pair<type, type2 >, as)
-#define UTIL_TPL_MULTIMAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC2(class std::multimap<type >::iterator, start, end, type, as)
-#define UTIL_TPL_SET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::set<type >::iterator, start, end, type, as)
-#define UTIL_TPL_MULTISET_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::multiset<type >::iterator, start, end, type, as)
-#define UTIL_TPL_STACK_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::stack<type >::iterator, start, end, type, as)
-#define UTIL_TPL_VECTOR_FOREACH(start, end, type, as) UTIL_FOREACH_GENERIC(class std::vector<type >::iterator, start, end, type, as)
-#define UTIL_TPL_UNORDERED_MAP_FOREACH(start, end, type, type2, as) UTIL_FOREACH_GENERIC22(class STD_TR1::unordered_map<type >::iterator, start, end, std::pair<type, type2 >, as)
+template <class T> foreach_helper<T> make_foreach_helper(T begin, T end)
+{
+	return foreach_helper<T>(begin, end);
+}
 
-#define UTIL_TPL_ARRAY_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class STD_TR1::array<type, type2 >::iterator, start, end, as)
-#define UTIL_TPL_DEQUE_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::deque<type >::iterator, start, end, as)
-#define UTIL_TPL_LIST_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::list<type >::iterator, start, end, as)
-#define UTIL_TPL_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class std::map<type, type2 >::iterator, start, end, as)
-#define UTIL_TPL_MULTIMAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class std::multimap<type, type2 >::iterator, start, end, as)
-#define UTIL_TPL_SET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::set<type >::iterator, start, end, as)
-#define UTIL_TPL_MULTISET_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::multiset<type >::iterator, start, end, as)
-#define UTIL_TPL_STACK_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::stack<type >::iterator, start, end, as)
-#define UTIL_TPL_VECTOR_IFOREACH(start, end, type, as) UTIL_IFOREACH_GENERIC(class std::vector<type >::iterator, start, end, as)
-#define UTIL_TPL_UNORDERED_MAP_IFOREACH(start, end, type, type2, as) UTIL_IFOREACH_GENERIC2(class STD_TR1::unordered_map<type, type2 >::iterator, start, end, as)
+#define UTIL_RANGE(c) (util::begin(c)), (util::end(c))
+#define UTIL_CRANGE(c) (util::cbegin(c)), (util::cend(c))
 
-#define UTIL_TPL_ARRAY_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_ARRAY_FOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_TPL_DEQUE_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_DEQUE_FOREACH(container.begin(), container.end() type, as)
-#define UTIL_TPL_LIST_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_LIST_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_MAP_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_MAP_FOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_TPL_MULTIMAP_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_MULTIMAP_FOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_TPL_SET_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_SET_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_MULTISET_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_MULTISET_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_STACK_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_STACK_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_VECTOR_FOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_VECTOR_FOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_UNORDERED_MAP_FOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_UNORDERED_MAP_FOREACH(container.begin(), container.end(), type, type2, as)
+#define UTIL_FOREACH_GENERIC(begin, end, as) \
+	for (int _util_i_ = -1; _util_i_ == -1; ) \
+		for (auto _util_foreach_ = util::make_foreach_helper((begin), (end)); _util_i_ == -1; ++_util_i_) \
+			for (_util_i_ = 3; _util_foreach_ && _util_i_ == 3; ++_util_foreach_, ++_util_i_) \
+				for (_util_i_ = 0; _util_i_ == 0; ++_util_i_) \
+					for (auto &as = *_util_foreach_.get(); _util_i_ == 0; ++_util_i_)
 
-#define UTIL_TPL_ARRAY_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_ARRAY_IFOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_TPL_DEQUE_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_DEQUE_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_LIST_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_LIST_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_MAP_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_MAP_IFOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_TPL_MULTIMAP_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_MULTIMAP_IFOREACH(container.begin(), container.end(), type, type2, as)
-#define UTIL_TPL_SET_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_SET_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_MULTISET_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_MULTISET_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_STACK_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_STACK_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_VECTOR_IFOREACH_ALL(container, type, as) if (!container.empty()) UTIL_TPL_VECTOR_IFOREACH(container.begin(), container.end(), type, as)
-#define UTIL_TPL_UNORDERED_MAP_IFOREACH_ALL(container, type, type2, as) if (!container.empty()) UTIL_TPL_UNORDERED_MAP_IFOREACH(container.begin(), container.end(), type, type2, as)
+#define UTIL_FOREACH(c, as) UTIL_FOREACH_GENERIC(util::begin(c), util::end(c), as)
+#define UTIL_CFOREACH(c, as) UTIL_FOREACH_GENERIC(util::cbegin(c),util::cend(c), as)
+#define UTIL_RANGE_FOREACH(begin, end, as) UTIL_FOREACH_GENERIC(begin, end, as)
 
-#define UTIL_CARRAY_FOREACH(array, start, end, type, as) \
-	for (int util_i = 0; util_i < 1; ++util_i) \
-		for (type as = array[start]; util_i < 1; ++util_i) \
-			for(std::size_t util_iter = start; util_iter <= end; as = array[++util_iter])
-
-#define UTIL_CARRAY_FOREACH_ALL(array, type, as) \
-	for (int util_i = 0; util_i < 1; ++util_i) \
-		for (type as = array[0]; util_i < 1; ++util_i) \
-			for(std::size_t util_iter = 0; util_iter < sizeof(array)/sizeof(type); as = array[++util_iter])
-
-#define UTIL_REPEAT(amt) \
-	for (int util_i = 0; util_i < amt; ++util_i)
-
-#define UTIL_PTR_LIST_FOREACH(container, type, as) for (PtrList<type>::Iterator as(container); as; as ? ++as : 0)
-#define UTIL_PTR_VECTOR_FOREACH(container, type, as) for (PtrVector<type>::Iterator as(container); as; as ? ++as : 0)
-
-#define UTIL_PTR_LIST_FOREACH_SAFE(container, type, as) for (PtrList<type>::SafeIterator as(container); as; as ? ++as : 0)
-#define UTIL_PTR_VECTOR_FOREACH_SAFE(container, type, as) for (PtrVector<type>::SafeIterator as(container); as; as ? ++as : 0)
-
-#define UTIL_TPL_PTR_LIST_FOREACH(container, type, as) for (class PtrList<type>::Iterator as(container); as; as ? ++as : 0)
-#define UTIL_TPL_PTR_VECTOR_FOREACH(container, type, as) for (class PtrVector<type>::Iterator as(container); as; as ? ++as : 0)
-
-#define UTIL_TPL_PTR_LIST_FOREACH_SAFE(container, type, as) for (class PtrList<type>::SafeIterator as(container); as; as ? ++as : 0)
-#define UTIL_TPL_PTR_VECTOR_FOREACH_SAFE(container, type, as) for (class PtrVector<type>::SafeIterator as(container); as; as ? ++as : 0)
-
-// DEPRECATED
-// Relies on a GCC (typeof) or c++0x (decltype) only feature, do not use
-#ifdef __GNUC__
-#define UTIL_FOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (typeof(*(container.begin())) as; util_i < 1; ++util_i) for (typeof(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = *(util_it)):(as = *container.begin())), util_it != container.end(); as = *(util_it++))
-#define UTIL_IFOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (typeof(container.begin()) as; util_i < 1; ++util_i) for (typeof(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = util_it):(as = container.begin())), util_it != container.end(); as = util_it++)
-#else // __GNUC__
-#define UTIL_FOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (decltype(*(container.begin())) as; util_i < 1; ++util_i) for (decltype(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = *(util_it)):(as = *container.begin())), util_it != container.end(); as = *(util_it++))
-#define UTIL_IFOREACH(container, as) if (!container.empty()) for (int util_i = 0; util_i < 1; ++util_i) for (decltype(container.begin()) as; util_i < 1; ++util_i) for (decltype(container.begin()) util_it = container.begin(); ((util_it != container.end())?(as = util_it):(as = container.begin())), util_it != container.end(); as = util_it++)
-#endif // __GNUC__
+#define UTIL_IFOREACH(c, as) for (auto as = util::begin(c); as != util::end(c); ++as)
+#define UTIL_CIFOREACH(c, as) for (auto as = util::cbegin(c); as != util::cend(c); ++as)
+#define UTIL_RANGE_IFOREACH(begin, end, as) for (auto as = (begin); as != (end); ++as)
 
 /**
  * A type that can store any numeric/string value and convert between them.
  * It takes way too much effort to use, so it's only used by the Config class.
  */
-class variant : public Shared
+class variant
 {
 	protected:
 		/**
@@ -349,27 +261,6 @@ class variant : public Shared
 		 * Return the value as an boolean, casting if neccessary.
 		 */
 		operator bool();
-
-	static variant *ScriptFactoryInt(int val) { return new variant(val); }
-	static variant *ScriptFactoryDouble(double val) { return new variant(val); }
-	static variant *ScriptFactoryString(std::string val) { return new variant(val); }
-	static variant *ScriptFactoryBool(bool val) { return new variant(val); }
-
-	SCRIPT_REGISTER_REF_DF(variant)
-		SCRIPT_REGISTER_FACTORY("variant @f(int)", ScriptFactoryInt);
-		SCRIPT_REGISTER_FACTORY("variant @f(double)", ScriptFactoryDouble);
-		SCRIPT_REGISTER_FACTORY("variant @f(string)", ScriptFactoryString);
-		SCRIPT_REGISTER_FACTORY("variant @f(bool)", ScriptFactoryBool);
-
-		SCRIPT_REGISTER_FUNCTION("int GetInt()", GetInt);
-		SCRIPT_REGISTER_FUNCTION("double GetFloat()", GetFloat);
-		SCRIPT_REGISTER_FUNCTION("string GetString()", GetString);
-		SCRIPT_REGISTER_FUNCTION("bool GetBool()", GetBool);
-		SCRIPT_REGISTER_FUNCTION("variant @SetInt(int)", SetInt);
-		SCRIPT_REGISTER_FUNCTION("variant @SetFloat(double)", SetFloat);
-		SCRIPT_REGISTER_FUNCTION("variant @SetString(string)", SetString);
-		SCRIPT_REGISTER_FUNCTION("variant @SetBool(bool)", SetBool);
-	SCRIPT_REGISTER_END();
 };
 
 /**
@@ -413,7 +304,7 @@ typedef variant var;
 double tdparse(std::string timestr);
 
 std::stack<util::variant> rpn_parse(std::string expr);
-double rpn_eval(std::stack<util::variant>, STD_TR1::unordered_map<std::string, double> vars);
+double rpn_eval(std::stack<util::variant>, std::unordered_map<std::string, double> vars);
 
 int to_int(const std::string &);
 unsigned int to_uint_raw(const std::string &);
@@ -454,31 +345,6 @@ inline int path_length(int x1, int y1, int x2, int y2)
 	if (dy < 0) dy = -dy;
 
 	return dx - dy;
-}
-
-inline void ScriptRegister(ScriptEngine &engine)
-{
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string ltrim(string &in)", ltrim);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string rtrim(string &in)", rtrim);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string trim(string &in)", trim);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("double tdparse(string timestr)", tdparse);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("int to_int(string &in)", to_int);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("double to_float(string &in)", to_float);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION_PR("string to_string(int)", to_string, (int), std::string);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION_PR("string to_string(double)", to_string, (double), std::string);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string lowercase(string)", lowercase);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string uppercase(string)", uppercase);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string ucfirst(string)", ucfirst);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION_PR("int rand(int min, int max)", rand, (int, int), int);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION_PR("double rand(double min, double max)", rand, (double, double), double);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("double round(double)", round);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("void sleep(double seconds)", sleep);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string timeago(double time, double current_time)", timeago);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("int path_length(int x1, int x2, int y1, int y2)", path_length);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("int text_width(string)", text_width);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("int text_max_word_width(string)", text_max_word_width);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string text_cap(string, int width, string elipses)", text_cap);
-	SCRIPT_REGISTER_GLOBAL_FUNCTION("string text_word_wrap(string, int width)", text_word_wrap);
 }
 
 }

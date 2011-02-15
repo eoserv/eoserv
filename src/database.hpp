@@ -10,7 +10,7 @@
 #include <exception>
 #include <memory>
 #include <string>
-#include <tr1/unordered_map>
+#include <unordered_map>
 #include <vector>
 
 #include "util.hpp"
@@ -64,7 +64,7 @@ class Database_QueryFailed : public Database_Exception
 /**
  * Result from a Database Query containing the SELECTed rows, and/or affected row counts and error information
  */
-class Database_Result : public std::vector<STD_TR1::unordered_map<std::string, util::variant> >
+class Database_Result : public std::vector<std::unordered_map<std::string, util::variant>>
 {
 	protected:
 		int affected_rows;
@@ -154,17 +154,6 @@ class Database
 		 * Object used to collect information from an external callback
 		 */
 		Database_Result callbackdata;
-
-	SCRIPT_REGISTER_REF_DF(Database)
-		SCRIPT_REGISTER_ENUM("Database_Engine")
-			SCRIPT_REGISTER_ENUM_VALUE(MySQL);
-			SCRIPT_REGISTER_ENUM_VALUE(SQLite);
-		SCRIPT_REGISTER_ENUM_END()
-
-		SCRIPT_REGISTER_FUNCTION("void Connect(Database_Engine type, string host, string user, string pass, string db)", Connect);
-		SCRIPT_REGISTER_FUNCTION("void Close()", Close);
-		SCRIPT_REGISTER_FUNCTION("string Escape(string)", Escape);
-	SCRIPT_REGISTER_END()
 };
 
 #endif // DATABASE_HPP_INCLUDED

@@ -9,15 +9,12 @@
 
 #include "fwd/sln.hpp"
 
-#include "script.hpp"
-#include "shared.hpp"
-
 #include "fwd/eoserver.hpp"
 
 /**
  * Manages checking in with the SLN server regularly
  */
-class SLN : public Shared
+class SLN
 {
 	private:
 		EOServer *server;
@@ -29,12 +26,6 @@ class SLN : public Shared
 	public:
 		SLN(EOServer *server);
 		void Request();
-
-	static SLN *ScriptFactory(EOServer *server) { return new SLN(server); }
-
-	SCRIPT_REGISTER_REF(SLN)
-		SCRIPT_REGISTER_FACTORY("SLN @f(EOServer @server)", ScriptFactory);
-	SCRIPT_REGISTER_END()
 };
 
 #endif //SLN_HPP_INCLUDED

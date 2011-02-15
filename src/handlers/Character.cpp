@@ -6,6 +6,8 @@
 
 #include "handlers.h"
 
+#include <vector>
+
 #include "console.hpp"
 
 #include "character.hpp"
@@ -72,7 +74,7 @@ CLIENT_F_FUNC(Character)
 				reply.AddChar(this->player->characters.size());
 				reply.AddByte(1); // ??
 				reply.AddByte(255);
-				UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
+				UTIL_FOREACH(this->player->characters, character)
 				{
 					reply.AddBreakString(character->name);
 					reply.AddInt(character->id);
@@ -104,14 +106,14 @@ CLIENT_F_FUNC(Character)
 			unsigned int charid = reader.GetInt();
 
 			bool yourchar = false;
-			PtrVector<Character>::Iterator char_it(this->player->characters);
+			std::vector<Character *>::iterator char_it;
 
-			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
+			UTIL_IFOREACH(this->player->characters, character)
 			{
-				if (character->id == charid)
+				if ((*character)->id == charid)
 				{
-					Console::Out("Deleted character: %s (%s)", character->name.c_str(), this->player->username.c_str());
-					this->server()->world->DeleteCharacter(character->name);
+					Console::Out("Deleted character: %s (%s)", (*character)->name.c_str(), this->player->username.c_str());
+					this->server()->world->DeleteCharacter((*character)->name);
 					char_it = character;
 					yourchar = true;
 					break;
@@ -130,7 +132,7 @@ CLIENT_F_FUNC(Character)
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(1); // ??
 			reply.AddByte(255);
-			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
+			UTIL_FOREACH(this->player->characters, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);
@@ -159,7 +161,7 @@ CLIENT_F_FUNC(Character)
 
 			bool yourchar = false;
 
-			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
+			UTIL_FOREACH(this->player->characters, character)
 			{
 				if (character->id == charid)
 				{

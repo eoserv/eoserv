@@ -12,11 +12,11 @@
 #include "world.hpp"
 #include "player.hpp"
 
-std::string RankSerialize(STD_TR1::array<std::string, 9> list)
+std::string RankSerialize(std::array<std::string, 9> list)
 {
 	std::string serialized;
 
-	UTIL_ARRAY_FOREACH_ALL(list, std::string, 9, rank)
+	UTIL_FOREACH(list, rank)
 	{
 		serialized.append(rank);
 		serialized.append(",");
@@ -25,9 +25,9 @@ std::string RankSerialize(STD_TR1::array<std::string, 9> list)
 	return serialized;
 }
 
-STD_TR1::array<std::string, 9> RankUnserialize(std::string serialized)
+std::array<std::string, 9> RankUnserialize(std::string serialized)
 {
-	STD_TR1::array<std::string, 9> list;
+	std::array<std::string, 9> list;
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	int i = 0;
@@ -51,69 +51,59 @@ Guild_Create::Guild_Create(GuildManager *manager, std::string tag, std::string n
 	tag = util::uppercase(tag);
 
 	this->manager = manager;
-	manager->AddRef();
 	this->tag = tag;
 	this->name = name;
 	this->leader = leader;
-	leader->AddRef();
-	Guild_Member *member = new Guild_Member(leader->name, 0);
-	this->members.push_back(member);
-	member->Release();
+
+	this->AddMember(leader->name, 0);
 }
 
-bool Guild_Create::HasMember(std::string character)
+Guild_Member *Guild_Create::GetMember(std::string character)
 {
 	character = util::lowercase(character);
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Guild_Member, check)
+	UTIL_FOREACH(this->members, check)
 	{
 		if (character == check->name)
 		{
-			return true;
+			return check.get();
 		}
 	}
 
-	return false;
+	return 0;
 }
 
-void Guild_Create::AddMember(std::string character)
+void Guild_Create::AddMember(std::string character, int rank)
 {
 	character = util::lowercase(character);
 
-	Guild_Member *member = new Guild_Member(character, 9);
-	this->members.push_back(member);
-	member->Release();
+	this->members.push_back(std::make_shared<Guild_Member>(character, rank));
 }
 
 Guild_Create::~Guild_Create()
 {
-	this->manager->CancelCreate(this);
-	this->leader->Release();
+	this->manager->CancelCreate(this->tag);
 
 	if (!this->manager->cache_clearing)
 	{
-		STD_TR1::unordered_map<std::string, Guild *>::iterator findentry = this->manager->cache.find(tag);
+		std::unordered_map<std::string, std::weak_ptr<Guild>>::iterator findentry = this->manager->cache.find(tag);
 
 		if (findentry != this->manager->cache.end())
 		{
-			findentry->second->Release();
 			this->manager->cache.erase(findentry);
 		}
 	}
-
-	this->manager->Release();
 }
 
-Guild *GuildManager::GetGuild(std::string tag)
+std::shared_ptr<Guild> GuildManager::GetGuild(std::string tag)
 {
 	tag = util::uppercase(tag);
 
-	STD_TR1::unordered_map<std::string, Guild *>::iterator findguild = this->cache.find(tag);
+	std::unordered_map<std::string, std::weak_ptr<Guild>>::iterator findguild = this->cache.find(tag);
 
 	if (findguild != this->cache.end())
 	{
-		findguild->second->AddRef();
-		return findguild->second;
+		return std::shared_ptr<Guild>(findguild->second);
 	}
 	else
 	{
@@ -121,11 +111,11 @@ Guild *GuildManager::GetGuild(std::string tag)
 
 		if (res.empty())
 		{
-			return 0;
+			return std::shared_ptr<Guild>();
 		}
 
-		STD_TR1::unordered_map<std::string, util::variant> row = res.front();
-		Guild *guild = new Guild(this);
+		std::unordered_map<std::string, util::variant> row = res.front();
+		std::shared_ptr<Guild> guild(new Guild(this));
 		guild->tag = static_cast<std::string>(row["tag"]);
 		guild->name = static_cast<std::string>(row["name"]);
 		guild->description = static_cast<std::string>(row["description"]);
@@ -135,28 +125,29 @@ Guild *GuildManager::GetGuild(std::string tag)
 
 		res = this->world->db.Query("SELECT `name`, `guild_rank` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", tag.c_str());
 
-		typedef STD_TR1::unordered_map<std::string, util::variant> Database_Row;
-		UTIL_VECTOR_FOREACH_ALL(res, Database_Row, row)
+		typedef std::unordered_map<std::string, util::variant> Database_Row;
+		UTIL_FOREACH(res, row)
 		{
-			Guild_Member *member = new Guild_Member(row["name"], row["guild_rank"]);
-			guild->members.push_back(member);
-			member->Release();
+			guild->members.push_back(std::make_shared<Guild_Member>(row["name"], row["guild_rank"]));
 		}
 
-		return this->cache[tag] = guild;
+		this->cache[tag] = guild;
+
+		return guild;
 	}
 }
 
-Guild *GuildManager::GetGuildName(std::string name)
+std::shared_ptr<Guild> GuildManager::GetGuildName(std::string name)
 {
 	name = util::lowercase(name);
 
-	UTIL_UNORDERED_MAP_IFOREACH_ALL(this->cache, std::string, Guild *, entry)
+	UTIL_FOREACH(this->cache, entry)
 	{
-		if (entry->second->name == name)
+		std::shared_ptr<Guild> guild(entry.second);
+
+		if (guild && guild->name == name)
 		{
-			entry->second->AddRef();
-			return entry->second;
+			return guild;
 		}
 	}
 
@@ -164,11 +155,11 @@ Guild *GuildManager::GetGuildName(std::string name)
 
 	if (res.empty())
 	{
-		return 0;
+		return std::shared_ptr<Guild>();
 	}
 
-	STD_TR1::unordered_map<std::string, util::variant> row = res.front();
-	Guild *guild = new Guild(this);
+	std::unordered_map<std::string, util::variant> row = res.front();
+	std::shared_ptr<Guild> guild(new Guild(this));
 	guild->tag = static_cast<std::string>(row["tag"]);
 	guild->name = static_cast<std::string>(row["name"]);
 	guild->description = static_cast<std::string>(row["description"]);
@@ -178,101 +169,87 @@ Guild *GuildManager::GetGuildName(std::string name)
 
 	res = this->world->db.Query("SELECT `name`, `guild_rank` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", static_cast<std::string>(row["tag"]).c_str());
 
-	typedef STD_TR1::unordered_map<std::string, util::variant> Database_Row;
-	UTIL_VECTOR_FOREACH_ALL(res, Database_Row, row)
+	typedef std::unordered_map<std::string, util::variant> Database_Row;
+	UTIL_FOREACH(res, row)
 	{
-		Guild_Member *member = new Guild_Member(row["name"], row["guild_rank"]);
-		guild->members.push_back(member);
-		member->Release();
+		guild->members.push_back(std::make_shared<Guild_Member>(row["name"], row["guild_rank"]));
 	}
 
-	return this->cache[row["tag"]] = guild;
+	this->cache[row["tag"]] = guild;
+
+	return guild;
 }
 
-Guild_Create *GuildManager::GetCreate(std::string tag)
+std::shared_ptr<Guild_Create> GuildManager::GetCreate(std::string tag)
 {
 	tag = util::uppercase(tag);
 
-	STD_TR1::unordered_map<std::string, Guild_Create *>::iterator findcreate = this->create_cache.find(tag);
+	std::unordered_map<std::string, std::weak_ptr<Guild_Create>>::iterator findcreate = this->create_cache.find(tag);
 
 	if (findcreate != this->create_cache.end())
 	{
-		findcreate->second->AddRef();
-		return findcreate->second;
+		return std::shared_ptr<Guild_Create>(findcreate->second);
 	}
 	else
 	{
-		return 0;
+		return std::shared_ptr<Guild_Create>();
 	}
 }
 
-Guild_Create *GuildManager::BeginCreate(std::string tag, std::string name, Character *leader)
+std::shared_ptr<Guild_Create> GuildManager::BeginCreate(std::string tag, std::string name, Character *leader)
 {
 	tag = util::uppercase(tag);
 	name = util::lowercase(name);
 
-	Guild_Create *create = new Guild_Create(this, tag, name, leader);
+	std::shared_ptr<Guild_Create> create(new Guild_Create(this, tag, name, leader));
+
 	this->create_cache[tag] = create;
-	create->AddRef();
+
 	return create;
 }
 
-void GuildManager::CancelCreate(Guild_Create *create)
+void GuildManager::CancelCreate(std::string create)
 {
-	this->create_cache.erase(create->tag);
-	create->Release();
+	this->create_cache.erase(create);
 }
 
-Guild *GuildManager::CreateGuild(Guild_Create *create, std::string description)
+std::shared_ptr<Guild> GuildManager::CreateGuild(std::shared_ptr<Guild_Create> create, std::string description)
 {
-	PtrVector<Guild_Member> members;
-
 	description = util::text_word_wrap(description, this->world->config["GuildMaxWidth"]);
 
 	this->world->db.Query("INSERT INTO `guilds` (`tag`, `name`, `description`, `created`, `ranks`) VALUES ('$', '$', '$', #, '$')", create->tag.c_str(), create->name.c_str(), description.c_str(), time(0), static_cast<std::string>(this->world->config["GuildDefaultRanks"]).c_str());
 
 	this->create_cache.erase(create->tag);
 
-	Guild *guild = this->GetGuild(create->tag);
+	std::shared_ptr<Guild> guild = this->GetGuild(create->tag);
 
-	UTIL_PTR_VECTOR_FOREACH(create->members, Guild_Member, member)
+	if (guild)
 	{
-		Character *character = this->world->GetCharacter(member->name);
-
-		if (character)
+		UTIL_FOREACH(create->members, member)
 		{
-			guild->AddMember(character, create->leader, false, (character == create->leader) ? 0 : 9);
-		}
-	}
+			Character *character = this->world->GetCharacter(member->name);
 
-	this->create_cache.erase(create->tag);
+			if (character)
+			{
+				guild->AddMember(character, create->leader, false, (character == create->leader) ? 0 : 9);
+			}
+		}
+
+		this->create_cache.erase(create->tag);
+	}
 
 	return guild;
 }
 
 void GuildManager::SaveAll()
 {
-	UTIL_UNORDERED_MAP_IFOREACH_ALL(this->cache, std::string, Guild *, entry)
+	UTIL_FOREACH(this->cache, entry)
 	{
-		entry->second->Save();
+		std::shared_ptr<Guild> guild(entry.second);
+
+		if (guild)
+			guild->Save();
 	}
-}
-
-GuildManager::~GuildManager()
-{
-	this->cache_clearing = true;
-
-	UTIL_UNORDERED_MAP_IFOREACH_ALL(this->create_cache, std::string, Guild_Create *, entry)
-	{
-		entry->second->Release();
-	}
-
-	UTIL_UNORDERED_MAP_IFOREACH_ALL(this->cache, std::string, Guild *, entry)
-	{
-		entry->second->Release();
-	}
-
-	this->world->Release();
 }
 
 bool Guild::ValidName(std::string name)
@@ -317,13 +294,10 @@ bool Guild::ValidTag(std::string tag)
 
 void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int rank)
 {
-	joined->guild = this;
-	this->AddRef();
+	joined->guild = shared_from_this();
 	joined->guild_rank = rank;
 
-	Guild_Member *member = new Guild_Member(joined->name, rank);
-	this->members.push_back(member);
-	member->Release();
+	this->members.push_back(std::make_shared<Guild_Member>(joined->name, rank));
 
 	if (recruiter != joined) // Leader of new guild
 	{
@@ -373,35 +347,38 @@ void Guild::DelMember(std::string kicked, Character *kicker, bool alert)
 		this->Msg(0, msg);
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(this->manager->world->characters, Character, character)
+	UTIL_IFOREACH(this->members, it)
+	{
+		std::shared_ptr<Guild_Member> member = *it;
+
+		if (member->name == kicked)
+		{
+			this->members.erase(it);
+			break;
+		}
+	}
+
+	UTIL_FOREACH(this->manager->world->characters, character)
 	{
 		if (character->name == kicked)
 		{
-			character->guild->Release();
-			character->guild = 0;
+			character->guild.reset();
 			character->guild_rank = 0;
 		}
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Guild_Member, member)
-	{
-		if (member->name == kicked)
-		{
-			this->members.erase(member);
-			break;
-		}
-	}
+	// *this may not be valid after this point
 }
 
 void Guild::SetMemberRank(std::string name, int rank)
 {
-	Guild_Member *member = GetMember(name);
+	std::shared_ptr<Guild_Member> member = this->GetMember(name);
 
 	if (member)
 	{
 		member->rank = rank;
 
-		UTIL_PTR_VECTOR_FOREACH(this->manager->world->characters, Character, character)
+		UTIL_FOREACH(this->manager->world->characters, character)
 		{
 			if (character->name == name)
 			{
@@ -430,19 +407,19 @@ void Guild::DelBank(int gold)
 	}
 }
 
-Guild_Member *Guild::GetMember(std::string name)
+std::shared_ptr<Guild_Member> Guild::GetMember(std::string name)
 {
 	name = util::lowercase(name);
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Guild_Member, member)
+	UTIL_FOREACH(this->members, member)
 	{
 		if (member->name == name)
 		{
-			return *member;
+			return member;
 		}
 	}
 
-	return 0;
+	return std::shared_ptr<Guild_Member>();
 }
 
 void Guild::SetDescription(std::string description)
@@ -468,14 +445,14 @@ void Guild::Msg(Character *from, std::string message, bool echo)
 	builder.AddBreakString(from ? from->name : "Server");
 	builder.AddBreakString(message);
 
-	UTIL_PTR_VECTOR_FOREACH(this->manager->world->characters, Character, character)
+	UTIL_FOREACH(this->manager->world->characters, character)
 	{
-		if (!echo && *character == from)
+		if (!echo && character == from)
 		{
 			continue;
 		}
 
-		if (character->guild == this)
+		if (character->guild.get() == this)
 		{
 			character->player->client->SendBuilder(builder);
 		}
@@ -495,16 +472,13 @@ Guild::~Guild()
 {
 	if (!this->manager->cache_clearing)
 	{
-		STD_TR1::unordered_map<std::string, Guild *>::iterator findentry = this->manager->cache.find(tag);
+		std::unordered_map<std::string, std::weak_ptr<Guild>>::iterator findentry = this->manager->cache.find(tag);
 
 		if (findentry != this->manager->cache.end())
 		{
-			findentry->second->Release();
 			this->manager->cache.erase(findentry);
 		}
 	}
 
 	this->Save();
-
-	this->manager->Release();
 }

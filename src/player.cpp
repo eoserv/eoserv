@@ -22,7 +22,7 @@ Player::Player(std::string username, World *world)
 	{
 		throw std::runtime_error("Player not found (" + username + ")");
 	}
-	STD_TR1::unordered_map<std::string, util::variant> row = res.front();
+	std::unordered_map<std::string, util::variant> row = res.front();
 
 	this->login_time = std::time(0);
 
@@ -34,13 +34,12 @@ Player::Player(std::string username, World *world)
 
 	res = this->world->db.Query("SELECT `name` FROM `characters` WHERE `account` = '$'", username.c_str());
 
-	typedef STD_TR1::unordered_map<std::string, util::variant> Database_Row;
-	UTIL_VECTOR_FOREACH_ALL(res, Database_Row, row)
+	typedef std::unordered_map<std::string, util::variant> Database_Row;
+	UTIL_FOREACH(res, row)
 	{
 		Character *newchar = new Character(row["name"], world);
-		this->characters.push_back(newchar);
 		newchar->player = this;
-		newchar->Release();
+		this->characters.push_back(newchar);
 	}
 
 	this->client = 0;
@@ -48,16 +47,6 @@ Player::Player(std::string username, World *world)
 
 bool Player::ValidName(std::string username)
 {
-	if (username.length() < 4)
-	{
-		return false;
-	}
-
-	if (username.length() > 12)
-	{
-		return false;
-	}
-
 	for (std::size_t i = 0; i < username.length(); ++i)
 	{
 		if (!((username[i] >= 'a' && username[i] <= 'z') || username[i] == ' ' || (username[i] >= '0' && username[i] <= '9')))
@@ -84,10 +73,9 @@ bool Player::AddCharacter(std::string name, Gender gender, int hairstyle, int ha
 	}
 
 	newchar->player = this;
-	this->AddRef();
 
 	this->characters.push_back(newchar);
-	newchar->Release();
+
 	return true;
 }
 
@@ -100,9 +88,9 @@ void Player::ChangePass(std::string password)
 
 void Player::Logout()
 {
-	UTIL_PTR_VECTOR_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		character->Logout();
+		delete character;
 	}
 	this->characters.clear();
 
@@ -117,7 +105,6 @@ void Player::Logout()
 		this->client->Close();
 		this->client->player = 0;
 		this->client = 0; // Not reference counted!
-		this->Release();
 	}
 }
 

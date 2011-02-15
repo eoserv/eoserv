@@ -102,9 +102,9 @@ CLIENT_F_FUNC(Item)
 						builder.AddInt(hpgain);
 						builder.AddChar(int(double(this->player->character->hp) / double(this->player->character->maxhp) * 100.0));
 
-						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+						UTIL_FOREACH(this->player->character->map->characters, character)
 						{
-							if (*character != this->player->character && this->player->character->InRange(*character))
+							if (character != this->player->character && this->player->character->InRange(character))
 							{
 								character->player->client->SendBuilder(builder);
 							}
@@ -136,9 +136,9 @@ CLIENT_F_FUNC(Item)
 						builder.AddChar(0); // subloc
 						builder.AddChar(item->haircolor);
 
-						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+						UTIL_FOREACH(this->player->character->map->characters, character)
 						{
-							if (*character != this->player->character && this->player->character->InRange(*character))
+							if (character != this->player->character && this->player->character->InRange(character))
 							{
 								character->player->client->SendBuilder(builder);
 							}
@@ -215,9 +215,9 @@ CLIENT_F_FUNC(Item)
 						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
 						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
-						UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+						UTIL_FOREACH(this->player->character->map->characters, character)
 						{
-							if (*character != this->player->character && this->player->character->InRange(*character))
+							if (character != this->player->character && this->player->character->InRange(character))
 							{
 								character->player->client->SendBuilder(builder);
 							}

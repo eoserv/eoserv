@@ -72,7 +72,7 @@ CLIENT_F_FUNC(Jukebox)
 
 			PacketBuilder builder(PACKET_JUKEBOX, PACKET_USE);
 			builder.AddShort(track + 1);
-			UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+			UTIL_FOREACH(this->player->character->map->characters, character)
 			{
 				character->player->client->SendBuilder(builder);
 			}

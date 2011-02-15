@@ -38,7 +38,6 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/eoserver.o \
        $(OBJDIR)/guild.o \
        $(OBJDIR)/hash.o \
-       $(OBJDIR)/hook.o \
        $(OBJDIR)/main.o \
        $(OBJDIR)/map.o \
        $(OBJDIR)/nanohttp.o \
@@ -46,17 +45,12 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/packet.o \
        $(OBJDIR)/party.o \
        $(OBJDIR)/player.o \
-       $(OBJDIR)/script.o \
-       $(OBJDIR)/scriptreg.o \
        $(OBJDIR)/sha256.o \
-       $(OBJDIR)/shared.o \
        $(OBJDIR)/sln.o \
        $(OBJDIR)/socket.o \
        $(OBJDIR)/timer.o \
        $(OBJDIR)/util.o \
        $(OBJDIR)/world.o \
-       $(OBJDIR)/container/ptr_list.o \
-       $(OBJDIR)/container/ptr_vector.o \
        $(OBJDIR)/handlers/Account.o \
        $(OBJDIR)/handlers/AdminInteract.o \
        $(OBJDIR)/handlers/Attack.o \
@@ -104,13 +98,6 @@ ifeq ($(SQLITE),1)
 	LIBS += $(SQLITE_LIB)
 	CFLAGS += -DDATABASE_SQLITE
 	CXXFLAGS += -DDATABASE_SQLITE
-endif
-
-ifeq ($(NOSCRIPT),1)
-	CFLAGS += -DNOSCRIPT
-	CXXFLAGS += -DNOSCRIPT
-else
-	LIBS += -langelscript -las_scriptmath -las_scriptstdstring -las_scriptfile
 endif
 
 include $(MAKEFILE_INC)

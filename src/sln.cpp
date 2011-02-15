@@ -107,7 +107,7 @@ void *SLN::RequestThread(void *void_sln)
 		}
 
 		std::vector<std::string> lines = util::explode("\r\n", http->Response());
-		UTIL_VECTOR_FOREACH_ALL(lines, std::string, line)
+		UTIL_FOREACH(lines, line)
 		{
 			if (line.length() == 0)
 			{
@@ -241,9 +241,8 @@ void *SLN::RequestThread(void *void_sln)
 
 		TimeEvent *event = new TimeEvent(SLN::TimedRequest, sln, static_cast<int>(sln->server->world->config["SLNPeriod"]), 1);
 		sln->server->world->timer.Register(event);
-		event->Release();
 
-		http->Release();
+		delete http;
 	}
 	catch (...)
 	{

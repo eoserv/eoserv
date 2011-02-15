@@ -17,14 +17,9 @@
 #include <list>
 #include <memory>
 #include <string>
-#include <tr1/cstdint>
-#include <tr1/unordered_map>
+#include <cstdint>
+#include <unordered_map>
 #include <vector>
-
-#include "shared.hpp"
-
-#include "container/ptr_list.hpp"
-#include "container/ptr_vector.hpp"
 
 /**
  * Generic Socket exception type
@@ -101,13 +96,13 @@ struct Socket_Init
 /**
  * Stores an IP address and converts between string and numeric formats.
  */
-class IPAddress : public Shared
+class IPAddress
 {
 	protected:
 		/**
 		 * Integer version of the IP address.
 		 */
-		STD_TR1::uint32_t address;
+		std::uint32_t address;
 
 	public:
 		/**
@@ -197,39 +192,17 @@ class IPAddress : public Shared
 		operator std::string() const;
 
 		bool operator ==(const IPAddress &) const;
-
-	static IPAddress *ScriptFactoryCopy(IPAddress &other) { return new IPAddress(other); }
-	static IPAddress *ScriptFactoryInt(unsigned int addr) { return new IPAddress(addr); }
-	static IPAddress *ScriptFactoryOctets(unsigned char o1, unsigned char o2, unsigned char o3, unsigned char o4) { return new IPAddress(o1, o2, o3, o4); }
-	static IPAddress *ScriptFactoryString(std::string str_addr) { return new IPAddress(str_addr); }
-
-	SCRIPT_REGISTER_REF_DF(IPAddress)
-		SCRIPT_REGISTER_FACTORY("IPAddress @f(uint)", ScriptFactoryInt);
-		SCRIPT_REGISTER_FACTORY("IPAddress @f(uint8, uint8, uint8, uint8)", ScriptFactoryOctets);
-		SCRIPT_REGISTER_FACTORY("IPAddress @f(string)", ScriptFactoryString);
-
-		SCRIPT_REGISTER_FUNCTION("IPAddress &SetInt(uint)", SetInt);
-		SCRIPT_REGISTER_FUNCTION("IPAddress &SetOctets(uint8, uint8, uint8, uint8)", SetOctets);
-		SCRIPT_REGISTER_FUNCTION_PR("IPAddress &SetString(string)", SetString, (std::string), IPAddress &);
-		SCRIPT_REGISTER_FUNCTION("uint GetInt()", GetInt);
-		SCRIPT_REGISTER_FUNCTION("string GetString()", GetString);
-
-		SCRIPT_REGISTER_GLOBAL_FUNCTION("IPAddress @IPAddress_Lookup(string host)", Lookup);
-	SCRIPT_REGISTER_END()
 };
 
 namespace std
 {
-	namespace tr1
+	template <> struct hash<IPAddress> : public unary_function<IPAddress, std::size_t>
 	{
-		template <> struct hash<IPAddress> : public unary_function<IPAddress, std::size_t>
+		std::size_t operator()(const IPAddress &ipaddress) const
 		{
-			std::size_t operator()(const IPAddress &ipaddress) const
-			{
-				return ipaddress.GetInt();
-			}
-		};
-    }
+			return ipaddress.GetInt();
+		}
+	};
 }
 
 // Temporary
@@ -240,7 +213,7 @@ struct Socket;
 /**
  * Generic TCP client class.
  */
-class Client : public Shared
+class Client
 {
 	private:
 		struct impl_;
@@ -258,11 +231,11 @@ class Client : public Shared
 
 	public:
 		Client();
-		Client(const IPAddress &addr, STD_TR1::uint16_t port);
+		Client(const IPAddress &addr, std::uint16_t port);
 		Client(Server *);
 		Client(const Socket &, Server *);
-		bool Connect(const IPAddress &addr, STD_TR1::uint16_t port);
-		void Bind(const IPAddress &addr, STD_TR1::uint16_t port);
+		bool Connect(const IPAddress &addr, std::uint16_t port);
+		void Bind(const IPAddress &addr, std::uint16_t port);
 		std::string Recv(std::size_t length);
 		void Send(const std::string &data);
 		void Tick(double timeout);
@@ -274,30 +247,12 @@ class Client : public Shared
 
 	// TODO: Separate Socket type
 	friend class Server;
-
-	static Client *ScriptFactoryIPPort(IPAddress addr, STD_TR1::uint16_t port) { return new Client(addr, port); }
-	static Client *ScriptFactoryServer(Server *server) { return new Client(server); }
-
-	SCRIPT_REGISTER_REF_DF(Client)
-		SCRIPT_REGISTER_FACTORY("Client @f(const IPAddress &addr, uint16)", ScriptFactoryIPPort);
-		SCRIPT_REGISTER_FACTORY("Client @f(Server @server)", ScriptFactoryServer);
-
-		SCRIPT_REGISTER_FUNCTION("bool Connect(const IPAddress &addr, uint16 port)", Connect);
-		SCRIPT_REGISTER_FUNCTION("void Bind(const IPAddress &addr, uint16 port)", Bind);
-		SCRIPT_REGISTER_FUNCTION("string Recv(uint length)", Recv);
-		SCRIPT_REGISTER_FUNCTION("void Send(const string &data)", Send);
-		SCRIPT_REGISTER_FUNCTION("void Tick(double timeout)", Tick);
-		SCRIPT_REGISTER_FUNCTION("bool Connected()", Connected);
-		// GetRemoteAddr
-		SCRIPT_REGISTER_FUNCTION("void Close(bol force)", Close);
-		SCRIPT_REGISTER_FUNCTION("uint ConnectTime", ConnectTime);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Generic TCP server class.
  */
-class Server : public Shared
+class Server
 {
 	public:
 		enum State
@@ -371,7 +326,7 @@ class Server : public Shared
 		/**
 		 * List of connected clients.
 		 */
-		PtrList<Client> clients;
+		std::list<Client *> clients;
 
 		/**
 		 * Initializes the Server.
@@ -416,7 +371,7 @@ class Server : public Shared
 		 * @throw Socket_Exception
 		 * @return Returns a list of clients that have data in their recv_buffer.
 		 */
-		PtrVector<Client> *Select(double timeout);
+		std::vector<Client *> *Select(double timeout);
 
 		/**
 		 * Destroys any dead clients, should be called periodically.
@@ -440,33 +395,6 @@ class Server : public Shared
 		}
 
 		virtual ~Server();
-
-	static Server *ScriptFactoryIPPort(const IPAddress &addr, uint16_t port) { return new Server(addr, port); }
-
-	SCRIPT_REGISTER_REF_DF(Server)
-		SCRIPT_REGISTER_ENUM("Server_State")
-			SCRIPT_REGISTER_ENUM_VALUE(Invalid);
-			SCRIPT_REGISTER_ENUM_VALUE(Created);
-			SCRIPT_REGISTER_ENUM_VALUE(Bound);
-			SCRIPT_REGISTER_ENUM_VALUE(Listening);
-		SCRIPT_REGISTER_ENUM_END()
-
-		SCRIPT_REGISTER_FACTORY("Server @f(const IPAddress &, uint16 port)", ScriptFactoryIPPort);
-
-		SCRIPT_REGISTER_VARIABLE("uint", recv_buffer_max);
-		SCRIPT_REGISTER_VARIABLE("uint", send_buffer_max);
-		SCRIPT_REGISTER_VARIABLE("uint", maxconn);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Client>", clients);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Client>", clients);
-		SCRIPT_REGISTER_FUNCTION("Bind(const IPAddress &, uint16 port)", Bind);
-		SCRIPT_REGISTER_FUNCTION("Listen(int maxconn, int backlog)", Listen);
-		SCRIPT_REGISTER_FUNCTION("Client @Poll()", Poll);
-		SCRIPT_REGISTER_FUNCTION("PtrVector<Client> @Select(double timeout)", Select);
-		SCRIPT_REGISTER_FUNCTION("void BuryTheDead()", BuryTheDead);
-		SCRIPT_REGISTER_FUNCTION("Server_State State()", State);
-		SCRIPT_REGISTER_FUNCTION("int Connections()", Connections);
-		SCRIPT_REGISTER_FUNCTION("int MaxConnections()", MaxConnections);
-	SCRIPT_REGISTER_END()
 };
 
 

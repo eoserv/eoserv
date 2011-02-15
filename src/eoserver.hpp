@@ -9,7 +9,7 @@
 
 #include "fwd/eoserver.hpp"
 
-#include <tr1/array>
+#include <array>
 #include <string>
 
 #include "socket.hpp"
@@ -28,7 +28,7 @@ void server_pump_queue(void *server_void);
 class EOServer : public Server
 {
 	private:
-		void Initialize(STD_TR1::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
+		void Initialize(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 
 	protected:
 		virtual Client *ClientFactory(const Socket &);
@@ -38,18 +38,12 @@ class EOServer : public Server
 		double start;
 		SLN *sln;
 
-		EOServer(IPAddress addr, unsigned short port, STD_TR1::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
+		EOServer(IPAddress addr, unsigned short port, std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
 		{
 			this->Initialize(dbinfo, eoserv_config, admin_config);
 		}
 
 		~EOServer();
-
-	SCRIPT_REGISTER_REF(EOServer)
-		SCRIPT_REGISTER_VARIABLE("World @", world);
-		SCRIPT_REGISTER_VARIABLE("double", start);
-		SCRIPT_REGISTER_VARIABLE("SLN @", sln);
-	SCRIPT_REGISTER_END()
 };
 
 #endif // EOSERVER_HPP_INCLUDED

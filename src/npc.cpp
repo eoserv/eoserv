@@ -13,8 +13,6 @@
 #include <string>
 #include <vector>
 
-#include "container/algorithm.hpp"
-
 #include "character.hpp"
 #include "config.hpp"
 #include "console.hpp"
@@ -153,7 +151,7 @@ void NPC::LoadShopDrop()
 			for (std::size_t i = 0; i < parts.size(); i += 9)
 			{
 				NPC_Shop_Craft_Item *item = new NPC_Shop_Craft_Item;
-				PtrVector<NPC_Shop_Craft_Ingredient> ingredients;
+				std::vector<NPC_Shop_Craft_Ingredient *> ingredients;
 				ingredients.resize(4);
 
 				item->id = util::to_int(parts[i]);
@@ -176,7 +174,7 @@ void NPC::LoadShopDrop()
 	this->citizenship = 0;
 
 	restart_loop:
-	UTIL_UNORDERED_MAP_FOREACH_ALL(this->map->world->home_config, std::string, util::variant, hc)
+	UTIL_FOREACH(this->map->world->home_config, hc)
 	{
 		std::vector<std::string> parts = util::explode('.', hc.first);
 
@@ -225,7 +223,7 @@ void NPC::Spawn(NPC *parent)
 {
 	if (this->Data()->boss && !parent)
 	{
-		UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
+		UTIL_FOREACH(this->map->npcs, npc)
 		{
 			if (npc->Data()->child)
 			{
@@ -301,7 +299,7 @@ void NPC::Spawn(NPC *parent)
 	builder.AddChar(this->y);
 	builder.AddChar(this->direction);
 
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
 		if (character->InRange(this))
 		{
@@ -315,11 +313,11 @@ void NPC::Act()
 	// Needed for the server startup spawn to work properly
 	if (this->Data()->child && !this->parent)
 	{
-		UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
+		UTIL_FOREACH(this->map->npcs, npc)
 		{
 			if (npc->Data()->boss)
 			{
-				this->parent = *npc;
+				this->parent = npc;
 				break;
 			}
 		}
@@ -336,7 +334,7 @@ void NPC::Act()
 	unsigned char attacker_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 	unsigned short attacker_damage = 0;
 
-	UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, opponent)
+	UTIL_FOREACH(this->damagelist, opponent)
 	{
 		if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
 		{
@@ -355,7 +353,7 @@ void NPC::Act()
 
 	if (this->parent)
 	{
-		UTIL_PTR_LIST_FOREACH(this->parent->damagelist, NPC_Opponent, opponent)
+		UTIL_FOREACH(this->parent->damagelist, opponent)
 		{
 			if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
 			{
@@ -377,13 +375,13 @@ void NPC::Act()
 		Character *closest = 0;
 		unsigned char closest_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 
-		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+		UTIL_FOREACH(this->map->characters, character)
 		{
 			int distance = util::path_length(character->x, character->y, this->x, this->y);
 
 			if (distance < closest_distance)
 			{
-				closest = *character;
+				closest = character;
 				closest_distance = distance;
 			}
 		}
@@ -493,7 +491,7 @@ void NPC::Damage(Character *from, int amount)
 	NPC_Opponent *opponent(new NPC_Opponent);
 	bool found = false;
 
-	UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, checkopp)
+	UTIL_FOREACH(this->damagelist, checkopp)
 	{
 		if (checkopp->attacker == from)
 		{
@@ -510,7 +508,6 @@ void NPC::Damage(Character *from, int amount)
 		opponent->last_hit = Timer::GetTime();
 		this->damagelist.push_back(opponent);
 		opponent->attacker->unregister_npc.push_back(this);
-		opponent->Release();
 	}
 
 	if (this->hp > 0)
@@ -523,7 +520,7 @@ void NPC::Damage(Character *from, int amount)
 		builder.AddShort(int(double(this->hp) / double(this->Data()->hp) * 100.0));
 		builder.AddChar(1); // ?
 
-		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+		UTIL_FOREACH(this->map->characters, character)
 		{
 			if (character->InRange(this))
 			{
@@ -539,13 +536,13 @@ void NPC::Damage(Character *from, int amount)
 
 		this->dead_since = int(Timer::GetTime());
 
-		PtrVector<NPC_Drop> drops;
+		std::vector<NPC_Drop *> drops;
 		NPC_Drop *drop = 0;
-		UTIL_PTR_VECTOR_FOREACH(this->drops, NPC_Drop, checkdrop)
+		UTIL_FOREACH(this->drops, checkdrop)
 		{
 			if ((double(util::rand(0,10000)) / 100.0) < checkdrop->chance * droprate)
 			{
-				drops.push_back(*checkdrop);
+				drops.push_back(checkdrop);
 			}
 		}
 
@@ -556,7 +553,7 @@ void NPC::Damage(Character *from, int amount)
 
 		if (sharemode == 1)
 		{
-			UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, opponent)
+			UTIL_FOREACH(this->damagelist, opponent)
 			{
 				if (opponent->damage > most_damage_counter)
 				{
@@ -592,7 +589,7 @@ void NPC::Damage(Character *from, int amount)
 				{
 					int rewarded_hp = util::rand(0, this->Data()->hp);
 					int count_hp = 0;
-					UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, opponent)
+					UTIL_FOREACH(this->damagelist, opponent)
 					{
 						if (opponent->attacker->InRange(this))
 						{
@@ -612,7 +609,7 @@ void NPC::Damage(Character *from, int amount)
 				{
 					int rand = util::rand(0, this->damagelist.size());
 					int i = 0;
-					UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, opponent)
+					UTIL_FOREACH(this->damagelist, opponent)
 					{
 						if (opponent->attacker->InRange(this))
 						{
@@ -628,12 +625,12 @@ void NPC::Damage(Character *from, int amount)
 			}
 		}
 
-		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+		UTIL_FOREACH(this->map->characters, character)
 		{
-			PtrList<NPC_Opponent>::Iterator findopp(this->damagelist);
-			for (; findopp.InRange() && findopp->attacker != *character; ++findopp); // no loop body
+			std::list<NPC_Opponent *>::iterator findopp = this->damagelist.begin();
+			for (; findopp != this->damagelist.end() && (*findopp)->attacker != character; ++findopp); // no loop body
 
-			if (findopp || character->InRange(this))
+			if (findopp != this->damagelist.end() || character->InRange(this))
 			{
 				bool level_up = false;
 
@@ -643,13 +640,13 @@ void NPC::Damage(Character *from, int amount)
 
 				if (this->Data()->exp != 0)
 				{
-					if (findopp)
+					if (findopp != this->damagelist.end())
 					{
 						int reward;
 						switch (sharemode)
 						{
 							case 0:
-								if (*character == from)
+								if (character == from)
 								{
 									reward = int(std::ceil(double(this->Data()->exp) * exprate));
 
@@ -675,7 +672,7 @@ void NPC::Damage(Character *from, int amount)
 								break;
 
 							case 1:
-								if (*character == most_damage)
+								if (character == most_damage)
 								{
 									reward = int(std::ceil(double(this->Data()->exp) * exprate));
 
@@ -701,7 +698,7 @@ void NPC::Damage(Character *from, int amount)
 								break;
 
 							case 2:
-								reward = int(std::ceil(double(this->Data()->exp) * exprate * (double(findopp->damage) / double(this->totaldamage))));
+								reward = int(std::ceil(double(this->Data()->exp) * exprate * (double((*findopp)->damage) / double(this->totaldamage))));
 
 								if (reward > 0)
 								{
@@ -776,7 +773,7 @@ void NPC::Damage(Character *from, int amount)
 				builder.AddInt(dropamount);
 				builder.AddThree(amount);
 
-				if ((sharemode == 0 && *character == from) || (sharemode != 0 && findopp))
+				if ((sharemode == 0 && character == from) || (sharemode != 0 && findopp != this->damagelist.end()))
 				{
 					builder.AddInt(character->exp);
 				}
@@ -795,15 +792,17 @@ void NPC::Damage(Character *from, int amount)
 			}
 		}
 
-		UTIL_SET_FOREACH_ALL(parties, Party *, party)
+		UTIL_FOREACH(parties, party)
 		{
 			party->ShareEXP(party->temp_expsum, partysharemode, this->map);
 			party->temp_expsum = 0;
 		}
 
-		UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, opponent)
+		UTIL_FOREACH(this->damagelist, opponent)
 		{
-			erase_first(opponent->attacker->unregister_npc, this);
+			opponent->attacker->unregister_npc.erase(
+				std::remove(opponent->attacker->unregister_npc.begin(), opponent->attacker->unregister_npc.end(), this)
+			);
 		}
 
 		this->damagelist.clear();
@@ -813,7 +812,7 @@ void NPC::Damage(Character *from, int amount)
 
 		if (this->Data()->boss)
 		{
-			UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
+			UTIL_FOREACH(this->map->npcs, npc)
 			{
 				if (npc->Data()->child && !npc->Data()->boss)
 				{
@@ -835,7 +834,7 @@ void NPC::Damage(Character *from, int amount)
 			PacketBuilder builder(PACKET_NPC, PACKET_JUNK);
 			builder.AddShort(childid);
 
-			UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+			UTIL_FOREACH(this->map->characters, character)
 			{
 				character->player->client->SendBuilder(builder);
 			}
@@ -843,7 +842,9 @@ void NPC::Damage(Character *from, int amount)
 
 		if (this->temporary)
 		{
-			erase_first(this->map->npcs, this);
+			this->map->npcs.erase(
+				std::remove(this->map->npcs.begin(), this->map->npcs.end(), this)
+			);
 		}
 	}
 }
@@ -889,9 +890,11 @@ void NPC::Die(bool show)
 	this->alive = false;
 	this->dead_since = int(Timer::GetTime());
 
-	UTIL_PTR_LIST_FOREACH(this->damagelist, NPC_Opponent, opponent)
+	UTIL_FOREACH(this->damagelist, opponent)
 	{
-		erase_first(opponent->attacker->unregister_npc, this);
+		opponent->attacker->unregister_npc.erase(
+			std::remove(opponent->attacker->unregister_npc.begin(), opponent->attacker->unregister_npc.end(), this)
+		);
 	}
 
 	this->damagelist.clear();
@@ -910,7 +913,7 @@ void NPC::Die(bool show)
 		builder.AddInt(0); // dropped item amount
 		builder.AddThree(this->hp); // damage
 
-		UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+		UTIL_FOREACH(this->map->characters, character)
 		{
 			if (character->InRange(this))
 			{
@@ -927,7 +930,7 @@ void NPC::Attack(Character *target)
 	// Checks if target is facing you
 	bool critical = std::abs(int(target->direction) - this->direction) != 2 || rand < static_cast<double>(this->map->world->config["CriticalRate"]);
 
-	STD_TR1::unordered_map<std::string, double> formula_vars;
+	std::unordered_map<std::string, double> formula_vars;
 
 	this->FormulaVars(formula_vars);
 	target->FormulaVars(formula_vars, "target_");
@@ -995,9 +998,9 @@ void NPC::Attack(Character *target)
 	builder.AddByte(255);
 	builder.AddByte(255);
 
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
-		if (*character == target || !character->InRange(target))
+		if (character == target || !character->InRange(target))
 		{
 			continue;
 		}
@@ -1047,7 +1050,7 @@ void NPC::Attack(Character *target)
 #define vv(x, n) vars[prefix + n] = x;
 #define vd(x) vars[prefix + #x] = data->x;
 
-void NPC::FormulaVars(STD_TR1::unordered_map<std::string, double> &vars, std::string prefix)
+void NPC::FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix)
 {
 	ENF_Data *data = this->Data();
 	vv(1, "npc") v(hp) vv(data->hp, "maxhp")
@@ -1061,7 +1064,7 @@ void NPC::FormulaVars(STD_TR1::unordered_map<std::string, double> &vars, std::st
 
 NPC::~NPC()
 {
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
 		if (character->npc == this)
 		{

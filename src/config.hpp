@@ -11,7 +11,7 @@
 
 #include <cstddef>
 #include <string>
-#include <tr1/unordered_map>
+#include <unordered_map>
 
 #include "util.hpp"
 
@@ -19,7 +19,7 @@
  * Reads configuration data from a file.
  * Does not support sections in files (they're usually ignored).
  */
-class Config : public STD_TR1::unordered_map<std::string, util::variant>
+class Config : public std::unordered_map<std::string, util::variant>
 {
 	protected:
 		/**
@@ -50,14 +50,6 @@ class Config : public STD_TR1::unordered_map<std::string, util::variant>
 		 * @param filename File to read from.
 		 */
 		void Read(std::string filename);
-
-	static Config *ScriptFactory1(std::string filename) { return new Config(filename); }
-
-	SCRIPT_REGISTER_REF_DF(Config)
-		SCRIPT_REGISTER_FACTORY("Config @f(string filename)", ScriptFactory1);
-
-		SCRIPT_REGISTER_FUNCTION("void Read(string filename)", Read);
-	SCRIPT_REGISTER_END()
 };
 
 #endif // CONFIG_HPP_INCLUDED

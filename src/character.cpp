@@ -6,6 +6,10 @@
 
 #include "character.hpp"
 
+#include <list>
+
+#include "util.hpp"
+
 #include "arena.hpp"
 #include "console.hpp"
 #include "database.hpp"
@@ -19,11 +23,11 @@
 #include "world.hpp"
 
 // TODO: Clean up these functions
-std::string ItemSerialize(const PtrList<Character_Item> &list)
+std::string ItemSerialize(const std::list<Character_Item> &list)
 {
 	std::string serialized;
 
-	for (PtrList<Character_Item>::ConstIterator it(list); it; ++it)
+	for (std::list<Character_Item>::const_iterator it = list.begin(); it != list.end(); ++it)
 	{
 		serialized.append(util::to_string(it->id));
 		serialized.append(",");
@@ -34,9 +38,9 @@ std::string ItemSerialize(const PtrList<Character_Item> &list)
 	return serialized;
 }
 
-PtrList<Character_Item> ItemUnserialize(std::string serialized)
+std::list<Character_Item> ItemUnserialize(std::string serialized)
 {
-	PtrList<Character_Item> list;
+	std::list<Character_Item> list;
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 
@@ -56,12 +60,11 @@ PtrList<Character_Item> ItemUnserialize(std::string serialized)
 			continue;
 		}
 
-		Character_Item *newitem = new Character_Item;
-		newitem->id = util::to_int(part.substr(0, pp));
-		newitem->amount = util::to_int(part.substr(pp+1));
+		Character_Item newitem;
+		newitem.id = util::to_int(part.substr(0, pp));
+		newitem.amount = util::to_int(part.substr(pp+1));
 
 		list.push_back(newitem);
-		newitem->Release();
 
 		lastp = p;
 	}
@@ -69,22 +72,22 @@ PtrList<Character_Item> ItemUnserialize(std::string serialized)
 	return list;
 }
 
-std::string DollSerialize(STD_TR1::array<int, 15> list)
+std::string DollSerialize(const std::array<int, 15> &list)
 {
 	std::string serialized;
 
-	UTIL_ARRAY_FOREACH_ALL(list, int, 15, item)
+	for (std::array<int, 15>::const_iterator it = list.begin(); it != list.end(); ++it)
 	{
-		serialized.append(util::to_string(item));
+		serialized.append(util::to_string(*it));
 		serialized.append(",");
 	}
 
 	return serialized;
 }
 
-STD_TR1::array<int, 15> DollUnserialize(std::string serialized)
+std::array<int, 15> DollUnserialize(std::string serialized)
 {
-	STD_TR1::array<int, 15> list;
+	std::array<int, 15> list;
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	int i = 0;
@@ -103,7 +106,7 @@ STD_TR1::array<int, 15> DollUnserialize(std::string serialized)
 	return list;
 }
 
-template <typename T> T GetRow(STD_TR1::unordered_map<std::string, util::variant> &row, const char *col)
+template <typename T> T GetRow(std::unordered_map<std::string, util::variant> &row, const char *col)
 {
 	return row[col];
 }
@@ -116,7 +119,7 @@ Character::Character(std::string name, World *world)
 	"`map`, `x`, `y`, `direction`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
 	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` FROM `characters` "
 	"WHERE `name` = '$'", name.c_str());
-	STD_TR1::unordered_map<std::string, util::variant> row = res.front();
+	std::unordered_map<std::string, util::variant> row = res.front();
 
 	this->login_time = std::time(0);
 
@@ -219,7 +222,6 @@ Character::Character(std::string name, World *world)
 	}
 	else
 	{
-		this->guild = 0;
 		this->guild_rank = 0;
 	}
 
@@ -307,9 +309,9 @@ void Character::Effect(int effect, bool echo)
 	builder.AddShort(this->player->id);
 	builder.AddThree(effect);
 
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
-		if (!echo && (*character == this || !this->InRange(*character)))
+		if (!echo && (character == this || !this->InRange(character)))
 		{
 			continue;
 		}
@@ -320,25 +322,25 @@ void Character::Effect(int effect, bool echo)
 
 int Character::HasItem(short item)
 {
-	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, it)
+	UTIL_FOREACH(this->inventory, character_item)
 	{
-		if (it->id == item)
+		if (character_item.id == item)
 		{
 			if (this->trading)
 			{
-				UTIL_PTR_LIST_FOREACH(this->trade_inventory, Character_Item, tit)
+				UTIL_FOREACH(this->trade_inventory, trade_item)
 				{
-					if (tit->id == item)
+					if (trade_item.id == item)
 					{
-						return std::max(it->amount - tit->amount, 0);
+						return std::max(character_item.amount - trade_item.amount, 0);
 					}
 				}
 
-				return it->amount;
+				return character_item.amount;
 			}
 			else
 			{
-				return it->amount;
+				return character_item.amount;
 			}
 		}
 	}
@@ -358,30 +360,33 @@ bool Character::AddItem(short item, int amount)
 		return false;
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, it)
+	UTIL_FOREACH(this->inventory, character_item)
 	{
-		if (it->id == item)
+		if (character_item.id == item)
 		{
-			if (it->amount + amount < 0)
+			if (character_item.amount + amount < 0)
 			{
 				return false;
 			}
-			it->amount += amount;
 
-			it->amount = std::min<int>(it->amount, this->world->config["MaxItem"]);
+			character_item.amount += amount;
+
+			character_item.amount = std::min<int>(character_item.amount, this->world->config["MaxItem"]);
 
 			this->CalculateStats();
+
 			return true;
 		}
 	}
 
-	Character_Item *newitem = new Character_Item;
-	newitem->id = item;
-	newitem->amount = amount;
+	Character_Item newitem;
+	newitem.id = item;
+	newitem.amount = amount;
 
 	this->inventory.push_back(newitem);
-	newitem->Release();
+
 	this->CalculateStats();
+
 	return true;
 }
 
@@ -392,7 +397,7 @@ bool Character::DelItem(short item, int amount)
 		return false;
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, it)
+	UTIL_IFOREACH(this->inventory, it)
 	{
 		if (it->id == item)
 		{
@@ -413,23 +418,26 @@ bool Character::DelItem(short item, int amount)
 	return false;
 }
 
-void Character::DelItem(PtrList<Character_Item>::Iterator &it, int amount)
+std::list<Character_Item>::iterator Character::DelItem(std::list<Character_Item>::iterator it, int amount)
 {
 	if (amount <= 0)
 	{
-		return;
+		return ++it;
 	}
 
 	if (it->amount < 0 || it->amount - amount <= 0)
 	{
-		this->inventory.erase(it);
+		it = this->inventory.erase(it);
 	}
 	else
 	{
 		it->amount -= amount;
+		++it;
 	}
 
 	this->CalculateStats();
+
+	return it;
 }
 
 bool Character::AddTradeItem(short item, int amount)
@@ -451,27 +459,27 @@ bool Character::AddTradeItem(short item, int amount)
 		return false;
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->trade_inventory, Character_Item, it)
+	UTIL_FOREACH(this->trade_inventory, character_item)
 	{
-		if (it->id == item)
+		if (character_item.id == item)
 		{
-			it->amount += amount;
+			character_item.amount += amount;
 			return true;
 		}
 	}
 
-	Character_Item *newitem = new Character_Item;
-	newitem->id = item;
-	newitem->amount = amount;
+	Character_Item newitem;
+	newitem.id = item;
+	newitem.amount = amount;
 
 	this->trade_inventory.push_back(newitem);
-	newitem->Release();
+
 	return true;
 }
 
 bool Character::DelTradeItem(short item)
 {
-	for (PtrList<Character_Item>::Iterator it(this->trade_inventory); it; ++it)
+	for (std::list<Character_Item>::iterator it = this->trade_inventory.begin(); it != this->trade_inventory.end(); ++it)
 	{
 		if (it->id == item)
 		{
@@ -699,31 +707,31 @@ void Character::Refresh()
 {
 	PacketBuilder builder;
 
-	PtrVector<Character> updatecharacters;
-	PtrVector<NPC> updatenpcs;
-	PtrVector<Map_Item> updateitems;
+	std::vector<Character *> updatecharacters;
+	std::vector<NPC *> updatenpcs;
+	std::vector<Map_Item *> updateitems;
 
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
-		if (this->InRange(*character))
+		if (this->InRange(character))
 		{
-			updatecharacters.push_back(*character);
+			updatecharacters.push_back(character);
 		}
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(this->map->npcs, NPC, npc)
+	UTIL_FOREACH(this->map->npcs, npc)
 	{
-		if (this->InRange(*npc))
+		if (this->InRange(npc))
 		{
-			updatenpcs.push_back(*npc);
+			updatenpcs.push_back(npc);
 		}
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->map->items, Map_Item, item)
+	UTIL_FOREACH(this->map->items, item)
 	{
-		if (this->InRange(*item))
+		if (this->InRange(item))
 		{
-			updateitems.push_back(*item);
+			updateitems.push_back(item);
 		}
 	}
 
@@ -731,7 +739,7 @@ void Character::Refresh()
 	builder.AddChar(updatecharacters.size()); // Number of players
 	builder.AddByte(255);
 
-	UTIL_PTR_VECTOR_FOREACH(updatecharacters, Character, character)
+	UTIL_FOREACH(updatecharacters, character)
 	{
 		builder.AddBreakString(character->name);
 		builder.AddShort(character->player->id);
@@ -765,7 +773,7 @@ void Character::Refresh()
 		builder.AddByte(255);
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(updatenpcs, NPC, npc)
+	UTIL_FOREACH(updatenpcs, npc)
 	{
 		if (npc->alive)
 		{
@@ -779,7 +787,7 @@ void Character::Refresh()
 
 	builder.AddByte(255);
 
-	UTIL_PTR_VECTOR_FOREACH(updateitems, Map_Item, item)
+	UTIL_FOREACH(updateitems, item)
 	{
 		builder.AddShort(item->uid);
 		builder.AddShort(item->id);
@@ -805,7 +813,7 @@ void Character::ShowBoard(Board *board)
 	int post_count = 0;
 	int recent_post_count = 0;
 
-	UTIL_PTR_LIST_FOREACH(board->posts, Board_Post, post)
+	UTIL_FOREACH(board->posts, post)
 	{
 		if (post->author == this->player->character->name)
 		{
@@ -820,7 +828,7 @@ void Character::ShowBoard(Board *board)
 
 	int posts_remaining = std::min(static_cast<int>(this->world->config["BoardMaxUserPosts"]) - post_count, static_cast<int>(this->world->config["BoardMaxUserRecentPosts"]) - recent_post_count);
 
-	UTIL_PTR_LIST_FOREACH(board->posts, Board_Post, post)
+	UTIL_FOREACH(board->posts, post)
 	{
 		builder.AddShort(post->id);
 		builder.AddByte(255);
@@ -918,9 +926,9 @@ void Character::CalculateStats()
 	this->armor = 0;
 	this->maxsp = 0;
 
-	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, item)
+	UTIL_FOREACH(this->inventory, item)
 	{
-		this->weight += this->world->eif->Get(item->id)->weight * item->amount;
+		this->weight += this->world->eif->Get(item.id)->weight * item.amount;
 
 		if (this->weight >= 250)
 		{
@@ -928,7 +936,7 @@ void Character::CalculateStats()
 		}
 	}
 
-	UTIL_ARRAY_FOREACH_ALL(this->paperdoll, int, 15, i)
+	UTIL_FOREACH(this->paperdoll, i)
 	{
 		if (i)
 		{
@@ -972,16 +980,14 @@ void Character::CalculateStats()
 
 void Character::DropAll(Character *killer)
 {
-	// TODO: This could be more efficient
-	restart_loop:
-	UTIL_PTR_LIST_FOREACH(this->inventory, Character_Item, item)
+	for (std::list<Character_Item>::iterator it = this->inventory.begin(); it != this->inventory.end(); ++it)
 	{
-		if (this->world->eif->Get(item->id)->special == EIF::Lore)
+		if (this->world->eif->Get(it->id)->special == EIF::Lore)
 		{
 			continue;
 		}
 
-		Map_Item *map_item = this->player->character->map->AddItem(item->id, item->amount, this->x, this->y, 0);
+		Map_Item *map_item = this->player->character->map->AddItem(it->id, it->amount, this->x, this->y, 0);
 
 		if (map_item)
 		{
@@ -997,8 +1003,8 @@ void Character::DropAll(Character *killer)
 			}
 
 			PacketBuilder builder(PACKET_ITEM, PACKET_DROP);
-			builder.AddShort(item->id);
-			builder.AddThree(item->amount);
+			builder.AddShort(it->id);
+			builder.AddThree(it->amount);
 			builder.AddInt(0);
 			builder.AddShort(map_item->uid);
 			builder.AddChar(this->x);
@@ -1008,12 +1014,11 @@ void Character::DropAll(Character *killer)
 			this->player->client->SendBuilder(builder);
 		}
 
-		this->DelItem(item, item->amount);
-		goto restart_loop;
+		it = this->DelItem(it, it->amount);
 	}
 
 	int i = 0;
-	UTIL_ARRAY_FOREACH_ALL(this->paperdoll, int, 15, id)
+	UTIL_FOREACH(this->paperdoll, id)
 	{
 		if (id == 0 || this->world->eif->Get(id)->special == EIF::Lore || this->world->eif->Get(id)->special == EIF::Cursed)
 		{
@@ -1097,7 +1102,7 @@ void Character::Hide()
 	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REMOVE);
 	builder.AddShort(this->player->id);
 
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
@@ -1110,7 +1115,7 @@ void Character::Unhide()
 	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_AGREE);
 	builder.AddShort(this->player->id);
 
-	UTIL_PTR_LIST_FOREACH(this->map->characters, Character, character)
+	UTIL_FOREACH(this->map->characters, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
@@ -1119,7 +1124,7 @@ void Character::Unhide()
 #define v(x) vars[prefix + #x] = x;
 #define vv(x, n) vars[prefix + n] = x;
 
-void Character::FormulaVars(STD_TR1::unordered_map<std::string, double> &vars, std::string prefix)
+void Character::FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix)
 {
 	v(level) v(exp) v(hp) v(maxhp) v(tp) v(maxtp) v(maxsp)
 	v(weight) v(maxweight) v(karma) v(mindam) v(maxdam)
@@ -1134,12 +1139,6 @@ void Character::Logout()
 {
 	if (!this->online)
 	{
-		if (this->guild)
-		{
-			this->guild->Release();
-			this->guild = 0;
-		}
-
 		return;
 	}
 
@@ -1173,14 +1172,14 @@ void Character::Logout()
 		--this->arena->occupants;
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->unregister_npc, NPC, npc)
+	UTIL_FOREACH(this->unregister_npc, npc)
 	{
-		UTIL_PTR_LIST_FOREACH(npc->damagelist, NPC_Opponent, checkopp)
+		UTIL_IFOREACH(npc->damagelist, it)
 		{
-			if (checkopp->attacker == this)
+			if ((*it)->attacker == this)
 			{
-				npc->totaldamage -= checkopp->damage;
-				npc->damagelist.erase(checkopp);
+				npc->totaldamage -= (*it)->damage;
+				npc->damagelist.erase(it);
 				break;
 			}
 		}

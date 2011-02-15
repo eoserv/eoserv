@@ -110,122 +110,13 @@
 					<Add library="sqlite3" />
 				</Linker>
 			</Target>
-			<Target title="NOSCRIPT+DEBUG+MYSQL+SQLITE">
-				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
-				<Option working_dir=".." />
-				<Option object_output="..\obj\Debug\" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-g" />
-					<Add option="-D_GLIBCXX_DEBUG" />
-					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
-					<Add option="-DDEBUG" />
-					<Add option="-DDATABASE_DEBUG" />
-					<Add option="-DDATABASE_MYSQL" />
-					<Add option="-DDATABASE_SQLITE" />
-					<Add option="-DNOSCRIPT" />
-				</Compiler>
-				<Linker>
-					<Add library="mysql" />
-					<Add library="sqlite3" />
-				</Linker>
-			</Target>
-			<Target title="NOSCRIPT+DEBUG+MYSQL">
-				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
-				<Option working_dir=".." />
-				<Option object_output="..\obj\Debug\" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-g" />
-					<Add option="-D_GLIBCXX_DEBUG" />
-					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
-					<Add option="-DDEBUG" />
-					<Add option="-DDATABASE_DEBUG" />
-					<Add option="-DDATABASE_MYSQL" />
-					<Add option="-DNOSCRIPT" />
-				</Compiler>
-				<Linker>
-					<Add library="mysql" />
-				</Linker>
-			</Target>
-			<Target title="NOSCRIPT+DEBUG+SQLITE">
-				<Option output="..\eoserv-debug" prefix_auto="1" extension_auto="1" />
-				<Option working_dir=".." />
-				<Option object_output="..\obj\Debug\" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-g" />
-					<Add option="-D_GLIBCXX_DEBUG" />
-					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
-					<Add option="-DDEBUG" />
-					<Add option="-DDATABASE_DEBUG" />
-					<Add option="-DDATABASE_SQLITE" />
-					<Add option="-DNOSCRIPT" />
-				</Compiler>
-				<Linker>
-					<Add library="sqlite3" />
-				</Linker>
-			</Target>
-			<Target title="NOSCRIPT+MYSQL+SQLITE">
-				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
-				<Option working_dir=".." />
-				<Option object_output="..\obj\Release\" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O3" />
-					<Add option="-DDATABASE_MYSQL" />
-					<Add option="-DDATABASE_SQLITE" />
-					<Add option="-DNOSCRIPT" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-					<Add library="mysql" />
-					<Add library="sqlite3" />
-				</Linker>
-			</Target>
-			<Target title="NOSCRIPT+MYSQL">
-				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
-				<Option working_dir=".." />
-				<Option object_output="..\obj\Release\" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O3" />
-					<Add option="-DDATABASE_MYSQL" />
-					<Add option="-DNOSCRIPT" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-					<Add library="mysql" />
-				</Linker>
-			</Target>
-			<Target title="NOSCRIPT+SQLITE">
-				<Option output="..\eoserv" prefix_auto="1" extension_auto="1" />
-				<Option working_dir=".." />
-				<Option object_output="..\obj\Release\" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O3" />
-					<Add option="-DDATABASE_SQLITE" />
-					<Add option="-DNOSCRIPT" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-					<Add library="sqlite3" />
-				</Linker>
-			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=gnu++0x" />
 			<Add option="-include stdafx.h" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
-			<Add option="-DSTD_TR1=std::tr1" />
 			<Add directory="..\src\" />
 		</Compiler>
 		<Linker>
@@ -244,19 +135,11 @@
 		<Unit filename="..\src\config.hpp" />
 		<Unit filename="..\src\console.cpp" />
 		<Unit filename="..\src\console.hpp" />
-		<Unit filename="..\src\container\algorithm.hpp" />
-		<Unit filename="..\src\container\container.hpp" />
-		<Unit filename="..\src\container\iterator.hpp" />
-		<Unit filename="..\src\container\ptr_list.cpp" />
-		<Unit filename="..\src\container\ptr_list.hpp" />
-		<Unit filename="..\src\container\ptr_vector.cpp" />
-		<Unit filename="..\src\container\ptr_vector.hpp" />
 		<Unit filename="..\src\database.cpp" />
 		<Unit filename="..\src\database.hpp" />
 		<Unit filename="..\src\database_impl.hpp" />
 		<Unit filename="..\src\eoclient.cpp" />
 		<Unit filename="..\src\eoclient.hpp" />
-		<Unit filename="..\src\eoconst.hpp" />
 		<Unit filename="..\src\eodata.cpp" />
 		<Unit filename="..\src\eodata.hpp" />
 		<Unit filename="..\src\eoserver.cpp" />
@@ -325,8 +208,6 @@
 		</Unit>
 		<Unit filename="..\src\hash.cpp" />
 		<Unit filename="..\src\hash.hpp" />
-		<Unit filename="..\src\hook.cpp" />
-		<Unit filename="..\src\hook.hpp" />
 		<Unit filename="..\src\main.cpp" />
 		<Unit filename="..\src\map.cpp" />
 		<Unit filename="..\src\map.hpp" />
@@ -340,16 +221,10 @@
 		<Unit filename="..\src\party.hpp" />
 		<Unit filename="..\src\player.cpp" />
 		<Unit filename="..\src\player.hpp" />
-		<Unit filename="..\src\script.cpp" />
-		<Unit filename="..\src\script.hpp" />
-		<Unit filename="..\src\scriptreg.cpp" />
-		<Unit filename="..\src\scriptreg.hpp" />
 		<Unit filename="..\src\sha256.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\sha256.h" />
-		<Unit filename="..\src\shared.cpp" />
-		<Unit filename="..\src\shared.hpp" />
 		<Unit filename="..\src\sln.cpp" />
 		<Unit filename="..\src\sln.hpp" />
 		<Unit filename="..\src\socket.cpp" />
@@ -369,6 +244,15 @@
 			<code_completion />
 			<envvars />
 			<debugger />
+			<DoxyBlocks>
+				<comment_style block="0" line="0" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

@@ -9,30 +9,22 @@
 
 #include "fwd/arena.hpp"
 
+#include <vector>
+
 #include "fwd/timer.hpp"
-#include "container/ptr_vector.hpp"
-#include "script.hpp"
-#include "shared.hpp"
 
 #include "fwd/character.hpp"
 #include "fwd/map.hpp"
 
-struct Arena_Spawn : public Shared
+struct Arena_Spawn
 {
 	unsigned char sx;
 	unsigned char sy;
 	unsigned char dx;
 	unsigned char dy;
-
-	SCRIPT_REGISTER_REF_DF(Arena_Spawn)
-		SCRIPT_REGISTER_VARIABLE("uint8", sx);
-		SCRIPT_REGISTER_VARIABLE("uint8", sy);
-		SCRIPT_REGISTER_VARIABLE("uint8", dx);
-		SCRIPT_REGISTER_VARIABLE("uint8", dy);
-	SCRIPT_REGISTER_END()
 };
 
-class Arena : public Shared
+class Arena
 {
 	public:
 		int occupants;
@@ -41,7 +33,7 @@ class Arena : public Shared
 
 		TimeEvent *spawn_timer;
 		Map *map;
-		PtrVector<Arena_Spawn> spawns;
+		std::vector<Arena_Spawn *> spawns;
 
 		Arena(Map *map, int time, int block);
 
@@ -50,17 +42,6 @@ class Arena : public Shared
 		void Attack(Character *from, Direction);
 
 		~Arena();
-
-	SCRIPT_REGISTER_REF(Arena)
-		SCRIPT_REGISTER_VARIABLE("int", occupants);
-		SCRIPT_REGISTER_VARIABLE("int", time);
-		SCRIPT_REGISTER_VARIABLE("int", block);
-		SCRIPT_REGISTER_VARIABLE("TimeEvent @", spawn_timer);
-		SCRIPT_REGISTER_VARIABLE("Map @", map);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<Arena_Spawn>", spawns);
-		SCRIPT_REGISTER_FUNCTION("void Spawn(bool force)", Spawn);
-		SCRIPT_REGISTER_FUNCTION("void Attack(Character @from, Direction)", Spawn);
-	SCRIPT_REGISTER_END()
 };
 
 #endif // ARENA_HPP_INCLUDED

@@ -101,7 +101,7 @@ void Timer::Tick()
 	}
 
 	std::set<TimeEvent *> container = this->execlist;
-	UTIL_SET_FOREACH_ALL(this->execlist, TimeEvent *, timer)
+	UTIL_FOREACH(this->execlist, timer)
 	{
 		if (timer->lasttime + timer->speed < currenttime)
 		{
@@ -132,21 +132,19 @@ void Timer::Register(TimeEvent *timer)
 
 	timer->lasttime = Timer::GetTime();
 	this->timers.insert(timer);
-	timer->AddRef();
 }
 
 void Timer::Unregister(TimeEvent *timer)
 {
 	this->changed = true;
 	this->timers.erase(timer);
-	timer->Release();
 }
 
 Timer::~Timer()
 {
-	UTIL_SET_FOREACH_ALL(this->timers, TimeEvent *, timer)
+	UTIL_FOREACH(this->timers, timer)
 	{
-		timer->Release();
+		delete timer;
 	}
 #ifdef WIN32
 	if (rres != 0)

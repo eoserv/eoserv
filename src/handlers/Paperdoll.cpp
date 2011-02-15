@@ -41,7 +41,8 @@ CLIENT_F_FUNC(Paperdoll)
 			reply.AddChar(character->clas);
 			reply.AddChar(character->gender);
 			reply.AddChar(0);
-			UTIL_ARRAY_FOREACH_ALL(character->paperdoll, int, 15, item)
+
+			UTIL_FOREACH(character->paperdoll, item)
 			{
 				reply.AddShort(item);
 			}
@@ -137,9 +138,9 @@ CLIENT_F_FUNC(Paperdoll)
 			builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
 			builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
-			UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+			UTIL_FOREACH(this->player->character->map->characters, character)
 			{
-				if (*character == this->player->character || !this->player->character->InRange(*character))
+				if (character == this->player->character || !this->player->character->InRange(character))
 				{
 					continue;
 				}
@@ -200,9 +201,9 @@ CLIENT_F_FUNC(Paperdoll)
 			builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
 			builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
 
-			UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+			UTIL_FOREACH(this->player->character->map->characters, character)
 			{
-				if (*character == this->player->character || !this->player->character->InRange(*character))
+				if (character == this->player->character || !this->player->character->InRange(character))
 				{
 					continue;
 				}

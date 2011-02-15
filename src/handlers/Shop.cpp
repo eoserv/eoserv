@@ -28,13 +28,13 @@ CLIENT_F_FUNC(Shop)
 
 			if (this->player->character->npc_type == ENF::Shop)
 			{
-				UTIL_PTR_VECTOR_FOREACH(this->player->character->npc->shop_craft, NPC_Shop_Craft_Item, checkitem)
+				UTIL_FOREACH(this->player->character->npc->shop_craft, checkitem)
 				{
 					if (checkitem->id == item)
 					{
 						bool hasitems = true;
 
-						UTIL_PTR_VECTOR_FOREACH(checkitem->ingredients, NPC_Shop_Craft_Ingredient, ingredient)
+						UTIL_FOREACH(checkitem->ingredients, ingredient)
 						{
 							if (this->player->character->HasItem(ingredient->id) < ingredient->amount)
 							{
@@ -48,7 +48,7 @@ CLIENT_F_FUNC(Shop)
 							reply.AddShort(item);
 							reply.AddChar(this->player->character->weight);
 							reply.AddChar(this->player->character->maxweight);
-							UTIL_PTR_VECTOR_FOREACH(checkitem->ingredients, NPC_Shop_Craft_Ingredient, ingredient)
+							UTIL_FOREACH(checkitem->ingredients, ingredient)
 							{
 								this->player->character->DelItem(ingredient->id, ingredient->amount);
 								reply.AddShort(ingredient->id);
@@ -75,7 +75,7 @@ CLIENT_F_FUNC(Shop)
 
 			if (this->player->character->npc_type == ENF::Shop)
 			{
-				UTIL_PTR_VECTOR_FOREACH(this->player->character->npc->shop_trade, NPC_Shop_Trade_Item, checkitem)
+				UTIL_FOREACH(this->player->character->npc->shop_trade, checkitem)
 				{
 					int cost = amount * checkitem->buy;
 
@@ -112,7 +112,7 @@ CLIENT_F_FUNC(Shop)
 
 			if (this->player->character->npc_type == ENF::Shop)
 			{
-				UTIL_PTR_VECTOR_FOREACH(this->player->character->npc->shop_trade, NPC_Shop_Trade_Item, checkitem)
+				UTIL_FOREACH(this->player->character->npc->shop_trade, checkitem)
 				{
 					if (checkitem->id == item && checkitem->sell != 0 && this->player->character->HasItem(item) >= amount)
 					{
@@ -141,18 +141,18 @@ CLIENT_F_FUNC(Shop)
 
 			short id = reader.GetShort();
 
-			UTIL_PTR_VECTOR_FOREACH(this->player->character->map->npcs, NPC, npc)
+			UTIL_FOREACH(this->player->character->map->npcs, npc)
 			{
 				if (npc->index == id && (npc->shop_trade.size() > 0 || npc->shop_craft.size() > 0))
 				{
-					this->player->character->npc = *npc;
+					this->player->character->npc = npc;
 					this->player->character->npc_type = ENF::Shop;
 
 					reply.SetID(PACKET_SHOP, PACKET_OPEN);
 					reply.AddShort(npc->id);
 					reply.AddBreakString(npc->shop_name.c_str());
 
-					UTIL_PTR_VECTOR_FOREACH(npc->shop_trade, NPC_Shop_Trade_Item, item)
+					UTIL_FOREACH(npc->shop_trade, item)
 					{
 						reply.AddShort(item->id);
 						reply.AddThree(item->buy);
@@ -161,7 +161,7 @@ CLIENT_F_FUNC(Shop)
 					}
 					reply.AddByte(255);
 
-					UTIL_PTR_VECTOR_FOREACH(npc->shop_craft, NPC_Shop_Craft_Item, item)
+					UTIL_FOREACH(npc->shop_craft, item)
 					{
 						std::size_t i = 0;
 

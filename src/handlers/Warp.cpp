@@ -6,6 +6,8 @@
 
 #include "handlers.h"
 
+#include <vector>
+
 #include "character.hpp"
 #include "console.hpp"
 #include "eodata.hpp"
@@ -36,31 +38,31 @@ CLIENT_F_FUNC(Warp)
 				return true;
 			}
 
-			PtrVector<Character> updatecharacters;
-			PtrVector<NPC> updatenpcs;
-			PtrVector<Map_Item> updateitems;
+			std::vector<Character *> updatecharacters;
+			std::vector<NPC *> updatenpcs;
+			std::vector<Map_Item *> updateitems;
 
-			UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+			UTIL_FOREACH(this->player->character->map->characters, character)
 			{
-				if (this->player->character->InRange(*character))
+				if (this->player->character->InRange(character))
 				{
-					updatecharacters.push_back(*character);
+					updatecharacters.push_back(character);
 				}
 			}
 
-			UTIL_PTR_VECTOR_FOREACH(this->player->character->map->npcs, NPC, npc)
+			UTIL_FOREACH(this->player->character->map->npcs, npc)
 			{
-				if (this->player->character->InRange(*npc))
+				if (this->player->character->InRange(npc))
 				{
-					updatenpcs.push_back(*npc);
+					updatenpcs.push_back(npc);
 				}
 			}
 
-			UTIL_PTR_LIST_FOREACH(this->player->character->map->items, Map_Item, item)
+			UTIL_FOREACH(this->player->character->map->items, item)
 			{
-				if (this->player->character->InRange(*item))
+				if (this->player->character->InRange(item))
 				{
-					updateitems.push_back(*item);
+					updateitems.push_back(item);
 				}
 			}
 
@@ -70,7 +72,7 @@ CLIENT_F_FUNC(Warp)
 			reply.AddChar(anim);
 			reply.AddChar(updatecharacters.size());
 			reply.AddByte(255);
-			UTIL_PTR_VECTOR_FOREACH(updatecharacters, Character, character)
+			UTIL_FOREACH(updatecharacters, character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddShort(character->player->id);
@@ -103,7 +105,7 @@ CLIENT_F_FUNC(Warp)
 				reply.AddChar(character->hidden);
 				reply.AddByte(255);
 			}
-			UTIL_PTR_VECTOR_FOREACH(updatenpcs, NPC, npc)
+			UTIL_FOREACH(updatenpcs, npc)
 			{
 				if (npc->alive)
 				{
@@ -115,7 +117,7 @@ CLIENT_F_FUNC(Warp)
 				}
 			}
 			reply.AddByte(255);
-			UTIL_PTR_VECTOR_FOREACH(updateitems, Map_Item, item)
+			UTIL_FOREACH(updateitems, item)
 			{
 				reply.AddShort(item->uid);
 				reply.AddShort(item->id);
@@ -133,7 +135,7 @@ CLIENT_F_FUNC(Warp)
 			if (this->state < EOClient::PlayingModal) return false;
 
 			char mapbuf[6] = {0};
-			std::sprintf(mapbuf, "%05i", std::abs(this->player->character->mapid));
+			std::sprintf(mapbuf, "%05i", int(std::abs(this->player->character->mapid)));
 			std::string filename = this->server()->world->config["MapDir"];
 			std::string content;
 			std::FILE *fh;

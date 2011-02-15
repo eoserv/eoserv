@@ -585,9 +585,9 @@ Client *Server::Poll()
 }
 
 #if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
-PtrVector<Client> *Server::Select(double timeout)
+std::vector<Client *> *Server::Select(double timeout)
 {
-	static PtrVector<Client> selected;
+	static std::vector<Client *> selected;
 	std::vector<pollfd> fds;
 	int result;
 	pollfd fd;
@@ -598,7 +598,7 @@ PtrVector<Client> *Server::Select(double timeout)
 	fd.events = POLLERR;
 	fds.push_back(fd);
 
-	UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+	UTIL_FOREACH(this->clients, client)
 	{
 		fd.fd = client->impl->sock;
 
@@ -632,7 +632,7 @@ PtrVector<Client> *Server::Select(double timeout)
 		}
 
 		int i = 0;
-		UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+		UTIL_FOREACH(this->clients, client)
 		{
 			++i;
 			if (fds[i].revents & POLLERR || fds[i].revents & POLLHUP || fds[i].revents & POLLNVAL)
@@ -675,7 +675,7 @@ PtrVector<Client> *Server::Select(double timeout)
 		}
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+	UTIL_FOREACH(this->clients, client)
 	{
 		if (client->connected || client->recv_buffer.length() > 0)
 		{
@@ -686,11 +686,11 @@ PtrVector<Client> *Server::Select(double timeout)
 	return &selected;
 }
 #else // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
-PtrVector<Client> *Server::Select(double timeout)
+std::vector<Client *> *Server::Select(double timeout)
 {
 	long tsecs = long(timeout);
 	timeval timeout_val = {tsecs, long((timeout - double(tsecs))*1000000)};
-	static PtrVector<Client> selected;
+	static std::vector<Client *> selected;
 	SOCKET nfds = this->impl->sock;
 	int result;
 
@@ -698,7 +698,7 @@ PtrVector<Client> *Server::Select(double timeout)
 	FD_ZERO(&this->impl->write_fds);
 	FD_ZERO(&this->impl->except_fds);
 
-	UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+	UTIL_FOREACH(this->clients, client)
 	{
 		if (client->recv_buffer.length() < client->recv_buffer_max)
 		{
@@ -734,7 +734,7 @@ PtrVector<Client> *Server::Select(double timeout)
 			throw Socket_Exception("There was an exception on the listening socket.");
 		}
 
-		UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+		UTIL_FOREACH(this->clients, client)
 		{
 			if (FD_ISSET(client->impl->sock, &this->impl->except_fds))
 			{
@@ -776,11 +776,11 @@ PtrVector<Client> *Server::Select(double timeout)
 		}
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->clients, Client, client)
+	UTIL_FOREACH(this->clients, client)
 	{
 		if (client->recv_buffer.length() > 0)
 		{
-			selected.push_back(*client);
+			selected.push_back(client);
 		}
 	}
 
@@ -790,16 +790,22 @@ PtrVector<Client> *Server::Select(double timeout)
 
 void Server::BuryTheDead()
 {
-	UTIL_PTR_LIST_FOREACH(this->clients, Client, it)
+	// TODO: Optimize
+	restart_loop:
+	UTIL_IFOREACH(this->clients, it)
 	{
-		if (!it->Connected() && ((it->send_buffer.length() == 0 && it->recv_buffer.length() == 0) || it->closed_time + 2 < std::time(0)))
+		Client *client = *it;
+
+		if (!client->Connected() && ((client->send_buffer.length() == 0 && client->recv_buffer.length() == 0) || client->closed_time + 2 < std::time(0)))
 		{
 #if defined(WIN32) || defined(WIN64)
-			closesocket(it->impl->sock);
+			closesocket(client->impl->sock);
 #else // defined(WIN32) || defined(WIN64)
-			close(it->impl->sock);
+			close(client->impl->sock);
 #endif // defined(WIN32) || defined(WIN64)
+			delete client;
 			this->clients.erase(it);
+			goto restart_loop;
 		}
 	}
 }

@@ -24,10 +24,10 @@ static void add_common(PacketBuilder &reply, Character *character, short item, i
 	reply.AddChar(character->weight);
 	reply.AddChar(character->maxweight);
 
-	UTIL_PTR_LIST_FOREACH(character->bank, Character_Item, item)
+	UTIL_FOREACH(character->bank, item)
 	{
-		reply.AddShort(item->id);
-		reply.AddThree(item->amount);
+		reply.AddShort(item.id);
+		reply.AddThree(item.amount);
 	}
 }
 
@@ -56,7 +56,7 @@ CLIENT_F_FUNC(Locker)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
 				{
-					UTIL_PTR_LIST_FOREACH(this->player->character->bank, Character_Item, it)
+					UTIL_IFOREACH(this->player->character->bank, it)
 					{
 						if (it->id == item)
 						{
@@ -82,13 +82,11 @@ CLIENT_F_FUNC(Locker)
 
 					amount = std::min<int>(amount, static_cast<int>(this->server()->world->config["MaxBank"]));
 
-					Character_Item *newitem(new Character_Item);
-
-					newitem->id = item;
-					newitem->amount = amount;
+					Character_Item newitem;
+					newitem.id = item;
+					newitem.amount = amount;
 
 					this->player->character->bank.push_back(newitem);
-					newitem->Release();
 
 					add_common(reply, this->player->character, item, amount);
 					CLIENT_SEND(reply);
@@ -109,7 +107,7 @@ CLIENT_F_FUNC(Locker)
 			{
 				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
 				{
-					UTIL_PTR_LIST_FOREACH(this->player->character->bank, Character_Item, it)
+					UTIL_IFOREACH(this->player->character->bank, it)
 					{
 						if (it->id == item)
 						{
@@ -125,10 +123,10 @@ CLIENT_F_FUNC(Locker)
 
 							this->player->character->bank.erase(it);
 
-							UTIL_PTR_LIST_FOREACH(this->player->character->bank, Character_Item, item)
+							UTIL_FOREACH(this->player->character->bank, item)
 							{
-								reply.AddShort(item->id);
-								reply.AddThree(item->amount);
+								reply.AddShort(item.id);
+								reply.AddThree(item.amount);
 							}
 							CLIENT_SEND(reply);
 
@@ -154,10 +152,10 @@ CLIENT_F_FUNC(Locker)
 					reply.SetID(PACKET_LOCKER, PACKET_OPEN);
 					reply.AddChar(x);
 					reply.AddChar(y);
-					UTIL_PTR_LIST_FOREACH(this->player->character->bank, Character_Item, item)
+					UTIL_FOREACH(this->player->character->bank, item)
 					{
-						reply.AddShort(item->id);
-						reply.AddThree(item->amount);
+						reply.AddShort(item.id);
+						reply.AddThree(item.amount);
 					}
 					CLIENT_SEND(reply);
 				}

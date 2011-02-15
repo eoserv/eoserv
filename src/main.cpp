@@ -6,6 +6,7 @@
 
 #include <csignal>
 #include <cerrno>
+#include <vector>
 
 #include "character.hpp"
 #include "config.hpp"
@@ -22,36 +23,25 @@
 #include "extra/ntservice.hpp"
 #endif // defined(WIN32) || defined(WIN64)
 
+volatile std::sig_atomic_t eoserv_sig_abort = false;
+volatile std::sig_atomic_t eoserv_sig_rehash = false;
 volatile bool eoserv_running = true;
-
-static EOServer *eoserv_rehash_server = 0;
 
 #ifdef SIGHUP
 static void eoserv_rehash(int signal)
 {
-	if (eoserv_rehash_server == 0) return;
-
-	Console::Out("Reloading config");
-	eoserv_rehash_server->world->Rehash();
+	eoserv_rehash = true;
 }
 #endif // SIGHUP
 
 static void eoserv_terminate(int signal)
 {
-	if (eoserv_rehash_server == 0) return;
-
-	Console::Out("Exiting EOSERV");
-
-	eoserv_rehash_server->world->Destroy();
-	eoserv_rehash_server = 0;
-
-	std::exit(0);
+	puts("Terminate");
+	eoserv_sig_abort = true;
 }
 
 static void eoserv_crash(int signal)
 {
-	if (eoserv_rehash_server == 0) return;
-
 	const char *extype = "Unknown error";
 
 	switch (signal)
@@ -66,9 +56,6 @@ static void eoserv_crash(int signal)
 
 	Console::Err("EOSERV is dying! %s", extype);
 
-	eoserv_rehash_server->world->Destroy();
-	eoserv_rehash_server = 0;
-
 #ifdef DEBUG
 	std::signal(signal, SIG_DFL);
 	std::raise(signal);
@@ -78,16 +65,15 @@ static void eoserv_crash(int signal)
 }
 
 #if defined(WIN32) || defined(WIN64)
+HANDLE eoserv_close_event;
+
 static BOOL WINAPI eoserv_win_event_handler(DWORD event)
 {
-	if (eoserv_rehash_server == 0) std::exit(0);
+	eoserv_sig_abort = true;
 
-	Console::Out("Exiting EOSERV");
+	WaitForSingleObject(eoserv_close_event, INFINITE);
 
-	eoserv_rehash_server->world->Destroy();
-	eoserv_rehash_server = 0;
-
-	std::exit(0);
+	return TRUE;
 }
 #endif // defined(WIN32) || defined(WIN64)
 
@@ -203,6 +189,10 @@ int main(int argc, char *argv[])
 	std::signal(SIGILL, eoserv_crash);
 
 #if defined(WIN32) || defined(WIN64)
+	eoserv_close_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	SetConsoleTitle("EOSERV");
+
 	if (!SetConsoleCtrlHandler(static_cast<PHANDLER_ROUTINE>(eoserv_win_event_handler), TRUE))
 	{
 		Console::Err("Could not install Windows console event handler");
@@ -266,11 +256,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "HomeFile"           , "./data/home.ini");
 		eoserv_config_default(config, "MapDir"             , "./data/maps/");
 		eoserv_config_default(config, "Maps"               , 278);
-		eoserv_config_default(config, "ScriptDir"          , "./data/scripts/");
-		eoserv_config_default(config, "ScriptsFile"        , "./data/scripts.txt");
 		eoserv_config_default(config, "ProtectMaps"        , false);
-		eoserv_config_default(config, "ScriptFileAccess"   , true);
-		eoserv_config_default(config, "ScriptMaxExecTime"  , 1500);
 		eoserv_config_default(config, "SLN"                , true);
 		eoserv_config_default(config, "SLNURL"             , "http://eoserv.net/SLN/");
 		eoserv_config_default(config, "SLNSite"            , "");
@@ -388,6 +374,13 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "OldReports"         , false);
 		eoserv_config_default(config, "DoorTimer"          , 3.0);
 		eoserv_config_default(config, "ChatMaxWidth"       , 1500);
+		eoserv_config_default(config, "AccountMinLength"   , 4);
+		eoserv_config_default(config, "AccountMaxLength"   , 16);
+		eoserv_config_default(config, "PasswordMinLength"  , 6);
+		eoserv_config_default(config, "PasswordMaxLength"  , 12);
+		eoserv_config_default(config, "RealNameMaxLength"  , 64);
+		eoserv_config_default(config, "LocationMaxLength"  , 64);
+		eoserv_config_default(config, "EmailMaxLength"     , 64);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
 		eoserv_config_default(config, "MaxItem"            , 10000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);
@@ -407,7 +400,6 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "class"         , 1);
 		eoserv_config_default(aconfig, "info"          , 1);
 		eoserv_config_default(aconfig, "uptime"        , 1);
-		eoserv_config_default(aconfig, "objects"       , 4);
 		eoserv_config_default(aconfig, "kick"          , 1);
 		eoserv_config_default(aconfig, "skick"         , 3);
 		eoserv_config_default(aconfig, "jail"          , 1);
@@ -514,7 +506,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		STD_TR1::array<std::string, 6> dbinfo;
+		std::array<std::string, 6> dbinfo;
 		dbinfo[0] = static_cast<std::string>(config["DBType"]);
 		dbinfo[1] = static_cast<std::string>(config["DBHost"]);
 		dbinfo[2] = static_cast<std::string>(config["DBUser"]);
@@ -523,7 +515,6 @@ int main(int argc, char *argv[])
 		dbinfo[5] = static_cast<std::string>(config["DBPort"]);
 
 		EOServer server(static_cast<std::string>(config["Host"]), static_cast<int>(config["Port"]), dbinfo, config, aconfig);
-		eoserv_rehash_server = &server;
 		server.Listen(static_cast<int>(config["MaxConnections"]), static_cast<int>(config["ListenBacklog"]));
 		Console::Out("Listening on %s:%i (0/%i connections)", static_cast<std::string>(config["Host"]).c_str(), static_cast<int>(config["Port"]), static_cast<int>(config["MaxConnections"]));
 
@@ -547,19 +538,34 @@ int main(int argc, char *argv[])
 			std::exit(1);
 		}
 
-		PtrVector<Client> *active_clients;
+		std::vector<Client *> *active_clients = 0;
 		Client *newclient;
+
 		while (eoserv_running)
 		{
+			if (eoserv_sig_abort)
+			{
+				Console::Out("Exiting EOSERV");
+				eoserv_sig_abort = false;
+				break;
+			}
+
+			if (eoserv_sig_rehash)
+			{
+				Console::Out("Reloading config");
+				eoserv_sig_rehash = false;
+				server.world->Rehash();
+			}
+
 			if ((newclient = server.Poll()) != 0)
 			{
-				static STD_TR1::unordered_map<IPAddress, double, STD_TR1::hash<IPAddress> > connection_log;
+				static std::unordered_map<IPAddress, double, std::hash<IPAddress>> connection_log;
 				int ip_connections = 0;
 				bool throttle = false;
 				IPAddress remote_addr = newclient->GetRemoteAddr();
 
 				restart_loop:
-				UTIL_UNORDERED_MAP_IFOREACH_ALL(connection_log, IPAddress, double, connection)
+				UTIL_IFOREACH(connection_log, connection)
 				{
 					if (connection->second + static_cast<int>(config["IPReconnectLimit"]) < Timer::GetTime())
 					{
@@ -573,9 +579,11 @@ int main(int argc, char *argv[])
 					}
 				}
 
-				UTIL_PTR_LIST_FOREACH(server.clients, EOClient, client)
+				UTIL_FOREACH(server.clients, client)
 				{
-					if (client->GetRemoteAddr() == newclient->GetRemoteAddr())
+					EOClient *eoclient = static_cast<EOClient *>(client);
+
+					if (eoclient->GetRemoteAddr() == newclient->GetRemoteAddr())
 					{
 						++ip_connections;
 					}
@@ -596,8 +604,6 @@ int main(int argc, char *argv[])
 					connection_log[remote_addr] = Timer::GetTime();
 					Console::Out("New connection from %s (%i/%i connections)", static_cast<std::string>(newclient->GetRemoteAddr()).c_str(), server.Connections(), server.MaxConnections());
 				}
-
-				newclient->Release();
 			}
 
 			try
@@ -612,9 +618,9 @@ int main(int argc, char *argv[])
 				}
 			}
 
-			UTIL_PTR_VECTOR_FOREACH(*active_clients, Client, cl_)
+			UTIL_FOREACH((*active_clients), cl_)
 			{
-				EOClient *cl = static_cast<EOClient *>(*cl_);
+				EOClient *cl = static_cast<EOClient *>(cl_);
 				std::string data;
 				int done = false;
 				int oldlength;
@@ -745,6 +751,10 @@ int main(int argc, char *argv[])
 		Console::Err("Uncaught Exception");
 		return 1;
 	}
+
+#if defined(WIN32) || defined(WIN64)
+	::SetEvent(eoserv_close_event);
+#endif // defined(WIN32) || defined(WIN64)
 
 	return 0;
 }

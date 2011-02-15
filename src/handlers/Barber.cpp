@@ -27,11 +27,11 @@ CLIENT_F_FUNC(Barber)
 
 			short id = reader.GetShort();
 
-			UTIL_PTR_VECTOR_FOREACH(this->player->character->map->npcs, NPC, npc)
+			UTIL_FOREACH(this->player->character->map->npcs, npc)
 			{
 				if (npc->index == id && npc->Data()->type == ENF::Barber)
 				{
-					this->player->character->npc = *npc;
+					this->player->character->npc = npc;
 					this->player->character->npc_type = ENF::Barber;
 
 					reply.SetID(PACKET_BARBER, PACKET_OPEN);
@@ -89,9 +89,9 @@ CLIENT_F_FUNC(Barber)
 				builder.AddChar(style);
 				builder.AddChar(color);
 
-				UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+				UTIL_FOREACH(this->player->character->map->characters, character)
 				{
-					if (*character != this->player->character && this->player->character->InRange(*character))
+					if (character != this->player->character && this->player->character->InRange(character))
 					{
 						character->player->client->SendBuilder(builder);
 					}

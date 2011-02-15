@@ -9,12 +9,9 @@
 
 #include "fwd/map.hpp"
 
+#include <list>
 #include <string>
-
-#include "container/ptr_list.hpp"
-#include "container/ptr_vector.hpp"
-#include "script.hpp"
-#include "shared.hpp"
+#include <vector>
 
 #include "fwd/arena.hpp"
 #include "fwd/character.hpp"
@@ -24,7 +21,7 @@
 /**
  * Object representing an item on the floor of a map
  */
-struct Map_Item : public Shared
+struct Map_Item
 {
 	short uid;
 	short id;
@@ -36,26 +33,12 @@ struct Map_Item : public Shared
 
 	Map_Item(short uid_, short id_, int amount_, unsigned char x_, unsigned char y_, unsigned int owner_, double unprotecttime_)
 	 : uid(uid_), id(id_), amount(amount_), x(x_), y(y_), owner(owner_), unprotecttime(unprotecttime_) { }
-
-	static Map_Item *ScriptFactory(short uid, short id, int amount, unsigned char x, unsigned char y, unsigned int owner, double unprotecttime) { return new Map_Item(uid, id, amount, x, y, owner, unprotecttime); }
-
-	SCRIPT_REGISTER_REF(Map_Item)
-		SCRIPT_REGISTER_FACTORY("Map_Item @f(int16, int16, int, uint8, uint8, uint, double)", ScriptFactory);
-
-		SCRIPT_REGISTER_VARIABLE("int16", uid);
-		SCRIPT_REGISTER_VARIABLE("int16", id);
-		SCRIPT_REGISTER_VARIABLE("int", amount);
-		SCRIPT_REGISTER_VARIABLE("uint8", x);
-		SCRIPT_REGISTER_VARIABLE("uint8", y);
-		SCRIPT_REGISTER_VARIABLE("uint", owner);
-		SCRIPT_REGISTER_VARIABLE("double", unprotecttime);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Object representing a warp tile on a map, as well as storing door state
  */
-struct Map_Warp : public Shared
+struct Map_Warp
 {
 	short map;
 	unsigned char x;
@@ -75,29 +58,12 @@ struct Map_Warp : public Shared
 	bool open;
 
 	Map_Warp() : spec(Map_Warp::NoDoor), open(false) {}
-
-	SCRIPT_REGISTER_REF_DF(Map_Warp)
-		SCRIPT_REGISTER_ENUM("Map_Warp_WarpSpec")
-			SCRIPT_REGISTER_ENUM_VALUE(NoDoor);
-			SCRIPT_REGISTER_ENUM_VALUE(Door);
-			SCRIPT_REGISTER_ENUM_VALUE(LockedSilver);
-			SCRIPT_REGISTER_ENUM_VALUE(LockedCrystal);
-			SCRIPT_REGISTER_ENUM_VALUE(LockedWraith);
-		SCRIPT_REGISTER_ENUM_END()
-
-		SCRIPT_REGISTER_VARIABLE("int16", map);
-		SCRIPT_REGISTER_VARIABLE("uint8", x);
-		SCRIPT_REGISTER_VARIABLE("uint8", y);
-		SCRIPT_REGISTER_VARIABLE("uint8", levelreq);
-		SCRIPT_REGISTER_VARIABLE("Map_Warp_WarpSpec", spec);
-		SCRIPT_REGISTER_VARIABLE("bool", open);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Object representing one tile on a map
  */
-struct Map_Tile : public Shared
+struct Map_Tile
 {
 	enum TileSpec
 	{
@@ -183,101 +149,40 @@ struct Map_Tile : public Shared
 				return true;
 		}
 	}
-
-	SCRIPT_REGISTER_REF_DF(Map_Tile)
-		SCRIPT_REGISTER_ENUM("Map_Tile_TileSpec")
-			SCRIPT_REGISTER_ENUM_VALUE(None);
-			SCRIPT_REGISTER_ENUM_VALUE(Wall);
-			SCRIPT_REGISTER_ENUM_VALUE(ChairDown);
-			SCRIPT_REGISTER_ENUM_VALUE(ChairLeft);
-			SCRIPT_REGISTER_ENUM_VALUE(ChairRight);
-			SCRIPT_REGISTER_ENUM_VALUE(ChairUp);
-			SCRIPT_REGISTER_ENUM_VALUE(ChairDownRight);
-			SCRIPT_REGISTER_ENUM_VALUE(ChairUpLeft);
-			SCRIPT_REGISTER_ENUM_VALUE(ChairAll);
-			SCRIPT_REGISTER_ENUM_VALUE(Door);
-			SCRIPT_REGISTER_ENUM_VALUE(Chest);
-			SCRIPT_REGISTER_ENUM_VALUE(Unknown1);
-			SCRIPT_REGISTER_ENUM_VALUE(Unknown2);
-			SCRIPT_REGISTER_ENUM_VALUE(Unknown3);
-			SCRIPT_REGISTER_ENUM_VALUE(Unknown4);
-			SCRIPT_REGISTER_ENUM_VALUE(Unknown5);
-			SCRIPT_REGISTER_ENUM_VALUE(Unknown6);
-			SCRIPT_REGISTER_ENUM_VALUE(BankVault);
-			SCRIPT_REGISTER_ENUM_VALUE(NPCBoundary);
-			SCRIPT_REGISTER_ENUM_VALUE(MapEdge);
-			SCRIPT_REGISTER_ENUM_VALUE(FakeWall);
-			SCRIPT_REGISTER_ENUM_VALUE(Board1);
-			SCRIPT_REGISTER_ENUM_VALUE(Board2);
-			SCRIPT_REGISTER_ENUM_VALUE(Board3);
-			SCRIPT_REGISTER_ENUM_VALUE(Board4);
-			SCRIPT_REGISTER_ENUM_VALUE(Board5);
-			SCRIPT_REGISTER_ENUM_VALUE(Board6);
-			SCRIPT_REGISTER_ENUM_VALUE(Board7);
-			SCRIPT_REGISTER_ENUM_VALUE(Board8);
-			SCRIPT_REGISTER_ENUM_VALUE(Jukebox);
-			SCRIPT_REGISTER_ENUM_VALUE(Jump);
-			SCRIPT_REGISTER_ENUM_VALUE(Water);
-			SCRIPT_REGISTER_ENUM_VALUE(Unknown7);
-			SCRIPT_REGISTER_ENUM_VALUE(Arena);
-			SCRIPT_REGISTER_ENUM_VALUE(AmbientSource);
-			SCRIPT_REGISTER_ENUM_VALUE(Spikes1);
-			SCRIPT_REGISTER_ENUM_VALUE(Spikes2);
-			SCRIPT_REGISTER_ENUM_VALUE(Spikes3);
-		SCRIPT_REGISTER_ENUM_END()
-
-		SCRIPT_REGISTER_VARIABLE("Map_Tile_TileSpec", tilespec);
-		SCRIPT_REGISTER_VARIABLE("Map_Warp @", warp);
-		SCRIPT_REGISTER_FUNCTION("bool Walkable(bool npc)", Walkable);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Object representing an item in a chest on a map
  */
-struct Map_Chest_Item : public Shared
+struct Map_Chest_Item
 {
 	short id;
 	int amount;
 	int slot;
-
-	SCRIPT_REGISTER_REF_DF(Map_Chest_Item)
-		SCRIPT_REGISTER_VARIABLE("int16", id);
-		SCRIPT_REGISTER_VARIABLE("int", amount);
-		SCRIPT_REGISTER_VARIABLE("int", slot);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Object representing an item spawn in a chest on a map
  */
-struct Map_Chest_Spawn : public Shared
+struct Map_Chest_Spawn
 {
 	int spawnid;
 	Map_Chest_Item *item;
 	int slot;
 	short time;
 	double last_taken;
-
-	SCRIPT_REGISTER_REF_DF(Map_Chest_Spawn)
-		SCRIPT_REGISTER_VARIABLE("int", spawnid);
-		SCRIPT_REGISTER_VARIABLE("Map_Chest_Item @", item);
-		SCRIPT_REGISTER_VARIABLE("int", slot);
-		SCRIPT_REGISTER_VARIABLE("int16", time);
-		SCRIPT_REGISTER_VARIABLE("double", last_taken);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Object representing a chest on a map
  */
-struct Map_Chest : public Shared
+struct Map_Chest
 {
 	unsigned char x;
 	unsigned char y;
 
-	PtrList<Map_Chest_Item> items;
-	PtrList<Map_Chest_Spawn> spawns;
+	std::list<Map_Chest_Item *> items;
+	std::list<Map_Chest_Spawn *> spawns;
 	int slots;
 
 	int maxchest;
@@ -287,25 +192,12 @@ struct Map_Chest : public Shared
 	int DelItem(short item);
 
 	void Update(Map *map, Character *exclude = 0);
-
-	SCRIPT_REGISTER_REF_DF(Map_Chest)
-		SCRIPT_REGISTER_VARIABLE("uint8", x);
-		SCRIPT_REGISTER_VARIABLE("uint8", y);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Map_Chest_Item>", items);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Map_Chest_Spawn>", spawns);
-		SCRIPT_REGISTER_VARIABLE("int", slots);
-		SCRIPT_REGISTER_VARIABLE("int", maxchest);
-		SCRIPT_REGISTER_VARIABLE("int", chestslots);
-		SCRIPT_REGISTER_FUNCTION("int AddItem(int16 item, int amount, int slot)", AddItem);
-		SCRIPT_REGISTER_FUNCTION("int DelItem(int16 item)", DelItem);
-		SCRIPT_REGISTER_FUNCTION("void Update(Map @map, Character @exclude)", Update);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Contains all information about a map, holds reference to contained Characters and manages NPCs on it
  */
-class Map : public Shared
+class Map
 {
 	private:
 		bool Load();
@@ -323,11 +215,11 @@ class Map : public Shared
 		unsigned char relog_x;
 		unsigned char relog_y;
 		std::string filename;
-		PtrList<Character> characters;
-		PtrVector<NPC> npcs;
-		PtrVector<Map_Chest> chests;
-		PtrList<Map_Item> items;
-		PtrVector<PtrVector<Map_Tile> > tiles;
+		std::list<Character *> characters;
+		std::vector<NPC *> npcs;
+		std::vector<Map_Chest *> chests;
+		std::list<Map_Item *> items;
+		std::vector<std::vector<Map_Tile *>> tiles;
 		bool exists;
 		double jukebox_protect;
 		std::string jukebox_player;
@@ -383,69 +275,6 @@ class Map : public Shared
 		bool Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target);
 
 		~Map();
-
-	Map *ScriptFactory(int id, World *server) { return new Map(id, server); }
-
-	SCRIPT_REGISTER_REF(Map)
-		//SCRIPT_REGISTER_FACTORY("void f(int id, World @server)", ScriptFactory);
-
-		SCRIPT_REGISTER_ENUM("Map_OccupiedTarget")
-			SCRIPT_REGISTER_ENUM_VALUE(PlayerOnly);
-			SCRIPT_REGISTER_ENUM_VALUE(NPCOnly);
-			SCRIPT_REGISTER_ENUM_VALUE(PlayerAndNPC);
-		SCRIPT_REGISTER_ENUM_END()
-
-		SCRIPT_REGISTER_VARIABLE("World @", world);
-		SCRIPT_REGISTER_VARIABLE("int16", id);
-		//SCRIPT_REGISTER_VARIABLE("int8", rid);
-		SCRIPT_REGISTER_VARIABLE("bool", pk);
-		SCRIPT_REGISTER_VARIABLE("int", filesize);
-		SCRIPT_REGISTER_VARIABLE("uint8", width);
-		SCRIPT_REGISTER_VARIABLE("uint8", height);
-		SCRIPT_REGISTER_VARIABLE("bool", scroll);
-		SCRIPT_REGISTER_VARIABLE("uint8", relog_x);
-		SCRIPT_REGISTER_VARIABLE("uint8", relog_y);
-		SCRIPT_REGISTER_VARIABLE("string", filename);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Character>", characters);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<NPC>", npcs);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<Map_Chest>", chests);
-		SCRIPT_REGISTER_VARIABLE("PtrList<Map_Item>", items);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<PtrVector<Map_Tile>>", tiles);
-		SCRIPT_REGISTER_VARIABLE("bool", exists);
-		SCRIPT_REGISTER_VARIABLE("double", jukebox_protect);
-		SCRIPT_REGISTER_VARIABLE("string", jukebox_player);
-		SCRIPT_REGISTER_VARIABLE("Arena @", arena);
-		SCRIPT_REGISTER_FUNCTION("void LoadArena()", LoadArena);
-		SCRIPT_REGISTER_FUNCTION("int GenerateItemID()", GenerateItemID);
-		SCRIPT_REGISTER_FUNCTION("uint8 GenerateNPCIndex()", GenerateNPCIndex);
-		SCRIPT_REGISTER_FUNCTION("void Enter(Character @, WarpAnimation animation)", Enter);
-		SCRIPT_REGISTER_FUNCTION("void Leave(Character @, WarpAnimation animation, bool silent)", Leave);
-		SCRIPT_REGISTER_FUNCTION("void Msg(Character @from, string message, bool echo)", Msg);
-		SCRIPT_REGISTER_FUNCTION_PR("bool Walk(Character @from, Direction direction, bool admin)", Walk, (Character *, Direction, bool), bool);
-		SCRIPT_REGISTER_FUNCTION("void Attack(Character @from, Direction direction)", Attack);
-		SCRIPT_REGISTER_FUNCTION("bool AttackPK(Character @from, Direction direction)", AttackPK);
-		SCRIPT_REGISTER_FUNCTION("void Face(Character @from, Direction direction)", Face);
-		SCRIPT_REGISTER_FUNCTION("void Sit(Character @from, SitState sit_type)", Sit);
-		SCRIPT_REGISTER_FUNCTION("void Stand(Character @from)", Stand);
-		SCRIPT_REGISTER_FUNCTION("void Emote(Character @from, Emote emote, bool echo)", Emote);
-		SCRIPT_REGISTER_FUNCTION("bool OpenDoor(Character @from, uint8 x, uint8 y)", OpenDoor);
-		SCRIPT_REGISTER_FUNCTION("void CloseDoor(uint8 x, uint8 y)", CloseDoor);
-		SCRIPT_REGISTER_FUNCTION_PR("bool Walk(NPC @from, Direction direction)", Walk, (NPC *, Direction), bool);
-		SCRIPT_REGISTER_FUNCTION("Map_Item @AddItem(int16 id, int amount, uint8 x, uint8 y, Character @from)", AddItem);
-		SCRIPT_REGISTER_FUNCTION("void GetItem(int16 uid)", GetItem);
-		SCRIPT_REGISTER_FUNCTION_PR("void DelItem(int16 uid, Character @from)", DelItem, (short, Character *), void);
-		SCRIPT_REGISTER_FUNCTION_PR("void DelItem(Map_Item @item, Character @from)", DelItem, (Map_Item *, Character *), void);
-		SCRIPT_REGISTER_FUNCTION("bool InBounds(uint8 x, uint8 y)", InBounds);
-		SCRIPT_REGISTER_FUNCTION("bool Walkable(uint8 x, uint8 y, bool npc)", Walkable);
-		SCRIPT_REGISTER_FUNCTION("Map_Tile_TileSpec GetSpec(uint8 x, uint8 y)", GetSpec);
-		SCRIPT_REGISTER_FUNCTION("Map_Warp @GetWarp(uint8 x, uint8 y)", GetWarp);
-		SCRIPT_REGISTER_FUNCTION("void Effect(int effect, int param)", Effect);
-		SCRIPT_REGISTER_FUNCTION("bool Reload()", Reload);
-		SCRIPT_REGISTER_FUNCTION("Character @GetCharacter(string name)", GetCharacter);
-		SCRIPT_REGISTER_FUNCTION("Character @GetCharacterPID(uint id)", GetCharacterPID);
-		SCRIPT_REGISTER_FUNCTION("Character @GetCharacterCID(uint id)", GetCharacterCID);
-		SCRIPT_REGISTER_FUNCTION("bool Occupied(uint8 x, uint8 y, Map_OccupiedTarget target)", Occupied);
-	SCRIPT_REGISTER_END()
 };
 
 #endif // MAP_HPP_INCLUDED

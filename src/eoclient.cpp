@@ -30,9 +30,8 @@ ActionQueue::~ActionQueue()
 {
 	while (!this->queue.empty())
 	{
-		ActionQueue_Action *action = this->queue.front();
+		delete this->queue.front();
 		this->queue.pop();
-		action->Release();
 	}
 }
 
@@ -126,6 +125,8 @@ void EOClient::Execute(std::string data)
 		CLIENT_F_HANDLE(PACKET_BOOK,Book);
 		default: ; // Keep the compiler quiet until all packet types are handled
 	}
+
+	(void)result;
 
 #ifdef DEBUG
 	//if (family != PACKET_CONNECTION || action != PACKET_NET)

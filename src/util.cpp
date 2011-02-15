@@ -524,7 +524,7 @@ static double rpn_eval_eq(std::vector<double> args)    { return args[0] == args[
 static double rpn_eval_gt(std::vector<double> args)    { return args[0] > args[1]; }
 static double rpn_eval_gte(std::vector<double> args)   { return args[0] >= args[1]; }
 
-double rpn_eval(std::stack<util::variant> stack, STD_TR1::unordered_map<std::string, double> vars)
+double rpn_eval(std::stack<util::variant> stack, std::unordered_map<std::string, double> vars)
 {
 	struct rpn_eval_func
 	{
@@ -602,7 +602,7 @@ double rpn_eval(std::stack<util::variant> stack, STD_TR1::unordered_map<std::str
 			}
 		}
 
-		STD_TR1::unordered_map<std::string, double>::iterator findvar = vars.find(val);
+		std::unordered_map<std::string, double>::iterator findvar = vars.find(val);
 
 		if (findvar != vars.end())
 		{
@@ -725,7 +725,7 @@ double round(double subject)
 std::string timeago(double time, double current_time)
 {
 	static bool init = false;
-	static std::vector<std::pair<int, std::string> > times;
+	static std::vector<std::pair<int, std::string>> times;
 
 	if (!init)
 	{

@@ -9,122 +9,79 @@
 
 #include "fwd/npc.hpp"
 
+#include <list>
 #include <string>
-#include <tr1/array>
-#include <tr1/unordered_map>
-
-#include "container/ptr_list.hpp"
-#include "container/ptr_vector.hpp"
-#include "script.hpp"
-#include "shared.hpp"
+#include <array>
+#include <unordered_map>
+#include <vector>
 
 #include "fwd/character.hpp"
 #include "fwd/eodata.hpp"
 #include "fwd/map.hpp"
 
-
 /**
  * Used by the NPC class to store information about an attacker
  */
-struct NPC_Opponent : public Shared
+struct NPC_Opponent
 {
 	Character *attacker;
 	unsigned short damage;
 	double last_hit;
-
-	SCRIPT_REGISTER_REF_DF(NPC_Opponent)
-		SCRIPT_REGISTER_VARIABLE("Character @", attacker);
-		SCRIPT_REGISTER_VARIABLE("uint16", damage);
-		SCRIPT_REGISTER_VARIABLE("double", last_hit);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Used by the NPC class to store information about an item drop
  */
-struct NPC_Drop : public Shared
+struct NPC_Drop
 {
 	unsigned short id;
 	int min;
 	int max;
 	double chance;
-
-	SCRIPT_REGISTER_REF_DF(NPC_Drop)
-		SCRIPT_REGISTER_VARIABLE("uint16", id);
-		SCRIPT_REGISTER_VARIABLE("int", min);
-		SCRIPT_REGISTER_VARIABLE("int", max);
-		SCRIPT_REGISTER_VARIABLE("double", chance);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Used by the NPC class to store trade shop data
  */
-struct NPC_Shop_Trade_Item : public Shared
+struct NPC_Shop_Trade_Item
 {
 	unsigned short id;
 	int buy;
 	int sell;
-
-	SCRIPT_REGISTER_REF_DF(NPC_Shop_Trade_Item)
-		SCRIPT_REGISTER_VARIABLE("uint16", id);
-		SCRIPT_REGISTER_VARIABLE("int", buy);
-		SCRIPT_REGISTER_VARIABLE("int", sell);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Used by the NPC_Shop_Craft_Item class to store item ingredients
  */
-struct NPC_Shop_Craft_Ingredient : public Shared
+struct NPC_Shop_Craft_Ingredient
 {
 	unsigned short id;
 	unsigned char amount;
-
-	SCRIPT_REGISTER_REF_DF(NPC_Shop_Craft_Ingredient)
-		SCRIPT_REGISTER_VARIABLE("uint16", id);
-		SCRIPT_REGISTER_VARIABLE("uint8", amount);
-	SCRIPT_REGISTER_END()
 };
 
 /**
  * Used by the NPC class to store craft shop data
  */
-struct NPC_Shop_Craft_Item : public Shared
+struct NPC_Shop_Craft_Item
 {
 	unsigned short id;
-	PtrVector<NPC_Shop_Craft_Ingredient> ingredients;
-
-	SCRIPT_REGISTER_REF_DF(NPC_Shop_Craft_Item)
-		SCRIPT_REGISTER_VARIABLE("uint16", id);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<NPC_Shop_Craft_Ingredient>", ingredients);
-	SCRIPT_REGISTER_END()
+	std::vector<NPC_Shop_Craft_Ingredient *> ingredients;
 };
 
 /**
  * Used by the NPC class to store innkeeper citizenship information
  */
-struct NPC_Citizenship : public Shared
+struct NPC_Citizenship
 {
 	std::string home;
-	STD_TR1::array<std::string, 3> questions;
-	STD_TR1::array<std::string, 3> answers;
-
-	SCRIPT_REGISTER_REF_DF(NPC_Citizenship)
-		SCRIPT_REGISTER_VARIABLE("string", home);
-		SCRIPT_REGISTER_VARIABLE_NAME("string", questions[0], "questions_0");
-		SCRIPT_REGISTER_VARIABLE_NAME("string", questions[1], "questions_1");
-		SCRIPT_REGISTER_VARIABLE_NAME("string", questions[2], "questions_2");
-		SCRIPT_REGISTER_VARIABLE_NAME("string", answers[0], "answers_0");
-		SCRIPT_REGISTER_VARIABLE_NAME("string", answers[1], "answers_1");
-		SCRIPT_REGISTER_VARIABLE_NAME("string", answers[2], "answers_2");
-	SCRIPT_REGISTER_END()
+	std::array<std::string, 3> questions;
+	std::array<std::string, 3> answers;
 };
 
 /**
  * An instance of an NPC created and managed by a Map
  */
-class NPC : public Shared
+class NPC
 {
 	public:
 		bool temporary;
@@ -134,10 +91,10 @@ class NPC : public Shared
 		unsigned char spawn_type;
 		short spawn_time;
 		unsigned char spawn_x, spawn_y;
-		PtrVector<NPC_Drop> drops;
+		std::vector<NPC_Drop *> drops;
 		std::string shop_name;
-		PtrVector<NPC_Shop_Trade_Item> shop_trade;
-		PtrVector<NPC_Shop_Craft_Item> shop_craft;
+		std::vector<NPC_Shop_Trade_Item *> shop_trade;
+		std::vector<NPC_Shop_Craft_Item *> shop_craft;
 		NPC_Citizenship *citizenship;
 
 		NPC *parent;
@@ -149,7 +106,7 @@ class NPC : public Shared
 		bool attack;
 		int hp;
 		int totaldamage;
-		PtrList<NPC_Opponent> damagelist;
+		std::list<NPC_Opponent *> damagelist;
 
 		Map *map;
 		unsigned char index;
@@ -169,65 +126,18 @@ class NPC : public Shared
 
 		void Attack(Character *target);
 
-		void FormulaVars(STD_TR1::unordered_map<std::string, double> &vars, std::string prefix = "");
+		void FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix = "");
 
 		~NPC();
-
-	static NPC *ScriptFactory(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index, bool temporary) { return new NPC(map, id, x, y, spawn_type, spawn_time, index, temporary); }
-
-	SCRIPT_REGISTER_REF(NPC)
-		SCRIPT_REGISTER_FACTORY("NPC @f(Map @, int16, uint8, uint8, uint8, int16, uint8, bool)", ScriptFactory);
-
-		SCRIPT_REGISTER_VARIABLE("bool", temporary);
-		SCRIPT_REGISTER_VARIABLE("int16", id);
-		SCRIPT_REGISTER_VARIABLE("uint8", x);
-		SCRIPT_REGISTER_VARIABLE("uint8", y);
-		SCRIPT_REGISTER_VARIABLE("Direction", direction);
-		SCRIPT_REGISTER_VARIABLE("uint8", spawn_type);
-		SCRIPT_REGISTER_VARIABLE("int16", spawn_time);
-		SCRIPT_REGISTER_VARIABLE("uint8", spawn_x);
-		SCRIPT_REGISTER_VARIABLE("uint8", spawn_y);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<NPC_Drop>", drops);
-		SCRIPT_REGISTER_VARIABLE("string", shop_name);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<NPC_Shop_Trade_Item>", shop_trade);
-		SCRIPT_REGISTER_VARIABLE("PtrVector<NPC_Shop_Craft_Item>", shop_craft);
-		SCRIPT_REGISTER_VARIABLE("NPC @", parent);
-		SCRIPT_REGISTER_VARIABLE("bool", alive);
-		SCRIPT_REGISTER_VARIABLE("double", dead_since);
-		SCRIPT_REGISTER_VARIABLE("double", last_act);
-		SCRIPT_REGISTER_VARIABLE("double", act_speed);
-		SCRIPT_REGISTER_VARIABLE("int", walk_idle_for);
-		SCRIPT_REGISTER_VARIABLE("bool", attack);
-		SCRIPT_REGISTER_VARIABLE("int", hp);
-		SCRIPT_REGISTER_VARIABLE("int", totaldamage);
-		SCRIPT_REGISTER_VARIABLE("PtrList<NPC_Opponent>", damagelist);
-		SCRIPT_REGISTER_VARIABLE("Map @", map);
-		SCRIPT_REGISTER_VARIABLE("uint8", index);
-		SCRIPT_REGISTER_FUNCTION("void LoadShopDrop()", LoadShopDrop);
-		SCRIPT_REGISTER_FUNCTION("ENF_Data @Data()", Data);
-		SCRIPT_REGISTER_FUNCTION("void Spawn(NPC @parent)", Spawn);
-		SCRIPT_REGISTER_FUNCTION("void Act()", Act);
-		SCRIPT_REGISTER_FUNCTION("bool Walk(Direction)", Walk);
-		SCRIPT_REGISTER_FUNCTION("void Damage(Character @, int)", Damage);
-		SCRIPT_REGISTER_FUNCTION("void RemoveFromView(Character @)", RemoveFromView);
-		SCRIPT_REGISTER_FUNCTION("void Die(bool show)", Die);
-		SCRIPT_REGISTER_FUNCTION("void Attack(Character @)", Attack);
-	SCRIPT_REGISTER_END()
 };
 
-struct NPCEvent : public Shared
+struct NPCEvent
 {
 	NPC *npc;
 	Character *target_character;
 	std::string target_character_name;
 
 	NPCEvent() : npc(0), target_character(0) { }
-
-	SCRIPT_REGISTER_REF_DF(NPCEvent)
-		SCRIPT_REGISTER_VARIABLE("NPC @", npc);
-		SCRIPT_REGISTER_VARIABLE("Character @", target_character);
-		SCRIPT_REGISTER_VARIABLE("string", target_character_name);
-	SCRIPT_REGISTER_END()
 };
 
 #endif // NPC_HPP_INCLUDED

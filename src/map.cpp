@@ -6,7 +6,8 @@
 
 #include "map.hpp"
 
-#include "container/algorithm.hpp"
+#include <algorithm>
+
 #include "console.hpp"
 #include "timer.hpp"
 #include "util.hpp"
@@ -36,21 +37,21 @@ void map_spawn_chests(void *map_void)
 	Map *map(static_cast<Map *>(map_void));
 
 	double current_time = Timer::GetTime();
-	UTIL_PTR_VECTOR_FOREACH(map->chests, Map_Chest, chest)
+	UTIL_FOREACH(map->chests, chest)
 	{
 		bool needs_update = false;
 
 		for (int slot = 1; slot <= chest->slots; ++slot)
 		{
-			PtrList<Map_Chest_Spawn> spawns;
+			std::list<Map_Chest_Spawn *> spawns;
 
-			UTIL_PTR_LIST_FOREACH(chest->spawns, Map_Chest_Spawn, spawn)
+			UTIL_FOREACH(chest->spawns, spawn)
 			{
 				if (spawn->last_taken + spawn->time*60.0 < current_time)
 				{
 					bool slot_used = false;
 
-					UTIL_PTR_LIST_FOREACH(chest->items, Map_Chest_Item, item)
+					UTIL_FOREACH(chest->items, item)
 					{
 						if (item->slot == spawn->slot)
 						{
@@ -60,14 +61,14 @@ void map_spawn_chests(void *map_void)
 
 					if (!slot_used)
 					{
-						spawns.push_back(*spawn);
+						spawns.push_back(spawn);
 					}
 				}
 			}
 
 			if (!spawns.empty())
 			{
-				PtrList<Map_Chest_Spawn>::Iterator it(spawns);
+				std::list<Map_Chest_Spawn *>::iterator it = spawns.begin();
 				int r = util::rand(0, spawns.size()-1);
 
 				for (int i = 0; i < r; ++i)
@@ -93,7 +94,7 @@ void map_spawn_chests(void *map_void)
 	}
 }
 
-struct map_close_door_struct : public Shared
+struct map_close_door_struct
 {
 	Map *map;
 	unsigned char x, y;
@@ -104,8 +105,6 @@ void map_close_door(void *map_close_door_struct_void)
 	map_close_door_struct *close(static_cast<map_close_door_struct *>(map_close_door_struct_void));
 
 	close->map->CloseDoor(close->x, close->y);
-
-	close->Release();
 }
 
 int Map_Chest::AddItem(short item, int amount, int slot)
@@ -117,7 +116,7 @@ int Map_Chest::AddItem(short item, int amount, int slot)
 
 	if (slot == 0)
 	{
-		UTIL_PTR_LIST_FOREACH(this->items, Map_Chest_Item, it)
+		UTIL_FOREACH(this->items, it)
 		{
 			if (it->id == item)
 			{
@@ -141,7 +140,7 @@ int Map_Chest::AddItem(short item, int amount, int slot)
 	{
 		int user_items = 0;
 
-		UTIL_PTR_LIST_FOREACH(this->items, Map_Chest_Item, item)
+		UTIL_FOREACH(this->items, item)
 		{
 			if (item->slot == 0)
 			{
@@ -174,19 +173,19 @@ int Map_Chest::AddItem(short item, int amount, int slot)
 
 int Map_Chest::DelItem(short item)
 {
-	UTIL_PTR_LIST_FOREACH(this->items, Map_Chest_Item, it)
+	UTIL_IFOREACH(this->items, it)
 	{
-		if (it->id == item)
+		if ((*it)->id == item)
 		{
-			int amount = it->amount;
+			int amount = (*it)->amount;
 
-			if (it->slot)
+			if ((*it)->slot)
 			{
 				double current_time = Timer::GetTime();
 
-				UTIL_PTR_LIST_FOREACH(this->spawns, Map_Chest_Spawn, spawn)
+				UTIL_FOREACH(this->spawns, spawn)
 				{
-					if (spawn->slot == it->slot)
+					if (spawn->slot == (*it)->slot)
 					{
 						spawn->last_taken = current_time;
 					}
@@ -198,22 +197,22 @@ int Map_Chest::DelItem(short item)
 		}
 	}
 
-	return false;
+	return 0;
 }
 
 void Map_Chest::Update(Map *map, Character *exclude)
 {
 	PacketBuilder builder(PACKET_CHEST, PACKET_AGREE);
 
-	UTIL_PTR_LIST_FOREACH(this->items, Map_Chest_Item, item)
+	UTIL_FOREACH(this->items, item)
 	{
 		builder.AddShort(item->id);
 		builder.AddThree(item->amount);
 	}
 
-	UTIL_PTR_LIST_FOREACH(map->characters, Character, character)
+	UTIL_FOREACH(map->characters, character)
 	{
-		if (*character == exclude)
+		if (character == exclude)
 		{
 			continue;
 		}
@@ -241,21 +240,20 @@ Map::Map(int id, World *world)
 	{
 		TimeEvent *event = new TimeEvent(map_spawn_chests, this, 60.0, Timer::FOREVER);
 		this->world->timer.Register(event);
-		event->Release();
 	}
 }
 
 void Map::LoadArena()
 {
-	PtrList<Character> update_characters;
+	std::list<Character *> update_characters;
 
 	if (this->arena)
 	{
-		UTIL_PTR_LIST_FOREACH(this->arena->map->characters, Character, character)
+		UTIL_FOREACH(this->arena->map->characters, character)
 		{
 			if (character->arena == this->arena)
 			{
-				update_characters.push_back(*character);
+				update_characters.push_back(character);
 			}
 		}
 
@@ -279,7 +277,7 @@ void Map::LoadArena()
 
 			int i = 1;
 			Arena_Spawn *s;
-			UTIL_VECTOR_FOREACH_ALL(spawns, std::string, spawn)
+			UTIL_FOREACH(spawns, spawn)
 			{
 				util::trim(spawn);
 
@@ -301,7 +299,6 @@ void Map::LoadArena()
 					case 0:
 						s->dy = util::to_int(spawn);
 						this->arena->spawns.push_back(s);
-						s->Release();
 						break;
 
 				}
@@ -313,7 +310,7 @@ void Map::LoadArena()
 		this->arena = 0;
 	}
 
-	UTIL_PTR_LIST_FOREACH(update_characters, Character, character)
+	UTIL_FOREACH(update_characters, character)
 	{
 		character->arena = this->arena;
 
@@ -368,11 +365,10 @@ bool Map::Load()
 	this->tiles.resize(height);
 	for (int i = 0; i < height; ++i)
 	{
-		this->tiles[i] = new PtrVector<Map_Tile>;
-		this->tiles[i]->resize(width);
+		this->tiles[i].resize(width);
 		for (int ii = 0; ii < width; ++ii)
 		{
-			this->tiles[i]->at(ii) = new Map_Tile;
+			this->tiles[i].at(ii) = new Map_Tile;
 		}
 	}
 
@@ -427,12 +423,12 @@ bool Map::Load()
 				chest->x = xloc;
 				chest->y = yloc;
 				chest->slots = 0;
-				this->chests.push_back(chest); chest->Release();
+				this->chests.push_back(chest);
 			}
 
 			try
 			{
-				this->tiles.at(yloc)->at(xloc) = newtile;
+				this->tiles.at(yloc).at(xloc) = newtile;
 			}
 			catch (...)
 			{
@@ -463,7 +459,7 @@ bool Map::Load()
 
 			try
 			{
-				this->tiles.at(yloc)->at(xloc)->warp = newwarp;
+				this->tiles.at(yloc).at(xloc)->warp = newwarp;
 			}
 			catch (...)
 			{
@@ -532,7 +528,7 @@ bool Map::Load()
 			Console::Wrn("A chest spawn on map %i uses a non-existent item (#%i at %ix%i)", this->id, itemid, x, y);
 		}
 
-		UTIL_PTR_VECTOR_FOREACH(this->chests, Map_Chest, chest)
+		UTIL_FOREACH(this->chests, chest)
 		{
 			if (chest->x == x && chest->y == y)
 			{
@@ -548,7 +544,6 @@ bool Map::Load()
 				spawn->item = item;
 
 				chest->spawns.push_back(spawn);
-				spawn->Release();
 				chest->slots = std::max(chest->slots, slot+1);
 				goto skip_warning;
 			}
@@ -574,11 +569,13 @@ void Map::Unload()
 
 	this->chests.clear();
 
-	UTIL_PTR_VECTOR_FOREACH(this->npcs, NPC, npc)
+	UTIL_FOREACH(this->npcs, npc)
 	{
-		UTIL_PTR_LIST_FOREACH(npc->damagelist, NPC_Opponent, opponent)
+		UTIL_FOREACH(npc->damagelist, opponent)
 		{
-			erase_first(opponent->attacker->unregister_npc, *npc);
+			opponent->attacker->unregister_npc.erase(
+				std::remove(opponent->attacker->unregister_npc.begin(), opponent->attacker->unregister_npc.end(), npc)
+			);
 		}
 	}
 
@@ -589,7 +586,7 @@ int Map::GenerateItemID()
 {
 	int lowest_free_id = 1;
 	restart_loop:
-	UTIL_PTR_LIST_FOREACH(this->items, Map_Item, item)
+	UTIL_FOREACH(this->items, item)
 	{
 		if (item->uid == lowest_free_id)
 		{
@@ -604,7 +601,7 @@ unsigned char Map::GenerateNPCIndex()
 {
 	unsigned char lowest_free_id = 1;
 	restart_loop:
-	UTIL_PTR_VECTOR_FOREACH(this->npcs, NPC, npc)
+	UTIL_FOREACH(this->npcs, npc)
 	{
 		if (npc->index == lowest_free_id)
 		{
@@ -657,9 +654,9 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, checkcharacter)
+	UTIL_FOREACH(this->characters, checkcharacter)
 	{
-		if (*checkcharacter == character || !character->InRange(*checkcharacter))
+		if (checkcharacter == character || !character->InRange(checkcharacter))
 		{
 			continue;
 		}
@@ -681,9 +678,9 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 			builder.AddChar(animation);
 		}
 
-		UTIL_PTR_LIST_FOREACH(this->characters, Character, checkcharacter)
+		UTIL_FOREACH(this->characters, checkcharacter)
 		{
-			if (*checkcharacter == character || !character->InRange(*checkcharacter))
+			if (checkcharacter == character || !character->InRange(checkcharacter))
 			{
 				continue;
 			}
@@ -692,7 +689,8 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 		}
 	}
 
-	erase_first(this->characters, character);
+	this->characters.erase(std::find(UTIL_RANGE(this->characters), character));
+
 	character->map = 0;
 }
 
@@ -706,9 +704,9 @@ void Map::Msg(Character *from, std::string message, bool echo)
 	builder.AddShort(from->player->id);
 	builder.AddString(message);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		if ((!echo && *character == from) || !from->InRange(*character))
+		if ((!echo && character == from) || !from->InRange(character))
 		{
 			continue;
 		}
@@ -786,15 +784,6 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 	from->direction = direction;
 
-	HOOK_BEGIN(CharacterEvent, this->world->hookmanager, "character/walk")
-		e->character = from;
-		e->target_map = this;
-		e->target_mapid = this->id;
-		e->target_x = target_x;
-		e->target_y = target_y;
-		if (HOOK_CALL()) return false;
-	HOOK_END()
-
 	from->x = target_x;
 	from->y = target_y;
 
@@ -803,14 +792,14 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	int oldx;
 	int oldy;
 
-	std::vector<std::pair<int, int> > newcoords;
-	std::vector<std::pair<int, int> > oldcoords;
+	std::vector<std::pair<int, int>> newcoords;
+	std::vector<std::pair<int, int>> oldcoords;
 
-	PtrVector<Character> newchars;
-	PtrVector<Character> oldchars;
-	PtrVector<NPC> newnpcs;
-	PtrVector<NPC> oldnpcs;
-	PtrVector<Map_Item> newitems;
+	std::vector<Character *> newchars;
+	std::vector<Character *> oldchars;
+	std::vector<NPC *> newnpcs;
+	std::vector<NPC *> oldnpcs;
+	std::vector<Map_Item *> newitems;
 
 	switch (direction)
 	{
@@ -868,9 +857,9 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, checkchar)
+	UTIL_FOREACH(this->characters, checkchar)
 	{
-		if (*checkchar == from)
+		if (checkchar == from)
 		{
 			continue;
 		}
@@ -879,16 +868,16 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		{
 			if (checkchar->x == oldcoords[i].first && checkchar->y == oldcoords[i].second)
 			{
-				oldchars.push_back(*checkchar);
+				oldchars.push_back(checkchar);
 			}
 			else if (checkchar->x == newcoords[i].first && checkchar->y == newcoords[i].second)
 			{
-				newchars.push_back(*checkchar);
+				newchars.push_back(checkchar);
 			}
 		}
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(this->npcs, NPC, checknpc)
+	UTIL_FOREACH(this->npcs, checknpc)
 	{
 		if (!checknpc->alive)
 		{
@@ -899,22 +888,22 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		{
 			if (checknpc->x == oldcoords[i].first && checknpc->y == oldcoords[i].second)
 			{
-				oldnpcs.push_back(*checknpc);
+				oldnpcs.push_back(checknpc);
 			}
 			else if (checknpc->x == newcoords[i].first && checknpc->y == newcoords[i].second)
 			{
-				newnpcs.push_back(*checknpc);
+				newnpcs.push_back(checknpc);
 			}
 		}
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->items, Map_Item, checkitem)
+	UTIL_FOREACH(this->items, checkitem)
 	{
 		for (std::size_t i = 0; i < oldcoords.size(); ++i)
 		{
 			if (checkitem->x == newcoords[i].first && checkitem->y == newcoords[i].second)
 			{
-				newitems.push_back(*checkitem);
+				newitems.push_back(checkitem);
 			}
 		}
 	}
@@ -922,7 +911,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
 	builder.AddShort(from->player->id);
 
-	UTIL_PTR_VECTOR_FOREACH(oldchars, Character, character)
+	UTIL_FOREACH(oldchars, character)
 	{
 		PacketBuilder rbuilder;
 		rbuilder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
@@ -968,7 +957,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
-	UTIL_PTR_VECTOR_FOREACH(newchars, Character, character)
+	UTIL_FOREACH(newchars, character)
 	{
 		PacketBuilder rbuilder;
 		rbuilder.SetID(PACKET_PLAYERS, PACKET_AGREE);
@@ -1017,9 +1006,9 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		if (*character == from || !from->InRange(*character))
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -1032,7 +1021,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.SetID(PACKET_WALK, PACKET_REPLY);
 	builder.AddByte(255);
 	builder.AddByte(255);
-	UTIL_PTR_VECTOR_FOREACH(newitems, Map_Item, item)
+	UTIL_FOREACH(newitems, item)
 	{
 		builder.AddShort(item->uid);
 		builder.AddShort(item->id);
@@ -1043,7 +1032,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	from->player->client->SendBuilder(builder);
 
 	builder.SetID(PACKET_APPEAR, PACKET_REPLY);
-	UTIL_PTR_VECTOR_FOREACH(newnpcs, NPC, npc)
+	UTIL_FOREACH(newnpcs, npc)
 	{
 		builder.Reset();
 		builder.AddChar(0);
@@ -1057,7 +1046,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		from->player->client->SendBuilder(builder);
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(oldnpcs, NPC, npc)
+	UTIL_FOREACH(oldnpcs, npc)
 	{
 		npc->RemoveFromView(from);
 	}
@@ -1129,11 +1118,11 @@ bool Map::Walk(NPC *from, Direction direction)
 	int oldx;
 	int oldy;
 
-	std::vector<std::pair<int, int> > newcoords;
-	std::vector<std::pair<int, int> > oldcoords;
+	std::vector<std::pair<int, int>> newcoords;
+	std::vector<std::pair<int, int>> oldcoords;
 
-	PtrVector<Character> newchars;
-	PtrVector<Character> oldchars;
+	std::vector<Character *> newchars;
+	std::vector<Character *> oldchars;
 
 	switch (direction)
 	{
@@ -1193,17 +1182,17 @@ bool Map::Walk(NPC *from, Direction direction)
 
 	from->direction = direction;
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, checkchar)
+	UTIL_FOREACH(this->characters, checkchar)
 	{
 		for (std::size_t i = 0; i < oldcoords.size(); ++i)
 		{
 			if (checkchar->x == oldcoords[i].first && checkchar->y == oldcoords[i].second)
 			{
-				oldchars.push_back(*checkchar);
+				oldchars.push_back(checkchar);
 			}
 			else if (checkchar->x == newcoords[i].first && checkchar->y == newcoords[i].second)
 			{
-				newchars.push_back(*checkchar);
+				newchars.push_back(checkchar);
 			}
 		}
 	}
@@ -1217,7 +1206,7 @@ bool Map::Walk(NPC *from, Direction direction)
 	builder.AddChar(from->y);
 	builder.AddChar(from->direction);
 
-	UTIL_PTR_VECTOR_FOREACH(newchars, Character, character)
+	UTIL_FOREACH(newchars, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
@@ -1233,7 +1222,7 @@ bool Map::Walk(NPC *from, Direction direction)
 	builder.AddByte(255);
 	builder.AddByte(255);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
 		if (!character->InRange(from))
 		{
@@ -1243,9 +1232,9 @@ bool Map::Walk(NPC *from, Direction direction)
 		character->player->client->SendBuilder(builder);
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(oldchars, Character, character)
+	UTIL_FOREACH(oldchars, character)
 	{
-		from->RemoveFromView(*character);
+		from->RemoveFromView(character);
 	}
 
 	return true;
@@ -1274,9 +1263,9 @@ void Map::Attack(Character *from, Direction direction)
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		if (*character == from || !from->InRange(*character))
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -1320,7 +1309,7 @@ void Map::Attack(Character *from, Direction direction)
 			return;
 		}
 
-		UTIL_PTR_VECTOR_FOREACH(this->npcs, NPC, npc)
+		UTIL_FOREACH(this->npcs, npc)
 		{
 			if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive || from->admin > static_cast<int>(this->world->admin_config["killnpcs"]))
 			 && npc->alive && npc->x == target_x && npc->y == target_y)
@@ -1330,7 +1319,7 @@ void Map::Attack(Character *from, Direction direction)
 				// Checks if target is facing you
 				bool critical = std::abs(int(npc->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
-				STD_TR1::unordered_map<std::string, double> formula_vars;
+				std::unordered_map<std::string, double> formula_vars;
 
 				from->FormulaVars(formula_vars);
 				npc->FormulaVars(formula_vars, "target_");
@@ -1401,22 +1390,19 @@ bool Map::AttackPK(Character *from, Direction direction)
 			return false;
 		}
 
-		UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+		UTIL_FOREACH(this->characters, character)
 		{
 			if (character->mapid == this->id && !character->nowhere && character->x == target_x && character->y == target_y)
 			{
-				Character *character_ptr = *character;
-				character_ptr->AddRef();
-
 				int amount = util::rand(from->mindam, from->maxdam);
 				double rand = util::rand(0.0, 1.0);
 				// Checks if target is facing you
-				bool critical = std::abs(int(character_ptr->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
+				bool critical = std::abs(int(character->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
 
-				STD_TR1::unordered_map<std::string, double> formula_vars;
+				std::unordered_map<std::string, double> formula_vars;
 
 				from->FormulaVars(formula_vars);
-				character_ptr->FormulaVars(formula_vars, "target_");
+				character->FormulaVars(formula_vars, "target_");
 				formula_vars["modifier"] = this->world->config["PKRate"];
 				formula_vars["damage"] = amount;
 				formula_vars["critical"] = critical;
@@ -1431,61 +1417,58 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				amount = std::max(amount, 0);
 
-				int limitamount = std::min(amount, int(character_ptr->hp));
+				int limitamount = std::min(amount, int(character->hp));
 
 				if (this->world->config["LimitDamage"])
 				{
 					amount = limitamount;
 				}
 
-				character_ptr->hp -= limitamount;
+				character->hp -= limitamount;
 
 				PacketBuilder builder(PACKET_CLOTHES, PACKET_REPLY);
 				builder.AddShort(from->player->id);
-				builder.AddShort(character_ptr->player->id);
+				builder.AddShort(character->player->id);
 				builder.AddThree(amount);
 				builder.AddChar(from->direction);
-				builder.AddChar(int(double(character_ptr->hp) / double(character_ptr->maxhp) * 100.0));
-				builder.AddChar(character_ptr->hp == 0);
+				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+				builder.AddChar(character->hp == 0);
 
-				UTIL_PTR_LIST_FOREACH(this->characters, Character, checkchar)
+				UTIL_FOREACH(this->characters, checkchar)
 				{
-					if (character_ptr->InRange(*checkchar))
+					if (character->InRange(checkchar))
 					{
 						checkchar->player->client->SendBuilder(builder);
 					}
 				}
 
-				if (character_ptr->hp == 0)
+				if (character->hp == 0)
 				{
-					character_ptr->hp = int(character_ptr->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0);
+					character->hp = int(character->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0);
 
 					if (this->world->config["Deadly"])
 					{
-						character_ptr->DropAll(from);
+						character->DropAll(from);
 					}
 
-					character_ptr->map->Leave(character_ptr, WARP_ANIMATION_NONE, true);
-
-					character_ptr->nowhere = true;
-					character_ptr->map = this->world->GetMap(character_ptr->SpawnMap());
-					character_ptr->mapid = character_ptr->SpawnMap();
-					character_ptr->x = character_ptr->SpawnX();
-					character_ptr->y = character_ptr->SpawnY();
+					character->map->Leave(character, WARP_ANIMATION_NONE, true);
+					character->nowhere = true;
+					character->map = this->world->GetMap(character->SpawnMap());
+					character->mapid = character->SpawnMap();
+					character->x = character->SpawnX();
+					character->y = character->SpawnY();
 
 					PacketReader reader("");
 
-					character_ptr->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5);
-					character_ptr->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0);
+					character->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5);
+					character->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0);
 				}
 
 				builder.Reset();
 				builder.SetID(PACKET_RECOVER, PACKET_PLAYER);
-				builder.AddShort(character_ptr->hp);
-				builder.AddShort(character_ptr->tp);
-				character_ptr->player->client->SendBuilder(builder);
-
-				character_ptr->Release();
+				builder.AddShort(character->hp);
+				builder.AddShort(character->tp);
+				character->player->client->SendBuilder(builder);
 
 				return true;
 			}
@@ -1505,9 +1488,9 @@ void Map::Face(Character *from, Direction direction)
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		if (*character == from || !from->InRange(*character))
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -1529,9 +1512,9 @@ void Map::Sit(Character *from, SitState sit_type)
 	builder.AddChar(from->direction);
 	builder.AddChar(0); // ?
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		if (*character == from || !from->InRange(*character))
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -1551,9 +1534,9 @@ void Map::Stand(Character *from)
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		if (*character == from || !from->InRange(*character))
+		if (character == from || !from->InRange(character))
 		{
 			continue;
 		}
@@ -1570,9 +1553,9 @@ void Map::Emote(Character *from, enum Emote emote, bool echo)
 	builder.AddShort(from->player->id);
 	builder.AddChar(emote);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		if (!echo && (*character == from || !from->InRange(*character)))
+		if (!echo && (character == from || !from->InRange(character)))
 		{
 			continue;
 		}
@@ -1590,7 +1573,7 @@ bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
 
 	if (target != Map::NPCOnly)
 	{
-		UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+		UTIL_FOREACH(this->characters, character)
 		{
 			if (character->x == x && character->y == y)
 			{
@@ -1601,7 +1584,7 @@ bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
 
 	if (target != Map::PlayerOnly)
 	{
-		UTIL_PTR_VECTOR_FOREACH(this->npcs, NPC, npc)
+		UTIL_FOREACH(this->npcs, npc)
 		{
 			if (npc->alive && npc->x == x && npc->y == y)
 			{
@@ -1645,7 +1628,7 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 		builder.AddChar(x);
 		builder.AddShort(y);
 
-		UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+		UTIL_FOREACH(this->characters, character)
 		{
 			if (character->InRange(x, y))
 			{
@@ -1662,7 +1645,6 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 
 		TimeEvent *event = new TimeEvent(map_close_door, close, this->world->config["DoorTimer"], 1);
 		this->world->timer.Register(event);
-		event->Release();
 
 		return true;
 	}
@@ -1700,7 +1682,7 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 		int ontile = 0;
 		int onmap = 0;
 
-		UTIL_PTR_LIST_FOREACH(this->items, Map_Item, item)
+		UTIL_FOREACH(this->items, item)
 		{
 			++onmap;
 			if (item->x == x && item->y == y)
@@ -1715,9 +1697,9 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 		}
 	}
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
-		if ((from && *character == from) || !character->InRange(newitem))
+		if ((from && character == from) || !character->InRange(newitem))
 		{
 			continue;
 		}
@@ -1725,17 +1707,16 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 	}
 
 	this->items.push_back(newitem);
-	newitem->Release();
 	return this->items.back();
 }
 
 Map_Item *Map::GetItem(short uid)
 {
-	UTIL_PTR_LIST_FOREACH(this->items, Map_Item, item)
+	UTIL_FOREACH(this->items, item)
 	{
 		if (item->uid == uid)
 		{
-			return *item;
+			return item;
 		}
 	}
 
@@ -1744,45 +1725,45 @@ Map_Item *Map::GetItem(short uid)
 
 void Map::DelItem(short uid, Character *from)
 {
-	UTIL_PTR_LIST_FOREACH(this->items, Map_Item, item)
+	UTIL_IFOREACH(this->items, it)
 	{
-		if (item->uid == uid)
+		if ((*it)->uid == uid)
 		{
 			PacketBuilder builder;
 			builder.SetID(PACKET_ITEM, PACKET_REMOVE);
 			builder.AddShort(uid);
-			UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+			UTIL_FOREACH(this->characters, character)
 			{
-				if ((from && *character == from) || !character->InRange(*item))
+				if ((from && character == from) || !character->InRange(*it))
 				{
 					continue;
 				}
 				character->player->client->SendBuilder(builder);
 			}
-			this->items.erase(item);
+			this->items.erase(it);
 			break;
 		}
 	}
 }
 
-void Map::DelItem(Map_Item *item_, Character *from)
+void Map::DelItem(Map_Item *item, Character *from)
 {
-	UTIL_PTR_LIST_FOREACH(this->items, Map_Item, item)
+	UTIL_IFOREACH(this->items, it)
 	{
-		if (item_ == *item)
+		if (item == *it)
 		{
 			PacketBuilder builder;
 			builder.SetID(PACKET_ITEM, PACKET_REMOVE);
-			builder.AddShort(item->uid);
-			UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+			builder.AddShort((*it)->uid);
+			UTIL_FOREACH(this->characters, character)
 			{
-				if ((from && *character == from) || !character->InRange(*item))
+				if ((from && character == from) || !character->InRange(*it))
 				{
 					continue;
 				}
 				character->player->client->SendBuilder(builder);
 			}
-			this->items.erase(item);
+			this->items.erase(it);
 			break;
 		}
 	}
@@ -1795,7 +1776,7 @@ bool Map::InBounds(unsigned char x, unsigned char y)
 
 bool Map::Walkable(unsigned char x, unsigned char y, bool npc)
 {
-	return (InBounds(x, y) && this->tiles[y]->at(x)->Walkable(npc));
+	return (InBounds(x, y) && this->tiles[y].at(x)->Walkable(npc));
 }
 
 Map_Tile::TileSpec Map::GetSpec(unsigned char x, unsigned char y)
@@ -1805,7 +1786,7 @@ Map_Tile::TileSpec Map::GetSpec(unsigned char x, unsigned char y)
 		return Map_Tile::None;
 	}
 
-	return this->tiles[y]->at(x)->tilespec;
+	return this->tiles[y].at(x)->tilespec;
 }
 
 Map_Warp *Map::GetWarp(unsigned char x, unsigned char y)
@@ -1815,7 +1796,7 @@ Map_Warp *Map::GetWarp(unsigned char x, unsigned char y)
 		return 0;
 	}
 
-	return this->tiles[y]->at(x)->warp;
+	return this->tiles[y].at(x)->warp;
 }
 
 void Map::Effect(int effect, int param)
@@ -1825,7 +1806,7 @@ void Map::Effect(int effect, int param)
 	builder.AddChar(effect);
 	builder.AddChar(param);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
 		character->player->client->SendBuilder(builder);
 	}
@@ -1859,7 +1840,7 @@ bool Map::Reload()
 		return true;
 	}
 
-	PtrList<Character> temp = this->characters;
+	std::list<Character *> temp = this->characters;
 
 	this->Unload();
 
@@ -1887,7 +1868,7 @@ bool Map::Reload()
 	PacketBuilder protect_builder(0);
 	protect_builder.AddChar(INIT_BANNED);
 
-	UTIL_PTR_LIST_FOREACH(temp, Character, character)
+	UTIL_FOREACH(temp, character)
 	{
 		character->player->client->Send(builder.Get());
 		character->Refresh(); // TODO: Find a better way to reload NPCs
@@ -1907,11 +1888,11 @@ Character *Map::GetCharacter(std::string name)
 {
 	name = util::lowercase(name);
 
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
 		if (character->name.compare(name) == 0)
 		{
-			return *character;
+			return character;
 		}
 	}
 
@@ -1920,11 +1901,11 @@ Character *Map::GetCharacter(std::string name)
 
 Character *Map::GetCharacterPID(unsigned int id)
 {
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
 		if (character->player->id == id)
 		{
-			return *character;
+			return character;
 		}
 	}
 
@@ -1933,11 +1914,11 @@ Character *Map::GetCharacterPID(unsigned int id)
 
 Character *Map::GetCharacterCID(unsigned int id)
 {
-	UTIL_PTR_LIST_FOREACH(this->characters, Character, character)
+	UTIL_FOREACH(this->characters, character)
 	{
 		if (character->id == id)
 		{
-			return *character;
+			return character;
 		}
 	}
 

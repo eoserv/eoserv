@@ -97,11 +97,11 @@ CLIENT_F_FUNC(Citizen)
 
 			short id = reader.GetShort();
 
-			UTIL_PTR_VECTOR_FOREACH(this->player->character->map->npcs, NPC, npc)
+			UTIL_FOREACH(this->player->character->map->npcs, npc)
 			{
 				if (npc->index == id && npc->Data()->type == ENF::Inn && npc->citizenship)
 				{
-					this->player->character->npc = *npc;
+					this->player->character->npc = npc;
 					this->player->character->npc_type = ENF::Inn;
 
 					reply.SetID(PACKET_CITIZEN, PACKET_OPEN);

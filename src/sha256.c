@@ -129,7 +129,7 @@ static void sha256_process(sha256_context *ctx, const u8 data[BLOCK_SIZE])
 	a = ctx->h[0]; b = ctx->h[1];
 	c = ctx->h[2]; d = ctx->h[3];
 	e = ctx->h[4]; f = ctx->h[5];
-	g = ctx->h[6]; h = ctx->h[7];	
+	g = ctx->h[6]; h = ctx->h[7];
 #endif // SHA256_FAST
 
 #ifndef SHA256_FAST
@@ -207,7 +207,7 @@ void sha256_update(sha256_context *ctx, const u8 *input, unsigned long length)
 
 	ctx->length[0] += length;
 	ctx->length[0] &= u32_max;
-	
+
 	if (ctx->length[0] < length)
 	{
 		++ctx->length[1];

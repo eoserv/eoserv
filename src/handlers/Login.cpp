@@ -27,7 +27,14 @@ CLIENT_F_FUNC(Login)
 			std::string username = reader.GetBreakString();
 			std::string password = reader.GetBreakString();
 
+			if (username.length() > std::size_t(int(this->server()->world->config["AccountMaxLength"]))
+			 || password.length() > std::size_t(int(this->server()->world->config["PasswordMaxLength"])))
+			{
+				return false;
+			}
+
 			username = util::lowercase(username);
+
 
 			if (this->server()->world->CheckBan(&username, 0, 0) != -1)
 			{
@@ -40,6 +47,20 @@ CLIENT_F_FUNC(Login)
 			}
 
 			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
+
+			if (username.length() < std::size_t(int(this->server()->world->config["AccountMinLength"])))
+			{
+				reply.AddShort(LOGIN_WRONG_USER);
+				CLIENT_SEND(reply);
+				return true;
+			}
+
+			if (password.length() < std::size_t(int(this->server()->world->config["PasswordMinLength"])))
+			{
+				reply.AddShort(LOGIN_WRONG_USERPASS);
+				CLIENT_SEND(reply);
+				return true;
+			}
 
 			if (this->server()->world->characters.size() >= static_cast<std::size_t>(static_cast<int>(this->server()->world->config["MaxPlayers"])))
 			{
@@ -76,7 +97,7 @@ CLIENT_F_FUNC(Login)
 			reply.AddChar(this->player->characters.size());
 			reply.AddByte(2);
 			reply.AddByte(255);
-			UTIL_PTR_VECTOR_FOREACH(this->player->characters, Character, character)
+			UTIL_FOREACH(this->player->characters,  character)
 			{
 				reply.AddBreakString(character->name);
 				reply.AddInt(character->id);

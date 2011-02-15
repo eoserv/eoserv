@@ -8,7 +8,6 @@
 
 #include <cmath>
 
-#include "container/algorithm.hpp"
 #include "util.hpp"
 
 #include "character.hpp"
@@ -45,9 +44,9 @@ void Party::Msg(Character *from, std::string message, bool echo)
 	builder.AddShort(from->player->id);
 	builder.AddString(message);
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Character, member)
+	UTIL_FOREACH(this->members, member)
 	{
-		if (echo || *member != from)
+		if (echo || member != from)
 		{
 			member->player->client->SendBuilder(builder);
 		}
@@ -67,9 +66,9 @@ void Party::Join(Character *character)
 	builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
 	builder.AddString(character->name);
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Character, checkcharacter)
+	UTIL_FOREACH(this->members, checkcharacter)
 	{
-		if (*checkcharacter != character)
+		if (checkcharacter != character)
 		{
 			checkcharacter->player->client->SendBuilder(builder);
 		}
@@ -82,7 +81,7 @@ void Party::Leave(Character *character)
 {
 	if (this->members.size() > 2 && character != this->leader)
 	{
-		UTIL_PTR_VECTOR_FOREACH(this->members, Character, checkcharacter)
+		UTIL_IFOREACH(this->members, checkcharacter)
 		{
 			if (*checkcharacter == character)
 			{
@@ -95,9 +94,9 @@ void Party::Leave(Character *character)
 
 		PacketBuilder builder(PACKET_PARTY, PACKET_REMOVE);
 		builder.AddShort(character->player->id);
-		UTIL_PTR_VECTOR_FOREACH(this->members, Character, checkcharacter)
+		UTIL_FOREACH(this->members, checkcharacter)
 		{
-			if (character != *checkcharacter)
+			if (character != checkcharacter)
 			{
 				checkcharacter->player->client->SendBuilder(builder);
 			}
@@ -110,7 +109,7 @@ void Party::Leave(Character *character)
 	}
 	else
 	{
-		this->Destroy();
+		delete this;
 	}
 }
 
@@ -118,10 +117,10 @@ void Party::RefreshMembers(Character *character)
 {
 	PacketBuilder builder(PACKET_PARTY, PACKET_CREATE);
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Character, member)
+	UTIL_FOREACH(this->members, member)
 	{
 		builder.AddShort(member->player->id);
-		builder.AddChar(*member == this->leader);
+		builder.AddChar(member == this->leader);
 		builder.AddChar(member->level);
 		builder.AddChar(int(double(member->hp) / double(member->maxhp) * 100.0));
 		builder.AddBreakString(member->name);
@@ -136,7 +135,7 @@ void Party::UpdateHP(Character *character)
 	builder.AddShort(character->player->id);
 	builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Character, member)
+	UTIL_FOREACH(this->members, member)
 	{
 		member->player->client->SendBuilder(builder);
 	}
@@ -148,7 +147,7 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 	double sumlevel = 0;
 	double members = 0;
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Character, member)
+	UTIL_FOREACH(this->members, member)
 	{
 		if (member->map == map && !member->nowhere)
 		{
@@ -164,7 +163,7 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 		}
 	}
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Character, member)
+	UTIL_FOREACH(this->members, member)
 	{
 		if (member->map != map || member->nowhere)
 		{
@@ -208,13 +207,15 @@ Party::~Party()
 {
 	if (this->world)
 	{
-		erase_first(this->world->parties, this);
+		this->world->parties.erase(
+			std::remove(this->world->parties.begin(), this->world->parties.end(), this)
+		);
 	}
 
 	PacketBuilder builder(PACKET_PARTY, PACKET_CLOSE);
 	builder.AddByte(255); // ?
 
-	UTIL_PTR_VECTOR_FOREACH(this->members, Character, member)
+	UTIL_FOREACH(this->members, member)
 	{
 		member->party = 0;
 		member->player->client->SendBuilder(builder);

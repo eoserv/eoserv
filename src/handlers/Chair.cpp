@@ -34,7 +34,7 @@ CLIENT_F_FUNC(Chair)
 					return false;
 				}
 
-				UTIL_PTR_LIST_FOREACH(this->player->character->map->characters, Character, character)
+				UTIL_FOREACH(this->player->character->map->characters, character)
 				{
 					if (character->x == x && character->y == y)
 					{

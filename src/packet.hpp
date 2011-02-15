@@ -10,16 +10,13 @@
 #include "fwd/packet.hpp"
 
 #include <string>
-#include <tr1/array>
-
-#include "script.hpp"
-#include "shared.hpp"
+#include <array>
 
 /**
  * Encodes and Decodes packets for a Client.
  * Each Client needs an instance of this because it holds connection-specific data required to function correctly.
  */
-class PacketProcessor : public Shared
+class PacketProcessor
 {
 	protected:
 		/**
@@ -74,28 +71,14 @@ class PacketProcessor : public Shared
 		void SetEMulti(unsigned char, unsigned char);
 
 		static unsigned int Number(unsigned char, unsigned char = 254, unsigned char = 254, unsigned char = 254);
-		static STD_TR1::array<unsigned char, 4> ENumber(unsigned int);
-		static STD_TR1::array<unsigned char, 4> ENumber(unsigned int, std::size_t &size);
+		static std::array<unsigned char, 4> ENumber(unsigned int);
+		static std::array<unsigned char, 4> ENumber(unsigned int, std::size_t &size);
 
 		static unsigned short PID(PacketFamily family, PacketAction action);
-		static STD_TR1::array<unsigned char, 2> EPID(unsigned short id);
-
-	SCRIPT_REGISTER_REF_DF(PacketProcessor)
-		SCRIPT_REGISTER_FUNCTION("string Decode(string &in)", Decode);
-		SCRIPT_REGISTER_FUNCTION("string Encode(string &in)", Encode);
-		SCRIPT_REGISTER_FUNCTION("string DickWinderE(string &in)", Encode);
-		SCRIPT_REGISTER_FUNCTION("string DickWinderD(string &in)", Encode);
-		SCRIPT_REGISTER_FUNCTION("void SetEMulti(uint8, uint8)", SetEMulti);
-
-		SCRIPT_REGISTER_GLOBAL_FUNCTION("string PacketProcessor_DickWinder(string &in, uint8 emulti)", DickWinder);
-		SCRIPT_REGISTER_GLOBAL_FUNCTION("string PacketProcessor_Number(uint8, uint8, uint8, uint8)", Number);
-		// ENumber
-		SCRIPT_REGISTER_GLOBAL_FUNCTION("string PacketProcessor_PID(PacketFamily family, PacketAction action)", PID);
-		// EPID
-	SCRIPT_REGISTER_END()
+		static std::array<unsigned char, 2> EPID(unsigned short id);
 };
 
-class PacketReader : public Shared
+class PacketReader
 {
 	protected:
 		std::string data;
@@ -116,26 +99,9 @@ class PacketReader : public Shared
 		std::string GetFixedString(std::size_t length);
 		std::string GetBreakString(unsigned char breakchar = 0xFF);
 		std::string GetEndString();
-
-	static PacketReader *ScriptFactory(const std::string &str) { return new PacketReader(str); }
-
-	SCRIPT_REGISTER_REF(PacketReader)
-		SCRIPT_REGISTER_FACTORY("PacketReader @f(string &in)", ScriptFactory);
-
-		SCRIPT_REGISTER_FUNCTION("uint Length()", Length);
-		SCRIPT_REGISTER_FUNCTION("uint Remaining()", Remaining);
-		SCRIPT_REGISTER_FUNCTION("uint8 GetByte()", GetByte);
-		SCRIPT_REGISTER_FUNCTION("uint8 GetChar()", GetChar);
-		SCRIPT_REGISTER_FUNCTION("uint16 GetShort()", GetShort);
-		SCRIPT_REGISTER_FUNCTION("uint GetThree()", GetThree);
-		SCRIPT_REGISTER_FUNCTION("uint GetInt()", GetInt);
-		SCRIPT_REGISTER_FUNCTION("string GetFixedString(uint)", GetFixedString);
-		SCRIPT_REGISTER_FUNCTION("string GetBreakString(uint8 breakchar)", GetBreakString);
-		SCRIPT_REGISTER_FUNCTION("string GetEndString()", GetEndString);
-	SCRIPT_REGISTER_END()
 };
 
-class PacketBuilder : public Shared
+class PacketBuilder
 {
 	protected:
 		unsigned short id;
@@ -167,117 +133,6 @@ class PacketBuilder : public Shared
 		std::string Get() const;
 
 		operator std::string() const;
-
-	static PacketBuilder *ScriptRegisterID(unsigned short id) { return new PacketBuilder(id); }
-	static PacketBuilder *ScriptRegisterID2(PacketFamily family, PacketAction action) { return new PacketBuilder(family, action); }
-
-	SCRIPT_REGISTER_REF_DF(PacketBuilder)
-		SCRIPT_REGISTER_FACTORY("PacketBuilder @f(uint16 id)", ScriptRegisterID);
-		SCRIPT_REGISTER_FACTORY("PacketBuilder @f(PacketFamily family, PacketAction action)", ScriptRegisterID2);
-
-		SCRIPT_REGISTER_FUNCTION_PR("uint16 SetID(uint16 id)", SetID, (unsigned short), unsigned short);
-		SCRIPT_REGISTER_FUNCTION_PR("uint16 SetID(PacketFamily family, PacketAction action)", SetID, (PacketFamily, PacketAction), unsigned short);
-		SCRIPT_REGISTER_FUNCTION("uint Length()", Length);
-		SCRIPT_REGISTER_FUNCTION("uint8 AddByte(uint8)", AddByte);
-		SCRIPT_REGISTER_FUNCTION("uint8 AddChar(uint8)", AddChar);
-		SCRIPT_REGISTER_FUNCTION("uint16 AddShort(uint16)", AddShort);
-		SCRIPT_REGISTER_FUNCTION("uint AddThree(uint)", AddThree);
-		SCRIPT_REGISTER_FUNCTION("uint AddInt(uint)", AddInt);
-		SCRIPT_REGISTER_FUNCTION("uint AddVar(int min, int max, uint)", AddVar);
-		SCRIPT_REGISTER_FUNCTION("string &AddString(string &in)", AddString);
-		SCRIPT_REGISTER_FUNCTION("string &AddBreakString(string &in, uint8 breakchar)",AddBreakString);
-		SCRIPT_REGISTER_FUNCTION("void Reset()", Reset);
-		SCRIPT_REGISTER_FUNCTION("string Get()", Get);
-	SCRIPT_REGISTER_END()
-};
-
-namespace packet
-{
-
-inline void ScriptRegister(ScriptEngine &engine)
-{
-	SCRIPT_REGISTER_ENUM("PacketFamily")
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_INTERNAL);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_CONNECTION);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ACCOUNT);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_CHARACTER);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_LOGIN);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_WELCOME);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_WALK);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_FACE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_CHAIR);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_EMOTE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ATTACK);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_SHOP);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ITEM);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_STATSKILL);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_GLOBAL);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_TALK);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_WARP);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_JUKEBOX);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_PLAYERS);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_CLOTHES);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_PARTY);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_REFRESH);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_NPC);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_AUTOREFRESH);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_APPEAR);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_PAPERDOLL);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_EFFECT);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_TRADE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_CHEST);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_DOOR);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_PING);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_BANK);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_LOCKER);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_GUILD);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_SIT);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_RECOVER);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_BOARD);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ARENA);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ADMININTERACT);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_CITIZEN);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_QUEST);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_BOOK);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_F_INIT);
-	SCRIPT_REGISTER_ENUM_END()
-
-	SCRIPT_REGISTER_ENUM("PacketAction")
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_REQUEST);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ACCEPT);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_REPLY);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_REMOVE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_AGREE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_CREATE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ADD);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_PLAYER);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_TAKE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_USE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_BUY);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_SELL);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_OPEN);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_CLOSE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_MSG);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_SPEC);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ADMIN);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_LIST);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_TELL);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_REPORT);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_ANNOUNCE);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_SERVER);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_DROP);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_JUNK);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_GET);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_EXP);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_INTERNAL_NULL);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_INTERNAL_WARP);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_NET);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_NET2);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_NET3);
-		SCRIPT_REGISTER_ENUM_VALUE(PACKET_A_INIT);
-	SCRIPT_REGISTER_ENUM_END()
-}
-
 };
 
 #endif // PACKET_HPP_INCLUDED
