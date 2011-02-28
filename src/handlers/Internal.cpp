@@ -4,36 +4,32 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
 #include "console.hpp"
 #include "player.hpp"
 
-CLIENT_F_FUNC(Internal)
+namespace Handlers
 {
-	if (!act)
-	{
-		Console::Wrn("Bad internal call");
-		return false;
-	}
 
-	switch (action)
-	{
-		case PACKET_INTERNAL_NULL:
-			break;
+void Internal_Null(EOClient *client, PacketReader &reader)
+{
+	(void)client;
+	(void)reader;
+}
 
-		case PACKET_INTERNAL_WARP: // Death warp
-		{
-			this->player->character->map = 0;
-			this->player->character->Warp(this->player->character->SpawnMap(), this->player->character->SpawnX(), this->player->character->SpawnY(), WARP_ANIMATION_NONE);
-		}
-		break;
+// Death warp
+void Internal_Warp(Character *character, PacketReader &reader)
+{
+	(void)reader;
+	character->map = 0;
+	character->Warp(character->SpawnMap(), character->SpawnX(), character->SpawnY(), WARP_ANIMATION_NONE);
+}
 
+PACKET_HANDLER_REGISTER(PACKET_INTERNAL)
+	Register(PACKET_INTERNAL_NULL, Internal_Null, Any);
+	Register(PACKET_INTERNAL_WARP, Internal_Warp, Playing);
+PACKET_HANDLER_REGISTER_END()
 
-		default:
-			return false;
-	}
-
-	return true;
 }

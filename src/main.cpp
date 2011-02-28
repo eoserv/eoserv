@@ -6,6 +6,8 @@
 
 #include <csignal>
 #include <cerrno>
+#include <limits>
+#include <stdexcept>
 #include <vector>
 
 #include "character.hpp"
@@ -30,13 +32,14 @@ volatile bool eoserv_running = true;
 #ifdef SIGHUP
 static void eoserv_rehash(int signal)
 {
-	eoserv_rehash = true;
+	(void)signal;
+	eoserv_sig_rehash = true;
 }
 #endif // SIGHUP
 
 static void eoserv_terminate(int signal)
 {
-	puts("Terminate");
+	(void)signal;
 	eoserv_sig_abort = true;
 }
 
@@ -69,6 +72,7 @@ HANDLE eoserv_close_event;
 
 static BOOL WINAPI eoserv_win_event_handler(DWORD event)
 {
+	(void)event;
 	eoserv_sig_abort = true;
 
 	WaitForSingleObject(eoserv_close_event, INFINITE);
@@ -564,13 +568,16 @@ int main(int argc, char *argv[])
 				bool throttle = false;
 				IPAddress remote_addr = newclient->GetRemoteAddr();
 
-				restart_loop:
 				UTIL_IFOREACH(connection_log, connection)
 				{
 					if (connection->second + static_cast<int>(config["IPReconnectLimit"]) < Timer::GetTime())
 					{
-						connection_log.erase(connection);
-						goto restart_loop;
+						connection = connection_log.erase(connection);
+
+						if (connection == connection_log.end())
+							break;
+
+						continue;
 					}
 
 					if (connection->first == remote_addr)

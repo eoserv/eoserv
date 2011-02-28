@@ -4,8 +4,10 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
+#include <algorithm>
+#include <functional>
 #include <list>
 #include <memory>
 
@@ -16,783 +18,755 @@
 #include "npc.hpp"
 #include "player.hpp"
 
-CLIENT_F_FUNC(Guild)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	double now = Timer::GetTime();
+// Requested to create a guild
+void Guild_Request(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	reader.GetByte();
+	std::string tag = reader.GetBreakString();
+	std::string name = reader.GetBreakString();
 
-	if (this->player && this->player->character)
+	if (tag.length() > 3
+	 || name.length() > std::size_t(int(character->world->config["GuildMaxNameLength"])))
 	{
-		if (int(this->player->character->last_guild_action * 2) == int(now * 2))
-		{
-			CLIENT_FORCE_QUEUE_ACTION(0.5)
-		}
-
-		this->player->character->last_guild_action = now;
+		return;
 	}
 
-	switch (action)
+	if (character->npc_type == ENF::Guild)
 	{
-		case PACKET_REQUEST: // Requested to create a guild
+		if (!character->guild)
 		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			reader.GetByte();
-			std::string tag = reader.GetBreakString();
-			std::string name = reader.GetBreakString();
-
-			if (tag.length() > 3
-			 || name.length() > std::size_t(int(this->server()->world->config["GuildMaxNameLength"])))
+			if (static_cast<int>(character->world->config["GuildCreateMembers"]) > 0)
 			{
-				return false;
-			}
+				std::shared_ptr<Guild> guild(character->world->guildmanager->GetGuild(tag));
 
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (!this->player->character->guild)
+				if (!guild)
 				{
-					if (static_cast<int>(this->server()->world->config["GuildCreateMembers"]) > 0)
+					guild = character->world->guildmanager->GetGuildName(name);
+				}
+
+				if (!guild)
+				{
+					if (Guild::ValidTag(tag) && Guild::ValidName(name))
 					{
-						std::shared_ptr<Guild> guild(this->server()->world->guildmanager->GetGuild(tag));
-
-						if (!guild)
+						if (character->HasItem(1) >= static_cast<int>(character->world->config["GuildPrice"]))
 						{
-							guild = this->server()->world->guildmanager->GetGuildName(name);
-						}
+							std::shared_ptr<class Guild_Create> create = character->world->guildmanager->BeginCreate(tag, name, character);
+							character->guild_create = create;
 
-						if (!guild)
-						{
-							if (Guild::ValidTag(tag) && Guild::ValidName(name))
+							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+							reply.AddChar(GUILD_CREATE_BEGIN);
+							character->Send(reply);
+
+							PacketBuilder builder(PACKET_GUILD, PACKET_REQUEST);
+							builder.AddShort(create->leader->player->id);
+							builder.AddString(util::ucfirst(util::lowercase(name)) + " (" + util::uppercase(tag) + ")");
+
+							UTIL_FOREACH(character->map->characters, character)
 							{
-								if (this->player->character->HasItem(1) >= static_cast<int>(this->server()->world->config["GuildPrice"]))
+								if (character != character && !character->guild)
 								{
-									std::shared_ptr<Guild_Create> create = this->server()->world->guildmanager->BeginCreate(tag, name, this->player->character);
-									this->player->character->guild_create = create;
-
-									reply.SetID(PACKET_GUILD, PACKET_REPLY);
-									reply.AddChar(GUILD_CREATE_BEGIN);
-									CLIENT_SEND(reply);
-
-									PacketBuilder builder(PACKET_GUILD, PACKET_REQUEST);
-									builder.AddShort(create->leader->player->id);
-									builder.AddString(util::ucfirst(util::lowercase(name)) + " (" + util::uppercase(tag) + ")");
-
-									UTIL_FOREACH(this->player->character->map->characters, character)
-									{
-										if (character != this->player->character && !character->guild)
-										{
-											character->guild_invite = tag;
-											character->player->client->SendBuilder(builder);
-										}
-									}
-
-									if (static_cast<int>(this->server()->world->config["GuildCreateMembers"]) == 1)
-									{
-										PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
-										builder.AddShort(GUILD_CREATE_ADD_CONFIRM);
-										builder.AddString("");
-										this->player->client->SendBuilder(builder);
-									}
+									character->guild_invite = tag;
+									character->Send(builder);
 								}
 							}
-							else
+
+							if (static_cast<int>(character->world->config["GuildCreateMembers"]) == 1)
 							{
-								reply.SetID(PACKET_GUILD, PACKET_REPLY);
-								reply.AddChar(GUILD_NOT_APPROVED);
-								CLIENT_SEND(reply);
+								PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
+								builder.AddShort(GUILD_CREATE_ADD_CONFIRM);
+								builder.AddString("");
+								character->Send(builder);
 							}
 						}
-						else
-						{
-							reply.SetID(PACKET_GUILD, PACKET_REPLY);
-							reply.AddChar(GUILD_EXISTS);
-							CLIENT_SEND(reply);
-						}
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_ACCEPT: // Accept guild create invite
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			if (!this->player->character->guild_invite.empty())
-			{
-				std::shared_ptr<Guild_Create> create = this->server()->world->guildmanager->GetCreate(this->player->character->guild_invite);
-
-				if (create)
-				{
-					create->AddMember(this->player->character->name);
-
-					PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
-
-					if (create->members.size() == static_cast<std::size_t>(static_cast<int>(this->server()->world->config["GuildCreateMembers"])))
-					{
-						builder.AddShort(GUILD_CREATE_ADD_CONFIRM);
 					}
 					else
 					{
-						builder.AddShort(GUILD_CREATE_ADD);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+						reply.AddChar(GUILD_NOT_APPROVED);
+						character->Send(reply);
+					}
+				}
+				else
+				{
+					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+					reply.AddChar(GUILD_EXISTS);
+					character->Send(reply);
+				}
+			}
+		}
+	}
+}
+
+// Accept guild create invite
+void Guild_Accept(Character *character, PacketReader &reader)
+{
+	(void)reader;
+
+	if (!character->guild_invite.empty())
+	{
+		std::shared_ptr<class Guild_Create> create = character->world->guildmanager->GetCreate(character->guild_invite);
+
+		if (create)
+		{
+			create->AddMember(character->name);
+
+			PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
+
+			if (create->members.size() == static_cast<std::size_t>(static_cast<int>(character->world->config["GuildCreateMembers"])))
+			{
+				builder.AddShort(GUILD_CREATE_ADD_CONFIRM);
+			}
+			else
+			{
+				builder.AddShort(GUILD_CREATE_ADD);
+			}
+
+			builder.AddString(character->name);
+			create->leader->Send(builder);
+		}
+
+		character->guild_invite = "";
+	}
+}
+
+// Left the guild
+void Guild_Remove(Character *character, PacketReader &reader)
+{
+	(void)reader;
+	/*int session = reader.GetInt();*/
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (character->guild)
+		{
+			character->guild->DelMember(character->name, 0, true);
+		}
+	}
+}
+
+// Update guild rank list
+void Guild_Agree(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	GuildInfoType info = static_cast<GuildInfoType>(reader.GetShort());
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (character->guild)
+		{
+			switch (info)
+			{
+				case GUILD_INFO_DESCRIPTION:
+				{
+					if (character->guild_rank <= static_cast<int>(character->world->config["GuildEditRank"]))
+					{
+						std::string description = reader.GetEndString();
+
+						if (description.length() > std::size_t(int(character->world->config["GuildMaxDescLength"])))
+						{
+							return;
+						}
+
+						character->guild->SetDescription(description);
+
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+						reply.AddChar(GUILD_UPDATED);
+						character->Send(reply);
+					}
+				}
+				break;
+
+				case GUILD_INFO_RANKS:
+				{
+					if (character->guild_rank <= static_cast<int>(character->world->config["GuildEditRank"]))
+					{
+						for (std::size_t i = 0; i < character->guild->ranks.size(); ++i)
+						{
+							std::string rank = reader.GetEndString();
+
+							if (rank.length() > std::size_t(int(character->world->config["GuildMaxRankLength"])))
+							{
+								return;
+							}
+						}
+
+						for (std::size_t i = 0; i < character->guild->ranks.size(); ++i)
+						{
+							character->guild->ranks[i] = reader.GetBreakString();
+						}
+
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+						reply.AddChar(GUILD_RANKS_UPDATED);
+						character->Send(reply);
+					}
+				}
+				break;
+
+				default: ;
+			}
+		}
+	}
+}
+
+// Creating a guild
+void Guild_Create(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	reader.GetByte();
+	std::string tag = reader.GetBreakString();
+	std::string name = reader.GetBreakString();
+	std::string description = reader.GetBreakString();
+
+	if (tag.length() > 3
+	 || name.length() > std::size_t(int(character->world->config["GuildMaxNameLength"]))
+	 || description.length() > std::size_t(int(character->world->config["GuildMaxDescLength"])))
+	{
+		return;
+	}
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (!character->guild
+		 && character->HasItem(1) >= static_cast<int>(character->world->config["GuildPrice"]))
+		{
+			std::shared_ptr<class Guild_Create> create = character->world->guildmanager->GetCreate(tag);
+
+			if (create && create->leader == character
+			 && create->members.size() >= static_cast<std::size_t>(static_cast<int>(character->world->config["GuildCreateMembers"])))
+			{
+				std::shared_ptr<Guild> guild = character->world->guildmanager->CreateGuild(create, description);
+
+				character->DelItem(1, character->world->config["GuildPrice"]);
+
+				PacketBuilder reply(PACKET_GUILD, PACKET_CREATE);
+				reply.AddShort(create->leader->player->id);
+				reply.AddByte(255);
+				reply.AddBreakString(guild->tag);
+				reply.AddBreakString(guild->name);
+				reply.AddBreakString(guild->GetRank(character->guild_rank));
+				reply.AddInt(character->HasItem(1));
+				character->Send(reply);
+
+				character->guild_create.reset();
+			}
+		}
+	}
+}
+
+// Requested to join a guild
+void Guild_Player(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	reader.GetByte();
+	std::string tag = util::uppercase(reader.GetBreakString());
+	std::string recruiter_name = util::lowercase(reader.GetBreakString());
+
+	if (tag.length() > 3
+	 || recruiter_name.length() > 12)
+	{
+		return;
+	}
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (!character->guild)
+		{
+			Character *recruiter = character->world->GetCharacter(recruiter_name);
+
+			if (recruiter)
+			{
+				if (recruiter->map == character->map)
+				{
+					if (recruiter->guild && recruiter->guild->tag == tag)
+					{
+						if (recruiter->guild_rank <= static_cast<int>(character->world->config["GuildRecruitRank"]))
+						{
+							character->guild_join = tag;
+
+							PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
+							builder.AddShort(GUILD_JOIN_REQUEST);
+							builder.AddShort(character->player->id);
+							builder.AddString(util::ucfirst(character->name));
+							recruiter->Send(builder);
+						}
+						else
+						{
+							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+							reply.AddChar(GUILD_NOT_RECRUITER);
+							character->Send(reply);
+						}
+					}
+					else
+					{
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+						reply.AddChar(GUILD_RECRUITER_WRONG_GUILD);
+						character->Send(reply);
+					}
+				}
+				else
+				{
+					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+					reply.AddChar(GUILD_RECRUITER_NOT_HERE);
+					character->Send(reply);
+				}
+			}
+			else
+			{
+				PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+				reply.AddChar(GUILD_RECRUITER_OFFLINE);
+				character->Send(reply);
+			}
+		}
+	}
+}
+
+// Requested guild bank/rank list/description
+void Guild_Take(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	GuildInfoType info = static_cast<GuildInfoType>(reader.GetShort());
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (character->guild)
+		{
+			switch (info)
+			{
+				case GUILD_INFO_DESCRIPTION:
+				{
+					if (character->guild_rank <= static_cast<int>(character->world->config["GuildEditRank"]))
+					{
+						PacketBuilder reply(PACKET_GUILD, PACKET_TAKE);
+						reply.AddString(character->guild->description);
+
+						character->Send(reply);
+					}
+				}
+				break;
+
+				case GUILD_INFO_RANKS:
+				{
+					if (character->guild_rank <= static_cast<int>(character->world->config["GuildEditRank"]))
+					{
+						PacketBuilder reply(PACKET_GUILD, PACKET_RANK);
+
+						for (std::size_t i = 0; i < character->guild->ranks.size(); ++i)
+						{
+							reply.AddBreakString(character->guild->ranks[i]);
+						}
+
+						character->Send(reply);
+					}
+				}
+				break;
+
+				case GUILD_INFO_BANK:
+				{
+					PacketBuilder reply(PACKET_GUILD, PACKET_SELL);
+					reply.AddInt(character->guild->bank);
+
+					character->Send(reply);
+				}
+				break;
+			}
+		}
+	}
+}
+
+// Accepted a join request
+void Guild_Use(Character *character, PacketReader &reader)
+{
+	unsigned short pid = reader.GetShort();
+
+	Character *joiner = character->world->GetCharacterPID(pid);
+
+	if (character->guild
+	 && character->guild_rank <= static_cast<int>(character->world->config["GuildRecruitRank"])
+	 && joiner && !joiner->guild
+	 && character->map == joiner->map
+	 && joiner->guild_join == character->guild->tag)
+	{
+		PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+
+		if (character->guild->bank >= static_cast<int>(character->world->config["RecruitCost"]))
+		{
+			if (character->guild->members.size() < static_cast<std::size_t>(static_cast<int>(character->world->config["RecruitCost"])))
+			{
+				character->guild->AddMember(joiner, character, true);
+				character->guild->DelBank(character->world->config["RecruitCost"]);
+				reply.AddChar(GUILD_ACCEPTED);
+			}
+		}
+		else
+		{
+			reply.AddChar(GUILD_ACCOUNT_LOW);
+		}
+
+		character->Send(reply);
+	}
+}
+
+// Deposit gold to the guild bank
+void Guild_Buy(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	int gold = reader.GetInt();
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (character->guild)
+		{
+			if (gold >= static_cast<int>(character->world->config["GuildMinDeposit"]) && character->HasItem(1) >= gold)
+			{
+				character->DelItem(1, gold);
+				character->guild->AddBank(gold);
+
+				PacketBuilder reply(PACKET_GUILD, PACKET_BUY);
+				reply.AddInt(character->HasItem(1));
+				character->Send(reply);
+			}
+		}
+	}
+}
+
+// Talked to a guild NPC
+void Guild_Open(Character *character, PacketReader &reader)
+{
+	short id = reader.GetShort();
+
+	UTIL_FOREACH(character->map->npcs, npc)
+	{
+		if (npc->index == id && npc->Data()->type == ENF::Guild)
+		{
+			character->npc = npc;
+			character->npc_type = ENF::Guild;
+
+			PacketBuilder reply(PACKET_GUILD, PACKET_OPEN);
+			reply.AddThree(0); // Session token
+
+			character->Send(reply);
+
+			break;
+		}
+	}
+}
+
+// Requested member list of a guild
+void Guild_Tell(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	std::string tag = reader.GetEndString();
+
+	if (tag.length() > std::size_t(int(character->world->config["GuildMaxNameLength"])))
+	{
+		return;
+	}
+
+	if (character->npc_type == ENF::Guild)
+	{
+		std::shared_ptr<Guild> guild;
+
+		if (tag.length() == 2 || tag.length() == 3)
+		{
+			guild = character->world->guildmanager->GetGuild(tag);
+		}
+		else
+		{
+			guild = character->world->guildmanager->GetGuildName(tag);
+		}
+
+		if (!guild)
+		{
+			PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+			reply.AddChar(GUILD_NOT_FOUND);
+			character->Send(reply);
+		}
+		else
+		{
+			PacketBuilder reply(PACKET_GUILD, PACKET_TELL);
+			reply.AddShort(guild->members.size());
+			reply.AddByte(255);
+
+			std::for_each(UTIL_CRANGE(guild->members), [&](std::shared_ptr<Guild_Member> member)
+			{
+				reply.AddChar(member->rank);
+				reply.AddByte(255);
+				reply.AddBreakString(member->name);
+				reply.AddBreakString(guild->GetRank(member->rank));
+			});
+
+			character->Send(reply);
+		}
+	}
+}
+
+// Requested information on a guild
+void Guild_Report(Character *character, PacketReader &reader)
+{
+	/*int session =*/ reader.GetInt();
+	std::string tag = reader.GetEndString();
+
+	if (tag.length() > std::size_t(int(character->world->config["GuildMaxNameLength"])))
+	{
+		return;
+	}
+
+	if (character->npc_type == ENF::Guild)
+	{
+		std::shared_ptr<Guild> guild;
+
+		if (tag.length() == 2 || tag.length() == 3)
+		{
+			guild = character->world->guildmanager->GetGuild(tag);
+		}
+		else
+		{
+			guild = character->world->guildmanager->GetGuildName(tag);
+		}
+
+		if (!guild)
+		{
+			PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+			reply.AddChar(GUILD_NOT_FOUND);
+		}
+		else
+		{
+			int leader_rank = std::max(static_cast<int>(character->world->config["GuildEditRank"]), static_cast<int>(character->world->config["GuildKickRank"]));
+			int recruiter_rank = character->world->config["GuildRecruitRank"];
+
+			std::list<std::shared_ptr<Guild_Member>> leaders;
+			std::list<std::shared_ptr<Guild_Member>> recruiters;
+
+			UTIL_FOREACH(guild->members, member)
+			{
+				if (member->rank <= leader_rank)
+				{
+					leaders.push_back(member);
+				}
+			}
+
+			if (character->world->config["GuildShowRecruiters"])
+			{
+				UTIL_FOREACH(guild->members, member)
+				{
+					if (member->rank > leader_rank && member->rank <= recruiter_rank)
+					{
+						recruiters.push_back(member);
+					}
+				}
+			}
+
+			std::string create_date;
+			create_date.resize(31);
+
+			tm *local_time = localtime(&guild->created);
+			create_date = create_date.substr(0, strftime(&create_date[0], 31, static_cast<std::string>(character->world->config["GuildDateFormat"]).c_str(), local_time));
+
+			PacketBuilder reply(PACKET_GUILD, PACKET_REPORT);
+			reply.AddBreakString(guild->name);
+			reply.AddBreakString(guild->tag);
+			reply.AddBreakString(create_date);
+			reply.AddBreakString(guild->description);
+			reply.AddBreakString(util::to_string(guild->bank));
+
+			for (std::size_t i = 0; i < guild->ranks.size(); ++i)
+			{
+				std::string rank = guild->ranks[i];
+
+				while (rank.length() < 4)
+				{
+					rank += ' ';
+				}
+
+				reply.AddBreakString(rank);
+			}
+
+			reply.AddShort(leaders.size() + recruiters.size());
+			reply.AddByte(255);
+
+			UTIL_FOREACH(leaders, member)
+			{
+				reply.AddChar(1);
+				reply.AddByte(255);
+				reply.AddBreakString(member->name + (member->rank == 0 ? " (founder)" : ""));
+			}
+
+			UTIL_FOREACH(recruiters, member)
+			{
+				reply.AddChar(2);
+				reply.AddByte(255);
+				reply.AddBreakString(member->name);
+			}
+
+			character->Send(reply);
+		}
+	}
+}
+
+// Disband guild
+void Guild_Junk(Character *character, PacketReader &reader)
+{
+	(void)reader;
+	/*int session = reader.GetInt();*/
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (character->guild)
+		{
+			// TODO: Guild disbanding
+		}
+	}
+}
+
+// Remove a member
+void Guild_Kick(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	std::string name = reader.GetEndString();
+
+	if (name.length() > 12)
+	{
+		return;
+	}
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (character->guild)
+		{
+			if (character->guild_rank <= static_cast<int>(character->world->config["GuildKickRank"]))
+			{
+				std::shared_ptr<Guild_Member> target = character->guild->GetMember(name);
+
+				if (target)
+				{
+					if (target->rank > character->guild_rank)
+					{
+						character->guild->DelMember(name, character, true);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+						reply.AddChar(GUILD_REMOVED);
+						character->Send(reply);
+					}
+					else
+					{
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+						reply.AddChar(GUILD_REMOVE_LEADER);
+						character->Send(reply);
+					}
+				}
+				else
+				{
+					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+					reply.AddChar(GUILD_REMOVE_NOT_MEMBER);
+					character->Send(reply);
+				}
+			}
+		}
+	}
+}
+
+// Set a member's rank
+void Guild_Rank(Character *character, PacketReader &reader)
+{
+	/*int session = */reader.GetInt();
+	int rank = reader.GetChar();
+	std::string name = util::lowercase(reader.GetEndString());
+
+	if (rank < 0 || rank > 10
+	 || name.length() > 12)
+	{
+		return;
+	}
+
+	if (character->npc_type == ENF::Guild)
+	{
+		if (character->guild)
+		{
+			std::shared_ptr<Guild_Member> target = character->guild->GetMember(name);
+
+			if (target)
+			{
+				if (target->rank == 0)
+				{
+					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+					reply.AddChar(GUILD_RANKING_LEADER);
+					character->Send(reply);
+				}
+				else if (rank == 0)
+				{
+					if (character->guild_rank == 0 && character->world->config["GuildMultipleFounders"])
+					{
+						character->guild->SetMemberRank(target->name, 0);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+						reply.AddChar(GUILD_UPDATED);
+						character->Send(reply);
+					}
+				}
+				else
+				{
+					bool has_perm = false;
+
+					if (rank <= target->rank)
+					{
+						has_perm = has_perm || (character->guild_rank <= static_cast<int>(character->world->config["GuildPromoteRank"]));
 					}
 
-					builder.AddString(this->player->character->name);
-					create->leader->player->client->SendBuilder(builder);
-				}
-
-				this->player->character->guild_invite = "";
-			}
-		}
-		break;
-
-		case PACKET_REMOVE: // Left the guild
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = reader.GetInt();*/
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (this->player->character->guild)
-				{
-					this->player->character->guild->DelMember(this->player->character->name, 0, true);
-				}
-			}
-		}
-		break;
-
-		case PACKET_AGREE: // Update guild rank list
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			GuildInfoType info = static_cast<GuildInfoType>(reader.GetShort());
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (this->player->character->guild)
-				{
-					switch (info)
+					if (rank >= target->rank)
 					{
-						case GUILD_INFO_DESCRIPTION:
+						has_perm = has_perm || (character->guild_rank <= static_cast<int>(character->world->config["GuildDemoteRank"]));
+					}
+
+					if (has_perm)
+					{
+						if (character->guild_rank == 0 || character->guild_rank < target->rank)
 						{
-							if (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildEditRank"]))
+							if (rank > character->guild_rank)
 							{
-								std::string description = reader.GetEndString();
-
-								if (description.length() > std::size_t(int(this->server()->world->config["GuildMaxDescLength"])))
-								{
-									return false;
-								}
-
-								this->player->character->guild->SetDescription(description);
-
-								reply.SetID(PACKET_GUILD, PACKET_REPLY);
+								character->guild->SetMemberRank(target->name, rank);
+								PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
 								reply.AddChar(GUILD_UPDATED);
-								CLIENT_SEND(reply);
-							}
-						}
-						break;
-
-						case GUILD_INFO_RANKS:
-						{
-							if (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildEditRank"]))
-							{
-								for (std::size_t i = 0; i < this->player->character->guild->ranks.size(); ++i)
-								{
-									std::string rank = reader.GetEndString();
-
-									if (rank.length() > std::size_t(int(this->server()->world->config["GuildMaxRankLength"])))
-									{
-										return false;
-									}
-								}
-
-								for (std::size_t i = 0; i < this->player->character->guild->ranks.size(); ++i)
-								{
-									this->player->character->guild->ranks[i] = reader.GetBreakString();
-								}
-
-								reply.SetID(PACKET_GUILD, PACKET_REPLY);
-								reply.AddChar(GUILD_RANKS_UPDATED);
-								CLIENT_SEND(reply);
-							}
-						}
-						break;
-
-						default: ;
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_CREATE: // Creating a guild
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			reader.GetByte();
-			std::string tag = reader.GetBreakString();
-			std::string name = reader.GetBreakString();
-			std::string description = reader.GetBreakString();
-
-			if (tag.length() > 3
-			 || name.length() > std::size_t(int(this->server()->world->config["GuildMaxNameLength"]))
-			 || description.length() > std::size_t(int(this->server()->world->config["GuildMaxDescLength"])))
-			{
-				return false;
-			}
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (!this->player->character->guild
-				 && this->player->character->HasItem(1) >= static_cast<int>(this->server()->world->config["GuildPrice"]))
-				{
-					std::shared_ptr<Guild_Create> create = this->server()->world->guildmanager->GetCreate(tag);
-
-					if (create && create->leader == this->player->character
-					 && create->members.size() >= static_cast<std::size_t>(static_cast<int>(this->server()->world->config["GuildCreateMembers"])))
-					{
-						std::shared_ptr<Guild> guild = this->server()->world->guildmanager->CreateGuild(create, description);
-
-						this->player->character->DelItem(1, this->server()->world->config["GuildPrice"]);
-
-						reply.SetID(PACKET_GUILD, PACKET_CREATE);
-						reply.AddShort(create->leader->player->id);
-						reply.AddByte(255);
-						reply.AddBreakString(guild->tag);
-						reply.AddBreakString(guild->name);
-						reply.AddBreakString(guild->GetRank(this->player->character->guild_rank));
-						reply.AddInt(this->player->character->HasItem(1));
-						CLIENT_SEND(reply);
-
-						this->player->character->guild_create.reset();
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_PLAYER: // Requested to join a guild
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			reader.GetByte();
-			std::string tag = util::uppercase(reader.GetBreakString());
-			std::string recruiter_name = util::lowercase(reader.GetBreakString());
-
-			if (tag.length() > 3
-			 || recruiter_name.length() > 12)
-			{
-				return false;
-			}
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (!this->player->character->guild)
-				{
-					Character *recruiter = this->server()->world->GetCharacter(recruiter_name);
-
-					if (recruiter)
-					{
-						if (recruiter->map == this->player->character->map)
-						{
-							if (recruiter->guild && recruiter->guild->tag == tag)
-							{
-								if (recruiter->guild_rank <= static_cast<int>(this->server()->world->config["GuildRecruitRank"]))
-								{
-									this->player->character->guild_join = tag;
-
-									PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
-									builder.AddShort(GUILD_JOIN_REQUEST);
-									builder.AddShort(this->player->id);
-									builder.AddString(util::ucfirst(this->player->character->name));
-									recruiter->player->client->SendBuilder(builder);
-								}
-								else
-								{
-									reply.SetID(PACKET_GUILD, PACKET_REPLY);
-									reply.AddChar(GUILD_NOT_RECRUITER);
-									CLIENT_SEND(reply);
-								}
-							}
-							else
-							{
-								reply.SetID(PACKET_GUILD, PACKET_REPLY);
-								reply.AddChar(GUILD_RECRUITER_WRONG_GUILD);
-								CLIENT_SEND(reply);
+								character->Send(reply);
 							}
 						}
 						else
 						{
-							reply.SetID(PACKET_GUILD, PACKET_REPLY);
-							reply.AddChar(GUILD_RECRUITER_NOT_HERE);
-							CLIENT_SEND(reply);
-						}
-					}
-					else
-					{
-						reply.SetID(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_RECRUITER_OFFLINE);
-						CLIENT_SEND(reply);
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_TAKE: // Requested guild bank/rank list/description
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			GuildInfoType info = static_cast<GuildInfoType>(reader.GetShort());
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (this->player->character->guild)
-				{
-					switch (info)
-					{
-						case GUILD_INFO_DESCRIPTION:
-						{
-							if (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildEditRank"]))
-							{
-								reply.SetID(PACKET_GUILD, PACKET_TAKE);
-								reply.AddString(this->player->character->guild->description);
-
-								CLIENT_SEND(reply);
-							}
-						}
-						break;
-
-						case GUILD_INFO_RANKS:
-						{
-							if (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildEditRank"]))
-							{
-								reply.SetID(PACKET_GUILD, PACKET_RANK);
-
-								for (std::size_t i = 0; i < this->player->character->guild->ranks.size(); ++i)
-								{
-									reply.AddBreakString(this->player->character->guild->ranks[i]);
-								}
-
-								CLIENT_SEND(reply);
-							}
-						}
-						break;
-
-						case GUILD_INFO_BANK:
-						{
-							reply.SetID(PACKET_GUILD, PACKET_SELL);
-							reply.AddInt(this->player->character->guild->bank);
-
-							CLIENT_SEND(reply);
-						}
-						break;
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_USE: // Accepted a join request
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			unsigned short pid = reader.GetShort();
-
-			Character *character = this->server()->world->GetCharacterPID(pid);
-
-			if (this->player->character->guild
-			 && this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildRecruitRank"])
-			 && character && !character->guild
-			 && this->player->character->map == character->map
-			 && character->guild_join == this->player->character->guild->tag)
-			{
-				reply.SetID(PACKET_GUILD, PACKET_REPLY);
-
-				if (this->player->character->guild->bank >= static_cast<int>(this->server()->world->config["RecruitCost"]))
-				{
-					if (this->player->character->guild->members.size() < static_cast<std::size_t>(static_cast<int>(this->server()->world->config["RecruitCost"])))
-					{
-						this->player->character->guild->AddMember(character, this->player->character, true);
-						this->player->character->guild->DelBank(this->server()->world->config["RecruitCost"]);
-						reply.AddChar(GUILD_ACCEPTED);
-					}
-				}
-				else
-				{
-					reply.AddChar(GUILD_ACCOUNT_LOW);
-				}
-
-				CLIENT_SEND(reply);
-			}
-		}
-		break;
-
-		case PACKET_BUY: // Deposit gold to the guild bank
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			int gold = reader.GetInt();
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (this->player->character->guild)
-				{
-					if (gold >= static_cast<int>(this->server()->world->config["GuildMinDeposit"]) && this->player->character->HasItem(1) >= gold)
-					{
-						this->player->character->DelItem(1, gold);
-						this->player->character->guild->AddBank(gold);
-
-						reply.SetID(PACKET_GUILD, PACKET_BUY);
-						reply.AddInt(this->player->character->HasItem(1));
-						CLIENT_SEND(reply);
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_OPEN: // Talked to a guild NPC
-		{
-			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.0)
-
-			short id = reader.GetShort();
-
-			UTIL_FOREACH(this->player->character->map->npcs, npc)
-			{
-				if (npc->index == id && npc->Data()->type == ENF::Guild)
-				{
-					this->player->character->npc = npc;
-					this->player->character->npc_type = ENF::Guild;
-
-					reply.SetID(PACKET_GUILD, PACKET_OPEN);
-					reply.AddThree(0); // Session token
-
-					CLIENT_SEND(reply);
-
-					break;
-				}
-			}
-		}
-		break;
-
-		case PACKET_TELL: // Requested member list of a guild
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			std::string tag = reader.GetEndString();
-
-			if (tag.length() > std::size_t(int(this->server()->world->config["GuildMaxNameLength"])))
-			{
-				return false;
-			}
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				std::shared_ptr<Guild> guild;
-
-				if (tag.length() == 2 || tag.length() == 3)
-				{
-					guild = this->server()->world->guildmanager->GetGuild(tag);
-				}
-				else
-				{
-					guild = this->server()->world->guildmanager->GetGuildName(tag);
-				}
-
-				if (!guild)
-				{
-					reply.SetID(PACKET_GUILD, PACKET_REPLY);
-					reply.AddChar(GUILD_NOT_FOUND);
-				}
-				else
-				{
-					reply.SetID(PACKET_GUILD, PACKET_TELL);
-					reply.AddShort(guild->members.size());
-					reply.AddByte(255);
-
-					UTIL_FOREACH(guild->members, member)
-					{
-						reply.AddChar(member->rank);
-						reply.AddByte(255);
-						reply.AddBreakString(member->name);
-						reply.AddBreakString(guild->GetRank(member->rank));
-					}
-				}
-
-				CLIENT_SEND(reply);
-			}
-		}
-		break;
-
-		case PACKET_REPORT: // Requested information on a guild
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session =*/ reader.GetInt();
-			std::string tag = reader.GetEndString();
-
-			if (tag.length() > std::size_t(int(this->server()->world->config["GuildMaxNameLength"])))
-			{
-				return false;
-			}
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				std::shared_ptr<Guild> guild;
-
-				if (tag.length() == 2 || tag.length() == 3)
-				{
-					guild = this->server()->world->guildmanager->GetGuild(tag);
-				}
-				else
-				{
-					guild = this->server()->world->guildmanager->GetGuildName(tag);
-				}
-
-				if (!guild)
-				{
-					reply.SetID(PACKET_GUILD, PACKET_REPLY);
-					reply.AddChar(GUILD_NOT_FOUND);
-				}
-				else
-				{
-					int leader_rank = std::max(static_cast<int>(this->server()->world->config["GuildEditRank"]), static_cast<int>(this->server()->world->config["GuildKickRank"]));
-					int recruiter_rank = this->server()->world->config["GuildRecruitRank"];
-
-					std::list<std::shared_ptr<Guild_Member>> leaders;
-					std::list<std::shared_ptr<Guild_Member>> recruiters;
-
-					UTIL_FOREACH(guild->members, member)
-					{
-						if (member->rank <= leader_rank)
-						{
-							leaders.push_back(member);
-						}
-					}
-
-					if (this->server()->world->config["GuildShowRecruiters"])
-					{
-						UTIL_FOREACH(guild->members, member)
-						{
-							if (member->rank > leader_rank && member->rank <= recruiter_rank)
-							{
-								recruiters.push_back(member);
-							}
-						}
-					}
-
-					std::string create_date;
-					create_date.resize(31);
-
-					tm *local_time = localtime(&guild->created);
-					create_date = create_date.substr(0, strftime(&create_date[0], 31, static_cast<std::string>(this->server()->world->config["GuildDateFormat"]).c_str(), local_time));
-
-					reply.SetID(PACKET_GUILD, PACKET_REPORT);
-					reply.AddBreakString(guild->name);
-					reply.AddBreakString(guild->tag);
-					reply.AddBreakString(create_date);
-					reply.AddBreakString(guild->description);
-					reply.AddBreakString(util::to_string(guild->bank));
-
-					for (std::size_t i = 0; i < guild->ranks.size(); ++i)
-					{
-						std::string rank = guild->ranks[i];
-
-						while (rank.length() < 4)
-						{
-							rank += ' ';
-						}
-
-						reply.AddBreakString(rank);
-					}
-
-					reply.AddShort(leaders.size() + recruiters.size());
-					reply.AddByte(255);
-
-					UTIL_FOREACH(leaders, member)
-					{
-						reply.AddChar(1);
-						reply.AddByte(255);
-						reply.AddBreakString(member->name + (member->rank == 0 ? " (founder)" : ""));
-					}
-
-					UTIL_FOREACH(recruiters, member)
-					{
-						reply.AddChar(2);
-						reply.AddByte(255);
-						reply.AddBreakString(member->name);
-					}
-				}
-
-				CLIENT_SEND(reply);
-			}
-		}
-		break;
-
-		case PACKET_JUNK: // Disband guild
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = reader.GetInt();*/
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (this->player->character->guild)
-				{
-					// TODO: Guild disbanding
-				}
-			}
-		}
-		break;
-
-		case PACKET_KICK: // Remove a member
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			std::string name = reader.GetEndString();
-
-			if (name.length() > 12)
-			{
-				return false;
-			}
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (this->player->character->guild)
-				{
-					if (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildKickRank"]))
-					{
-						std::shared_ptr<Guild_Member> target = this->player->character->guild->GetMember(name);
-
-						if (target)
-						{
-							if (target->rank > this->player->character->guild_rank)
-							{
-								this->player->character->guild->DelMember(name, this->player->character, true);
-								reply.SetID(PACKET_GUILD, PACKET_REPLY);
-								reply.AddChar(GUILD_REMOVED);
-								CLIENT_SEND(reply);
-							}
-							else
-							{
-								reply.SetID(PACKET_GUILD, PACKET_REPLY);
-								reply.AddChar(GUILD_REMOVE_LEADER);
-								CLIENT_SEND(reply);
-							}
-						}
-						else
-						{
-							reply.SetID(PACKET_GUILD, PACKET_REPLY);
-							reply.AddChar(GUILD_REMOVE_NOT_MEMBER);
-							CLIENT_SEND(reply);
-						}
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_RANK: // Set a member's rank
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*int session = */reader.GetInt();
-			int rank = reader.GetChar();
-			std::string name = util::lowercase(reader.GetEndString());
-
-			if (rank < 0 || rank > 10
-			 || name.length() > 12)
-			{
-				return false;
-			}
-
-			if (this->player->character->npc_type == ENF::Guild)
-			{
-				if (this->player->character->guild)
-				{
-					std::shared_ptr<Guild_Member> target = this->player->character->guild->GetMember(name);
-
-					if (target)
-					{
-						if (target->rank == 0)
-						{
-							reply.SetID(PACKET_GUILD, PACKET_REPLY);
+							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
 							reply.AddChar(GUILD_RANKING_LEADER);
-							CLIENT_SEND(reply);
+							character->Send(reply);
 						}
-						else if (rank == 0)
-						{
-							if (this->player->character->guild_rank == 0 && this->server()->world->config["GuildMultipleFounders"])
-							{
-								this->player->character->guild->SetMemberRank(target->name, 0);
-								reply.SetID(PACKET_GUILD, PACKET_REPLY);
-								reply.AddChar(GUILD_UPDATED);
-								CLIENT_SEND(reply);
-							}
-						}
-						else
-						{
-							bool has_perm = false;
-
-							if (rank <= target->rank)
-							{
-								has_perm = has_perm || (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildPromoteRank"]));
-							}
-
-							if (rank >= target->rank)
-							{
-								has_perm = has_perm || (this->player->character->guild_rank <= static_cast<int>(this->server()->world->config["GuildDemoteRank"]));
-							}
-
-							if (has_perm)
-							{
-								if (this->player->character->guild_rank == 0 || this->player->character->guild_rank < target->rank)
-								{
-									if (rank > this->player->character->guild_rank)
-									{
-										this->player->character->guild->SetMemberRank(target->name, rank);
-										reply.SetID(PACKET_GUILD, PACKET_REPLY);
-										reply.AddChar(GUILD_UPDATED);
-										CLIENT_SEND(reply);
-									}
-								}
-								else
-								{
-									reply.SetID(PACKET_GUILD, PACKET_REPLY);
-									reply.AddChar(GUILD_RANKING_LEADER);
-									CLIENT_SEND(reply);
-								}
-							}
-						}
-					}
-					else
-					{
-						reply.SetID(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_RANKING_NOT_MEMBER);
-						CLIENT_SEND(reply);
 					}
 				}
 			}
+			else
+			{
+				PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+				reply.AddChar(GUILD_RANKING_NOT_MEMBER);
+				character->Send(reply);
+			}
 		}
-		break;
-
-		default:
-			return false;
 	}
+}
 
-	return true;
+PACKET_HANDLER_REGISTER(PACKET_GUILD)
+	Register(PACKET_REQUEST, Guild_Request, Playing);
+	Register(PACKET_ACCEPT, Guild_Accept, Playing);
+	Register(PACKET_REMOVE, Guild_Remove, Playing);
+	Register(PACKET_AGREE, Guild_Agree, Playing);
+	Register(PACKET_CREATE, Guild_Create, Playing);
+	Register(PACKET_PLAYER, Guild_Player, Playing);
+	Register(PACKET_TAKE, Guild_Take, Playing);
+	Register(PACKET_USE, Guild_Use, Playing);
+	Register(PACKET_BUY, Guild_Buy, Playing);
+	Register(PACKET_OPEN, Guild_Open, Playing);
+	Register(PACKET_TELL, Guild_Tell, Playing);
+	Register(PACKET_REPORT, Guild_Report, Playing);
+	Register(PACKET_JUNK, Guild_Junk, Playing);
+	Register(PACKET_KICK, Guild_Kick, Playing);
+	Register(PACKET_RANK, Guild_Rank, Playing);
+PACKET_HANDLER_REGISTER_END()
+
 }
 

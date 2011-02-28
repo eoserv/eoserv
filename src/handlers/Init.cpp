@@ -4,50 +4,53 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include <cmath>
+#include <stdexcept>
 
+#include "eoclient.hpp"
 #include "world.hpp"
 
-static unsigned int stupid_hash(unsigned int i)
+static inline unsigned int stupid_hash(unsigned int i)
 {
 	++i;
 
 	return 110905 + (i % 9 + 1) * ((11092004 - i) % ((i % 11 + 1) * 119)) * 119 + i % 2004;
 }
 
-CLIENT_F_FUNC(Init)
+namespace Handlers
 {
-	if (this->state != EOClient::Uninitialized) return false;
 
+// Check if a character exists
+void Init_Init(EOClient *client, PacketReader &reader)
+{
 	PacketBuilder reply;
+
 	unsigned int challenge;
 	unsigned int response;
-
-	reply.SetID(0); // 0 is a special case which sends un-encrypted data
 
 	challenge = reader.GetThree();
 
 	reader.GetChar(); // ?
 	reader.GetChar(); // ?
-	this->version = reader.GetChar();
+	client->version = reader.GetChar();
 	reader.GetChar(); // ?
 	reader.GetChar(); // ?
 
 	try
 	{
-		this->hdid = static_cast<int>(util::to_uint_raw(reader.GetEndString()));
+		client->hdid = static_cast<int>(util::to_uint_raw(reader.GetEndString()));
 	}
 	catch (std::invalid_argument)
 	{
-		this->Close();
-		return false;
+		client->Close();
+		return;
 	}
 
 	int ban_expires;
-	IPAddress remote_addr = this->GetRemoteAddr();
-	if ((ban_expires = this->server()->world->CheckBan(0, &remote_addr, &this->hdid)) != -1)
+	IPAddress remote_addr = client->GetRemoteAddr();
+	if ((ban_expires = client->server()->world->CheckBan(0, &remote_addr, &client->hdid)) != -1)
 	{
 		reply.AddByte(INIT_BANNED);
 		if (ban_expires == 0)
@@ -60,32 +63,32 @@ CLIENT_F_FUNC(Init)
 			reply.AddByte(INIT_BAN_TEMP);
 			reply.AddByte(mins_remaining);
 		}
-		CLIENT_SENDRAW(reply);
-		this->Close();
-		return false;
+		client->Send(reply);
+		client->Close();
+		return;
 	}
 
-	int minversion = this->server()->world->config["MinVersion"];
+	int minversion = client->server()->world->config["MinVersion"];
 	if (!minversion)
 	{
 		minversion = 27;
 	}
 
-	int maxversion = this->server()->world->config["MaxVersion"];
+	int maxversion = client->server()->world->config["MaxVersion"];
 	if (!maxversion)
 	{
 		maxversion = 28;
 	}
 
-	if (this->server()->world->config["CheckVersion"] && (this->version < minversion || this->version > maxversion))
+	if (client->server()->world->config["CheckVersion"] && (client->version < minversion || client->version > maxversion))
 	{
 		reply.AddByte(INIT_OUT_OF_DATE);
 		reply.AddChar(0);
 		reply.AddChar(0);
 		reply.AddChar(minversion);
-		CLIENT_SENDRAW(reply);
-		this->Close();
-		return false;
+		client->Send(reply);
+		client->Close();
+		return;
 	}
 
 	response = stupid_hash(challenge);
@@ -98,13 +101,20 @@ CLIENT_F_FUNC(Init)
 	reply.AddByte(10); // "eID" starting value (1 = +1)
 	reply.AddByte(emulti_e); // dickwinder multiple
 	reply.AddByte(emulti_d); // dickwinder multiple
-	reply.AddShort(this->id); // player id
+	reply.AddShort(client->id); // player id
 	reply.AddThree(response); // hash result
 
-	this->processor.SetEMulti(emulti_e, emulti_d);
+	client->processor.SetEMulti(emulti_e, emulti_d);
 
-	CLIENT_SENDRAW(reply);
+	client->Send(reply);
 
-	this->state = EOClient::Initialized;
-	return true;
+	client->state = EOClient::Initialized;
+
+	return;
+}
+
+PACKET_HANDLER_REGISTER(PACKET_F_INIT)
+	Register(PACKET_A_INIT, Init_Init, Uninitialized);
+PACKET_HANDLER_REGISTER_END()
+
 }

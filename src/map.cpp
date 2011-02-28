@@ -219,7 +219,7 @@ void Map_Chest::Update(Map *map, Character *exclude)
 
 		if (util::path_length(character->x, character->y, this->x, this->y) <= 1)
 		{
-			character->player->client->SendBuilder(builder);
+			character->Send(builder);
 		}
 	}
 }
@@ -574,7 +574,8 @@ void Map::Unload()
 		UTIL_FOREACH(npc->damagelist, opponent)
 		{
 			opponent->attacker->unregister_npc.erase(
-				std::remove(opponent->attacker->unregister_npc.begin(), opponent->attacker->unregister_npc.end(), npc)
+				std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), npc),
+				opponent->attacker->unregister_npc.end()
 			);
 		}
 	}
@@ -661,7 +662,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 			continue;
 		}
 
-		checkcharacter->player->client->SendBuilder(builder);
+		checkcharacter->Send(builder);
 	}
 }
 
@@ -685,11 +686,14 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 				continue;
 			}
 
-			checkcharacter->player->client->SendBuilder(builder);
+			checkcharacter->Send(builder);
 		}
 	}
 
-	this->characters.erase(std::find(UTIL_RANGE(this->characters), character));
+	this->characters.erase(
+		std::remove(UTIL_RANGE(this->characters), character),
+		this->characters.end()
+	);
 
 	character->map = 0;
 }
@@ -711,7 +715,7 @@ void Map::Msg(Character *from, std::string message, bool echo)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -917,8 +921,8 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		rbuilder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
 		rbuilder.AddShort(character->player->id);
 
-		character->player->client->SendBuilder(builder);
-		from->player->client->SendBuilder(rbuilder);
+		character->Send(builder);
+		from->player->Send(rbuilder);
 	}
 
 	builder.Reset();
@@ -994,8 +998,8 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		rbuilder.AddByte(255);
 		rbuilder.AddChar(1); // 0 = NPC, 1 = player
 
-		character->player->client->SendBuilder(builder);
-		from->player->client->SendBuilder(rbuilder);
+		character->Send(builder);
+		from->player->Send(rbuilder);
 	}
 
 	builder.Reset();
@@ -1013,7 +1017,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 
 	builder.Reset();
@@ -1029,7 +1033,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		builder.AddChar(item->y);
 		builder.AddThree(item->amount);
 	}
-	from->player->client->SendBuilder(builder);
+	from->player->Send(builder);
 
 	builder.SetID(PACKET_APPEAR, PACKET_REPLY);
 	UTIL_FOREACH(newnpcs, npc)
@@ -1043,7 +1047,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		builder.AddChar(npc->y);
 		builder.AddChar(npc->direction);
 
-		from->player->client->SendBuilder(builder);
+		from->player->Send(builder);
 	}
 
 	UTIL_FOREACH(oldnpcs, npc)
@@ -1208,7 +1212,7 @@ bool Map::Walk(NPC *from, Direction direction)
 
 	UTIL_FOREACH(newchars, character)
 	{
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 
 	builder.Reset();
@@ -1229,7 +1233,7 @@ bool Map::Walk(NPC *from, Direction direction)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 
 	UTIL_FOREACH(oldchars, character)
@@ -1270,7 +1274,7 @@ void Map::Attack(Character *from, Direction direction)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 
 	int target_x = from->x;
@@ -1438,7 +1442,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				{
 					if (character->InRange(checkchar))
 					{
-						checkchar->player->client->SendBuilder(builder);
+						checkchar->Send(builder);
 					}
 				}
 
@@ -1468,7 +1472,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				builder.SetID(PACKET_RECOVER, PACKET_PLAYER);
 				builder.AddShort(character->hp);
 				builder.AddShort(character->tp);
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 
 				return true;
 			}
@@ -1495,7 +1499,7 @@ void Map::Face(Character *from, Direction direction)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -1519,7 +1523,7 @@ void Map::Sit(Character *from, SitState sit_type)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -1541,7 +1545,7 @@ void Map::Stand(Character *from)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -1560,7 +1564,7 @@ void Map::Emote(Character *from, enum Emote emote, bool echo)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -1632,7 +1636,7 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 		{
 			if (character->InRange(x, y))
 			{
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 			}
 		}
 
@@ -1703,7 +1707,7 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 		{
 			continue;
 		}
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 
 	this->items.push_back(newitem);
@@ -1738,7 +1742,7 @@ void Map::DelItem(short uid, Character *from)
 				{
 					continue;
 				}
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 			}
 			this->items.erase(it);
 			break;
@@ -1761,7 +1765,7 @@ void Map::DelItem(Map_Item *item, Character *from)
 				{
 					continue;
 				}
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 			}
 			this->items.erase(it);
 			break;
@@ -1808,7 +1812,7 @@ void Map::Effect(int effect, int param)
 
 	UTIL_FOREACH(this->characters, character)
 	{
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -1865,17 +1869,17 @@ bool Map::Reload()
 
 	builder.AddString(content);
 
-	PacketBuilder protect_builder(0);
+	PacketBuilder protect_builder;
 	protect_builder.AddChar(INIT_BANNED);
 
 	UTIL_FOREACH(temp, character)
 	{
-		character->player->client->Send(builder.Get());
+		character->Send(builder);
 		character->Refresh(); // TODO: Find a better way to reload NPCs
 
 		if (this->world->config["ProtectMaps"])
 		{
-			character->player->client->Send(protect_builder.Get());
+			character->Send(protect_builder);
 		}
 	}
 

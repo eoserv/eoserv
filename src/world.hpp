@@ -10,6 +10,7 @@
 #include "fwd/world.hpp"
 
 #include <algorithm>
+#include <list>
 #include <string>
 #include <vector>
 

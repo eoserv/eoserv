@@ -4,51 +4,46 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
 #include "map.hpp"
 #include "player.hpp"
 
-CLIENT_F_FUNC(Attack)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+// Player attacking
+void Attack_Use(Character *character, PacketReader &reader)
+{
+	Direction direction = static_cast<Direction>(reader.GetChar());
+	/*int timestamp = */reader.GetThree();
+
+	if (character->sitting != SIT_STAND)
+		return;
+
+	// TODO: Find a way to implement this
+
+	/*if (direction != character->direction)
 	{
-		case PACKET_USE: // Player attacking
+		if (direction >= 0 && direction <= 3)
 		{
-			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.58)
-
-			Direction direction = static_cast<Direction>(reader.GetChar());
-			/*int timestamp = */reader.GetThree();
-
-			if (this->player->character->sitting != SIT_STAND)
-			{
-				return true;
-			}
-
-			if (direction != this->player->character->direction)
-			{
-				if (direction >= 0 && direction <= 3)
-				{
-					this->player->character->map->Face(this->player->character, direction);
-					CLIENT_FORCE_QUEUE_ACTION(0.67)
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			this->player->character->Attack(direction);
+			character->map->Face(character, direction);
+			//CLIENT_FORCE_QUEUE_ACTION(0.67)
 		}
-		break;
+		else
+		{
+			return;
+		}
+	}*/
 
-		default:
-			return false;
-	}
+	direction = character->direction;
 
-	return true;
+	character->Attack(direction);
+}
+
+PACKET_HANDLER_REGISTER(PACKET_ATTACK)
+	Register(PACKET_USE, Attack_Use, Playing, 0.58);
+PACKET_HANDLER_REGISTER_END()
+
 }

@@ -81,9 +81,9 @@ template <class T> foreach_helper<T> make_foreach_helper(T begin, T end)
 #define UTIL_FOREACH_GENERIC(begin, end, as) \
 	for (int _util_i_ = -1; _util_i_ == -1; ) \
 		for (auto _util_foreach_ = util::make_foreach_helper((begin), (end)); _util_i_ == -1; ++_util_i_) \
-			for (_util_i_ = 3; _util_foreach_ && _util_i_ == 3; ++_util_foreach_, ++_util_i_) \
+			for (_util_i_ = 3; _util_i_ == 3 && _util_foreach_; _util_i_ == 2 && (++_util_foreach_, ++_util_i_)) \
 				for (_util_i_ = 0; _util_i_ == 0; ++_util_i_) \
-					for (auto &as = *_util_foreach_.get(); _util_i_ == 0; ++_util_i_)
+					for (auto as = *_util_foreach_.get(); _util_i_ == 0; ++_util_i_)
 
 #define UTIL_FOREACH(c, as) UTIL_FOREACH_GENERIC(util::begin(c), util::end(c), as)
 #define UTIL_CFOREACH(c, as) UTIL_FOREACH_GENERIC(util::cbegin(c),util::cend(c), as)
@@ -103,22 +103,22 @@ class variant
 		/**
 		 * Value stored as an integer.
 		 */
-		int val_int;
+		mutable int val_int;
 
 		/**
 		 * Value stored as a float.
 		 */
-		double val_float;
+		mutable double val_float;
 
 		/**
 		 * Value stored as a string.
 		 */
-		std::string val_string;
+		mutable std::string val_string;
 
 		/**
 		 * Value stored as a bool.
 		 */
-		bool val_bool;
+		mutable bool val_bool;
 
 		enum var_type
 		{
@@ -128,7 +128,7 @@ class variant
 			type_bool
 		};
 
-		bool cache_val[4];
+		mutable bool cache_val[4];
 
 		/**
 		 * Current type the value is stored as.
@@ -144,28 +144,28 @@ class variant
 		/**
 		 * Helper function that returns the string length of a number in decimal format.
 		 */
-		int int_length(int);
+		static int int_length(int);
 
 	public:
 		/**
 		 * Return the value as an integer, casting if neccessary.
 		 */
-		int GetInt();
+		int GetInt() const;
 
 		/**
 		 * Return the value as a float, casting if neccessary.
 		 */
-		double GetFloat();
+		double GetFloat() const;
 
 		/**
 		 * Return the value as a string, casting if neccessary.
 		 */
-		std::string GetString();
+		std::string GetString() const;
 
 		/**
 		 * Return the value as a bool, casting if neccessary.
 		 */
-		bool GetBool();
+		bool GetBool() const;
 
 		/**
 		 * Set the value to an integer.
@@ -245,22 +245,22 @@ class variant
 		/**
 		 * Return the value as an integer, casting if neccessary.
 		 */
-		operator int();
+		operator int() const { return this->GetInt(); }
 
 		/**
 		 * Return the value as a float, casting if neccessary.
 		 */
-		operator double();
+		operator double() const { return this->GetFloat(); }
 
 		/**
 		 * Return the value as a string, casting if neccessary.
 		 */
-		operator std::string();
+		operator std::string() const { return this->GetString(); }
 
 		/**
 		 * Return the value as an boolean, casting if neccessary.
 		 */
-		operator bool();
+		operator bool() const { return this->GetBool(); }
 };
 
 /**

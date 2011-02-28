@@ -4,84 +4,79 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
+
+#include <algorithm>
+#include <functional>
 
 #include "character.hpp"
 #include "map.hpp"
 #include "player.hpp"
 
-CLIENT_F_FUNC(Jukebox)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+// Opened the jukebox listing
+void Jukebox_Open(Character *character, PacketReader &reader)
+{
+	unsigned char x = reader.GetChar();
+	unsigned char y = reader.GetChar();
+
+	if (!character->InRange(x, y)
+	 || character->map->GetSpec(x, y) != Map_Tile::Jukebox)
 	{
-		case PACKET_OPEN: // Opened the jukebox listing
-		{
-			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.0)
-
-			unsigned char x = reader.GetChar();
-			unsigned char y = reader.GetChar();
-
-			if (!this->player->character->InRange(x, y)
-			 || this->player->character->map->GetSpec(x, y) != Map_Tile::Jukebox)
-			{
-				return true;
-			}
-
-			reply.SetID(PACKET_JUKEBOX, PACKET_OPEN);
-			reply.AddShort(this->player->character->mapid);
-
-			if (this->player->character->map->jukebox_protect > Timer::GetTime())
-			{
-				reply.AddString(this->player->character->map->jukebox_player);
-			}
-
-			this->player->character->jukebox_open = true;
-
-			CLIENT_SEND(reply);
-		}
-		break;
-
-		case PACKET_MSG: // Requested a song
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			reader.GetChar();
-			reader.GetChar();
-			short track = reader.GetShort();
-
-			if (!this->player->character->jukebox_open
-			 || this->player->character->map->jukebox_protect > Timer::GetTime()
-			 || (track < 0 || track > static_cast<int>(this->server()->world->config["JukeboxSongs"]))
-			 || this->player->character->HasItem(1) < static_cast<int>(this->server()->world->config["JukeboxPrice"]))
-			{
-				return true;
-			}
-
-			this->player->character->DelItem(1, static_cast<int>(this->server()->world->config["JukeboxPrice"]));
-
-			this->player->character->map->jukebox_player = this->player->character->name;
-			this->player->character->map->jukebox_protect = Timer::GetTime() + static_cast<int>(this->server()->world->config["JukeboxTimer"]);
-
-			reply.SetID(PACKET_JUKEBOX, PACKET_AGREE);
-			reply.AddInt(this->player->character->HasItem(1));
-
-			CLIENT_SEND(reply);
-
-			PacketBuilder builder(PACKET_JUKEBOX, PACKET_USE);
-			builder.AddShort(track + 1);
-			UTIL_FOREACH(this->player->character->map->characters, character)
-			{
-				character->player->client->SendBuilder(builder);
-			}
-		}
-		break;
-
-		default:
-			return false;
+		return;
 	}
 
-	return true;
+	PacketBuilder reply(PACKET_JUKEBOX, PACKET_OPEN);
+	reply.AddShort(character->mapid);
+
+	if (character->map->jukebox_protect > Timer::GetTime())
+	{
+		reply.AddString(character->map->jukebox_player);
+	}
+
+	character->jukebox_open = true;
+
+	character->Send(reply);
+}
+
+// Requested a song
+void Jukebox_Msg(Character *character, PacketReader &reader)
+{
+	if (character->trading) return;
+
+	using namespace std::placeholders;
+
+	reader.GetChar();
+	reader.GetChar();
+	short track = reader.GetShort();
+
+	if (!character->jukebox_open
+	 || character->map->jukebox_protect > Timer::GetTime()
+	 || (track < 0 || track > static_cast<int>(character->world->config["JukeboxSongs"]))
+	 || character->HasItem(1) < static_cast<int>(character->world->config["JukeboxPrice"]))
+	{
+		return;
+	}
+
+	character->DelItem(1, static_cast<int>(character->world->config["JukeboxPrice"]));
+
+	character->map->jukebox_player = character->name;
+	character->map->jukebox_protect = Timer::GetTime() + static_cast<int>(character->world->config["JukeboxTimer"]);
+
+	PacketBuilder reply(PACKET_JUKEBOX, PACKET_AGREE);
+	reply.AddInt(character->HasItem(1));
+	character->Send(reply);
+
+	PacketBuilder builder(PACKET_JUKEBOX, PACKET_USE);
+	builder.AddShort(track + 1);
+	std::for_each(UTIL_CRANGE(character->map->characters), std::bind(&Character::Send, _1, builder));
+}
+
+PACKET_HANDLER_REGISTER(PACKET_JUKEBOX)
+	Register(PACKET_OPEN, Jukebox_Open, Playing);
+	Register(PACKET_MSG, Jukebox_Msg, Playing);
+PACKET_HANDLER_REGISTER_END()
+
 }

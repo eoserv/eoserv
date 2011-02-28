@@ -4,7 +4,7 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
 #include "eodata.hpp"
@@ -12,153 +12,145 @@
 #include "player.hpp"
 #include "world.hpp"
 
-CLIENT_F_FUNC(Chest)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+void Chest_Add(Character *character, PacketReader &reader)
+{
+	if (character->trading) return;
+
+	int x = reader.GetChar();
+	int y = reader.GetChar();
+	int id = reader.GetShort();
+	int amount = reader.GetThree();
+
+	if (character->world->eif->Get(id)->special == EIF::Lore)
 	{
-		case PACKET_ADD: // Placing an item in a chest
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			int x = reader.GetChar();
-			int y = reader.GetChar();
-			int id = reader.GetShort();
-			int amount = reader.GetThree();
-
-			if (this->server()->world->eif->Get(id)->special == EIF::Lore)
-			{
-				return true;
-			}
-
-			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
-			{
-				if (this->player->character->map->GetSpec(x, y) == Map_Tile::Chest)
-				{
-					UTIL_FOREACH(this->player->character->map->chests, chest)
-					{
-						if (chest->x == x && chest->y == y)
-						{
-							if (this->player->character->HasItem(id) >= amount && chest->AddItem(id, amount))
-							{
-								this->player->character->DelItem(id, amount);
-								chest->Update(this->player->character->map, this->player->character);
-
-								reply.SetID(PACKET_CHEST, PACKET_REPLY);
-								reply.AddShort(id);
-								reply.AddInt(this->player->character->HasItem(id));
-								reply.AddChar(this->player->character->weight);
-								reply.AddChar(this->player->character->maxweight);
-
-								UTIL_FOREACH(chest->items, item)
-								{
-									if (item->id != 0)
-									{
-										reply.AddShort(item->id);
-										reply.AddThree(item->amount);
-									}
-								}
-
-								CLIENT_SEND(reply);
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_TAKE: // Taking an item from a chest
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			int x = reader.GetChar();
-			int y = reader.GetChar();
-			int id = reader.GetShort();
-
-			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
-			{
-				if (this->player->character->map->GetSpec(x, y) == Map_Tile::Chest)
-				{
-					UTIL_FOREACH(this->player->character->map->chests, chest)
-					{
-						if (chest->x == x && chest->y == y)
-						{
-							int amount = chest->DelItem(id);
-
-							if (amount)
-							{
-								this->player->character->AddItem(id, amount);
-								chest->Update(this->player->character->map, this->player->character);
-
-								reply.SetID(PACKET_CHEST, PACKET_GET);
-								reply.AddShort(id);
-								reply.AddThree(amount);
-								reply.AddChar(this->player->character->weight);
-								reply.AddChar(this->player->character->maxweight);
-
-								UTIL_FOREACH(chest->items, item)
-								{
-									if (item->id != 0)
-									{
-										reply.AddShort(item->id);
-										reply.AddThree(item->amount);
-									}
-								}
-
-								CLIENT_SEND(reply);
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-		break;
-
-		case PACKET_OPEN: // Opening a chest
-		{
-			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.0)
-
-			int x = reader.GetChar();
-			int y = reader.GetChar();
-
-			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
-			{
-				if (this->player->character->map->GetSpec(x, y) == Map_Tile::Chest)
-				{
-					reply.SetID(PACKET_CHEST, PACKET_OPEN);
-					reply.AddChar(x);
-					reply.AddChar(y);
-
-					UTIL_FOREACH(this->player->character->map->chests, chest)
-					{
-						if (chest->x == x && chest->y == y)
-						{
-							UTIL_FOREACH(chest->items, item)
-							{
-								if (item->id != 0)
-								{
-									reply.AddShort(item->id);
-									reply.AddThree(item->amount);
-								}
-							}
-
-							CLIENT_SEND(reply);
-							break;
-						}
-					}
-				}
-			}
-		}
-		break;
-
-		default:
-			return false;
+		return;
 	}
 
-	return true;
+	if (util::path_length(character->x, character->y, x, y) <= 1)
+	{
+		if (character->map->GetSpec(x, y) == Map_Tile::Chest)
+		{
+			UTIL_FOREACH(character->map->chests, chest)
+			{
+				if (chest->x == x && chest->y == y)
+				{
+					if (character->HasItem(id) >= amount && chest->AddItem(id, amount))
+					{
+						character->DelItem(id, amount);
+						chest->Update(character->map, character);
+
+						PacketBuilder reply(PACKET_CHEST, PACKET_REPLY);
+						reply.AddShort(id);
+						reply.AddInt(character->HasItem(id));
+						reply.AddChar(character->weight);
+						reply.AddChar(character->maxweight);
+
+						UTIL_FOREACH(chest->items, item)
+						{
+							if (item->id != 0)
+							{
+								reply.AddShort(item->id);
+								reply.AddThree(item->amount);
+							}
+						}
+
+						character->Send(reply);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+// Taking an item from a chest
+void Chest_Take(Character *character, PacketReader &reader)
+{
+	int x = reader.GetChar();
+	int y = reader.GetChar();
+	int id = reader.GetShort();
+
+	if (util::path_length(character->x, character->y, x, y) <= 1)
+	{
+		if (character->map->GetSpec(x, y) == Map_Tile::Chest)
+		{
+			UTIL_FOREACH(character->map->chests, chest)
+			{
+				if (chest->x == x && chest->y == y)
+				{
+					int amount = chest->DelItem(id);
+
+					if (amount)
+					{
+						character->AddItem(id, amount);
+						chest->Update(character->map, character);
+
+						PacketBuilder reply(PACKET_CHEST, PACKET_GET);
+						reply.AddShort(id);
+						reply.AddThree(amount);
+						reply.AddChar(character->weight);
+						reply.AddChar(character->maxweight);
+
+						UTIL_FOREACH(chest->items, item)
+						{
+							if (item->id != 0)
+							{
+								reply.AddShort(item->id);
+								reply.AddThree(item->amount);
+							}
+						}
+
+						character->Send(reply);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+// Opening a chest
+void Chest_Open(Character *character, PacketReader &reader)
+{
+	int x = reader.GetChar();
+	int y = reader.GetChar();
+
+	if (util::path_length(character->x, character->y, x, y) <= 1)
+	{
+		if (character->map->GetSpec(x, y) == Map_Tile::Chest)
+		{
+			PacketBuilder reply(PACKET_CHEST, PACKET_OPEN);
+			reply.AddChar(x);
+			reply.AddChar(y);
+
+			UTIL_FOREACH(character->map->chests, chest)
+			{
+				if (chest->x == x && chest->y == y)
+				{
+					UTIL_FOREACH(chest->items, item)
+					{
+						if (item->id != 0)
+						{
+							reply.AddShort(item->id);
+							reply.AddThree(item->amount);
+						}
+					}
+
+					character->Send(reply);
+					break;
+				}
+			}
+		}
+	}
+}
+
+PACKET_HANDLER_REGISTER(PACKET_CHEST)
+	Register(PACKET_ADD, Chest_Add, Playing);
+	Register(PACKET_TAKE, Chest_Take, Playing);
+	Register(PACKET_OPEN, Chest_Open, Playing);
+PACKET_HANDLER_REGISTER_END()
+
 }

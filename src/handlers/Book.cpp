@@ -4,23 +4,20 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
-CLIENT_F_FUNC(Book)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
-	{
-		case PACKET_LIST: // User requests another's Book (Quest history)
-		{
+// User requests another's Book (Quest history)
+void Book_List(Character *character, PacketReader &reader)
+{
+	(void)character;
+	(void)reader;
+}
 
-		}
-		break;
+PACKET_HANDLER_REGISTER(PACKET_BOOK)
+	Register(PACKET_LIST, Book_List, Playing);
+PACKET_HANDLER_REGISTER_END()
 
-		default:
-			return false;
-	}
-
-	return true;
 }

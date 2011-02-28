@@ -4,75 +4,90 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
+
+#include <functional>
 
 #include "character.hpp"
 #include "npc.hpp"
-#include "player.hpp"
 
-CLIENT_F_FUNC(Walk)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+static void walk_common(Character *character, PacketReader &reader, bool (Character::*f)(Direction))
+{
+	Direction direction = static_cast<Direction>(reader.GetChar());
+	/*int timestamp = */reader.GetThree();
+	unsigned char x = reader.GetChar();
+	unsigned char y = reader.GetChar();
+
+	if (character->sitting != SIT_STAND)
 	{
-		case PACKET_ADMIN: // Player walking (admin)
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			if (this->player->character->admin < ADMIN_GUARDIAN)
-			{
-				return false;
-			}
-		}
-		// no break
-
-		case PACKET_PLAYER: // Player walking (normal)
-		case PACKET_SPEC: // Player walking (ghost)
-		{
-			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.46)
-
-			Direction direction = static_cast<Direction>(reader.GetChar());
-			/*int timestamp = */reader.GetThree();
-			unsigned char x = reader.GetChar();
-			unsigned char y = reader.GetChar();
-
-			if (this->player->character->sitting != SIT_STAND)
-			{
-				return true;
-			}
-
-			if (direction >= 0 && direction <= 3)
-			{
-				if (action == PACKET_ADMIN)
-				{
-					this->player->character->AdminWalk(direction);
-				}
-				else
-				{
-					this->player->character->npc = 0;
-					this->player->character->npc_type = ENF::NPC;
-					this->player->character->board = 0;
-					this->player->character->jukebox_open = false;
-					if (!this->player->character->Walk(direction))
-					{
-						return true;
-					}
-				}
-			}
-
-			if (this->player->character->x != x || this->player->character->y != y)
-			{
-				this->player->character->Refresh();
-			}
-
-		}
-		break;
-
-		default:
-			return false;
+		return;
 	}
 
-	return true;
+	if (direction >= 0 && direction <= 3)
+	{
+		character->npc = 0;
+		character->npc_type = ENF::NPC;
+		character->board = 0;
+		character->jukebox_open = false;
+
+		if (character->trading)
+		{
+			PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
+			builder.AddShort(character->id);
+			character->trade_partner->Send(builder);
+
+			character->trading = false;
+			character->trade_inventory.clear();
+			character->trade_agree = false;
+
+			character->trade_partner->trading = false;
+			character->trade_partner->trade_inventory.clear();
+			character->trade_agree = false;
+
+			character->trade_partner->trade_partner = 0;
+			character->trade_partner = 0;
+		}
+
+		if (!(character->*f)(direction))
+		{
+			return;
+		}
+	}
+
+	if (character->x != x || character->y != y)
+	{
+		character->Refresh();
+	}
+}
+
+// Player walking (admin)
+void Walk_Admin(Character *character, PacketReader &reader)
+{
+	if (character->admin < ADMIN_GUARDIAN)
+		return;
+
+	walk_common(character, reader, &Character::AdminWalk);
+}
+
+// Player walking (normal)
+void Walk_Player(Character *character, PacketReader &reader)
+{
+	walk_common(character, reader, &Character::Walk);
+}
+
+// Player walking (ghost)
+/*void Walk_Spec(Character *character, PacketReader &reader)
+{
+	walk_common(character, reader, &Character::Walk);
+}*/
+
+PACKET_HANDLER_REGISTER(PACKET_WALK)
+	Register(PACKET_ADMIN, Walk_Admin, Playing, 0.46);
+	Register(PACKET_PLAYER, Walk_Player, Playing, 0.46);
+	Register(PACKET_SPEC, Walk_Player, Playing, 0.46);
+PACKET_HANDLER_REGISTER_END()
+
 }

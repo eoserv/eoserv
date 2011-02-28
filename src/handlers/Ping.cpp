@@ -4,29 +4,25 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
-CLIENT_F_FUNC(Ping)
+#include "character.hpp"
+
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
-	{
-		case PACKET_NET: // User sending a ping request (#ping)
-		{
-			if (this->state < EOClient::PlayingModal) return false;
+// User sending a ping request (#ping)
+void Ping_Net(Character *character, PacketReader &reader)
+{
+	int something = reader.GetShort();
 
-			int something = reader.GetShort();
+	PacketBuilder reply(PACKET_PING, PACKET_NET2);
+	reply.AddShort(something);
+	character->Send(reply);
+}
 
-			reply.SetID(PACKET_PING, PACKET_NET2);
-			reply.AddShort(something);
-			CLIENT_SEND(reply);
-		}
-		break;
+PACKET_HANDLER_REGISTER(PACKET_PING)
+	Register(PACKET_NET, Ping_Net, Playing | OutOfBand)
+PACKET_HANDLER_REGISTER_END()
 
-		default:
-			return false;
-	}
-
-	return true;
 }

@@ -18,8 +18,6 @@
 #include "eoserver.hpp"
 #include "packet.hpp"
 
-#define CLIENT_F_FUNC(FUNC) bool Handle_##FUNC(PacketFamily family, PacketAction action, PacketReader &reader, int act)
-
 /**
  * An action the server will execute for the client
  */
@@ -67,7 +65,6 @@ class EOClient : public Client
 			Uninitialized,
 			Initialized,
 			LoggedIn,
-			PlayingModal,
 			Playing
 		};
 
@@ -105,50 +102,7 @@ class EOClient : public Client
 
 		void Execute(std::string data);
 
-		void SendBuilder(const PacketBuilder &packet);
-		void SendBuilderRaw(const PacketBuilder &packet);
-
-// Stop doxygen generating a gigantic list of functions
-#ifndef DOXYGEN
-		CLIENT_F_FUNC(Internal);
-		CLIENT_F_FUNC(Init);
-		CLIENT_F_FUNC(Connection);
-		CLIENT_F_FUNC(Account);
-		CLIENT_F_FUNC(Character);
-		CLIENT_F_FUNC(Login);
-		CLIENT_F_FUNC(Welcome);
-		CLIENT_F_FUNC(Walk);
-		CLIENT_F_FUNC(Face);
-		CLIENT_F_FUNC(Chair);
-		CLIENT_F_FUNC(Emote);
-		CLIENT_F_FUNC(Attack);
-		CLIENT_F_FUNC(Shop);
-		CLIENT_F_FUNC(Item);
-		CLIENT_F_FUNC(StatSkill);
-		CLIENT_F_FUNC(Global);
-		CLIENT_F_FUNC(Talk);
-		CLIENT_F_FUNC(Warp);
-		CLIENT_F_FUNC(Jukebox);
-		CLIENT_F_FUNC(Players);
-		CLIENT_F_FUNC(Party);
-		CLIENT_F_FUNC(Refresh);
-		CLIENT_F_FUNC(Paperdoll);
-		CLIENT_F_FUNC(Trade);
-		CLIENT_F_FUNC(Chest);
-		CLIENT_F_FUNC(Door);
-		CLIENT_F_FUNC(Ping);
-		CLIENT_F_FUNC(Bank);
-		CLIENT_F_FUNC(Locker);
-		CLIENT_F_FUNC(Barber);
-		CLIENT_F_FUNC(Guild);
-		CLIENT_F_FUNC(Sit);
-		CLIENT_F_FUNC(Board);
-		//CLIENT_F_FUNC(Arena);
-		CLIENT_F_FUNC(AdminInteract);
-		CLIENT_F_FUNC(Citizen);
-		//CLIENT_F_FUNC(Quest);
-		CLIENT_F_FUNC(Book);
-#endif // DOXYGEN
+		void Send(const PacketBuilder &packet);
 
 		~EOClient();
 };

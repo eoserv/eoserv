@@ -6,6 +6,8 @@
 
 #include "nanohttp.hpp"
 
+#include <stdexcept>
+
 #include "socket.hpp"
 #include "util.hpp"
 

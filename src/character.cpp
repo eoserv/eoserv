@@ -6,6 +6,7 @@
 
 #include "character.hpp"
 
+#include <limits>
 #include <list>
 
 #include "util.hpp"
@@ -186,8 +187,6 @@ Character::Character(std::string name, World *world)
 	this->board = 0;
 	this->jukebox_open = false;
 
-	this->last_guild_action = 0.0;
-
 	this->next_arena = 0;
 	this->arena = 0;
 
@@ -259,7 +258,7 @@ void Character::Msg(Character *from, std::string message)
 	PacketBuilder builder(PACKET_TALK, PACKET_TELL);
 	builder.AddBreakString(from->name);
 	builder.AddBreakString(message);
-	this->player->client->SendBuilder(builder);
+	this->player->Send(builder);
 }
 
 void Character::ServerMsg(std::string message)
@@ -268,7 +267,7 @@ void Character::ServerMsg(std::string message)
 
 	PacketBuilder builder(PACKET_TALK, PACKET_SERVER);
 	builder.AddString(message);
-	this->player->client->SendBuilder(builder);
+	this->player->Send(builder);
 }
 
 bool Character::Walk(Direction direction)
@@ -316,15 +315,15 @@ void Character::Effect(int effect, bool echo)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
 int Character::HasItem(short item)
 {
-	UTIL_FOREACH(this->inventory, character_item)
+	UTIL_IFOREACH(this->inventory, it)
 	{
-		if (character_item.id == item)
+		if (it->id == item)
 		{
 			if (this->trading)
 			{
@@ -332,15 +331,15 @@ int Character::HasItem(short item)
 				{
 					if (trade_item.id == item)
 					{
-						return std::max(character_item.amount - trade_item.amount, 0);
+						return std::max(it->amount - trade_item.amount, 0);
 					}
 				}
 
-				return character_item.amount;
+				return it->amount;
 			}
 			else
 			{
-				return character_item.amount;
+				return it->amount;
 			}
 		}
 	}
@@ -360,18 +359,18 @@ bool Character::AddItem(short item, int amount)
 		return false;
 	}
 
-	UTIL_FOREACH(this->inventory, character_item)
+	UTIL_IFOREACH(this->inventory, it)
 	{
-		if (character_item.id == item)
+		if (it->id == item)
 		{
-			if (character_item.amount + amount < 0)
+			if (it->amount + amount < 0)
 			{
 				return false;
 			}
 
-			character_item.amount += amount;
+			it->amount += amount;
 
-			character_item.amount = std::min<int>(character_item.amount, this->world->config["MaxItem"]);
+			it->amount = std::min<int>(it->amount, this->world->config["MaxItem"]);
 
 			this->CalculateStats();
 
@@ -518,6 +517,8 @@ bool Character::Unequip(short item, unsigned char subloc)
 
 static bool character_equip_oneslot(Character *character, short item, unsigned char subloc, Character::EquipLocation slot)
 {
+	(void)subloc;
+
 	if (character->paperdoll[slot] != 0)
 	{
 		return false;
@@ -682,12 +683,30 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	this->guild_join = "";
 	this->guild_invite = "";
 
+	if (this->trading)
+	{
+		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
+		builder.AddShort(this->id);
+		this->trade_partner->Send(builder);
+
+		this->trading = false;
+		this->trade_inventory.clear();
+		this->trade_agree = false;
+
+		this->trade_partner->trading = false;
+		this->trade_partner->trade_inventory.clear();
+		this->trade_agree = false;
+
+		this->trade_partner->trade_partner = 0;
+		this->trade_partner = 0;
+	}
+
 	this->warp_anim = animation;
 	this->nowhere = false;
 
 	this->map->Enter(this, animation);
 
-	this->player->client->SendBuilder(builder);
+	this->player->Send(builder);
 
 	if (this->arena)
 	{
@@ -796,7 +815,7 @@ void Character::Refresh()
 		builder.AddThree(item->amount);
 	}
 
-	this->player->client->SendBuilder(builder);
+	this->player->Send(builder);
 }
 
 void Character::ShowBoard(Board *board)
@@ -852,7 +871,7 @@ void Character::ShowBoard(Board *board)
 		builder.AddBreakString(post->subject + subject_extra);
 	}
 
-	this->player->client->SendBuilder(builder);
+	this->player->Send(builder);
 }
 
 std::string Character::PaddedGuildTag()
@@ -1011,10 +1030,13 @@ void Character::DropAll(Character *killer)
 			builder.AddChar(this->y);
 			builder.AddChar(this->weight);
 			builder.AddChar(this->maxweight);
-			this->player->client->SendBuilder(builder);
+			this->player->Send(builder);
 		}
 
 		it = this->DelItem(it, it->amount);
+
+		if (it == this->inventory.end())
+			break;
 	}
 
 	int i = 0;
@@ -1074,7 +1096,7 @@ void Character::DropAll(Character *killer)
 				builder.AddShort(this->accuracy);
 				builder.AddShort(this->evade);
 				builder.AddShort(this->armor);
-				this->player->client->SendBuilder(builder);
+				this->player->Send(builder);
 			}
 
 			this->player->character->DelItem(id, 1);
@@ -1088,7 +1110,7 @@ void Character::DropAll(Character *killer)
 			builder.AddChar(this->y);
 			builder.AddChar(this->weight);
 			builder.AddChar(this->maxweight);
-			this->player->client->SendBuilder(builder);
+			this->player->Send(builder);
 		}
 
 		++i;
@@ -1104,7 +1126,7 @@ void Character::Hide()
 
 	UTIL_FOREACH(this->map->characters, character)
 	{
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -1117,7 +1139,7 @@ void Character::Unhide()
 
 	UTIL_FOREACH(this->map->characters, character)
 	{
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -1135,6 +1157,11 @@ void Character::FormulaVars(std::unordered_map<std::string, double> &vars, std::
 #undef vv
 #undef v
 
+void Character::Send(const PacketBuilder &builder)
+{
+	this->player->Send(builder);
+}
+
 void Character::Logout()
 {
 	if (!this->online)
@@ -1146,7 +1173,7 @@ void Character::Logout()
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
 		builder.AddShort(this->id);
-		this->trade_partner->player->client->SendBuilder(builder);
+		this->trade_partner->Send(builder);
 
 		this->player->client->state = EOClient::Playing;
 		this->trading = false;

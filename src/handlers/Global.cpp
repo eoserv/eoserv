@@ -4,29 +4,28 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
-CLIENT_F_FUNC(Global)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
-	{
-		case PACKET_OPEN: // User has opened the global tab
-		{
+// User has opened/closed the global tab
+void Global_Open(Character *character, PacketReader &reader)
+{
+	(void)character;
+	(void)reader;
+}
 
-		}
-		break;
+// User has closed the global tab
+void Global_Close(Character *character, PacketReader &reader)
+{
+	(void)character;
+	(void)reader;
+}
 
-		case PACKET_CLOSE: // User has closed the global tab
-		{
+PACKET_HANDLER_REGISTER(PACKET_GLOBAL)
+	Register(PACKET_OPEN, Global_Open, Playing);
+	Register(PACKET_CLOSE, Global_Close, Playing);
+PACKET_HANDLER_REGISTER_END()
 
-		}
-		break;
-
-		default:
-			return false;
-	}
-
-	return true;
 }

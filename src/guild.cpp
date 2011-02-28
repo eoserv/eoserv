@@ -6,6 +6,8 @@
 
 #include "guild.hpp"
 
+#include <limits>
+
 #include "character.hpp"
 #include "eoclient.hpp"
 #include "packet.hpp"
@@ -307,7 +309,7 @@ void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int r
 		builder.AddBreakString(this->tag);
 		builder.AddBreakString(this->name);
 		builder.AddBreakString(this->GetRank(rank));
-		joined->player->client->SendBuilder(builder);
+		joined->Send(builder);
 	}
 
 	if (alert && this->manager->world->config["GuildAnnounce"])
@@ -400,7 +402,7 @@ void Guild::AddBank(int gold)
 
 void Guild::DelBank(int gold)
 {
-	if (gold > 0 && this->bank >= 0 && this->bank - gold > 0)
+	if (gold > 0 && this->bank >= 0 && this->bank - gold >= 0)
 	{
 		this->needs_save = true;
 		this->bank -= gold;
@@ -454,7 +456,7 @@ void Guild::Msg(Character *from, std::string message, bool echo)
 
 		if (character->guild.get() == this)
 		{
-			character->player->client->SendBuilder(builder);
+			character->Send(builder);
 		}
 	}
 }

@@ -4,7 +4,7 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include <string>
 
@@ -12,52 +12,45 @@
 #include "player.hpp"
 #include "world.hpp"
 
-CLIENT_F_FUNC(AdminInteract)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+// "Talk to admin" message
+void AdminInteract_Tell(Character *character, PacketReader &reader)
+{
+	std::string message = reader.GetEndString();
+
+	if (character->world->config["OldReports"])
 	{
-		case PACKET_TELL: // "Talk to admin" message
-		{
-			if (this->state < EOClient::PlayingModal) return false;
-
-			std::string message = reader.GetEndString();
-
-			if (this->server()->world->config["OldReports"])
-			{
-				message = "[Request] " + message;
-				this->server()->world->AdminMsg(this->player->character, message, static_cast<int>(this->server()->world->admin_config["reports"]));
-			}
-			else
-			{
-				this->server()->world->AdminRequest(this->player->character, message);
-			}
-		}
-		break;
-
-		case PACKET_REPORT: // User report
-		{
-			if (this->state < EOClient::PlayingModal) return false;
-
-			std::string reportee = reader.GetBreakString();
-			std::string message = reader.GetEndString();
-
-			if (this->server()->world->config["OldReports"])
-			{
-				message = "[Report:" + reportee + "] " + message;
-				this->server()->world->AdminMsg(this->player->character, message, static_cast<int>(this->server()->world->admin_config["reports"]));
-			}
-			else
-			{
-				this->server()->world->AdminReport(this->player->character, reportee, message);
-			}
-		}
-		break;
-
-		default:
-			return false;
+		message = "[Request] " + message;
+		character->world->AdminMsg(character, message, static_cast<int>(character->world->admin_config["reports"]));
 	}
+	else
+	{
+		character->world->AdminRequest(character, message);
+	}
+}
 
-	return true;
+// User report
+void AdminInteract_Report(Character *character, PacketReader &reader)
+{
+	std::string reportee = reader.GetBreakString();
+	std::string message = reader.GetEndString();
+
+	if (character->world->config["OldReports"])
+	{
+		message = "[Report:" + reportee + "] " + message;
+		character->world->AdminMsg(character, message, static_cast<int>(character->world->admin_config["reports"]));
+	}
+	else
+	{
+		character->world->AdminReport(character, reportee, message);
+	}
+}
+
+PACKET_HANDLER_REGISTER(PACKET_ADMININTERACT)
+	Register(PACKET_TELL, AdminInteract_Tell, Playing | OutOfBand);
+	Register(PACKET_REPORT, AdminInteract_Report, Playing | OutOfBand);
+PACKET_HANDLER_REGISTER_END()
+
 }

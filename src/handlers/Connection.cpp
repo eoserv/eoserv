@@ -4,29 +4,31 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
-CLIENT_F_FUNC(Connection)
+#include "eoclient.hpp"
+
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
-	{
-		case PACKET_ACCEPT: // Reply after PACKET_INIT transfer is complete
-		{
+// Confirmation of initialization data
+void Connection_Accept(EOClient *client, PacketReader &reader)
+{
+	(void)client;
+	(void)reader;
+}
 
-		}
-		break;
+// Ping reply
+void Connection_Net(EOClient *client, PacketReader &reader)
+{
+	(void)reader;
 
-		case PACKET_NET: // Response to a PACKET_PING from the server
-		{
-			this->needpong = false;
-		}
-		break;
+	client->needpong = false;
+}
 
-		default:
-			return false;
-	}
+PACKET_HANDLER_REGISTER(PACKET_CONNECTION)
+	Register(PACKET_ACCEPT, Connection_Net, Menu);
+	Register(PACKET_NET, Connection_Net, Any | OutOfBand);
+PACKET_HANDLER_REGISTER_END()
 
-	return true;
 }

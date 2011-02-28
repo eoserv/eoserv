@@ -8,6 +8,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <stdexcept>
 
 #include "console.hpp"
 #include "database.hpp"
@@ -100,7 +102,7 @@ void world_recover(void *world_void)
 			builder.AddShort(character->hp);
 			builder.AddShort(character->tp);
 			builder.AddShort(0); // ?
-			character->player->client->SendBuilder(builder);
+			character->Send(builder);
 		}
 	}
 }
@@ -339,7 +341,8 @@ void World::Logout(Character *character)
 	}
 
 	this->characters.erase(
-		std::remove(this->characters.begin(), this->characters.end(), character)
+		std::remove(UTIL_RANGE(this->characters), character),
+		this->characters.end()
 	);
 }
 
@@ -358,7 +361,7 @@ void World::Msg(Character *from, std::string message, bool echo)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -377,7 +380,7 @@ void World::AdminMsg(Character *from, std::string message, int minlevel, bool ec
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -396,7 +399,7 @@ void World::AnnounceMsg(Character *from, std::string message, bool echo)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -409,7 +412,7 @@ void World::ServerMsg(std::string message)
 
 	UTIL_FOREACH(this->characters, character)
 	{
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
@@ -428,7 +431,7 @@ void World::AdminReport(Character *from, std::string reportee, std::string messa
 	{
 		if (character->admin >= static_cast<int>(this->admin_config["reports"]))
 		{
-			character->player->client->SendBuilder(builder);
+			character->Send(builder);
 		}
 	}
 
@@ -469,7 +472,7 @@ void World::AdminRequest(Character *from, std::string message)
 	{
 		if (character->admin >= static_cast<int>(this->admin_config["reports"]))
 		{
-			character->player->client->SendBuilder(builder);
+			character->Send(builder);
 		}
 	}
 
@@ -565,14 +568,14 @@ void World::ReloadPub()
 
 		std::fclose(fh);
 
-		PacketBuilder builder(0);
+		PacketBuilder builder;
 		builder.AddChar(replycode);
 		builder.AddChar(1); // fileid
 		builder.AddString(content);
 
 		UTIL_FOREACH(this->characters, character)
 		{
-			character->player->client->SendBuilderRaw(builder);
+			character->Send(builder);
 		}
 	}
 
@@ -667,11 +670,8 @@ Home *World::GetHome(Character *character)
 
 	if (!home)
 	{
-		puts("Returning null home");
 		home = null_home;
 	}
-
-	printf("Returning home %i\n", home->map);
 
 	return home;
 }

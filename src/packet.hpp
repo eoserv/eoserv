@@ -87,8 +87,8 @@ class PacketReader
 	public:
 		PacketReader(const std::string &);
 
-		std::size_t Length();
-		std::size_t Remaining();
+		std::size_t Length() const;
+		std::size_t Remaining() const;
 
 		unsigned char GetByte();
 		unsigned char GetChar();
@@ -109,14 +109,15 @@ class PacketBuilder
 		std::string data;
 
 	public:
-		PacketBuilder();
-		PacketBuilder(unsigned short id);
+		PacketBuilder(unsigned short id = 0);
 		PacketBuilder(PacketFamily family, PacketAction action);
 
 		unsigned short SetID(unsigned short id);
 		unsigned short SetID(PacketFamily family, PacketAction action);
 
-		std::size_t Length();
+		unsigned short GetID() const;
+
+		std::size_t Length() const;
 
 		unsigned char AddByte(unsigned char);
 		unsigned char AddChar(unsigned char);

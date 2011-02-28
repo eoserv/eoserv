@@ -15,6 +15,7 @@
 #include "timer.hpp"
 #include "socket.hpp"
 #include "world.hpp"
+#include "handlers/handlers.hpp"
 
 #define CLIENT_F_HANDLE(ID,FUNC) \
 case ID: \
@@ -70,82 +71,24 @@ void EOClient::Execute(std::string data)
 
 	PacketReader reader(data.substr(2));
 
-	bool result = false;
-
 	if (family != PACKET_F_INIT)
 	{
 		reader.GetChar(); // Ordering Byte
 	}
 
-	if (this->state < EOClient::Initialized && family != PACKET_F_INIT && family != PACKET_PLAYERS)
-	{
-		Console::Wrn("Closing client connection sending a non-init packet before init.");
-		this->Close();
-		return;
-	}
-
-	switch (family)
-	{
-		CLIENT_F_HANDLE(PACKET_F_INIT,Init);
-		CLIENT_F_HANDLE(PACKET_CONNECTION,Connection);
-		CLIENT_F_HANDLE(PACKET_ACCOUNT,Account);
-		CLIENT_F_HANDLE(PACKET_CHARACTER,Character);
-		CLIENT_F_HANDLE(PACKET_LOGIN,Login);
-		CLIENT_F_HANDLE(PACKET_WELCOME,Welcome);
-		CLIENT_F_HANDLE(PACKET_WALK,Walk);
-		CLIENT_F_HANDLE(PACKET_FACE,Face);
-		CLIENT_F_HANDLE(PACKET_CHAIR,Chair);
-		CLIENT_F_HANDLE(PACKET_EMOTE,Emote);
-		CLIENT_F_HANDLE(PACKET_ATTACK,Attack);
-		CLIENT_F_HANDLE(PACKET_SHOP,Shop);
-		CLIENT_F_HANDLE(PACKET_ITEM,Item);
-		CLIENT_F_HANDLE(PACKET_STATSKILL,StatSkill);
-		CLIENT_F_HANDLE(PACKET_GLOBAL,Global);
-		CLIENT_F_HANDLE(PACKET_TALK,Talk);
-		CLIENT_F_HANDLE(PACKET_WARP,Warp);
-		CLIENT_F_HANDLE(PACKET_JUKEBOX,Jukebox);
-		CLIENT_F_HANDLE(PACKET_PLAYERS,Players);
-		CLIENT_F_HANDLE(PACKET_PARTY,Party);
-		CLIENT_F_HANDLE(PACKET_REFRESH,Refresh);
-		CLIENT_F_HANDLE(PACKET_PAPERDOLL,Paperdoll);
-		CLIENT_F_HANDLE(PACKET_TRADE,Trade);
-		CLIENT_F_HANDLE(PACKET_CHEST,Chest);
-		CLIENT_F_HANDLE(PACKET_DOOR,Door);
-		CLIENT_F_HANDLE(PACKET_PING,Ping);
-		CLIENT_F_HANDLE(PACKET_BANK,Bank);
-		CLIENT_F_HANDLE(PACKET_LOCKER,Locker);
-		CLIENT_F_HANDLE(PACKET_BARBER,Barber);
-		CLIENT_F_HANDLE(PACKET_GUILD,Guild);
-		CLIENT_F_HANDLE(PACKET_SIT,Sit);
-		CLIENT_F_HANDLE(PACKET_BOARD,Board);
-		//CLIENT_F_HANDLE(PACKET_ARENA,Arena);
-		CLIENT_F_HANDLE(PACKET_ADMININTERACT,AdminInteract);
-		CLIENT_F_HANDLE(PACKET_CITIZEN,Citizen);
-		//CLIENT_F_HANDLE(PACKET_QUEST,Quest);
-		CLIENT_F_HANDLE(PACKET_BOOK,Book);
-		default: ; // Keep the compiler quiet until all packet types are handled
-	}
-
-	(void)result;
-
-#ifdef DEBUG
-	//if (family != PACKET_CONNECTION || action != PACKET_NET)
-	{
-		Console::Dbg("Packet %s[%i]_%s[%i] from %s", PacketProcessor::GetFamilyName(family).c_str(), family, PacketProcessor::GetActionName(action).c_str(), action, static_cast<std::string>(this->GetRemoteAddr()).c_str());
-	}
-#endif
+	Handlers::Handle(family, action, this, reader);
 }
 
-void EOClient::SendBuilder(const PacketBuilder &builder)
+void EOClient::Send(const PacketBuilder &builder)
 {
 	std::string packet(builder);
-	this->Send(this->processor.Encode(packet));
-}
 
-void EOClient::SendBuilderRaw(const PacketBuilder &builder)
-{
-	std::string packet(builder);
-	this->Send(packet);
+	std::array<unsigned char, 2> id = PacketProcessor::EPID(builder.GetID());
+
+	if (id[1] != PACKET_F_INIT)
+		Client::Send(this->processor.Encode(packet));
+	else
+		Client::Send(packet);
 }
 
 EOClient::~EOClient()

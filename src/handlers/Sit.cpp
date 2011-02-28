@@ -4,50 +4,42 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
 #include "player.hpp"
 
-CLIENT_F_FUNC(Sit)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+void Sit_Request(Character *character, PacketReader &reader)
+{
+	int action = reader.GetChar();
+
+	if (action == SIT_ACT_SIT && character->sitting == SIT_STAND)
 	{
-		case PACKET_REQUEST: // Player sitting down
-		{
-			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.0)
-
-			int action = reader.GetChar();
-
-			if (action == SIT_ACT_SIT && this->player->character->sitting == SIT_STAND)
-			{
-				reply.SetID(PACKET_SIT, PACKET_PLAYER);
-				reply.AddShort(this->player->id);
-				reply.AddChar(this->player->character->x);
-				reply.AddChar(this->player->character->y);
-				reply.AddChar(this->player->character->direction);
-				reply.AddChar(0); // ?
-				CLIENT_SEND(reply);
-				this->player->character->Sit(SIT_FLOOR);
-			}
-			else if (this->player->character->sitting == SIT_FLOOR)
-			{
-				reply.SetID(PACKET_SIT, PACKET_CLOSE);
-				reply.AddShort(this->player->id);
-				reply.AddChar(this->player->character->x);
-				reply.AddChar(this->player->character->y);
-				CLIENT_SEND(reply);
-				this->player->character->Stand();
-			}
-		}
-		break;
-
-		default:
-			return false;
+		PacketBuilder reply(PACKET_SIT, PACKET_PLAYER);
+		reply.AddShort(character->player->id);
+		reply.AddChar(character->x);
+		reply.AddChar(character->y);
+		reply.AddChar(character->direction);
+		reply.AddChar(0); // ?
+		character->Send(reply);
+		character->Sit(SIT_FLOOR);
 	}
+	else if (character->sitting == SIT_FLOOR)
+	{
+		PacketBuilder reply(PACKET_SIT, PACKET_CLOSE);
+		reply.AddShort(character->player->id);
+		reply.AddChar(character->x);
+		reply.AddChar(character->y);
+		character->Send(reply);
+		character->Stand();
+	}
+}
 
-	return true;
+PACKET_HANDLER_REGISTER(PACKET_SIT)
+	Register(PACKET_REQUEST, Sit_Request, Playing);
+PACKET_HANDLER_REGISTER_END()
+
 }

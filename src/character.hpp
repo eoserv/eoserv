@@ -16,11 +16,12 @@
 
 #include "fwd/arena.hpp"
 #include "fwd/guild.hpp"
+#include "fwd/npc.hpp"
+#include "fwd/map.hpp"
+#include "fwd/packet.hpp"
 #include "fwd/party.hpp"
 #include "fwd/player.hpp"
-#include "fwd/npc.hpp"
 #include "fwd/world.hpp"
-#include "fwd/map.hpp"
 #include "eodata.hpp"
 #include "guild.hpp"
 
@@ -119,8 +120,6 @@ class Character
 		std::string guild_join;
 		std::string guild_invite;
 
-		double last_guild_action;
-
 		WarpAnimation warp_anim;
 
 		enum EquipLocation
@@ -187,6 +186,8 @@ class Character
 		void Unhide();
 
 		void FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix = "");
+
+		void Send(const PacketBuilder &);
 
 		void Logout();
 		void Save();

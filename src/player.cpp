@@ -6,6 +6,8 @@
 
 #include "player.hpp"
 
+#include <stdexcept>
+
 #include "character.hpp"
 #include "console.hpp"
 #include "database.hpp"
@@ -84,6 +86,11 @@ void Player::ChangePass(std::string password)
 	password = sha256(static_cast<std::string>(this->world->config["PasswordSalt"]) + username + password);
 	this->password = password;
 	this->world->db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.c_str(), this->username.c_str());
+}
+
+void Player::Send(const PacketBuilder &builder)
+{
+	this->client->Send(builder);
 }
 
 void Player::Logout()

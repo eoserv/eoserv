@@ -303,7 +303,7 @@ void NPC::Spawn(NPC *parent)
 	{
 		if (character->InRange(this))
 		{
-			character->player->client->SendBuilder(builder);
+			character->Send(builder);
 		}
 	}
 }
@@ -524,7 +524,7 @@ void NPC::Damage(Character *from, int amount)
 		{
 			if (character->InRange(this))
 			{
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 			}
 		}
 	}
@@ -788,7 +788,7 @@ void NPC::Damage(Character *from, int amount)
 					builder.AddShort(character->maxsp);
 				}
 
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 			}
 		}
 
@@ -801,7 +801,8 @@ void NPC::Damage(Character *from, int amount)
 		UTIL_FOREACH(this->damagelist, opponent)
 		{
 			opponent->attacker->unregister_npc.erase(
-				std::remove(opponent->attacker->unregister_npc.begin(), opponent->attacker->unregister_npc.end(), this)
+				std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), this),
+				opponent->attacker->unregister_npc.end()
 			);
 		}
 
@@ -836,14 +837,15 @@ void NPC::Damage(Character *from, int amount)
 
 			UTIL_FOREACH(this->map->characters, character)
 			{
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 			}
 		}
 
 		if (this->temporary)
 		{
 			this->map->npcs.erase(
-				std::remove(this->map->npcs.begin(), this->map->npcs.end(), this)
+				std::remove(this->map->npcs.begin(), this->map->npcs.end(), this),
+				this->map->npcs.end()
 			);
 		}
 	}
@@ -881,8 +883,8 @@ void NPC::RemoveFromView(Character *target)
 	builder2.AddThree(0); // damage
 */
 
-	target->player->client->SendBuilder(builder);
-	target->player->client->SendBuilder(builder2);
+	target->Send(builder);
+	target->Send(builder2);
 }
 
 void NPC::Die(bool show)
@@ -893,7 +895,8 @@ void NPC::Die(bool show)
 	UTIL_FOREACH(this->damagelist, opponent)
 	{
 		opponent->attacker->unregister_npc.erase(
-			std::remove(opponent->attacker->unregister_npc.begin(), opponent->attacker->unregister_npc.end(), this)
+			std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), this),
+			opponent->attacker->unregister_npc.end()
 		);
 	}
 
@@ -917,7 +920,7 @@ void NPC::Die(bool show)
 		{
 			if (character->InRange(this))
 			{
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 			}
 		}
 	}
@@ -1005,7 +1008,7 @@ void NPC::Attack(Character *target)
 			continue;
 		}
 
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 
 	int rechp = int(target->maxhp * static_cast<double>(this->map->world->config["DeathRecover"]));
@@ -1020,7 +1023,7 @@ void NPC::Attack(Character *target)
 	}
 	builder.AddShort(target->tp);
 
-	target->player->client->SendBuilder(builder);
+	target->Send(builder);
 
 	if (target->hp == 0)
 	{

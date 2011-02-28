@@ -4,7 +4,7 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
 #include "eoserver.hpp"
@@ -12,13 +12,16 @@
 #include "player.hpp"
 #include "world.hpp"
 
-static void add_common(PacketBuilder &reply, Character *character, short item, int amount)
+namespace Handlers
+{
+
+static PacketBuilder add_common(Character *character, short item, int amount)
 {
 	character->DelItem(item, amount);
 
 	character->CalculateStats();
 
-	reply.SetID(PACKET_LOCKER, PACKET_REPLY);
+	PacketBuilder reply(PACKET_LOCKER, PACKET_REPLY);
 	reply.AddShort(item);
 	reply.AddInt(character->HasItem(item));
 	reply.AddChar(character->weight);
@@ -29,172 +32,163 @@ static void add_common(PacketBuilder &reply, Character *character, short item, i
 		reply.AddShort(item.id);
 		reply.AddThree(item.amount);
 	}
+
+	return reply;
 }
 
-CLIENT_F_FUNC(Locker)
+// Placing an item in a bank locker
+void Locker_Add(Character *character, PacketReader &reader)
 {
-	PacketBuilder reply;
+	if (character->trading) return;
 
-	switch (action)
+	unsigned char x = reader.GetChar();
+	unsigned char y = reader.GetChar();
+	short item = reader.GetShort();
+	int amount = reader.GetThree();
+
+	if (item == 1) return;
+	if (amount <= 0) return;
+	if (character->HasItem(item) < amount) return;
+
+	std::size_t lockermax = static_cast<int>(character->world->config["BaseBankSize"]) + character->bankmax * static_cast<int>(character->world->config["BankSizeStep"]);
+
+	if (util::path_length(character->x, character->y, x, y) <= 1)
 	{
-		case PACKET_ADD: // Placing an item in a bank locker
+		if (character->map->GetSpec(x, y) == Map_Tile::BankVault)
 		{
-			if (this->state < EOClient::Playing) return false;
-
-			unsigned char x = reader.GetChar();
-			unsigned char y = reader.GetChar();
-			short item = reader.GetShort();
-			int amount = reader.GetThree();
-
-			if (item == 1) return true;
-			if (amount <= 0) return true;
-			if (this->player->character->HasItem(item) < amount) return true;
-
-			std::size_t lockermax = static_cast<int>(this->server()->world->config["BaseBankSize"]) + this->player->character->bankmax * static_cast<int>(this->server()->world->config["BankSizeStep"]);
-
-			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
+			UTIL_IFOREACH(character->bank, it)
 			{
-				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
+				if (it->id == item)
 				{
-					UTIL_IFOREACH(this->player->character->bank, it)
+					if (it->amount + amount < 0)
 					{
-						if (it->id == item)
-						{
-							if (it->amount + amount < 0)
-							{
-								return true;
-							}
-
-							amount = std::min<int>(amount, static_cast<int>(this->server()->world->config["MaxBank"]) - it->amount);
-
-							it->amount += amount;
-
-							add_common(reply, this->player->character, item, amount);
-							CLIENT_SEND(reply);
-							return true;
-						}
+						return;
 					}
 
-					if (this->player->character->bank.size() >= lockermax)
-					{
-						return true;
-					}
+					amount = std::min<int>(amount, static_cast<int>(character->world->config["MaxBank"]) - it->amount);
 
-					amount = std::min<int>(amount, static_cast<int>(this->server()->world->config["MaxBank"]));
+					it->amount += amount;
 
-					Character_Item newitem;
-					newitem.id = item;
-					newitem.amount = amount;
-
-					this->player->character->bank.push_back(newitem);
-
-					add_common(reply, this->player->character, item, amount);
-					CLIENT_SEND(reply);
+					PacketBuilder reply = add_common(character, item, amount);
+					character->Send(reply);
+					return;
 				}
 			}
-		}
-		break;
 
-		case PACKET_TAKE: // Taking an item from a bank locker
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			unsigned char x = reader.GetChar();
-			unsigned char y = reader.GetChar();
-			short item = reader.GetShort();
-
-			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
+			if (character->bank.size() >= lockermax)
 			{
-				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
-				{
-					UTIL_IFOREACH(this->player->character->bank, it)
-					{
-						if (it->id == item)
-						{
-							this->player->character->AddItem(item, it->amount);
-
-							this->player->character->CalculateStats();
-
-							reply.SetID(PACKET_LOCKER, PACKET_GET);
-							reply.AddShort(item);
-							reply.AddThree(it->amount);
-							reply.AddChar(this->player->character->weight);
-							reply.AddChar(this->player->character->maxweight);
-
-							this->player->character->bank.erase(it);
-
-							UTIL_FOREACH(this->player->character->bank, item)
-							{
-								reply.AddShort(item.id);
-								reply.AddThree(item.amount);
-							}
-							CLIENT_SEND(reply);
-
-							break;
-						}
-					}
-				}
+				return;
 			}
+
+			amount = std::min<int>(amount, static_cast<int>(character->world->config["MaxBank"]));
+
+			Character_Item newitem;
+			newitem.id = item;
+			newitem.amount = amount;
+
+			character->bank.push_back(newitem);
+
+			PacketBuilder reply = add_common(character, item, amount);
+			character->Send(reply);
 		}
-		break;
+	}
+}
 
-		case PACKET_OPEN: // Opening a bank locker
+// Taking an item from a bank locker
+void Locker_Take(Character *character, PacketReader &reader)
+{
+	if (character->trading) return;
+
+	unsigned char x = reader.GetChar();
+	unsigned char y = reader.GetChar();
+	short item = reader.GetShort();
+
+	if (util::path_length(character->x, character->y, x, y) <= 1)
+	{
+		if (character->map->GetSpec(x, y) == Map_Tile::BankVault)
 		{
-			if (this->state < EOClient::Playing) return false;
-
-			unsigned char x = reader.GetChar();
-			unsigned char y = reader.GetChar();
-
-			if (util::path_length(this->player->character->x, this->player->character->y, x, y) <= 1)
+			UTIL_IFOREACH(character->bank, it)
 			{
-				if (this->player->character->map->GetSpec(x, y) == Map_Tile::BankVault)
+				if (it->id == item)
 				{
-					reply.SetID(PACKET_LOCKER, PACKET_OPEN);
-					reply.AddChar(x);
-					reply.AddChar(y);
-					UTIL_FOREACH(this->player->character->bank, item)
+					character->AddItem(item, it->amount);
+
+					character->CalculateStats();
+
+					PacketBuilder reply(PACKET_LOCKER, PACKET_GET);
+					reply.AddShort(item);
+					reply.AddThree(it->amount);
+					reply.AddChar(character->weight);
+					reply.AddChar(character->maxweight);
+
+					character->bank.erase(it);
+
+					UTIL_FOREACH(character->bank, item)
 					{
 						reply.AddShort(item.id);
 						reply.AddThree(item.amount);
 					}
-					CLIENT_SEND(reply);
+					character->Send(reply);
+
+					break;
 				}
 			}
 		}
-		break;
-
-		case PACKET_BUY: // Purchasing a locker space upgrade
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			if (this->player->character->npc_type == ENF::Bank)
-			{
-				int cost = static_cast<int>(this->server()->world->config["BankUpgradeBase"]) + this->player->character->bankmax * static_cast<int>(this->server()->world->config["BankUpgradeStep"]);
-
-				if (this->player->character->bankmax >= static_cast<int>(this->server()->world->config["MaxBankUpgrades"]))
-				{
-					return true;
-				}
-
-				if (this->player->character->HasItem(1) < cost)
-				{
-					return true;
-				}
-
-				++this->player->character->bankmax;
-				this->player->character->DelItem(1, cost);
-
-				reply.SetID(PACKET_LOCKER, PACKET_BUY);
-				reply.AddInt(this->player->character->HasItem(1));
-				reply.AddChar(this->player->character->bankmax);
-				CLIENT_SEND(reply);
-			}
-		}
-		break;
-
-		default:
-			return false;
 	}
+}
 
-	return true;
+// Opening a bank locker
+void Locker_Open(Character *character, PacketReader &reader)
+{
+	unsigned char x = reader.GetChar();
+	unsigned char y = reader.GetChar();
+
+	if (util::path_length(character->x, character->y, x, y) <= 1)
+	{
+		if (character->map->GetSpec(x, y) == Map_Tile::BankVault)
+		{
+			PacketBuilder reply(PACKET_LOCKER, PACKET_OPEN);
+			reply.AddChar(x);
+			reply.AddChar(y);
+			UTIL_FOREACH(character->bank, item)
+			{
+				reply.AddShort(item.id);
+				reply.AddThree(item.amount);
+			}
+			character->Send(reply);
+		}
+	}
+}
+
+// Purchasing a locker space upgrade
+void Locker_Buy(Character *character, PacketReader &reader)
+{
+	if (character->trading) return;
+
+	(void)reader;
+
+	if (character->npc_type == ENF::Bank)
+	{
+		int cost = static_cast<int>(character->world->config["BankUpgradeBase"]) + character->bankmax * static_cast<int>(character->world->config["BankUpgradeStep"]);
+
+		if (character->bankmax >= static_cast<int>(character->world->config["MaxBankUpgrades"]))
+		{
+			return;
+		}
+
+		if (character->HasItem(1) < cost)
+		{
+			return;
+		}
+
+		++character->bankmax;
+		character->DelItem(1, cost);
+
+		PacketBuilder reply(PACKET_LOCKER, PACKET_BUY);
+		reply.AddInt(character->HasItem(1));
+		reply.AddChar(character->bankmax);
+		character->Send(reply);
+	}
+}
+
 }

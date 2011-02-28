@@ -4,32 +4,25 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
 #include "map.hpp"
-#include "player.hpp"
 
-CLIENT_F_FUNC(Door)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
-	{
-		case PACKET_OPEN: // User opening a door
-		{
-			if (this->state < EOClient::Playing) return false;
+// User opening a door
+void Door_Open(Character *character, PacketReader &reader)
+{
+	int x = reader.GetChar();
+	int y = reader.GetChar();
 
-			int x = reader.GetChar();
-			int y = reader.GetChar();
+	character->map->OpenDoor(character, x, y);
+}
 
-			this->player->character->map->OpenDoor(this->player->character, x, y);
-		}
-		break;
+PACKET_HANDLER_REGISTER(PACKET_DOOR)
+	Register(PACKET_OPEN, Door_Open, Playing);
+PACKET_HANDLER_REGISTER_END()
 
-		default:
-			return false;
-	}
-
-	return true;
 }

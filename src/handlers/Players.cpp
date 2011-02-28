@@ -4,118 +4,119 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include <string>
 
 #include "character.hpp"
-#include "player.hpp"
+#include "eoclient.hpp"
 #include "world.hpp"
 
-CLIENT_F_FUNC(Players)
+namespace Handlers
 {
+
+// User checking if a player is near (#find)
+void Players_Accept(Character *character, PacketReader &reader)
+{
+	std::string name = reader.GetEndString();
+	Character *victim = character->world->GetCharacter(name);
+
 	PacketBuilder reply;
 
-	switch (action)
+	if (victim && !victim->hidden)
 	{
-		case PACKET_ACCEPT: // User checking if a player is near (#find)
+		if (victim->mapid == character->mapid && !victim->nowhere)
 		{
-			if (this->state < EOClient::PlayingModal) return false;
+			reply.SetID(PACKET_PLAYERS, PACKET_NET2);
+		}
+		else
+		{
+			reply.SetID(PACKET_PLAYERS, PACKET_NET3);
+		}
+	}
+	else
+	{
+		reply.SetID(PACKET_PLAYERS, PACKET_NET);
+	}
 
-			std::string name = reader.GetEndString();
-			Character *victim = this->server()->world->GetCharacter(name);
+	reply.AddString(name);
+	character->Send(reply);
+}
 
-			if (victim && !victim->hidden)
+// Requested a list of online players
+void Players_List(EOClient *client, PacketReader &reader)
+{
+	int online = client->server()->world->characters.size();
+
+	UTIL_FOREACH(client->server()->world->characters, character)
+	{
+		if (character->hidden)
+		{
+			--online;
+		}
+	}
+
+	PacketBuilder reply;
+	// TODO: Fix this
+	//reply.AddChar(reader.Action() == PACKET_LIST ? INIT_FRIEND_LIST_PLAYERS : INIT_PLAYERS);
+	reply.AddChar(INIT_PLAYERS);
+	reply.AddShort(online);
+	reply.AddByte(255);
+	UTIL_FOREACH(client->server()->world->characters, character)
+	{
+		if (character->hidden)
+		{
+			continue;
+		}
+
+		reply.AddBreakString(character->name);
+		reply.AddBreakString(character->title);
+		reply.AddChar(0); // ?
+		if (character->admin >= ADMIN_HGM)
+		{
+			if (character->party)
 			{
-				if (victim->mapid == this->player->character->mapid && !victim->nowhere)
-				{
-					reply.SetID(PACKET_PLAYERS, PACKET_NET2);
-				}
-				else
-				{
-					reply.SetID(PACKET_PLAYERS, PACKET_NET3);
-				}
+				reply.AddChar(ICON_HGM_PARTY);
 			}
 			else
 			{
-				reply.SetID(PACKET_PLAYERS, PACKET_NET);
+				reply.AddChar(ICON_HGM);
 			}
-
-			reply.AddString(name);
-			CLIENT_SEND(reply);
 		}
-
-		case PACKET_LIST: // Opened friends list
-		case PACKET_REQUEST: // Requested a list of online players
+		else if (character->admin >= ADMIN_GUIDE)
 		{
-			int online = this->server()->world->characters.size();
-
-			UTIL_FOREACH(this->server()->world->characters, character)
+			if (character->party)
 			{
-				if (character->hidden)
-				{
-					--online;
-				}
+				reply.AddChar(ICON_GM_PARTY);
 			}
-
-			reply.SetID(0);
-			reply.AddChar(action == PACKET_LIST ? INIT_FRIEND_LIST_PLAYERS : INIT_PLAYERS);
-			reply.AddShort(online);
-			reply.AddByte(255);
-			UTIL_FOREACH(this->server()->world->characters, character)
+			else
 			{
-				if (character->hidden)
-				{
-					continue;
-				}
-
-				reply.AddBreakString(character->name);
-				reply.AddBreakString(character->title);
-				reply.AddChar(0); // ?
-				if (character->admin >= ADMIN_HGM)
-				{
-					if (character->party)
-					{
-						reply.AddChar(ICON_HGM_PARTY);
-					}
-					else
-					{
-						reply.AddChar(ICON_HGM);
-					}
-				}
-				else if (character->admin >= ADMIN_GUIDE)
-				{
-					if (character->party)
-					{
-						reply.AddChar(ICON_GM_PARTY);
-					}
-					else
-					{
-						reply.AddChar(ICON_GM);
-					}
-				}
-				else
-				{
-					if (character->party)
-					{
-						reply.AddChar(ICON_PARTY);
-					}
-					else
-					{
-						reply.AddChar(ICON_NORMAL);
-					}
-				}
-				reply.AddChar(character->clas);
-				reply.AddString(character->PaddedGuildTag());
-				reply.AddByte(255);
+				reply.AddChar(ICON_GM);
 			}
-			CLIENT_SENDRAW(reply);
 		}
-		break;
-
-		default:
-			return false;
+		else
+		{
+			if (character->party)
+			{
+				reply.AddChar(ICON_PARTY);
+			}
+			else
+			{
+				reply.AddChar(ICON_NORMAL);
+			}
+		}
+		reply.AddChar(character->clas);
+		reply.AddString(character->PaddedGuildTag());
+		reply.AddByte(255);
 	}
 
-	return true;
+	client->Send(reply);
+}
+
+PACKET_HANDLER_REGISTER(PACKET_PLAYERS)
+	Register(PACKET_ACCEPT, Players_Accept, Playing);
+	Register(PACKET_LIST, Players_List, Any);
+	Register(PACKET_REQUEST, Players_List, Any);
+PACKET_HANDLER_REGISTER_END()
+
 }

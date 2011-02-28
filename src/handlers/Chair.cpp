@@ -4,7 +4,7 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "util.hpp"
 
@@ -12,183 +12,176 @@
 #include "map.hpp"
 #include "player.hpp"
 
-CLIENT_F_FUNC(Chair)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+// Player sitting on a chair
+void Chair_Request(Character *character, PacketReader &reader)
+{
+	int action = reader.GetChar();
+
+	if (action == SIT_ACT_SIT && character->sitting == SIT_STAND)
 	{
-		case PACKET_REQUEST: // Player sitting on a chair
+		int x = reader.GetChar();
+		int y = reader.GetChar();
+
+		if ((x + y - character->x - character->y) > 1)
 		{
-			if (this->state < EOClient::Playing) return false;
+			return;
+		}
 
-			int action = reader.GetChar();
-
-			if (action == SIT_ACT_SIT && this->player->character->sitting == SIT_STAND)
+		UTIL_FOREACH(character->map->characters, character)
+		{
+			if (character->x == x && character->y == y)
 			{
-				int x = reader.GetChar();
-				int y = reader.GetChar();
-
-				if ((x + y - this->player->character->x - this->player->character->y) > 1)
-				{
-					return false;
-				}
-
-				UTIL_FOREACH(this->player->character->map->characters, character)
-				{
-					if (character->x == x && character->y == y)
-					{
-						return false;
-					}
-				}
-
-				switch (this->player->character->map->GetSpec(x, y))
-				{
-					case Map_Tile::ChairDown:
-						if (this->player->character->y == y+1 && this->player->character->x == x)
-						{
-							this->player->character->direction = DIRECTION_DOWN;
-						}
-						else
-						{
-							return false;
-						}
-						break;
-
-					case Map_Tile::ChairUp:
-						if (this->player->character->y == y-1 && this->player->character->x == x)
-						{
-							this->player->character->direction = DIRECTION_UP;
-						}
-						else
-						{
-							return false;
-						}
-						break;
-
-					case Map_Tile::ChairLeft:
-						if (this->player->character->y == y && this->player->character->x == x-1)
-						{
-							this->player->character->direction = DIRECTION_LEFT;
-						}
-						else
-						{
-							return false;
-						}
-						break;
-
-					case Map_Tile::ChairRight:
-						if (this->player->character->y == y && this->player->character->x == x+1)
-						{
-							this->player->character->direction = DIRECTION_RIGHT;
-						}
-						else
-						{
-							return false;
-						}
-						break;
-
-					case Map_Tile::ChairDownRight:
-						if (this->player->character->y == y && this->player->character->x == x+1)
-						{
-							this->player->character->direction = DIRECTION_RIGHT;
-						}
-						else if (this->player->character->y == y+1 && this->player->character->x == x)
-						{
-							this->player->character->direction = DIRECTION_DOWN;
-						}
-						else
-						{
-							return false;
-						}
-						break;
-
-					case Map_Tile::ChairUpLeft:
-						if (this->player->character->y == y && this->player->character->x == x-1)
-						{
-							this->player->character->direction = DIRECTION_LEFT;
-						}
-						else if (this->player->character->y == y-1 && this->player->character->x == x)
-						{
-							this->player->character->direction = DIRECTION_UP;
-						}
-						else
-						{
-							return false;
-						}
-						break;
-
-					case Map_Tile::ChairAll:
-						if (this->player->character->y == y && this->player->character->x == x+1)
-						{
-							this->player->character->direction = DIRECTION_RIGHT;
-						}
-						else if (this->player->character->y == y && this->player->character->x == x-1)
-						{
-							this->player->character->direction = DIRECTION_LEFT;
-						}
-						else if (this->player->character->y == y-1 && this->player->character->x == x)
-						{
-							this->player->character->direction = DIRECTION_UP;
-						}
-						else if (this->player->character->y == y+1 && this->player->character->x == x)
-						{
-							this->player->character->direction = DIRECTION_DOWN;
-						}
-						else
-						{
-							return false;
-						}
-						break;
-
-					default:
-						return false;
-				}
-
-				this->player->character->x = x;
-				this->player->character->y = y;
-
-				reply.SetID(PACKET_CHAIR, PACKET_PLAYER);
-				reply.AddShort(this->player->id);
-				reply.AddChar(this->player->character->x);
-				reply.AddChar(this->player->character->y);
-				reply.AddChar(this->player->character->direction);
-				reply.AddChar(0); // ?
-				CLIENT_SEND(reply);
-				this->player->character->Sit(SIT_CHAIR);
-			}
-			else if (this->player->character->sitting == SIT_CHAIR)
-			{
-				switch (this->player->character->direction)
-				{
-					case DIRECTION_UP:
-						--this->player->character->y;
-						break;
-					case DIRECTION_RIGHT:
-						++this->player->character->x;
-						break;
-					case DIRECTION_DOWN:
-						++this->player->character->y;
-						break;
-					case DIRECTION_LEFT:
-						--this->player->character->x;
-						break;
-				}
-
-				reply.SetID(PACKET_CHAIR, PACKET_CLOSE);
-				reply.AddShort(this->player->id);
-				reply.AddChar(this->player->character->x);
-				reply.AddChar(this->player->character->y);
-				CLIENT_SEND(reply);
-				this->player->character->Stand();
+				return;
 			}
 		}
 
-		break;
+		switch (character->map->GetSpec(x, y))
+		{
+			case Map_Tile::ChairDown:
+				if (character->y == y+1 && character->x == x)
+				{
+					character->direction = DIRECTION_DOWN;
+				}
+				else
+				{
+					return;
+				}
+				break;
 
-		default:
-			return false;
+			case Map_Tile::ChairUp:
+				if (character->y == y-1 && character->x == x)
+				{
+					character->direction = DIRECTION_UP;
+				}
+				else
+				{
+					return;
+				}
+				break;
+
+			case Map_Tile::ChairLeft:
+				if (character->y == y && character->x == x-1)
+				{
+					character->direction = DIRECTION_LEFT;
+				}
+				else
+				{
+					return;
+				}
+				break;
+
+			case Map_Tile::ChairRight:
+				if (character->y == y && character->x == x+1)
+				{
+					character->direction = DIRECTION_RIGHT;
+				}
+				else
+				{
+					return;
+				}
+				break;
+
+			case Map_Tile::ChairDownRight:
+				if (character->y == y && character->x == x+1)
+				{
+					character->direction = DIRECTION_RIGHT;
+				}
+				else if (character->y == y+1 && character->x == x)
+				{
+					character->direction = DIRECTION_DOWN;
+				}
+				else
+				{
+					return;
+				}
+				break;
+
+			case Map_Tile::ChairUpLeft:
+				if (character->y == y && character->x == x-1)
+				{
+					character->direction = DIRECTION_LEFT;
+				}
+				else if (character->y == y-1 && character->x == x)
+				{
+					character->direction = DIRECTION_UP;
+				}
+				else
+				{
+					return;
+				}
+				break;
+
+			case Map_Tile::ChairAll:
+				if (character->y == y && character->x == x+1)
+				{
+					character->direction = DIRECTION_RIGHT;
+				}
+				else if (character->y == y && character->x == x-1)
+				{
+					character->direction = DIRECTION_LEFT;
+				}
+				else if (character->y == y-1 && character->x == x)
+				{
+					character->direction = DIRECTION_UP;
+				}
+				else if (character->y == y+1 && character->x == x)
+				{
+					character->direction = DIRECTION_DOWN;
+				}
+				else
+				{
+					return;
+				}
+				break;
+
+			default:
+				return;
+		}
+
+		character->x = x;
+		character->y = y;
+
+		PacketBuilder reply(PACKET_CHAIR, PACKET_PLAYER);
+		reply.AddShort(character->player->id);
+		reply.AddChar(character->x);
+		reply.AddChar(character->y);
+		reply.AddChar(character->direction);
+		reply.AddChar(0); // ?
+		character->Send(reply);
+		character->Sit(SIT_CHAIR);
 	}
+	else if (character->sitting == SIT_CHAIR)
+	{
+		switch (character->direction)
+		{
+			case DIRECTION_UP:
+				--character->y;
+				break;
+			case DIRECTION_RIGHT:
+				++character->x;
+				break;
+			case DIRECTION_DOWN:
+				++character->y;
+				break;
+			case DIRECTION_LEFT:
+				--character->x;
+				break;
+		}
 
-	return true;
+		PacketBuilder reply(PACKET_CHAIR, PACKET_CLOSE);
+		reply.AddShort(character->player->id);
+		reply.AddChar(character->x);
+		reply.AddChar(character->y);
+		character->Send(reply);
+		character->Stand();
+	}
+}
+
+PACKET_HANDLER_REGISTER(PACKET_CHAIR)
+	Register(PACKET_REQUEST, Chair_Request, Playing);
+PACKET_HANDLER_REGISTER_END()
+
 }

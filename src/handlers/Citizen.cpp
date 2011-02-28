@@ -4,7 +4,7 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "util.hpp"
 
@@ -12,118 +12,112 @@
 #include "eodata.hpp"
 #include "map.hpp"
 #include "npc.hpp"
-#include "player.hpp"
 
-CLIENT_F_FUNC(Citizen)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+// Sleeping at an inn
+void Citizen_Request(Character *character, PacketReader &reader)
+{
+	// TODO: Sleeping at inns
+	(void)character;
+	(void)reader;
+}
+
+// Player subscribing to a town
+void Citizen_Reply(Character *character, PacketReader &reader)
+{
+	std::string answers[3];
+
+	/*int session = */reader.GetShort();
+	reader.GetByte();
+	/*short npcid = */reader.GetShort();
+	reader.GetByte();
+	answers[0] = reader.GetBreakString();
+	answers[1] = reader.GetBreakString();
+	answers[2] = reader.GetEndString();
+
+	if (character->npc_type == ENF::Inn)
 	{
-		case PACKET_REQUEST: // Sleeping at an inn
+		int questions_wrong = 0;
+
+		for (int i = 0; i < 3; ++i)
 		{
-			// TODO: Sleeping at inns
-		}
-		break;
-
-		case PACKET_REPLY: // Player subscribing to a town
-		{
-			if (this->state < EOClient::Playing) return false;
-
-			std::string answers[3];
-
-			/*int session = */reader.GetShort();
-			reader.GetByte();
-			/*short npcid = */reader.GetShort();
-			reader.GetByte();
-			answers[0] = reader.GetBreakString();
-			answers[1] = reader.GetBreakString();
-			answers[2] = reader.GetEndString();
-
-			if (this->player->character->npc_type == ENF::Inn)
+			if (util::lowercase(answers[i]) != util::lowercase(character->npc->citizenship->answers[i]))
 			{
-				int questions_wrong = 0;
-
-				for (int i = 0; i < 3; ++i)
-				{
-					if (util::lowercase(answers[i]) != util::lowercase(this->player->character->npc->citizenship->answers[i]))
-					{
-						++questions_wrong;
-					}
-				}
-
-				if (questions_wrong == 0)
-				{
-					this->player->character->home = this->player->character->npc->citizenship->home;
-				}
-
-				reply.SetID(PACKET_CITIZEN, PACKET_REPLY);
-				reply.AddChar(questions_wrong);
-
-				CLIENT_SEND(reply);
+				++questions_wrong;
 			}
 		}
-		break;
 
-		case PACKET_REMOVE: // Player giving up citizenship of a town
+		if (questions_wrong == 0)
 		{
-			if (this->state < EOClient::Playing) return false;
-
-			/*short npcid = reader.GetShort();*/
-
-			if (this->player->character->npc_type == ENF::Inn)
-			{
-				reply.SetID(PACKET_CITIZEN, PACKET_REMOVE);
-
-				if (this->player->character->home == this->player->character->npc->citizenship->home)
-				{
-					this->player->character->home = "";
-					reply.AddChar(UNSUBSCRIBE_UNSUBSCRIBED);
-				}
-				else
-				{
-					reply.AddChar(UNSUBSCRIBE_NOT_CITIZEN);
-				}
-
-				CLIENT_SEND(reply);
-			}
+			character->home = character->npc->citizenship->home;
 		}
-		break;
 
-		case PACKET_OPEN: // Talked to a citizenship NPC
-		{
-			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.0)
+		PacketBuilder reply(PACKET_CITIZEN, PACKET_REPLY);
+		reply.AddChar(questions_wrong);
 
-			short id = reader.GetShort();
-
-			UTIL_FOREACH(this->player->character->map->npcs, npc)
-			{
-				if (npc->index == id && npc->Data()->type == ENF::Inn && npc->citizenship)
-				{
-					this->player->character->npc = npc;
-					this->player->character->npc_type = ENF::Inn;
-
-					reply.SetID(PACKET_CITIZEN, PACKET_OPEN);
-					reply.AddThree(1); // ?
-					reply.AddChar(0); // ?
-					reply.AddShort(0); // session
-					reply.AddByte(255);
-					reply.AddBreakString(npc->citizenship->questions[0]);
-					reply.AddBreakString(npc->citizenship->questions[1]);
-					reply.AddString(npc->citizenship->questions[2]);
-
-					CLIENT_SEND(reply);
-
-					break;
-				}
-			}
-		}
-		break;
-
-		default:
-			return false;
+		character->Send(reply);
 	}
+}
 
-	return true;
+// Player giving up citizenship of a town
+void Citizen_Remove(Character *character, PacketReader &reader)
+{
+	(void)reader;
+	/*short npcid = reader.GetShort();*/
+
+	if (character->npc_type == ENF::Inn)
+	{
+		PacketBuilder reply(PACKET_CITIZEN, PACKET_REMOVE);
+
+		if (character->home == character->npc->citizenship->home)
+		{
+			character->home = "";
+			reply.AddChar(UNSUBSCRIBE_UNSUBSCRIBED);
+		}
+		else
+		{
+			reply.AddChar(UNSUBSCRIBE_NOT_CITIZEN);
+		}
+
+		character->Send(reply);
+	}
+}
+
+// Talked to a citizenship NPC
+void Citizen_Open(Character *character, PacketReader &reader)
+{
+	short id = reader.GetShort();
+
+	UTIL_FOREACH(character->map->npcs, npc)
+	{
+		if (npc->index == id && npc->Data()->type == ENF::Inn && npc->citizenship)
+		{
+			character->npc = npc;
+			character->npc_type = ENF::Inn;
+
+			PacketBuilder reply(PACKET_CITIZEN, PACKET_OPEN);
+			reply.AddThree(1); // ?
+			reply.AddChar(0); // ?
+			reply.AddShort(0); // session
+			reply.AddByte(255);
+			reply.AddBreakString(npc->citizenship->questions[0]);
+			reply.AddBreakString(npc->citizenship->questions[1]);
+			reply.AddString(npc->citizenship->questions[2]);
+
+			character->Send(reply);
+
+			break;
+		}
+	}
+}
+
+PACKET_HANDLER_REGISTER(PACKET_CITIZEN)
+	Register(PACKET_REQUEST, Citizen_Request, Playing);
+	Register(PACKET_REPLY, Citizen_Reply, Playing);
+	Register(PACKET_REMOVE, Citizen_Remove, Playing);
+	Register(PACKET_OPEN, Citizen_Open, Playing);
+PACKET_HANDLER_REGISTER_END()
+
 }

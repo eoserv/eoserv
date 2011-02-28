@@ -4,34 +4,26 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
-#include "player.hpp"
 
-CLIENT_F_FUNC(Emote)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+// Player sending an emote
+void Emote_Report(Character *character, PacketReader &reader)
+{
+	Emote emote = static_cast<Emote>(reader.GetChar());
+
+	if ((emote >= 0 && emote <= 10) || emote == 12 || emote == 14)
 	{
-		case PACKET_REPORT: // Player sending an emote
-		{
-			if (this->state < EOClient::PlayingModal) return false;
-			CLIENT_QUEUE_ACTION(0.0)
-
-			Emote emote = static_cast<Emote>(reader.GetChar());
-
-			if ((emote >= 0 && emote <= 10) || emote == 12 || emote == 14)
-			{
-				this->player->character->Emote(emote, false);
-			}
-		}
-		break;
-
-		default:
-			return false;
+		character->Emote(emote, false);
 	}
+}
 
-	return true;
+PACKET_HANDLER_REGISTER(PACKET_EMOTE)
+	Register(PACKET_REPORT, Emote_Report, Playing);
+PACKET_HANDLER_REGISTER_END()
+
 }

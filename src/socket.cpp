@@ -12,7 +12,9 @@
 
 #include "socket_impl.hpp"
 
+#if defined(WIN32) || defined(WIN64)
 static WSADATA socket_wsadata;
+#endif // defined(WIN32) || defined(WIN64)
 
 #include "util.hpp"
 
@@ -55,7 +57,7 @@ const char *OSErrorString()
 #include <string.h>
 const char *OSErrorString()
 {
-	eoserv_strlcpy(ErrorBuf, strerror(errno), sizeof(ErrorBuf))
+	eoserv_strlcpy(ErrorBuf, strerror(errno), sizeof(ErrorBuf));
 }
 #endif // defined(WIN32) || defined(WIN64)
 
@@ -679,7 +681,7 @@ std::vector<Client *> *Server::Select(double timeout)
 	{
 		if (client->connected || client->recv_buffer.length() > 0)
 		{
-			selected.push_back(*client);
+			selected.push_back(client);
 		}
 	}
 

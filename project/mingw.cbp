@@ -112,6 +112,7 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-std=gnu++0x" />
 			<Add option="-include stdafx.h" />
@@ -203,9 +204,8 @@
 		<Unit filename="..\src\handlers\Walk.cpp" />
 		<Unit filename="..\src\handlers\Warp.cpp" />
 		<Unit filename="..\src\handlers\Welcome.cpp" />
-		<Unit filename="..\src\handlers\handlers.h">
-			<Option weight="0" />
-		</Unit>
+		<Unit filename="..\src\handlers\handlers.cpp" />
+		<Unit filename="..\src\handlers\handlers.hpp" />
 		<Unit filename="..\src\hash.cpp" />
 		<Unit filename="..\src\hash.hpp" />
 		<Unit filename="..\src\main.cpp" />

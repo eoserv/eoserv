@@ -4,7 +4,7 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
 #include "eodata.hpp"
@@ -13,419 +13,404 @@
 #include "player.hpp"
 #include "world.hpp"
 
-CLIENT_F_FUNC(Item)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+// Player using an item
+void Item_Use(Character *character, PacketReader &reader)
+{
+	if (character->trading) return;
+
+	int id = reader.GetShort();
+
+	if (character->HasItem(id))
 	{
-		case PACKET_USE: // Player using an item
+		EIF_Data *item = character->world->eif->Get(id);
+		PacketBuilder reply(PACKET_ITEM, PACKET_REPLY);
+		reply.AddChar(item->type);
+		reply.AddShort(id);
+
+		switch (item->type)
 		{
-			if (this->state < EOClient::PlayingModal) return false;
-			CLIENT_QUEUE_ACTION(0.0)
-
-			int id = reader.GetShort();
-
-			if (this->player->character->HasItem(id))
+			case EIF::Teleport:
 			{
-				EIF_Data *item = this->server()->world->eif->Get(id);
-				reply.SetID(PACKET_ITEM, PACKET_REPLY);
-				reply.AddChar(item->type);
-				reply.AddShort(id);
-
-				switch (item->type)
-				{
-					case EIF::Teleport:
-					{
-						if (this->state < EOClient::Playing)
-						{
-							break;
-						}
-
-						if (!this->player->character->map->scroll)
-						{
-							break;
-						}
-
-						this->player->character->DelItem(id, 1);
-						reply.AddInt(this->player->character->HasItem(id));
-						reply.AddChar(this->player->character->weight);
-						reply.AddChar(this->player->character->maxweight);
-
-						if (item->scrollmap == 0)
-						{
-							this->player->character->Warp(this->player->character->SpawnMap(), this->player->character->SpawnX(), this->player->character->SpawnY(), WARP_ANIMATION_SCROLL);
-						}
-						else
-						{
-							this->player->character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_SCROLL);
-						}
-
-						CLIENT_SEND(reply);
-					}
-					break;
-
-					case EIF::Heal:
-					{
-						int hpgain = item->hp;
-						int tpgain = item->tp;
-
-						if (this->server()->world->config["LimitDamage"])
-						{
-							hpgain = std::min(hpgain, this->player->character->maxhp - this->player->character->hp);
-							tpgain = std::min(tpgain, this->player->character->maxtp - this->player->character->tp);
-						}
-
-						hpgain = std::max(hpgain, 0);
-						tpgain = std::max(tpgain, 0);
-
-						this->player->character->hp += hpgain;
-						this->player->character->tp += tpgain;
-
-						if (!this->server()->world->config["LimitDamage"])
-						{
-							this->player->character->hp = std::min(this->player->character->hp, this->player->character->maxhp);
-							this->player->character->tp = std::min(this->player->character->tp, this->player->character->maxtp);
-						}
-
-						this->player->character->DelItem(id, 1);
-						reply.AddInt(this->player->character->HasItem(id));
-						reply.AddChar(this->player->character->weight);
-						reply.AddChar(this->player->character->maxweight);
-
-						reply.AddInt(hpgain);
-						reply.AddShort(this->player->character->hp);
-						reply.AddShort(this->player->character->tp);
-
-						PacketBuilder builder(PACKET_RECOVER, PACKET_AGREE);
-						builder.AddShort(this->player->id);
-						builder.AddInt(hpgain);
-						builder.AddChar(int(double(this->player->character->hp) / double(this->player->character->maxhp) * 100.0));
-
-						UTIL_FOREACH(this->player->character->map->characters, character)
-						{
-							if (character != this->player->character && this->player->character->InRange(character))
-							{
-								character->player->client->SendBuilder(builder);
-							}
-						}
-
-						if (this->player->character->party)
-						{
-							this->player->character->party->UpdateHP(this->player->character);
-						}
-
-						CLIENT_SEND(reply);
-					}
-					break;
-
-					case EIF::HairDye:
-					{
-						this->player->character->haircolor = item->haircolor;
-
-						this->player->character->DelItem(id, 1);
-						reply.AddInt(this->player->character->HasItem(id));
-						reply.AddChar(this->player->character->weight);
-						reply.AddChar(this->player->character->maxweight);
-
-						reply.AddChar(item->haircolor);
-
-						PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE);
-						builder.AddShort(this->player->id);
-						builder.AddChar(SLOT_HAIRCOLOR);
-						builder.AddChar(0); // subloc
-						builder.AddChar(item->haircolor);
-
-						UTIL_FOREACH(this->player->character->map->characters, character)
-						{
-							if (character != this->player->character && this->player->character->InRange(character))
-							{
-								character->player->client->SendBuilder(builder);
-							}
-						}
-
-						CLIENT_SEND(reply);
-					}
-					break;
-
-					case EIF::Beer:
-					{
-						this->player->character->DelItem(id, 1);
-						reply.AddInt(this->player->character->HasItem(id));
-						reply.AddChar(this->player->character->weight);
-						reply.AddChar(this->player->character->maxweight);
-
-						CLIENT_SEND(reply);
-					}
-					break;
-
-					case EIF::EffectPotion:
-					{
-						this->player->character->DelItem(id, 1);
-						reply.AddInt(this->player->character->HasItem(id));
-						reply.AddChar(this->player->character->weight);
-						reply.AddChar(this->player->character->maxweight);
-						reply.AddShort(item->effect);
-
-						this->player->character->Effect(item->effect, false);
-
-						CLIENT_SEND(reply);
-					}
-					break;
-
-					case EIF::CureCurse:
-					{
-						for (std::size_t i = 0; i < this->player->character->paperdoll.size(); ++i)
-						{
-							if (this->server()->world->eif->Get(this->player->character->paperdoll[i])->special == EIF::Cursed)
-							{
-								this->player->character->paperdoll[i] = 0;
-							}
-						}
-
-						this->player->character->CalculateStats();
-
-						this->player->character->DelItem(id, 1);
-						reply.AddInt(this->player->character->HasItem(id));
-						reply.AddChar(this->player->character->weight);
-						reply.AddChar(this->player->character->maxweight);
-
-						reply.AddShort(this->player->character->maxhp);
-						reply.AddShort(this->player->character->maxtp);
-						reply.AddShort(this->player->character->str);
-						reply.AddShort(this->player->character->intl);
-						reply.AddShort(this->player->character->wis);
-						reply.AddShort(this->player->character->agi);
-						reply.AddShort(this->player->character->con);
-						reply.AddShort(this->player->character->cha);
-						reply.AddShort(this->player->character->mindam);
-						reply.AddShort(this->player->character->maxdam);
-						reply.AddShort(this->player->character->accuracy);
-						reply.AddShort(this->player->character->evade);
-						reply.AddShort(this->player->character->armor);
-
-						PacketBuilder builder;
-						builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
-						builder.AddShort(this->player->id);
-						builder.AddChar(SLOT_CLOTHES);
-						builder.AddChar(0);
-						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Boots])->dollgraphic);
-						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Armor])->dollgraphic);
-						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Hat])->dollgraphic);
-						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Weapon])->dollgraphic);
-						builder.AddShort(this->server()->world->eif->Get(this->player->character->paperdoll[Character::Shield])->dollgraphic);
-
-						UTIL_FOREACH(this->player->character->map->characters, character)
-						{
-							if (character != this->player->character && this->player->character->InRange(character))
-							{
-								character->player->client->SendBuilder(builder);
-							}
-						}
-
-						CLIENT_SEND(reply);
-					}
-					break;
-
-					case EIF::EXPReward:
-					{
-						bool level_up = false;
-
-						this->player->character->exp += item->expreward;
-
-						this->player->character->exp = std::min(this->player->character->exp, static_cast<int>(this->player->character->map->world->config["MaxExp"]));
-
-						while (this->player->character->level < static_cast<int>(this->player->character->map->world->config["MaxLevel"])
-						 && this->player->character->exp >= this->player->character->map->world->exp_table[this->player->character->level+1])
-						{
-							level_up = true;
-							++this->player->character->level;
-							this->player->character->statpoints += static_cast<int>(this->player->character->map->world->config["StatPerLevel"]);
-							this->player->character->skillpoints += static_cast<int>(this->player->character->map->world->config["SkillPerLevel"]);
-							this->player->character->CalculateStats();
-						}
-
-						this->player->character->DelItem(id, 1);
-						reply.AddInt(this->player->character->HasItem(id));
-						reply.AddChar(this->player->character->weight);
-						reply.AddChar(this->player->character->maxweight);
-
-						reply.AddInt(this->player->character->exp);
-
-						reply.AddChar(level_up ? this->player->character->level : 0);
-						reply.AddShort(this->player->character->statpoints);
-						reply.AddShort(this->player->character->skillpoints);
-						reply.AddShort(this->player->character->maxhp);
-						reply.AddShort(this->player->character->maxtp);
-						reply.AddShort(this->player->character->maxsp);
-
-						if (level_up)
-						{
-							PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY);
-							builder.AddInt(this->player->character->exp);
-							builder.AddShort(this->player->character->karma);
-							builder.AddChar(this->player->character->level);
-							builder.AddShort(this->player->character->statpoints);
-							builder.AddShort(this->player->character->skillpoints);
-							// TODO: Something better than this
-							this->player->character->Emote(EMOTE_LEVELUP, true);
-						}
-
-						CLIENT_SEND(reply);
-					}
-					break;
-
-					default:
-						return true;
-				}
-			}
-		}
-		break;
-
-		case PACKET_DROP: // Drop an item on the ground
-		{
-			if (this->state < EOClient::PlayingModal) return false;
-			CLIENT_QUEUE_ACTION(0.0)
-
-			int id = reader.GetShort();
-			int amount;
-
-			if (this->server()->world->eif->Get(id)->special == EIF::Lore)
-			{
-				return true;
-			}
-
-			if (reader.Length() == 8)
-			{
-				amount = reader.GetThree();
-			}
-			else
-			{
-				amount = reader.GetInt();
-			}
-			unsigned char x = reader.GetByte(); // ?
-			unsigned char y = reader.GetByte(); // ?
-
-			amount = std::min<int>(amount, this->server()->world->config["MaxDrop"]);
-
-			if (amount == 0)
-			{
-				return true;
-			}
-
-			if (x == 255 && y == 255)
-			{
-				x = this->player->character->x;
-				y = this->player->character->y;
-			}
-			else
-			{
-				if (this->state < EOClient::Playing) return false;
-				x = PacketProcessor::Number(x);
-				y = PacketProcessor::Number(y);
-			}
-
-			int distance = util::path_length(x, y, this->player->character->x, this->player->character->y);
-
-			if (distance > static_cast<int>(this->server()->world->config["DropDistance"]))
-			{
-				return true;
-			}
-
-			if (!this->player->character->map->Walkable(x, y))
-			{
-				return true;
-			}
-
-			if (this->player->character->HasItem(id) >= amount && this->player->character->mapid != static_cast<int>(this->server()->world->config["JailMap"]))
-			{
-				Map_Item *item = this->player->character->map->AddItem(id, amount, x, y, this->player->character);
-				if (item)
-				{
-					item->owner = this->player->id;
-					item->unprotecttime = Timer::GetTime() + static_cast<double>(this->server()->world->config["ProtectPlayerDrop"]);
-					this->player->character->DelItem(id, amount);
-
-					reply.SetID(PACKET_ITEM, PACKET_DROP);
-					reply.AddShort(id);
-					reply.AddThree(amount);
-					reply.AddInt(this->player->character->HasItem(id));
-					reply.AddShort(item->uid);
-					reply.AddChar(x);
-					reply.AddChar(y);
-					reply.AddChar(this->player->character->weight);
-					reply.AddChar(this->player->character->maxweight);
-					CLIENT_SEND(reply);
-				}
-			}
-		}
-		break;
-
-		case PACKET_JUNK: // Destroying an item
-		{
-			if (this->state < EOClient::PlayingModal) return false;
-
-			int id = reader.GetShort();
-			int amount = reader.GetInt();
-
-			if (this->player->character->HasItem(id) >= amount)
-			{
-				this->player->character->DelItem(id, amount);
-
-				reply.SetID(PACKET_ITEM, PACKET_JUNK);
-				reply.AddShort(id);
-				reply.AddThree(amount); // Overflows, does it matter?
-				reply.AddInt(this->player->character->HasItem(id));
-				reply.AddChar(this->player->character->weight);
-				reply.AddChar(this->player->character->maxweight);
-				CLIENT_SEND(reply);
-			}
-		}
-		break;
-
-		case PACKET_GET: // Retrieve an item from the ground
-		{
-			if (this->state < EOClient::Playing) return false;
-			CLIENT_QUEUE_ACTION(0.0)
-
-			int uid = reader.GetShort();
-
-			Map_Item *item = this->player->character->map->GetItem(uid);
-			if (item)
-			{
-				int distance = util::path_length(item->x, item->y, this->player->character->x, this->player->character->y);
-
-				if (distance > static_cast<int>(this->server()->world->config["DropDistance"]))
+				if (!character->map->scroll)
 				{
 					break;
 				}
 
-				if (item->owner != this->player->id && item->unprotecttime > Timer::GetTime())
+				character->DelItem(id, 1);
+				reply.AddInt(character->HasItem(id));
+				reply.AddChar(character->weight);
+				reply.AddChar(character->maxweight);
+
+				if (item->scrollmap == 0)
 				{
-					break;
+					character->Warp(character->SpawnMap(), character->SpawnX(), character->SpawnY(), WARP_ANIMATION_SCROLL);
+				}
+				else
+				{
+					character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_SCROLL);
 				}
 
-				this->player->character->AddItem(item->id, item->amount);
-
-				reply.SetID(PACKET_ITEM, PACKET_GET);
-				reply.AddShort(uid);
-				reply.AddShort(item->id);
-				reply.AddThree(item->amount);
-				reply.AddChar(this->player->character->weight);
-				reply.AddChar(this->player->character->maxweight);
-				CLIENT_SEND(reply);
-
-				this->player->character->map->DelItem(item, this->player->character);
-
-				break;
+				character->Send(reply);
 			}
+			break;
 
+			case EIF::Heal:
+			{
+				int hpgain = item->hp;
+				int tpgain = item->tp;
+
+				if (character->world->config["LimitDamage"])
+				{
+					hpgain = std::min(hpgain, character->maxhp - character->hp);
+					tpgain = std::min(tpgain, character->maxtp - character->tp);
+				}
+
+				hpgain = std::max(hpgain, 0);
+				tpgain = std::max(tpgain, 0);
+
+				character->hp += hpgain;
+				character->tp += tpgain;
+
+				if (!character->world->config["LimitDamage"])
+				{
+					character->hp = std::min(character->hp, character->maxhp);
+					character->tp = std::min(character->tp, character->maxtp);
+				}
+
+				character->DelItem(id, 1);
+				reply.AddInt(character->HasItem(id));
+				reply.AddChar(character->weight);
+				reply.AddChar(character->maxweight);
+
+				reply.AddInt(hpgain);
+				reply.AddShort(character->hp);
+				reply.AddShort(character->tp);
+
+				PacketBuilder builder(PACKET_RECOVER, PACKET_AGREE);
+				builder.AddShort(character->player->id);
+				builder.AddInt(hpgain);
+				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+
+				UTIL_FOREACH(character->map->characters, character)
+				{
+					if (character != character && character->InRange(character))
+					{
+						character->Send(builder);
+					}
+				}
+
+				if (character->party)
+				{
+					character->party->UpdateHP(character);
+				}
+
+				character->Send(reply);
+			}
+			break;
+
+			case EIF::HairDye:
+			{
+				character->haircolor = item->haircolor;
+
+				character->DelItem(id, 1);
+				reply.AddInt(character->HasItem(id));
+				reply.AddChar(character->weight);
+				reply.AddChar(character->maxweight);
+
+				reply.AddChar(item->haircolor);
+
+				PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE);
+				builder.AddShort(character->player->id);
+				builder.AddChar(SLOT_HAIRCOLOR);
+				builder.AddChar(0); // subloc
+				builder.AddChar(item->haircolor);
+
+				UTIL_FOREACH(character->map->characters, character)
+				{
+					if (character != character && character->InRange(character))
+					{
+						character->Send(builder);
+					}
+				}
+
+				character->Send(reply);
+			}
+			break;
+
+			case EIF::Beer:
+			{
+				character->DelItem(id, 1);
+				reply.AddInt(character->HasItem(id));
+				reply.AddChar(character->weight);
+				reply.AddChar(character->maxweight);
+
+				character->Send(reply);
+			}
+			break;
+
+			case EIF::EffectPotion:
+			{
+				character->DelItem(id, 1);
+				reply.AddInt(character->HasItem(id));
+				reply.AddChar(character->weight);
+				reply.AddChar(character->maxweight);
+				reply.AddShort(item->effect);
+
+				character->Effect(item->effect, false);
+
+				character->Send(reply);
+			}
+			break;
+
+			case EIF::CureCurse:
+			{
+				for (std::size_t i = 0; i < character->paperdoll.size(); ++i)
+				{
+					if (character->world->eif->Get(character->paperdoll[i])->special == EIF::Cursed)
+					{
+						character->paperdoll[i] = 0;
+					}
+				}
+
+				character->CalculateStats();
+
+				character->DelItem(id, 1);
+				reply.AddInt(character->HasItem(id));
+				reply.AddChar(character->weight);
+				reply.AddChar(character->maxweight);
+
+				reply.AddShort(character->maxhp);
+				reply.AddShort(character->maxtp);
+				reply.AddShort(character->str);
+				reply.AddShort(character->intl);
+				reply.AddShort(character->wis);
+				reply.AddShort(character->agi);
+				reply.AddShort(character->con);
+				reply.AddShort(character->cha);
+				reply.AddShort(character->mindam);
+				reply.AddShort(character->maxdam);
+				reply.AddShort(character->accuracy);
+				reply.AddShort(character->evade);
+				reply.AddShort(character->armor);
+
+				PacketBuilder builder;
+				builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
+				builder.AddShort(character->player->id);
+				builder.AddChar(SLOT_CLOTHES);
+				builder.AddChar(0);
+				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+				UTIL_FOREACH(character->map->characters, character)
+				{
+					if (character != character && character->InRange(character))
+					{
+						character->Send(builder);
+					}
+				}
+
+				character->Send(reply);
+			}
+			break;
+
+			case EIF::EXPReward:
+			{
+				bool level_up = false;
+
+				character->exp += item->expreward;
+
+				character->exp = std::min(character->exp, static_cast<int>(character->map->world->config["MaxExp"]));
+
+				while (character->level < static_cast<int>(character->map->world->config["MaxLevel"])
+				 && character->exp >= character->map->world->exp_table[character->level+1])
+				{
+					level_up = true;
+					++character->level;
+					character->statpoints += static_cast<int>(character->map->world->config["StatPerLevel"]);
+					character->skillpoints += static_cast<int>(character->map->world->config["SkillPerLevel"]);
+					character->CalculateStats();
+				}
+
+				character->DelItem(id, 1);
+				reply.AddInt(character->HasItem(id));
+				reply.AddChar(character->weight);
+				reply.AddChar(character->maxweight);
+
+				reply.AddInt(character->exp);
+
+				reply.AddChar(level_up ? character->level : 0);
+				reply.AddShort(character->statpoints);
+				reply.AddShort(character->skillpoints);
+				reply.AddShort(character->maxhp);
+				reply.AddShort(character->maxtp);
+				reply.AddShort(character->maxsp);
+
+				if (level_up)
+				{
+					PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY);
+					builder.AddInt(character->exp);
+					builder.AddShort(character->karma);
+					builder.AddChar(character->level);
+					builder.AddShort(character->statpoints);
+					builder.AddShort(character->skillpoints);
+					// TODO: Something better than this
+					character->Emote(EMOTE_LEVELUP, true);
+				}
+
+				character->Send(reply);
+			}
+			break;
+
+			default:
+				return;
 		}
-		break;
+	}
+}
 
-		default:
-			return false;
+// Drop an item on the ground
+void Item_Drop(Character *character, PacketReader &reader)
+{
+	if (character->trading) return;
+
+	int id = reader.GetShort();
+	int amount;
+
+	if (character->world->eif->Get(id)->special == EIF::Lore)
+	{
+		return;
 	}
 
-	return true;
+	if (reader.Length() == 8)
+	{
+		amount = reader.GetThree();
+	}
+	else
+	{
+		amount = reader.GetInt();
+	}
+	unsigned char x = reader.GetByte(); // ?
+	unsigned char y = reader.GetByte(); // ?
+
+	amount = std::min<int>(amount, character->world->config["MaxDrop"]);
+
+	if (amount == 0)
+	{
+		return;
+	}
+
+	if (x == 255 && y == 255)
+	{
+		x = character->x;
+		y = character->y;
+	}
+	else
+	{
+		x = PacketProcessor::Number(x);
+		y = PacketProcessor::Number(y);
+	}
+
+	int distance = util::path_length(x, y, character->x, character->y);
+
+	if (distance > static_cast<int>(character->world->config["DropDistance"]))
+	{
+		return;
+	}
+
+	if (!character->map->Walkable(x, y))
+	{
+		return;
+	}
+
+	if (character->HasItem(id) >= amount && character->mapid != static_cast<int>(character->world->config["JailMap"]))
+	{
+		Map_Item *item = character->map->AddItem(id, amount, x, y, character);
+		if (item)
+		{
+			item->owner = character->player->id;
+			item->unprotecttime = Timer::GetTime() + static_cast<double>(character->world->config["ProtectPlayerDrop"]);
+			character->DelItem(id, amount);
+
+			PacketBuilder reply(PACKET_ITEM, PACKET_DROP);
+			reply.AddShort(id);
+			reply.AddThree(amount);
+			reply.AddInt(character->HasItem(id));
+			reply.AddShort(item->uid);
+			reply.AddChar(x);
+			reply.AddChar(y);
+			reply.AddChar(character->weight);
+			reply.AddChar(character->maxweight);
+			character->Send(reply);
+		}
+	}
+}
+
+// Destroying an item
+void Item_Junk(Character *character, PacketReader &reader)
+{
+	if (character->trading) return;
+
+	int id = reader.GetShort();
+	int amount = reader.GetInt();
+
+	if (character->HasItem(id) >= amount)
+	{
+		character->DelItem(id, amount);
+
+		PacketBuilder reply(PACKET_ITEM, PACKET_JUNK);
+		reply.AddShort(id);
+		reply.AddThree(amount); // Overflows, does it matter?
+		reply.AddInt(character->HasItem(id));
+		reply.AddChar(character->weight);
+		reply.AddChar(character->maxweight);
+		character->Send(reply);
+	}
+}
+
+// Retrieve an item from the ground
+void Item_Get(Character *character, PacketReader &reader)
+{
+	int uid = reader.GetShort();
+
+	Map_Item *item = character->map->GetItem(uid);
+	if (item)
+	{
+		int distance = util::path_length(item->x, item->y, character->x, character->y);
+
+		if (distance > static_cast<int>(character->world->config["DropDistance"]))
+		{
+			return;
+		}
+
+		if (item->owner != character->player->id && item->unprotecttime > Timer::GetTime())
+		{
+			return;
+		}
+
+		character->AddItem(item->id, item->amount);
+
+		PacketBuilder reply(PACKET_ITEM, PACKET_GET);
+		reply.AddShort(uid);
+		reply.AddShort(item->id);
+		reply.AddThree(item->amount);
+		reply.AddChar(character->weight);
+		reply.AddChar(character->maxweight);
+		character->Send(reply);
+
+		character->map->DelItem(item, character);
+	}
+}
+
+PACKET_HANDLER_REGISTER(PACKET_ITEM)
+	Register(PACKET_USE, Item_Use, Playing);
+	Register(PACKET_DROP, Item_Drop, Playing);
+	Register(PACKET_JUNK, Item_Junk, Playing);
+	Register(PACKET_GET, Item_Get, Playing);
+PACKET_HANDLER_REGISTER_END()
+
 }

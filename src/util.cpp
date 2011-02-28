@@ -65,7 +65,7 @@ int variant::int_length(int x)
 	return count;
 }
 
-int variant::GetInt()
+int variant::GetInt() const
 {
 	if (this->cache_val[type_int])
 	{
@@ -93,7 +93,7 @@ int variant::GetInt()
 	return this->val_int;
 }
 
-double variant::GetFloat()
+double variant::GetFloat() const
 {
 	if (this->cache_val[type_float])
 	{
@@ -121,7 +121,7 @@ double variant::GetFloat()
 	return this->val_float;
 }
 
-std::string variant::GetString()
+std::string variant::GetString() const
 {
 	if (this->cache_val[type_string])
 	{
@@ -153,7 +153,7 @@ std::string variant::GetString()
 	return this->val_string;
 }
 
-bool variant::GetBool()
+bool variant::GetBool() const
 {
 	if (this->cache_val[type_bool])
 	{
@@ -248,26 +248,6 @@ variant &variant::operator =(const char *p)
 variant &variant::operator =(bool b)
 {
 	return this->SetBool(b);
-}
-
-variant::operator int()
-{
-	return this->GetInt();
-}
-
-variant::operator double()
-{
-	return this->GetFloat();
-}
-
-variant::operator std::string()
-{
-	return this->GetString();
-}
-
-variant::operator bool()
-{
-	return this->GetBool();
 }
 
 std::string ltrim(const std::string &str)

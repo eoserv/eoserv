@@ -4,124 +4,117 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "util.hpp"
 
 #include "character.hpp"
+#include "eoclient.hpp"
 #include "eodata.hpp"
 #include "eoserver.hpp"
 #include "player.hpp"
 #include "world.hpp"
 
-CLIENT_F_FUNC(Login)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
+// Check if a character exists
+void Login_Request(EOClient *client, PacketReader &reader)
+{
+	std::string username = reader.GetBreakString();
+	std::string password = reader.GetBreakString();
+
+	if (username.length() > std::size_t(int(client->server()->world->config["AccountMaxLength"]))
+	 || password.length() > std::size_t(int(client->server()->world->config["PasswordMaxLength"])))
 	{
-		case PACKET_REQUEST: // Logging in to an account
-		{
-			if (this->state != EOClient::Initialized) return false;
-
-			std::string username = reader.GetBreakString();
-			std::string password = reader.GetBreakString();
-
-			if (username.length() > std::size_t(int(this->server()->world->config["AccountMaxLength"]))
-			 || password.length() > std::size_t(int(this->server()->world->config["PasswordMaxLength"])))
-			{
-				return false;
-			}
-
-			username = util::lowercase(username);
-
-
-			if (this->server()->world->CheckBan(&username, 0, 0) != -1)
-			{
-				reply.SetID(0);
-				reply.AddByte(INIT_BANNED);
-				reply.AddByte(INIT_BAN_PERM);
-				CLIENT_SENDRAW(reply);
-				this->Close();
-				return false;
-			}
-
-			reply.SetID(PACKET_LOGIN, PACKET_REPLY);
-
-			if (username.length() < std::size_t(int(this->server()->world->config["AccountMinLength"])))
-			{
-				reply.AddShort(LOGIN_WRONG_USER);
-				CLIENT_SEND(reply);
-				return true;
-			}
-
-			if (password.length() < std::size_t(int(this->server()->world->config["PasswordMinLength"])))
-			{
-				reply.AddShort(LOGIN_WRONG_USERPASS);
-				CLIENT_SEND(reply);
-				return true;
-			}
-
-			if (this->server()->world->characters.size() >= static_cast<std::size_t>(static_cast<int>(this->server()->world->config["MaxPlayers"])))
-			{
-				reply.AddShort(LOGIN_BUSY);
-				CLIENT_SEND(reply);
-				this->Close();
-				return false;
-			}
-
-			LoginReply login_reply = this->server()->world->LoginCheck(username, password);
-
-			if (login_reply != LOGIN_OK)
-			{
-				reply.AddShort(login_reply);
-				CLIENT_SEND(reply);
-				return true;
-			}
-
-			this->player = this->server()->world->Login(username);
-
-			if (!this->player)
-			{
-				// Someone deleted the account between checking it and logging in
-				reply.AddShort(LOGIN_WRONG_USER);
-				CLIENT_SEND(reply);
-				return true;
-			}
-
-			this->player->id = this->id;
-			this->player->client = this; // Not reference counted!
-			this->state = EOClient::LoggedIn;
-
-			reply.AddShort(LOGIN_OK);
-			reply.AddChar(this->player->characters.size());
-			reply.AddByte(2);
-			reply.AddByte(255);
-			UTIL_FOREACH(this->player->characters,  character)
-			{
-				reply.AddBreakString(character->name);
-				reply.AddInt(character->id);
-				reply.AddChar(character->level);
-				reply.AddChar(character->gender);
-				reply.AddChar(character->hairstyle);
-				reply.AddChar(character->haircolor);
-				reply.AddChar(character->race);
-				reply.AddChar(character->admin);
-				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
-				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
-				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-				reply.AddShort(this->server()->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
-				reply.AddByte(255);
-			}
-			CLIENT_SEND(reply);
-
-		}
-		break;
-
-		default:
-			return false;
+		return;
 	}
 
-	return true;
+	username = util::lowercase(username);
+
+	if (client->server()->world->CheckBan(&username, 0, 0) != -1)
+	{
+		PacketBuilder reply;
+		reply.AddByte(INIT_BANNED);
+		reply.AddByte(INIT_BAN_PERM);
+		client->Send(reply);
+		client->Close();
+		return;
+	}
+
+	PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
+
+	if (username.length() < std::size_t(int(client->server()->world->config["AccountMinLength"])))
+	{
+		reply.AddShort(LOGIN_WRONG_USER);
+		client->Send(reply);
+		return;
+	}
+
+	if (password.length() < std::size_t(int(client->server()->world->config["PasswordMinLength"])))
+	{
+		reply.AddShort(LOGIN_WRONG_USERPASS);
+		client->Send(reply);
+		return;
+	}
+
+	if (client->server()->world->characters.size() >= static_cast<std::size_t>(static_cast<int>(client->server()->world->config["MaxPlayers"])))
+	{
+		reply.AddShort(LOGIN_BUSY);
+		client->Send(reply);
+		client->Close();
+		return;
+	}
+
+	LoginReply login_reply = client->server()->world->LoginCheck(username, password);
+
+	if (login_reply != LOGIN_OK)
+	{
+		reply.AddShort(login_reply);
+		client->Send(reply);
+		return;
+	}
+
+	client->player = client->server()->world->Login(username);
+
+	if (!client->player)
+	{
+		// Someone deleted the account between checking it and logging in
+		reply.AddShort(LOGIN_WRONG_USER);
+		client->Send(reply);
+		return;
+	}
+
+	client->player->id = client->id;
+	client->player->client = client; // Not reference counted!
+	client->state = EOClient::LoggedIn;
+
+	reply.AddShort(LOGIN_OK);
+	reply.AddChar(client->player->characters.size());
+	reply.AddByte(2);
+	reply.AddByte(255);
+	UTIL_FOREACH(client->player->characters,  character)
+	{
+		reply.AddBreakString(character->name);
+		reply.AddInt(character->id);
+		reply.AddChar(character->level);
+		reply.AddChar(character->gender);
+		reply.AddChar(character->hairstyle);
+		reply.AddChar(character->haircolor);
+		reply.AddChar(character->race);
+		reply.AddChar(character->admin);
+		reply.AddShort(client->server()->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+		reply.AddShort(client->server()->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+		reply.AddShort(client->server()->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		reply.AddShort(client->server()->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+		reply.AddShort(client->server()->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+		reply.AddByte(255);
+	}
+	client->Send(reply);
+}
+
+PACKET_HANDLER_REGISTER(PACKET_LOGIN)
+	Register(PACKET_REQUEST, Login_Request, Menu);
+PACKET_HANDLER_REGISTER_END()
+
 }

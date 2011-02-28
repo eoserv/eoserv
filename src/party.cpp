@@ -48,7 +48,7 @@ void Party::Msg(Character *from, std::string message, bool echo)
 	{
 		if (echo || member != from)
 		{
-			member->player->client->SendBuilder(builder);
+			member->Send(builder);
 		}
 	}
 }
@@ -70,7 +70,7 @@ void Party::Join(Character *character)
 	{
 		if (checkcharacter != character)
 		{
-			checkcharacter->player->client->SendBuilder(builder);
+			checkcharacter->Send(builder);
 		}
 	}
 
@@ -98,14 +98,14 @@ void Party::Leave(Character *character)
 		{
 			if (character != checkcharacter)
 			{
-				checkcharacter->player->client->SendBuilder(builder);
+				checkcharacter->Send(builder);
 			}
 		}
 
 		builder.Reset();
 		builder.SetID(PACKET_PARTY, PACKET_CLOSE);
 		builder.AddShort(255);
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 	else
 	{
@@ -126,7 +126,7 @@ void Party::RefreshMembers(Character *character)
 		builder.AddBreakString(member->name);
 	}
 
-	character->player->client->SendBuilder(builder);
+	character->Send(builder);
 }
 
 void Party::UpdateHP(Character *character)
@@ -137,7 +137,7 @@ void Party::UpdateHP(Character *character)
 
 	UTIL_FOREACH(this->members, member)
 	{
-		member->player->client->SendBuilder(builder);
+		member->Send(builder);
 	}
 }
 
@@ -199,7 +199,7 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 			member->CalculateStats();
 		}
 
-		member->player->client->SendBuilder(builder);
+		member->Send(builder);
 	}
 }
 
@@ -208,7 +208,8 @@ Party::~Party()
 	if (this->world)
 	{
 		this->world->parties.erase(
-			std::remove(this->world->parties.begin(), this->world->parties.end(), this)
+			std::remove(this->world->parties.begin(), this->world->parties.end(), this),
+			this->world->parties.end()
 		);
 	}
 
@@ -218,6 +219,6 @@ Party::~Party()
 	UTIL_FOREACH(this->members, member)
 	{
 		member->party = 0;
-		member->player->client->SendBuilder(builder);
+		member->Send(builder);
 	}
 }

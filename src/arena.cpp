@@ -59,7 +59,7 @@ void Arena::Spawn(bool force)
 
 		UTIL_FOREACH(this->map->characters, character)
 		{
-			character->player->client->SendBuilder(builder);
+			character->Send(builder);
 		}
 
 		return;
@@ -84,12 +84,14 @@ void Arena::Spawn(bool force)
 
 	UTIL_FOREACH(this->map->characters, character)
 	{
-		character->player->client->SendBuilder(builder);
+		character->Send(builder);
 	}
 }
 
 void Arena::Attack(Character *from, Direction direction)
 {
+	(void)direction;
+
 	int target_x = from->x;
 	int target_y = from->y;
 
@@ -132,7 +134,7 @@ void Arena::Attack(Character *from, Direction direction)
 
 			UTIL_FOREACH(this->map->characters, character)
 			{
-				character->player->client->SendBuilder(builder);
+				character->Send(builder);
 			}
 
 			if (from->arena->occupants == 1)
@@ -145,7 +147,7 @@ void Arena::Attack(Character *from, Direction direction)
 
 				UTIL_FOREACH(this->map->characters, character)
 				{
-					character->player->client->SendBuilder(builder);
+					character->Send(builder);
 				}
 			}
 			break;

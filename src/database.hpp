@@ -7,6 +7,12 @@
 #ifndef DATABASE_HPP_INCLUDED
 #define DATABASE_HPP_INCLUDED
 
+#ifndef DATABASE_MYSQL
+#ifndef DATABASE_SQLITE
+#error At least one database driver must be selected
+#endif // DATABASE_SQLITE
+#endif // DATABASE_MYSQL
+
 #include <exception>
 #include <memory>
 #include <string>
@@ -14,12 +20,6 @@
 #include <vector>
 
 #include "util.hpp"
-
-#ifndef DATABASE_MYSQL
-#ifndef DATABASE_SQLITE
-#error At least one database driver must be selected
-#endif // DATABASE_SQLITE
-#endif // DATABASE_MYSQL
 
 /**
  * Generic Database exception type

@@ -4,28 +4,23 @@
  * See LICENSE.txt for more info.
  */
 
-#include "handlers.h"
+#include "handlers.hpp"
 
 #include "character.hpp"
-#include "player.hpp"
 
-CLIENT_F_FUNC(Refresh)
+namespace Handlers
 {
-	PacketBuilder reply;
 
-	switch (action)
-	{
-		case PACKET_REQUEST: // User requesting data of all objects in their location
-		{
-			if (this->state < EOClient::PlayingModal) return false;
+// User requesting data of all objects in their location
+void Refresh_Request(Character *character, PacketReader &reader)
+{
+	(void)reader;
 
-			this->player->character->Refresh();
-		}
-		break;
+	character->Refresh();
+}
 
-		default:
-			return false;
-	}
+PACKET_HANDLER_REGISTER(PACKET_REFRESH)
+	Register(PACKET_REQUEST, Refresh_Request, Playing);
+PACKET_HANDLER_REGISTER_END()
 
-	return true;
 }

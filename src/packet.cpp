@@ -337,12 +337,12 @@ PacketReader::PacketReader(const std::string &data)
 	this->length = data.length();
 }
 
-std::size_t PacketReader::Length()
+std::size_t PacketReader::Length() const
 {
 	return this->length;
 }
 
-std::size_t PacketReader::Remaining()
+std::size_t PacketReader::Remaining() const
 {
 	return this->data.length();
 }
@@ -506,12 +506,6 @@ std::string PacketReader::GetEndString()
 	return ret;
 }
 
-PacketBuilder::PacketBuilder()
-{
-	this->length = 0;
-	this->id = 0;
-}
-
 PacketBuilder::PacketBuilder(unsigned short id)
 {
 	this->length = 0;
@@ -541,7 +535,12 @@ unsigned short PacketBuilder::SetID(PacketFamily family, PacketAction action)
 	return this->SetID(PacketProcessor::PID(family,action));
 }
 
-std::size_t PacketBuilder::Length()
+unsigned short PacketBuilder::GetID() const
+{
+	return this->id;
+}
+
+std::size_t PacketBuilder::Length() const
 {
 	return this->length;
 }

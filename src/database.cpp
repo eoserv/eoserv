@@ -6,9 +6,18 @@
 
 #include "database.hpp"
 
+#include <cstdarg>
+#include <cstring>
+
 #include "console.hpp"
 
 #include "database_impl.hpp"
+
+#ifndef DATABASE_MYSQL
+#ifndef DATABASE_SQLITE
+#error At least one database driver must be selected
+#endif // DATABASE_SQLITE
+#endif // DATABASE_MYSQL
 
 struct Database::impl_
 {
@@ -175,7 +184,7 @@ Database_Result Database::Query(const char *format, ...)
 		this->Connect(this->engine, this->host, this->port, this->user, this->pass, this->db);
 	}
 
-	va_list ap;
+	std::va_list ap;
 	va_start(ap, format);
 
 	std::string finalquery;
