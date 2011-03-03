@@ -41,7 +41,7 @@ void Shop_Create(Character *character, PacketReader &reader)
 
 				if (hasitems)
 				{
-					PacketBuilder reply(PACKET_SHOP, PACKET_CREATE);
+					PacketBuilder reply(PACKET_SHOP, PACKET_CREATE, 4 + checkitem->ingredients.size() * 6);
 					reply.AddShort(item);
 					reply.AddChar(character->weight);
 					reply.AddChar(character->maxweight);
@@ -83,7 +83,7 @@ void Shop_Buy(Character *character, PacketReader &reader)
 				character->DelItem(1, cost);
 				character->AddItem(item, amount);
 
-				PacketBuilder reply(PACKET_SHOP, PACKET_BUY);
+				PacketBuilder reply(PACKET_SHOP, PACKET_BUY, 12);
 				reply.AddInt(character->HasItem(1));
 				reply.AddShort(item);
 				reply.AddInt(amount);
@@ -116,7 +116,7 @@ void Shop_Sell(Character *character, PacketReader &reader)
 				character->DelItem(item, amount);
 				character->AddItem(1, amount * checkitem->sell);
 
-				PacketBuilder reply(PACKET_SHOP, PACKET_SELL);
+				PacketBuilder reply(PACKET_SHOP, PACKET_SELL, 12);
 				reply.AddInt(character->HasItem(item));
 				reply.AddShort(item);
 				reply.AddInt(character->HasItem(1));
@@ -142,7 +142,8 @@ void Shop_Open(Character *character, PacketReader &reader)
 			character->npc = npc;
 			character->npc_type = ENF::Shop;
 
-			PacketBuilder reply(PACKET_SHOP, PACKET_OPEN);
+			PacketBuilder reply(PACKET_SHOP, PACKET_OPEN,
+				5 + npc->shop_name.length() + npc->shop_trade.size() * 9 + npc->shop_craft.size() * 14);
 			reply.AddShort(npc->id);
 			reply.AddBreakString(npc->shop_name.c_str());
 

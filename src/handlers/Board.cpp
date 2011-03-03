@@ -142,7 +142,7 @@ void Board_Take(Character *character, PacketReader &reader)
 		{
 			if (post->id == postid)
 			{
-				PacketBuilder reply(PACKET_BOARD, PACKET_PLAYER);
+				PacketBuilder reply(PACKET_BOARD, PACKET_PLAYER, 2 + post->body.length());
 				reply.AddShort(postid);
 				reply.AddString(post->body);
 				character->Send(reply);
@@ -186,6 +186,7 @@ void Board_Open(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_BOARD)
 	Register(PACKET_REMOVE, Board_Remove, Playing);
+	Register(PACKET_CREATE, Board_Create, Playing);
 	Register(PACKET_TAKE, Board_Take, Playing);
 	Register(PACKET_OPEN, Board_Open, Playing);
 PACKET_HANDLER_REGISTER_END()

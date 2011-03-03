@@ -26,7 +26,7 @@ void Item_Use(Character *character, PacketReader &reader)
 	if (character->HasItem(id))
 	{
 		EIF_Data *item = character->world->eif->Get(id);
-		PacketBuilder reply(PACKET_ITEM, PACKET_REPLY);
+		PacketBuilder reply(PACKET_ITEM, PACKET_REPLY, 3);
 		reply.AddChar(item->type);
 		reply.AddShort(id);
 
@@ -40,6 +40,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				}
 
 				character->DelItem(id, 1);
+
+				reply.ReserveMore(6);
 				reply.AddInt(character->HasItem(id));
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
@@ -81,6 +83,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				}
 
 				character->DelItem(id, 1);
+
+				reply.ReserveMore(14);
 				reply.AddInt(character->HasItem(id));
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
@@ -89,7 +93,7 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddShort(character->hp);
 				reply.AddShort(character->tp);
 
-				PacketBuilder builder(PACKET_RECOVER, PACKET_AGREE);
+				PacketBuilder builder(PACKET_RECOVER, PACKET_AGREE, 7);
 				builder.AddShort(character->player->id);
 				builder.AddInt(hpgain);
 				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
@@ -116,13 +120,15 @@ void Item_Use(Character *character, PacketReader &reader)
 				character->haircolor = item->haircolor;
 
 				character->DelItem(id, 1);
+
+				reply.ReserveMore(7);
 				reply.AddInt(character->HasItem(id));
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
 
 				reply.AddChar(item->haircolor);
 
-				PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE);
+				PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 5);
 				builder.AddShort(character->player->id);
 				builder.AddChar(SLOT_HAIRCOLOR);
 				builder.AddChar(0); // subloc
@@ -143,6 +149,8 @@ void Item_Use(Character *character, PacketReader &reader)
 			case EIF::Beer:
 			{
 				character->DelItem(id, 1);
+
+				reply.ReserveMore(6);
 				reply.AddInt(character->HasItem(id));
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
@@ -154,6 +162,8 @@ void Item_Use(Character *character, PacketReader &reader)
 			case EIF::EffectPotion:
 			{
 				character->DelItem(id, 1);
+
+				reply.ReserveMore(8);
 				reply.AddInt(character->HasItem(id));
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
@@ -178,6 +188,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				character->CalculateStats();
 
 				character->DelItem(id, 1);
+
+				reply.ReserveMore(32);
 				reply.AddInt(character->HasItem(id));
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
@@ -196,8 +208,7 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddShort(character->evade);
 				reply.AddShort(character->armor);
 
-				PacketBuilder builder;
-				builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
+				PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 14);
 				builder.AddShort(character->player->id);
 				builder.AddChar(SLOT_CLOTHES);
 				builder.AddChar(0);
@@ -238,6 +249,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				}
 
 				character->DelItem(id, 1);
+
+				reply.ReserveMore(21);
 				reply.AddInt(character->HasItem(id));
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
@@ -253,7 +266,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				if (level_up)
 				{
-					PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY);
+					PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY, 9);
 					builder.AddInt(character->exp);
 					builder.AddShort(character->karma);
 					builder.AddChar(character->level);
@@ -286,7 +299,7 @@ void Item_Drop(Character *character, PacketReader &reader)
 		return;
 	}
 
-	if (reader.Length() == 8)
+	if (reader.Length() == 10)
 	{
 		amount = reader.GetThree();
 	}
@@ -336,7 +349,7 @@ void Item_Drop(Character *character, PacketReader &reader)
 			item->unprotecttime = Timer::GetTime() + static_cast<double>(character->world->config["ProtectPlayerDrop"]);
 			character->DelItem(id, amount);
 
-			PacketBuilder reply(PACKET_ITEM, PACKET_DROP);
+			PacketBuilder reply(PACKET_ITEM, PACKET_DROP, 15);
 			reply.AddShort(id);
 			reply.AddThree(amount);
 			reply.AddInt(character->HasItem(id));
@@ -362,7 +375,7 @@ void Item_Junk(Character *character, PacketReader &reader)
 	{
 		character->DelItem(id, amount);
 
-		PacketBuilder reply(PACKET_ITEM, PACKET_JUNK);
+		PacketBuilder reply(PACKET_ITEM, PACKET_JUNK, 11);
 		reply.AddShort(id);
 		reply.AddThree(amount); // Overflows, does it matter?
 		reply.AddInt(character->HasItem(id));
@@ -394,7 +407,7 @@ void Item_Get(Character *character, PacketReader &reader)
 
 		character->AddItem(item->id, item->amount);
 
-		PacketBuilder reply(PACKET_ITEM, PACKET_GET);
+		PacketBuilder reply(PACKET_ITEM, PACKET_GET, 9);
 		reply.AddShort(uid);
 		reply.AddShort(item->id);
 		reply.AddThree(item->amount);

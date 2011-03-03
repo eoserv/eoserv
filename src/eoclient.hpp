@@ -23,12 +23,15 @@
  */
 struct ActionQueue_Action
 {
-	PacketFamily family;
-	PacketAction action;
 	PacketReader reader;
 	double time;
+	bool auto_queue;
 
-	ActionQueue_Action(PacketFamily family_, PacketAction action_, PacketReader reader_, double time_) : family(family_), action(action_), reader(reader_), time(time_) {};
+	ActionQueue_Action(PacketReader reader_, double time_, bool auto_queue_ = false)
+		: reader(reader_)
+		, time(time_)
+		, auto_queue(auto_queue_)
+	{ }
 };
 
 /**
@@ -40,7 +43,7 @@ class ActionQueue
 		std::queue<ActionQueue_Action *> queue;
 
 		double next;
-		void AddAction(PacketFamily family, PacketAction action, PacketReader reader, double time);
+		void AddAction(PacketReader reader, double time, bool auto_queue = false);
 
 		ActionQueue() : next(0) {};
 

@@ -29,7 +29,7 @@ void Barber_Open(Character *character, PacketReader &reader)
 			character->npc = npc;
 			character->npc_type = ENF::Barber;
 
-			PacketBuilder reply(PACKET_BARBER, PACKET_OPEN);
+			PacketBuilder reply(PACKET_BARBER, PACKET_OPEN, 4);
 			reply.AddInt(0); // Session token
 
 			character->Send(reply);
@@ -68,7 +68,7 @@ void Barber_Buy(Character *character, PacketReader &reader)
 		character->hairstyle = style;
 		character->haircolor = color;
 
-		PacketBuilder reply(PACKET_BARBER, PACKET_AGREE);
+		PacketBuilder reply(PACKET_BARBER, PACKET_AGREE, 10);
 		reply.AddInt(character->HasItem(1));
 		reply.AddShort(character->player->id);
 		reply.AddChar(SLOT_HAIR);
@@ -76,7 +76,7 @@ void Barber_Buy(Character *character, PacketReader &reader)
 		reply.AddChar(style);
 		reply.AddChar(color);
 
-		PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE);
+		PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 6);
 		builder.AddShort(character->player->id);
 		builder.AddChar(SLOT_HAIR);
 		builder.AddChar(0); // subloc

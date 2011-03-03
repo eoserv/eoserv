@@ -94,7 +94,7 @@ void packet_handler_register::Handle(PacketFamily family, PacketAction action, E
 
 	if (!from_queue && (handler.allow_states & Playing) && !(handler.allow_states & OutOfBand))
 	{
-		client->queue.AddAction(family, action, reader, handler.delay);
+		client->queue.AddAction(reader, handler.delay);
 		return;
 	}
 

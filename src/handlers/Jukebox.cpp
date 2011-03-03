@@ -28,7 +28,7 @@ void Jukebox_Open(Character *character, PacketReader &reader)
 		return;
 	}
 
-	PacketBuilder reply(PACKET_JUKEBOX, PACKET_OPEN);
+	PacketBuilder reply(PACKET_JUKEBOX, PACKET_OPEN, 14);
 	reply.AddShort(character->mapid);
 
 	if (character->map->jukebox_protect > Timer::GetTime())
@@ -65,11 +65,11 @@ void Jukebox_Msg(Character *character, PacketReader &reader)
 	character->map->jukebox_player = character->name;
 	character->map->jukebox_protect = Timer::GetTime() + static_cast<int>(character->world->config["JukeboxTimer"]);
 
-	PacketBuilder reply(PACKET_JUKEBOX, PACKET_AGREE);
+	PacketBuilder reply(PACKET_JUKEBOX, PACKET_AGREE, 4);
 	reply.AddInt(character->HasItem(1));
 	character->Send(reply);
 
-	PacketBuilder builder(PACKET_JUKEBOX, PACKET_USE);
+	PacketBuilder builder(PACKET_JUKEBOX, PACKET_USE, 2);
 	builder.AddShort(track + 1);
 	std::for_each(UTIL_CRANGE(character->map->characters), std::bind(&Character::Send, _1, builder));
 }

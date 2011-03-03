@@ -21,7 +21,7 @@ static PacketBuilder add_common(Character *character, short item, int amount)
 
 	character->CalculateStats();
 
-	PacketBuilder reply(PACKET_LOCKER, PACKET_REPLY);
+	PacketBuilder reply(PACKET_LOCKER, PACKET_REPLY, 8 + character->bank.size() * 5);
 	reply.AddShort(item);
 	reply.AddInt(character->HasItem(item));
 	reply.AddChar(character->weight);
@@ -115,7 +115,7 @@ void Locker_Take(Character *character, PacketReader &reader)
 
 					character->CalculateStats();
 
-					PacketBuilder reply(PACKET_LOCKER, PACKET_GET);
+					PacketBuilder reply(PACKET_LOCKER, PACKET_GET, 7 + (character->bank.size() - 1) * 5);
 					reply.AddShort(item);
 					reply.AddThree(it->amount);
 					reply.AddChar(character->weight);
@@ -147,7 +147,7 @@ void Locker_Open(Character *character, PacketReader &reader)
 	{
 		if (character->map->GetSpec(x, y) == Map_Tile::BankVault)
 		{
-			PacketBuilder reply(PACKET_LOCKER, PACKET_OPEN);
+			PacketBuilder reply(PACKET_LOCKER, PACKET_OPEN, 2 + character->bank.size() * 5);
 			reply.AddChar(x);
 			reply.AddChar(y);
 			UTIL_FOREACH(character->bank, item)
@@ -184,11 +184,18 @@ void Locker_Buy(Character *character, PacketReader &reader)
 		++character->bankmax;
 		character->DelItem(1, cost);
 
-		PacketBuilder reply(PACKET_LOCKER, PACKET_BUY);
+		PacketBuilder reply(PACKET_LOCKER, PACKET_BUY, 5);
 		reply.AddInt(character->HasItem(1));
 		reply.AddChar(character->bankmax);
 		character->Send(reply);
 	}
 }
+
+PACKET_HANDLER_REGISTER(PACKET_LOCKER)
+	Register(PACKET_ADD, Locker_Add, Playing);
+	Register(PACKET_TAKE, Locker_Take, Playing);
+	Register(PACKET_OPEN, Locker_Open, Playing);
+	Register(PACKET_BUY, Locker_Buy, Playing);
+PACKET_HANDLER_REGISTER_END()
 
 }

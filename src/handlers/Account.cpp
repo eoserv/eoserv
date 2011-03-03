@@ -25,7 +25,7 @@ void Account_Request(EOClient *client, PacketReader &reader)
 
 	username = util::lowercase(username);
 
-	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY);
+	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 
 	if (!Player::ValidName(username))
 	{
@@ -83,7 +83,7 @@ void Account_Create(EOClient *client, PacketReader &reader)
 
 	username = util::lowercase(username);
 
-	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY);
+	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 
 	if (!Player::ValidName(username))
 	{
@@ -127,7 +127,7 @@ void Account_Agree(Player *player, PacketReader &reader)
 
 	if (!Player::ValidName(username))
 	{
-		PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY);
+		PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 		reply.AddShort(ACCOUNT_NOT_APPROVED);
 		reply.AddString("NO");
 		player->Send(reply);
@@ -142,7 +142,7 @@ void Account_Agree(Player *player, PacketReader &reader)
 
 	if (!changepass)
 	{
-		PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY);
+		PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 		reply.AddShort(ACCOUNT_CHANGE_FAILED);
 		reply.AddString("NO");
 		player->Send(reply);
@@ -153,7 +153,7 @@ void Account_Agree(Player *player, PacketReader &reader)
 
 	delete changepass;
 
-	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY);
+	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 	reply.AddShort(ACCOUNT_CHANGED);
 	reply.AddString("OK");
 
@@ -161,9 +161,9 @@ void Account_Agree(Player *player, PacketReader &reader)
 }
 
 PACKET_HANDLER_REGISTER(PACKET_ACCOUNT)
-	Register(PACKET_REQUEST, Account_Request, Menu);
-	Register(PACKET_CREATE, Account_Create, Menu);
-	Register(PACKET_AGREE, Account_Agree, Character_Menu);
+	Register(PACKET_REQUEST, Account_Request, Menu, 0.5);
+	Register(PACKET_CREATE, Account_Create, Menu, 1.0);
+	Register(PACKET_AGREE, Account_Agree, Character_Menu, 1.0);
 PACKET_HANDLER_REGISTER_END()
 
 }

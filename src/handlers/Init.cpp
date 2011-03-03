@@ -25,7 +25,7 @@ namespace Handlers
 // Check if a character exists
 void Init_Init(EOClient *client, PacketReader &reader)
 {
-	PacketBuilder reply;
+	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 10);
 
 	unsigned int challenge;
 	unsigned int response;

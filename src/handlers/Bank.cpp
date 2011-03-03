@@ -31,7 +31,7 @@ void Bank_Open(Character *character, PacketReader &reader)
 			character->npc = npc;
 			character->npc_type = ENF::Bank;
 
-			PacketBuilder reply(PACKET_BANK, PACKET_OPEN);
+			PacketBuilder reply(PACKET_BANK, PACKET_OPEN, 8);
 			reply.AddInt(character->goldbank);
 			reply.AddThree(0); // Session token
 			reply.AddChar(character->bankmax);
@@ -66,7 +66,7 @@ void Bank_Add(Character *character, PacketReader &reader)
 		character->DelItem(1, amount);
 		character->goldbank = newgold;
 
-		PacketBuilder reply(PACKET_BANK, PACKET_REPLY);
+		PacketBuilder reply(PACKET_BANK, PACKET_REPLY, 8);
 		reply.AddInt(character->HasItem(1));
 		reply.AddInt(character->goldbank);
 		character->Send(reply);
@@ -92,7 +92,7 @@ void Bank_Take(Character *character, PacketReader &reader)
 		character->goldbank = newgold;
 		character->AddItem(1, amount);
 
-		PacketBuilder reply(PACKET_BANK, PACKET_REPLY);
+		PacketBuilder reply(PACKET_BANK, PACKET_REPLY, 8);
 		reply.AddInt(character->HasItem(1));
 		reply.AddInt(character->goldbank);
 		character->Send(reply);

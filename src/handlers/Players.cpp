@@ -21,7 +21,7 @@ void Players_Accept(Character *character, PacketReader &reader)
 	std::string name = reader.GetEndString();
 	Character *victim = character->world->GetCharacter(name);
 
-	PacketBuilder reply;
+	PacketBuilder reply(PACKET_PLAYERS, PACKET_NET, name.length());
 
 	if (victim && !victim->hidden)
 	{
@@ -33,10 +33,6 @@ void Players_Accept(Character *character, PacketReader &reader)
 		{
 			reply.SetID(PACKET_PLAYERS, PACKET_NET3);
 		}
-	}
-	else
-	{
-		reply.SetID(PACKET_PLAYERS, PACKET_NET);
 	}
 
 	reply.AddString(name);
@@ -56,10 +52,8 @@ void Players_List(EOClient *client, PacketReader &reader)
 		}
 	}
 
-	PacketBuilder reply;
-	// TODO: Fix this
-	//reply.AddChar(reader.Action() == PACKET_LIST ? INIT_FRIEND_LIST_PLAYERS : INIT_PLAYERS);
-	reply.AddChar(INIT_PLAYERS);
+	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 4 + client->server()->world->characters.size() * 35);
+	reply.AddChar((reader.Action() == PACKET_LIST) ? INIT_FRIEND_LIST_PLAYERS : INIT_PLAYERS);
 	reply.AddShort(online);
 	reply.AddByte(255);
 	UTIL_FOREACH(client->server()->world->characters, character)

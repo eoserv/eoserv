@@ -79,7 +79,7 @@ void Arena::Spawn(bool force)
 		}
 	}
 
-	PacketBuilder builder(PACKET_ARENA, PACKET_USE);
+	PacketBuilder builder(PACKET_ARENA, PACKET_USE, 1);
 	builder.AddChar(newplayers);
 
 	UTIL_FOREACH(this->map->characters, character)
@@ -121,7 +121,7 @@ void Arena::Attack(Character *from, Direction direction)
 			++from->arena_kills;
 			character->Warp(this->map->id, this->map->relog_x, this->map->relog_y);
 
-			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC);
+			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC, 9 + from->name.length() + character->name.length());
 			builder.AddShort(0); // ?
 			builder.AddByte(255);
 			builder.AddChar(0); // ?
@@ -141,7 +141,7 @@ void Arena::Attack(Character *from, Direction direction)
 			{
 				from->Warp(this->map->id, this->map->relog_x, this->map->relog_y);
 
-				builder.Reset();
+				builder.Reset(from->name.length());
 				builder.SetID(PACKET_ARENA, PACKET_ACCEPT);
 				builder.AddBreakString(from->name);
 

@@ -48,7 +48,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (character->InRange(npc))
+		if (character->InRange(npc) && npc->alive)
 		{
 			updatenpcs.push_back(npc);
 		}
@@ -62,7 +62,9 @@ void Warp_Accept(Character *character, PacketReader &reader)
 		}
 	}
 
-	PacketBuilder reply(PACKET_WARP, PACKET_AGREE);
+	PacketBuilder reply(PACKET_WARP, PACKET_AGREE,
+		7 + updatecharacters.size() * 60 + updatenpcs.size() * 6 + updateitems.size() * 9);
+
 	reply.AddChar(2); // ?
 	reply.AddShort(map);
 	reply.AddChar(anim);
@@ -103,14 +105,11 @@ void Warp_Accept(Character *character, PacketReader &reader)
 	}
 	UTIL_FOREACH(updatenpcs, npc)
 	{
-		if (npc->alive)
-		{
-			reply.AddChar(npc->index);
-			reply.AddShort(npc->Data()->id);
-			reply.AddChar(npc->x);
-			reply.AddChar(npc->y);
-			reply.AddChar(npc->direction);
-		}
+		reply.AddChar(npc->index);
+		reply.AddShort(npc->Data()->id);
+		reply.AddChar(npc->x);
+		reply.AddChar(npc->y);
+		reply.AddChar(npc->direction);
 	}
 	reply.AddByte(255);
 	UTIL_FOREACH(updateitems, item)
@@ -164,14 +163,14 @@ void Warp_Take(Character *character, PacketReader &reader)
 
 	std::fclose(fh);
 
-	PacketBuilder reply(0);
+	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 1 + content.length());
 	reply.AddChar(INIT_BANNED); // wtf? When in Rome...
 	reply.AddString(content);
 	character->Send(reply);
 
 	if (character->world->config["ProtectMaps"])
 	{
-		reply.Reset();
+		reply.Reset(1);
 		reply.AddChar(INIT_BANNED);
 		character->Send(reply);
 	}

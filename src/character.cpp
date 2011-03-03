@@ -255,7 +255,7 @@ void Character::Msg(Character *from, std::string message)
 {
 	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_TELL);
+	PacketBuilder builder(PACKET_TALK, PACKET_TELL, from->name.length() + message.length());
 	builder.AddBreakString(from->name);
 	builder.AddBreakString(message);
 	this->player->Send(builder);
@@ -265,7 +265,7 @@ void Character::ServerMsg(std::string message)
 {
 	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width("Server  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_SERVER);
+	PacketBuilder builder(PACKET_TALK, PACKET_SERVER, message.length());
 	builder.AddString(message);
 	this->player->Send(builder);
 }
@@ -302,9 +302,8 @@ void Character::Emote(enum Emote emote, bool echo)
 
 void Character::Effect(int effect, bool echo)
 {
-	PacketBuilder builder;
+	PacketBuilder builder(PACKET_EFFECT, PACKET_PLAYER, 5);
 
-	builder.SetID(PACKET_EFFECT, PACKET_PLAYER);
 	builder.AddShort(this->player->id);
 	builder.AddThree(effect);
 
@@ -632,11 +631,11 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 		return;
 	}
 
-	PacketBuilder builder;
-	builder.SetID(PACKET_WARP, PACKET_REQUEST);
+	PacketBuilder builder(PACKET_WARP, PACKET_REQUEST);
 
 	if (this->mapid == map && !this->nowhere)
 	{
+		builder.ReserveMore(5);
 		builder.AddChar(WARP_LOCAL);
 		builder.AddShort(map);
 		builder.AddChar(x);
@@ -644,6 +643,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	}
 	else
 	{
+		builder.ReserveMore(14);
 		builder.AddChar(WARP_SWITCH);
 		builder.AddShort(map);
 
@@ -685,7 +685,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 
 	if (this->trading)
 	{
-		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
+		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
 		builder.AddShort(this->id);
 		this->trade_partner->Send(builder);
 
@@ -724,8 +724,6 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 
 void Character::Refresh()
 {
-	PacketBuilder builder;
-
 	std::vector<Character *> updatecharacters;
 	std::vector<NPC *> updatenpcs;
 	std::vector<Map_Item *> updateitems;
@@ -740,7 +738,7 @@ void Character::Refresh()
 
 	UTIL_FOREACH(this->map->npcs, npc)
 	{
-		if (this->InRange(npc))
+		if (this->InRange(npc) && npc->alive)
 		{
 			updatenpcs.push_back(npc);
 		}
@@ -754,7 +752,7 @@ void Character::Refresh()
 		}
 	}
 
-	builder.SetID(PACKET_REFRESH, PACKET_REPLY);
+	PacketBuilder builder(PACKET_REFRESH, PACKET_REPLY, 3 + updatecharacters.size() * 60 + updatenpcs.size() * 6 + updateitems.size() * 9);
 	builder.AddChar(updatecharacters.size()); // Number of players
 	builder.AddByte(255);
 
@@ -794,14 +792,11 @@ void Character::Refresh()
 
 	UTIL_FOREACH(updatenpcs, npc)
 	{
-		if (npc->alive)
-		{
-			builder.AddChar(npc->index);
-			builder.AddShort(npc->Data()->id);
-			builder.AddChar(npc->x);
-			builder.AddChar(npc->y);
-			builder.AddChar(npc->direction);
-		}
+		builder.AddChar(npc->index);
+		builder.AddShort(npc->Data()->id);
+		builder.AddChar(npc->x);
+		builder.AddChar(npc->y);
+		builder.AddChar(npc->direction);
 	}
 
 	builder.AddByte(255);
@@ -825,7 +820,9 @@ void Character::ShowBoard(Board *board)
 		board = this->board;
 	}
 
-	PacketBuilder builder(PACKET_BOARD, PACKET_OPEN);
+	const int date_res = (this->world->config["BoardDatePosts"]) ? 17 : 0;
+
+	PacketBuilder builder(PACKET_BOARD, PACKET_OPEN, 2 + board->posts.size() * (17 + int(this->world->config["BoardMaxSubjectLength"]) + date_res));
 	builder.AddChar(board->id + 1);
 	builder.AddChar(board->posts.size());
 
@@ -1021,7 +1018,7 @@ void Character::DropAll(Character *killer)
 				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectDeathDrop"]);
 			}
 
-			PacketBuilder builder(PACKET_ITEM, PACKET_DROP);
+			PacketBuilder builder(PACKET_ITEM, PACKET_DROP, 15);
 			builder.AddShort(it->id);
 			builder.AddThree(it->amount);
 			builder.AddInt(0);
@@ -1032,12 +1029,10 @@ void Character::DropAll(Character *killer)
 			builder.AddChar(this->maxweight);
 			this->player->Send(builder);
 		}
-
-		it = this->DelItem(it, it->amount);
-
-		if (it == this->inventory.end())
-			break;
 	}
+
+	this->inventory.clear();
+	this->CalculateStats();
 
 	int i = 0;
 	UTIL_FOREACH(this->paperdoll, id)
@@ -1072,7 +1067,7 @@ void Character::DropAll(Character *killer)
 
 			if (this->player->character->Unequip(id, subloc))
 			{
-				PacketBuilder builder(PACKET_PAPERDOLL, PACKET_REMOVE);
+				PacketBuilder builder(PACKET_PAPERDOLL, PACKET_REMOVE, 43);
 				builder.AddShort(this->player->id);
 				builder.AddChar(SLOT_CLOTHES);
 				builder.AddChar(0); // ?
@@ -1101,7 +1096,7 @@ void Character::DropAll(Character *killer)
 
 			this->player->character->DelItem(id, 1);
 
-			PacketBuilder builder(PACKET_ITEM, PACKET_DROP);
+			PacketBuilder builder(PACKET_ITEM, PACKET_DROP, 15);
 			builder.AddShort(id);
 			builder.AddThree(1);
 			builder.AddInt(0);
@@ -1121,7 +1116,7 @@ void Character::Hide()
 {
 	this->hidden = true;
 
-	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REMOVE);
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REMOVE, 2);
 	builder.AddShort(this->player->id);
 
 	UTIL_FOREACH(this->map->characters, character)
@@ -1134,7 +1129,7 @@ void Character::Unhide()
 {
 	this->hidden = false;
 
-	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_AGREE);
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_AGREE, 2);
 	builder.AddShort(this->player->id);
 
 	UTIL_FOREACH(this->map->characters, character)
@@ -1171,7 +1166,7 @@ void Character::Logout()
 
 	if (this->trading)
 	{
-		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
+		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
 		builder.AddShort(this->id);
 		this->trade_partner->Send(builder);
 

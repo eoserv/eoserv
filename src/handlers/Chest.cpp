@@ -42,7 +42,7 @@ void Chest_Add(Character *character, PacketReader &reader)
 						character->DelItem(id, amount);
 						chest->Update(character->map, character);
 
-						PacketBuilder reply(PACKET_CHEST, PACKET_REPLY);
+						PacketBuilder reply(PACKET_CHEST, PACKET_REPLY, 8 + chest->items.size() * 5);
 						reply.AddShort(id);
 						reply.AddInt(character->HasItem(id));
 						reply.AddChar(character->weight);
@@ -88,7 +88,7 @@ void Chest_Take(Character *character, PacketReader &reader)
 						character->AddItem(id, amount);
 						chest->Update(character->map, character);
 
-						PacketBuilder reply(PACKET_CHEST, PACKET_GET);
+						PacketBuilder reply(PACKET_CHEST, PACKET_GET, 7 + chest->items.size() * 5);
 						reply.AddShort(id);
 						reply.AddThree(amount);
 						reply.AddChar(character->weight);
@@ -122,7 +122,7 @@ void Chest_Open(Character *character, PacketReader &reader)
 	{
 		if (character->map->GetSpec(x, y) == Map_Tile::Chest)
 		{
-			PacketBuilder reply(PACKET_CHEST, PACKET_OPEN);
+			PacketBuilder reply(PACKET_CHEST, PACKET_OPEN, 2);
 			reply.AddChar(x);
 			reply.AddChar(y);
 
@@ -130,6 +130,8 @@ void Chest_Open(Character *character, PacketReader &reader)
 			{
 				if (chest->x == x && chest->y == y)
 				{
+					reply.ReserveMore(chest->items.size() * 5);
+
 					UTIL_FOREACH(chest->items, item)
 					{
 						if (item->id != 0)

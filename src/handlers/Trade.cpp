@@ -31,7 +31,7 @@ void Trade_Request(Character *character, PacketReader &reader)
 
 	if (victim && !victim->trading)
 	{
-		PacketBuilder builder(PACKET_TRADE, PACKET_REQUEST);
+		PacketBuilder builder(PACKET_TRADE, PACKET_REQUEST, 3 + character->name.length());
 		builder.AddChar(something);
 		builder.AddShort(character->id);
 		builder.AddString(character->name);
@@ -53,14 +53,14 @@ void Trade_Accept(Character *character, PacketReader &reader)
 
 	if (victim && victim->mapid == character->mapid && victim->trade_partner == character && !victim->trading)
 	{
-		PacketBuilder builder(PACKET_TRADE, PACKET_OPEN);
+		PacketBuilder builder(PACKET_TRADE, PACKET_OPEN, 30);
 		builder.AddShort(victim->id);
 		builder.AddBreakString(victim->name);
 		builder.AddShort(character->id);
 		builder.AddBreakString(character->name);
 		character->Send(builder);
 
-		builder.Reset();
+		builder.Reset(30);
 		builder.AddShort(character->id);
 		builder.AddBreakString(character->name);
 		builder.AddShort(victim->id);
@@ -91,7 +91,9 @@ void Trade_Remove(Character *character, PacketReader &reader)
 	{
 		character->trade_agree = false;
 		character->trade_partner->trade_agree = false;
-		PacketBuilder builder(PACKET_TRADE, PACKET_REPLY);
+
+		PacketBuilder builder(PACKET_TRADE, PACKET_REPLY,
+			6 + character->trade_inventory.size() * 6 + character->trade_partner->trade_inventory.size() * 6);
 
 		builder.AddShort(character->player->id);
 		UTIL_FOREACH(character->trade_inventory, item)
@@ -133,7 +135,9 @@ void Trade_Agree(Character *character, PacketReader &reader)
 
 		if (character->trade_partner->trade_agree)
 		{
-			PacketBuilder builder(PACKET_TRADE, PACKET_USE);
+			PacketBuilder builder(PACKET_TRADE, PACKET_USE,
+				6 + character->trade_partner->trade_inventory.size() * 6 + character->trade_inventory.size() * 6);
+
 			builder.AddShort(character->trade_partner->player->id);
 			UTIL_FOREACH(character->trade_partner->trade_inventory, item)
 			{
@@ -171,10 +175,11 @@ void Trade_Agree(Character *character, PacketReader &reader)
 		}
 		else
 		{
-			PacketBuilder reply(PACKET_TRADE, PACKET_SPEC);
+			PacketBuilder reply(PACKET_TRADE, PACKET_SPEC, 1);
 			reply.AddChar(agree);
 			character->Send(reply);
-			PacketBuilder builder(PACKET_TRADE, PACKET_AGREE);
+
+			PacketBuilder builder(PACKET_TRADE, PACKET_AGREE, 3);
 			builder.AddShort(character->trade_partner->id);
 			builder.AddChar(agree);
 			character->trade_partner->Send(builder);
@@ -182,10 +187,11 @@ void Trade_Agree(Character *character, PacketReader &reader)
 	}
 	else
 	{
-		PacketBuilder reply(PACKET_TRADE, PACKET_SPEC);
+		PacketBuilder reply(PACKET_TRADE, PACKET_SPEC, 1);
 		reply.AddChar(agree);
 		character->Send(reply);
-		PacketBuilder builder(PACKET_TRADE, PACKET_AGREE);
+
+		PacketBuilder builder(PACKET_TRADE, PACKET_AGREE, 3);
 		builder.AddShort(character->trade_partner->id);
 		builder.AddChar(agree);
 		character->trade_partner->Send(builder);
@@ -224,7 +230,9 @@ void Trade_Add(Character *character, PacketReader &reader)
 	{
 		character->trade_agree = false;
 		character->trade_partner->trade_agree = false;
-		PacketBuilder builder(PACKET_TRADE, PACKET_REPLY);
+
+		PacketBuilder builder(PACKET_TRADE, PACKET_REPLY,
+			6 + character->trade_inventory.size() * 6 + character->trade_partner->trade_inventory.size() * 6);
 
 		builder.AddShort(character->player->id);
 		UTIL_FOREACH(character->trade_inventory, item)
@@ -254,7 +262,8 @@ void Trade_Close(Character *character, PacketReader &reader)
 
 	/*int something =*/ reader.GetChar();
 
-	PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
+	PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
+
 	builder.AddShort(character->id);
 	character->trade_partner->Send(builder);
 
@@ -271,7 +280,7 @@ void Trade_Close(Character *character, PacketReader &reader)
 }
 
 PACKET_HANDLER_REGISTER(PACKET_TRADE)
-	Register(PACKET_REQUEST, Trade_Request, Playing);
+	Register(PACKET_REQUEST, Trade_Request, Playing, 0.5);
 	Register(PACKET_ACCEPT, Trade_Accept, Playing);
 	Register(PACKET_REMOVE, Trade_Remove, Playing);
 	Register(PACKET_AGREE, Trade_Agree, Playing);

@@ -22,7 +22,7 @@ void Character_Request(Player *player, PacketReader &reader)
 {
 	(void)reader;
 
-	PacketBuilder reply(PACKET_CHARACTER, PACKET_REPLY);
+	PacketBuilder reply(PACKET_CHARACTER, PACKET_REPLY, 4);
 	reply.AddShort(1000); // CreateID?
 	reply.AddString("OK");
 
@@ -50,7 +50,7 @@ void Character_Create(Player *player, PacketReader &reader)
 	 || race > static_cast<int>(player->world->config["CreateMaxSkin"]))
 	return;
 
-	PacketBuilder reply(PACKET_CHARACTER, PACKET_REPLY);
+	PacketBuilder reply(PACKET_CHARACTER, PACKET_REPLY, 2);
 
 	if (player->characters.size() >= static_cast<std::size_t>(static_cast<int>(player->world->config["MaxCharacters"])))
 	{
@@ -66,6 +66,7 @@ void Character_Create(Player *player, PacketReader &reader)
 	}
 	else
 	{
+		reply.ReserveMore(5 + player->characters.size() * 34);
 		player->AddCharacter(name, gender, hairstyle, haircolor, race);
 		Console::Out("New character: %s (%s)", name.c_str(), player->username.c_str());
 
@@ -113,7 +114,7 @@ void Character_Remove(Player *player, PacketReader &reader)
 	player->characters.erase(it);
 	Console::Out("Deleted character: %s (%s)", (*it)->name.c_str(), player->username.c_str());
 
-	PacketBuilder reply(PACKET_CHARACTER, PACKET_REPLY);
+	PacketBuilder reply(PACKET_CHARACTER, PACKET_REPLY, 5 + player->characters.size() * 34);
 	reply.AddShort(CHARACTER_DELETED); // Reply code
 	reply.AddChar(player->characters.size());
 	reply.AddByte(1); // ??
@@ -152,7 +153,7 @@ void Character_Take(Player *player, PacketReader &reader)
 	if (it == player->characters.end())
 		return;
 
-	PacketBuilder reply(PACKET_CHARACTER, PACKET_PLAYER);
+	PacketBuilder reply(PACKET_CHARACTER, PACKET_PLAYER, 6);
 	reply.AddShort(1000); // Delete req ID
 	reply.AddInt(id);
 
@@ -161,8 +162,8 @@ void Character_Take(Player *player, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_CHARACTER)
 	Register(PACKET_REQUEST, Character_Request, Character_Menu);
-	Register(PACKET_CREATE, Character_Create, Character_Menu);
-	Register(PACKET_REMOVE, Character_Remove, Character_Menu);
+	Register(PACKET_CREATE, Character_Create, Character_Menu, 1.0);
+	Register(PACKET_REMOVE, Character_Remove, Character_Menu, 1.0);
 	Register(PACKET_TAKE, Character_Take, Character_Menu);
 PACKET_HANDLER_REGISTER_END()
 

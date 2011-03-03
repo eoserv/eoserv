@@ -18,7 +18,7 @@ void Sit_Request(Character *character, PacketReader &reader)
 
 	if (action == SIT_ACT_SIT && character->sitting == SIT_STAND)
 	{
-		PacketBuilder reply(PACKET_SIT, PACKET_PLAYER);
+		PacketBuilder reply(PACKET_SIT, PACKET_PLAYER, 6);
 		reply.AddShort(character->player->id);
 		reply.AddChar(character->x);
 		reply.AddChar(character->y);
@@ -29,7 +29,7 @@ void Sit_Request(Character *character, PacketReader &reader)
 	}
 	else if (character->sitting == SIT_FLOOR)
 	{
-		PacketBuilder reply(PACKET_SIT, PACKET_CLOSE);
+		PacketBuilder reply(PACKET_SIT, PACKET_CLOSE, 4);
 		reply.AddShort(character->player->id);
 		reply.AddChar(character->x);
 		reply.AddChar(character->y);

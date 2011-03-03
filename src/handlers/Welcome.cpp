@@ -26,8 +26,6 @@ void Welcome_Request(Player *player, PacketReader &reader)
 {
 	unsigned int id = reader.GetInt(); // Character ID
 
-	PacketBuilder reply(PACKET_WELCOME, PACKET_REPLY);
-
 	auto it = std::find_if(UTIL_CRANGE(player->characters), [&](Character *c) -> bool
 	{
 		return c->id == id;
@@ -40,6 +38,13 @@ void Welcome_Request(Player *player, PacketReader &reader)
 	player->character->online = true;
 
 	player->character->CalculateStats();
+
+	std::string guild_str = player->character->guild ? player->character->guild->name : "";
+	std::string guild_rank = player->character->guild ? player->character->guild->GetRank(player->character->guild_rank) : "";
+
+	PacketBuilder reply(PACKET_WELCOME, PACKET_REPLY,
+		114 + player->character->paperdoll.size() * 2 + player->character->name.length() + player->character->title.length()
+		+ guild_str.length() + guild_rank.length());
 
 	reply.AddShort(1); // REPLY_WELCOME sub-id
 	reply.AddShort(player->id);
@@ -86,8 +91,8 @@ void Welcome_Request(Player *player, PacketReader &reader)
 	reply.AddByte(player->world->ecf->len[1]);
 	reply.AddBreakString(player->character->name);
 	reply.AddBreakString(player->character->title);
-	reply.AddBreakString(player->character->guild ? player->character->guild->name : ""); // Guild Name
-	reply.AddBreakString(player->character->guild ? player->character->guild->GetRank(player->character->guild_rank) : ""); // Guild Rank
+	reply.AddBreakString(guild_str); // Guild Name
+	reply.AddBreakString(guild_rank); // Guild Rank
 	reply.AddChar(player->character->clas);
 	reply.AddString(player->character->PaddedGuildTag());
 
@@ -217,66 +222,6 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 
 	player->client->state = EOClient::Playing;
 
-	PacketBuilder reply(PACKET_WELCOME, PACKET_REPLY);
-
-	reply.AddShort(2); // REPLY_WELCOME sub-id
-	// MotDs
-	reply.AddByte(255);
-
-	char newsbuf[4096] = "";
-	std::FILE *newsfh = std::fopen(static_cast<std::string>(player->world->config["NewsFile"]).c_str(), "rt");
-	bool newseof = (newsfh == 0);
-
-	if (newseof)
-	{
-		Console::Wrn("Could not load news file '%s'", static_cast<std::string>(player->world->config["NewsFile"]).c_str());
-	}
-
-	for (int i = 0; i < 9; ++i)
-	{
-		if (newsfh)
-		{
-			(void)std::fgets(newsbuf, 4096, newsfh);
-		}
-
-		if (!newseof)
-		{
-			reply.AddBreakString(util::trim(newsbuf));
-		}
-		else
-		{
-			reply.AddByte(255);
-		}
-
-		if (newsfh && std::feof(newsfh))
-		{
-			newseof = true;
-		}
-
-	}
-
-	if (newsfh)
-	{
-		std::fclose(newsfh);
-	}
-	// ??
-	reply.AddChar(player->character->weight); // Weight
-	reply.AddChar(player->character->maxweight); // Max Weight
-	UTIL_FOREACH(player->character->inventory, item)
-	{
-		reply.AddShort(item.id);
-		reply.AddInt(item.amount);
-	}
-	reply.AddByte(255);
-	// foreach spell {
-	//reply.AddShort(1); // Spell ID
-	//reply.AddShort(100); // Spell Level
-	//reply.AddShort(2); // Spell ID
-	//reply.AddShort(100); // Spell Level
-	//reply.AddShort(18); // Spell ID
-	//reply.AddShort(100); // Spell Level
-	// }
-	reply.AddByte(255);
 	std::vector<Character *> updatecharacters;
 	std::vector<NPC *> updatenpcs;
 	std::vector<Map_Item *> updateitems;
@@ -304,6 +249,72 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 			updateitems.push_back(item);
 		}
 	}
+
+	PacketBuilder reply(PACKET_WELCOME, PACKET_REPLY, 3 + 9);
+
+	reply.AddShort(2); // REPLY_WELCOME sub-id
+	// MotDs
+	reply.AddByte(255);
+
+	char newsbuf[4096] = "";
+	std::FILE *newsfh = std::fopen(static_cast<std::string>(player->world->config["NewsFile"]).c_str(), "rt");
+	bool newseof = (newsfh == 0);
+
+	if (newseof)
+	{
+		Console::Wrn("Could not load news file '%s'", static_cast<std::string>(player->world->config["NewsFile"]).c_str());
+	}
+
+	for (int i = 0; i < 9; ++i)
+	{
+		if (newsfh)
+		{
+			(void)std::fgets(newsbuf, 4096, newsfh);
+		}
+
+		if (!newseof)
+		{
+			std::string str = util::trim(newsbuf);
+			reply.ReserveMore(str.length() + 9 - i);
+			reply.AddBreakString(str);
+		}
+		else
+		{
+			reply.AddByte(255);
+		}
+
+		if (newsfh && std::feof(newsfh))
+		{
+			newseof = true;
+		}
+
+	}
+
+	if (newsfh)
+	{
+		std::fclose(newsfh);
+	}
+
+	reply.ReserveMore(7 + player->character->inventory.size() * 3 + updatecharacters.size() * 60 + updatenpcs.size() * 6 + updateitems.size() * 9);
+
+	// ??
+	reply.AddChar(player->character->weight); // Weight
+	reply.AddChar(player->character->maxweight); // Max Weight
+	UTIL_FOREACH(player->character->inventory, item)
+	{
+		reply.AddShort(item.id);
+		reply.AddInt(item.amount);
+	}
+	reply.AddByte(255);
+	// foreach spell {
+	//reply.AddShort(1); // Spell ID
+	//reply.AddShort(100); // Spell Level
+	//reply.AddShort(2); // Spell ID
+	//reply.AddShort(100); // Spell Level
+	//reply.AddShort(18); // Spell ID
+	//reply.AddShort(100); // Spell Level
+	// }
+	reply.AddByte(255);
 
 	reply.AddChar(updatecharacters.size()); // Number of players
 	reply.AddByte(255);
@@ -391,7 +402,7 @@ void Welcome_Agree(Player *player, PacketReader &reader)
 
 	if (file == FILE_MAP && !player->character->world->GetMap(player->character->mapid)->exists)
 	{
-		PacketBuilder reply(0);
+		PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 2 + content.length());
 		reply.AddChar(replycode);
 		if (fileid != 0)
 		{
@@ -428,7 +439,7 @@ void Welcome_Agree(Player *player, PacketReader &reader)
 
 	std::fclose(fh);
 
-	PacketBuilder reply(0);
+	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 2 + content.length());
 	reply.AddChar(replycode);
 	if (fileid != 0)
 	{
@@ -439,7 +450,7 @@ void Welcome_Agree(Player *player, PacketReader &reader)
 
 	if (player->world->config["ProtectMaps"])
 	{
-		reply.Reset();
+		reply.Reset(1);
 		reply.AddChar(INIT_BANNED);
 		player->Send(reply);
 	}

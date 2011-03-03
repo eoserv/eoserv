@@ -7,6 +7,7 @@
 #ifndef UTIL_HPP_INCLUDED
 #define UTIL_HPP_INCLUDED
 
+#include <algorithm>
 #include <array>
 #include <iterator>
 #include <string>
@@ -338,13 +339,10 @@ std::string text_word_wrap(std::string string, int width);
  */
 inline int path_length(int x1, int y1, int x2, int y2)
 {
-	int dx = x1 - x2;
-	int dy = y1 - y2;
+	int dx = std::abs(x1 - x2);
+	int dy = std::abs(y1 - y2);
 
-	if (dx < 0) dx = -dx;
-	if (dy < 0) dy = -dy;
-
-	return dx - dy;
+	return dx + dy;
 }
 
 }

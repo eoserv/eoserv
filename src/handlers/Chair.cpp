@@ -144,7 +144,7 @@ void Chair_Request(Character *character, PacketReader &reader)
 		character->x = x;
 		character->y = y;
 
-		PacketBuilder reply(PACKET_CHAIR, PACKET_PLAYER);
+		PacketBuilder reply(PACKET_CHAIR, PACKET_PLAYER, 6);
 		reply.AddShort(character->player->id);
 		reply.AddChar(character->x);
 		reply.AddChar(character->y);
@@ -171,7 +171,7 @@ void Chair_Request(Character *character, PacketReader &reader)
 				break;
 		}
 
-		PacketBuilder reply(PACKET_CHAIR, PACKET_CLOSE);
+		PacketBuilder reply(PACKET_CHAIR, PACKET_CLOSE, 4);
 		reply.AddShort(character->player->id);
 		reply.AddChar(character->x);
 		reply.AddChar(character->y);

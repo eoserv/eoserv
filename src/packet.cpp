@@ -8,6 +8,12 @@
 
 #include <algorithm>
 
+#ifdef DEBUG
+#include "console.hpp"
+#endif
+
+#include "util.hpp"
+
 PacketProcessor::PacketProcessor()
 {
 	this->firstdec = true;
@@ -279,7 +285,7 @@ std::array<unsigned char, 4> PacketProcessor::ENumber(unsigned int number)
 
 std::array<unsigned char, 4> PacketProcessor::ENumber(unsigned int number, std::size_t &size)
 {
-	std::array<unsigned char, 4> bytes = {{254, 254, 254, 254}};
+	std::array<unsigned char, 4> bytes{{254, 254, 254, 254}};
 	unsigned int onumber = number;
 
 	if (onumber >= PacketProcessor::MAX3)
@@ -332,190 +338,106 @@ std::array<unsigned char, 2> PacketProcessor::EPID(unsigned short pid)
 }
 
 PacketReader::PacketReader(const std::string &data)
-{
-	this->data = data;
-	this->length = data.length();
-}
+	: data(data)
+	, pos(2)
+{ }
 
 std::size_t PacketReader::Length() const
-{
-	return this->length;
-}
-
-std::size_t PacketReader::Remaining() const
 {
 	return this->data.length();
 }
 
+std::size_t PacketReader::Remaining() const
+{
+	return this->Length() - this->pos;
+}
+
+PacketAction PacketReader::Action() const
+{
+	if (this->Length() < 1)
+		return PacketAction(0);
+
+	return PacketAction((unsigned char)this->data[0]);
+}
+
+PacketFamily PacketReader::Family() const
+{
+	if (this->Length() < 2)
+		return PacketFamily(0);
+
+	return PacketFamily((unsigned char)this->data[1]);
+}
+
+unsigned int PacketReader::GetNumber(std::size_t length)
+{
+	std::array<unsigned char, 4> bytes{{254, 254, 254, 254}};
+
+	std::copy_n(util::cbegin(this->data) + this->pos, std::min(length, this->Remaining()), util::begin(bytes));
+
+	this->pos += length;
+
+	return PacketProcessor::Number(bytes[0], bytes[1], bytes[2], bytes[3]);
+}
+
 unsigned char PacketReader::GetByte()
 {
-	unsigned char ret;
-
-	if (this->data.length() < 1)
-	{
+	if (this->Remaining() < 1)
 		return 0;
-	}
 
-	ret = this->data[0];
-	this->data.erase(0, 1);
+	unsigned char ret = this->data[this->pos];
+	++this->pos;
 
 	return ret;
 }
 
 unsigned char PacketReader::GetChar()
 {
-	unsigned char ret;
-
-	if (this->data.length() < 1)
-	{
-		return 0;
-	}
-
-	ret = PacketProcessor::Number(this->data[0]);
-	this->data.erase(0, 1);
-
-	return ret;
+	return GetNumber(1);
 }
 
 unsigned short PacketReader::GetShort()
 {
-	unsigned short ret;
-
-	if (this->data.length() < 1)
-	{
-		return 0;
-	}
-
-	if (this->data.length() < 2)
-	{
-		ret = PacketProcessor::Number(this->data[0]);
-		this->data.erase(0, 1);
-		return ret;
-	}
-
-	ret = PacketProcessor::Number(this->data[0], this->data[1]);
-	this->data.erase(0, 2);
-
-	return ret;
+	return GetNumber(2);
 }
 
 unsigned int PacketReader::GetThree()
 {
-	unsigned int ret;
-
-	if (this->data.length() < 1)
-	{
-		return 0;
-	}
-
-	if (this->data.length() < 2)
-	{
-		ret = PacketProcessor::Number(this->data[0]);
-		this->data.erase(0, 1);
-		return ret;
-	}
-
-	if (this->data.length() < 3)
-	{
-		ret = PacketProcessor::Number(this->data[0], this->data[1]);
-		this->data.erase(0, 2);
-		return ret;
-	}
-
-	ret = PacketProcessor::Number(this->data[0], this->data[1], this->data[2]);
-	this->data.erase(0, 3);
-
-	return ret;
+	return GetNumber(3);
 }
 
 unsigned int PacketReader::GetInt()
 {
-	unsigned int ret;
-
-	if (this->data.length() < 1)
-	{
-		return 0;
-	}
-
-	if (this->data.length() < 2)
-	{
-		ret = PacketProcessor::Number(this->data[0]);
-		this->data.erase(0, 1);
-		return ret;
-	}
-
-	if (this->data.length() < 3)
-	{
-		ret = PacketProcessor::Number(this->data[0], this->data[1]);
-		this->data.erase(0, 2);
-		return ret;
-	}
-
-	if (this->data.length() < 4)
-	{
-		ret = PacketProcessor::Number(this->data[0], this->data[1], this->data[2]);
-		this->data.erase(0, 3);
-		return ret;
-	}
-
-	ret = PacketProcessor::Number(this->data[0], this->data[1], this->data[2], this->data[3]);
-	this->data.erase(0, 4);
-
-	return ret;
+	return GetNumber(4);
 }
 
 std::string PacketReader::GetFixedString(std::size_t length)
 {
-	std::string ret;
+	if (this->Remaining() < length)
+		return "";
 
-	if (length == 0 || this->data.length() < length)
-	{
-		return ret;
-	}
-
-	ret = this->data.substr(0, length);
-	this->data.erase(0, length);
+	std::string ret = this->data.substr(this->pos, length);
+	this->pos += ret.length();
 
 	return ret;
 }
 
 std::string PacketReader::GetBreakString(unsigned char breakchar)
 {
-	std::string ret;
-	std::size_t length;
-
-	length = this->data.find_first_of(breakchar);
-
-	if (length == std::string::npos)
-	{
-		return ret;
-	}
-
-	ret = this->data.substr(0, length);
-	this->data.erase(0, length+1);
-
+	std::string ret = GetFixedString(this->data.find_first_of(breakchar, this->pos) - this->pos);
+	++this->pos;
 	return ret;
 }
 
 std::string PacketReader::GetEndString()
 {
-	std::string ret = this->data;
-
-	this->data.erase();
-
-	return ret;
+	return GetFixedString(this->Remaining());
 }
 
-PacketBuilder::PacketBuilder(unsigned short id)
+PacketBuilder::PacketBuilder(PacketFamily family, PacketAction action, std::size_t size_guess)
 {
-	this->length = 0;
-	this->SetID(id);
-}
-
-PacketBuilder::PacketBuilder(PacketFamily family, PacketAction action)
-{
-	this->length = 0;
 	this->SetID(family, action);
+
+	this->data.reserve(size_guess);
 }
 
 unsigned short PacketBuilder::SetID(unsigned short id)
@@ -542,127 +464,185 @@ unsigned short PacketBuilder::GetID() const
 
 std::size_t PacketBuilder::Length() const
 {
-	return this->length;
+	return this->data.length();
 }
 
-unsigned char PacketBuilder::AddByte(unsigned char byte)
+std::size_t PacketBuilder::Capacity() const
 {
-	++this->length;
+	return this->data.capacity();
+}
+
+void PacketBuilder::ReserveMore(std::size_t size_guess)
+{
+	size_guess += this->Length();
+
+	if (size_guess > this->Capacity())
+		this->data.reserve(size_guess);
+}
+
+#ifdef DEBUG
+
+#define debug_packetbuilder_overflow(builder, capacity) debug_packetbuilder_overflow_(builder, capacity, __func__)
+
+static void debug_packetbuilder_overflow_(PacketBuilder *builder, std::size_t capacity, const char *func)
+{
+	std::array<unsigned char, 2> id = PacketProcessor::EPID(builder->GetID());
+	std::string family = PacketProcessor::GetFamilyName(PacketFamily(id[1]));
+	std::string action = PacketProcessor::GetActionName(PacketAction(id[0]));
+	Console::Dbg("PacketBuilder size exceeded pre-allocated capacity [%i/%i] (%s_%s via %s)", builder->Length(), capacity, family.c_str(), action.c_str(), func);
+}
+
+#endif
+
+PacketBuilder &PacketBuilder::AddByte(unsigned char byte)
+{
+#ifdef DEBUG
+	std::size_t capacity_before = this->Capacity();
+#endif
+
 	this->data += byte;
-	return byte;
+
+#ifdef DEBUG
+	if (this->data.length() > capacity_before)
+		debug_packetbuilder_overflow(this, capacity_before);
+#endif
+
+	return *this;
 }
 
-unsigned char PacketBuilder::AddChar(unsigned char num)
+PacketBuilder &PacketBuilder::AddChar(unsigned char num)
 {
-	std::array<unsigned char, 4> bytes;
-	++this->length;
-	bytes = PacketProcessor::ENumber(num);
-	this->data += bytes[0];
-	return num;
+#ifdef DEBUG
+	std::size_t capacity_before = this->Capacity();
+#endif
+
+	this->data += PacketProcessor::ENumber(num)[0];
+
+#ifdef DEBUG
+	if (this->data.length() > capacity_before)
+		debug_packetbuilder_overflow(this, capacity_before);
+#endif
+
+	return *this;
 }
 
-unsigned short PacketBuilder::AddShort(unsigned short num)
+PacketBuilder &PacketBuilder::AddShort(unsigned short num)
 {
-	std::array<unsigned char, 4> bytes;
-	this->length += 2;
-	bytes = PacketProcessor::ENumber(num);
-	this->data += bytes[0];
-	this->data += bytes[1];
-	return num;
+#ifdef DEBUG
+	std::size_t capacity_before = this->Capacity();
+#endif
+
+	this->data.append((char *)PacketProcessor::ENumber(num).data(), 2);
+
+#ifdef DEBUG
+	if (this->data.length() > capacity_before)
+		debug_packetbuilder_overflow(this, capacity_before);
+#endif
+
+	return *this;
 }
 
-unsigned int PacketBuilder::AddThree(unsigned int num)
+PacketBuilder &PacketBuilder::AddThree(unsigned int num)
 {
-	std::array<unsigned char, 4> bytes;
-	this->length += 3;
-	bytes = PacketProcessor::ENumber(num);
-	this->data += bytes[0];
-	this->data += bytes[1];
-	this->data += bytes[2];
-	return num;
+#ifdef DEBUG
+	std::size_t capacity_before = this->Capacity();
+#endif
+
+	this->data.append((char *)PacketProcessor::ENumber(num).data(), 3);
+
+#ifdef DEBUG
+	if (this->data.length() > capacity_before)
+		debug_packetbuilder_overflow(this, capacity_before);
+#endif
+
+	return *this;
 }
 
-unsigned int PacketBuilder::AddInt(unsigned int num)
+PacketBuilder &PacketBuilder::AddInt(unsigned int num)
 {
-	std::array<unsigned char, 4> bytes;
-	this->length += 4;
-	bytes = PacketProcessor::ENumber(num);
-	this->data += bytes[0];
-	this->data += bytes[1];
-	this->data += bytes[2];
-	this->data += bytes[3];
-	return num;
+#ifdef DEBUG
+	std::size_t capacity_before = this->Capacity();
+#endif
+
+	this->data.append((char *)PacketProcessor::ENumber(num).data(), 4);
+
+#ifdef DEBUG
+	if (this->data.length() > capacity_before)
+		debug_packetbuilder_overflow(this, capacity_before);
+#endif
+
+	return *this;
 }
 
-unsigned int PacketBuilder::AddVar(int min, int max, unsigned int num)
+PacketBuilder &PacketBuilder::AddVar(int min, int max, unsigned int num)
 {
-	if (min <= 1)
-	{
-		if (max <= 1 || num < PacketProcessor::MAX1)
-		{
-			this->AddChar(num);
-			return num;
-		}
-	}
+	if (min <= 1 && (max <= 1 || num < PacketProcessor::MAX1))
+		this->AddChar(num);
+	else if (min <= 2 && (max <= 2 || num < PacketProcessor::MAX2))
+		this->AddShort(num);
+	else if (min <= 3 && (max <= 3 || num < PacketProcessor::MAX3))
+		this->AddThree(num);
+	else
+		this->AddInt(num);
 
-	if (min <= 2)
-	{
-		if (max <= 2 || num < PacketProcessor::MAX2)
-		{
-			this->AddShort(num);
-			return num;
-		}
-	}
-
-	if (min <= 3)
-	{
-		if (max <= 3 || num < PacketProcessor::MAX3)
-		{
-			this->AddThree(num);
-			return num;
-		}
-	}
-
-	this->AddInt(num);
-	return num;
+	return *this;
 }
 
-const std::string &PacketBuilder::AddString(const std::string &str)
+PacketBuilder &PacketBuilder::AddString(const std::string &str)
 {
-	this->length += str.length();
+#ifdef DEBUG
+	std::size_t capacity_before = this->Capacity();
+#endif
+
 	this->data += str;
 
-	return str;
+#ifdef DEBUG
+	if (this->data.length() > capacity_before)
+		debug_packetbuilder_overflow(this, capacity_before);
+#endif
+
+	return *this;
 }
 
-const std::string &PacketBuilder::AddBreakString(const std::string &str, unsigned char breakchar)
+PacketBuilder &PacketBuilder::AddBreakString(const std::string &str, unsigned char breakchar)
 {
+#ifdef DEBUG
+	std::size_t capacity_before = this->Capacity();
+#endif
+
 	std::string tempstr(str);
 	std::size_t breakin = tempstr.find_first_of(breakchar);
+
 	while (breakin != std::string::npos)
 	{
 		tempstr[breakin] = 'y';
 		breakin = tempstr.find_first_of(breakchar, breakin+1);
 	}
 
-	this->length += tempstr.length() + 1;
 	this->data += tempstr;
 	this->data += breakchar;
 
-	return str;
+
+#ifdef DEBUG
+	if (this->data.length() > capacity_before)
+		debug_packetbuilder_overflow(this, capacity_before);
+#endif
+
+	return *this;
 }
 
-void PacketBuilder::Reset()
+void PacketBuilder::Reset(std::size_t size_guess)
 {
-	this->length = 0;
 	this->data.erase();
+	this->data.reserve(size_guess);
 }
 
 std::string PacketBuilder::Get() const
 {
 	std::string retdata;
+	retdata.reserve(4 + this->data.length());
 	std::array<unsigned char, 2> id = PacketProcessor::EPID(this->id);
-	std::array<unsigned char, 4> length = PacketProcessor::ENumber(this->length + 2);
+	std::array<unsigned char, 4> length = PacketProcessor::ENumber(this->data.length() + 2);
 
 	retdata += length[0];
 	retdata += length[1];

@@ -17,7 +17,7 @@ void Book_List(Character *character, PacketReader &reader)
 }
 
 PACKET_HANDLER_REGISTER(PACKET_BOOK)
-	Register(PACKET_LIST, Book_List, Playing);
+	// Register(PACKET_LIST, Book_List, Playing);
 PACKET_HANDLER_REGISTER_END()
 
 }

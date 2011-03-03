@@ -202,7 +202,7 @@ int Map_Chest::DelItem(short item)
 
 void Map_Chest::Update(Map *map, Character *exclude)
 {
-	PacketBuilder builder(PACKET_CHEST, PACKET_AGREE);
+	PacketBuilder builder(PACKET_CHEST, PACKET_AGREE, this->items.size() * 5);
 
 	UTIL_FOREACH(this->items, item)
 	{
@@ -615,11 +615,10 @@ unsigned char Map::GenerateNPCIndex()
 
 void Map::Enter(Character *character, WarpAnimation animation)
 {
-	PacketBuilder builder;
 	this->characters.push_back(character);
 	character->map = this;
 
-	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
+	PacketBuilder builder(PACKET_PLAYERS, PACKET_AGREE, 63);
 
 	builder.AddByte(255);
 	builder.AddBreakString(character->name);
@@ -670,10 +669,9 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 {
 	if (!silent)
 	{
-		PacketBuilder builder;
-
-		builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
+		PacketBuilder builder(PACKET_CLOTHES, PACKET_REMOVE, 3);
 		builder.AddShort(character->player->id);
+
 		if (animation != WARP_ANIMATION_NONE)
 		{
 			builder.AddChar(animation);
@@ -702,9 +700,7 @@ void Map::Msg(Character *from, std::string message, bool echo)
 {
 	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
 
-	PacketBuilder builder;
-
-	builder.SetID(PACKET_TALK, PACKET_PLAYER);
+	PacketBuilder builder(PACKET_TALK, PACKET_PLAYER, 2 + message.length());
 	builder.AddShort(from->player->id);
 	builder.AddString(message);
 
@@ -721,7 +717,6 @@ void Map::Msg(Character *from, std::string message, bool echo)
 
 bool Map::Walk(Character *from, Direction direction, bool admin)
 {
-	PacketBuilder builder;
 	int seedistance = this->world->config["SeeDistance"];
 
 	unsigned char target_x = from->x;
@@ -912,22 +907,21 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		}
 	}
 
-	builder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
+	PacketBuilder builder(PACKET_CLOTHES, PACKET_REMOVE, 2);
 	builder.AddShort(from->player->id);
 
 	UTIL_FOREACH(oldchars, character)
 	{
-		PacketBuilder rbuilder;
-		rbuilder.SetID(PACKET_CLOTHES, PACKET_REMOVE);
+		PacketBuilder rbuilder(PACKET_CLOTHES, PACKET_REMOVE, 2);
 		rbuilder.AddShort(character->player->id);
 
 		character->Send(builder);
 		from->player->Send(rbuilder);
 	}
 
-	builder.Reset();
-
+	builder.Reset(62);
 	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
+
 	builder.AddByte(255);
 	builder.AddBreakString(from->name);
 	builder.AddShort(from->player->id);
@@ -963,8 +957,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 	UTIL_FOREACH(newchars, character)
 	{
-		PacketBuilder rbuilder;
-		rbuilder.SetID(PACKET_PLAYERS, PACKET_AGREE);
+		PacketBuilder rbuilder(PACKET_PLAYERS, PACKET_AGREE, 62);
 		rbuilder.AddByte(255);
 		rbuilder.AddBreakString(character->name);
 		rbuilder.AddShort(character->player->id);
@@ -1002,9 +995,9 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		from->player->Send(rbuilder);
 	}
 
-	builder.Reset();
-
+	builder.Reset(5);
 	builder.SetID(PACKET_WALK, PACKET_PLAYER);
+
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 	builder.AddChar(from->x);
@@ -1020,9 +1013,9 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		character->Send(builder);
 	}
 
-	builder.Reset();
-
+	builder.Reset(2 + newitems.size() * 9);
 	builder.SetID(PACKET_WALK, PACKET_REPLY);
+
 	builder.AddByte(255);
 	builder.AddByte(255);
 	UTIL_FOREACH(newitems, item)
@@ -1038,7 +1031,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.SetID(PACKET_APPEAR, PACKET_REPLY);
 	UTIL_FOREACH(newnpcs, npc)
 	{
-		builder.Reset();
+		builder.Reset(8);
 		builder.AddChar(0);
 		builder.AddByte(255);
 		builder.AddChar(npc->index);
@@ -1060,7 +1053,6 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 bool Map::Walk(NPC *from, Direction direction)
 {
-	PacketBuilder builder;
 	int seedistance = this->world->config["SeeDistance"];
 
 	unsigned char target_x = from->x;
@@ -1201,7 +1193,7 @@ bool Map::Walk(NPC *from, Direction direction)
 		}
 	}
 
-	builder.SetID(PACKET_APPEAR, PACKET_REPLY);
+	PacketBuilder builder(PACKET_APPEAR, PACKET_REPLY, 8);
 	builder.AddChar(0);
 	builder.AddByte(255);
 	builder.AddChar(from->index);
@@ -1215,9 +1207,9 @@ bool Map::Walk(NPC *from, Direction direction)
 		character->Send(builder);
 	}
 
-	builder.Reset();
-
+	builder.Reset(7);
 	builder.SetID(PACKET_NPC, PACKET_PLAYER);
+
 	builder.AddChar(from->index);
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
@@ -1246,8 +1238,6 @@ bool Map::Walk(NPC *from, Direction direction)
 
 void Map::Attack(Character *from, Direction direction)
 {
-	PacketBuilder builder;
-
 	from->direction = direction;
 
 	if (from->arena)
@@ -1263,7 +1253,7 @@ void Map::Attack(Character *from, Direction direction)
 		}
 	}
 
-	builder.SetID(PACKET_ATTACK, PACKET_PLAYER);
+	PacketBuilder builder(PACKET_ATTACK, PACKET_PLAYER, 3);
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 
@@ -1430,7 +1420,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				character->hp -= limitamount;
 
-				PacketBuilder builder(PACKET_CLOTHES, PACKET_REPLY);
+				PacketBuilder builder(PACKET_CLOTHES, PACKET_REPLY, 10);
 				builder.AddShort(from->player->id);
 				builder.AddShort(character->player->id);
 				builder.AddThree(amount);
@@ -1462,14 +1452,18 @@ bool Map::AttackPK(Character *from, Direction direction)
 					character->x = character->SpawnX();
 					character->y = character->SpawnY();
 
-					PacketReader reader("");
+					character->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
+						{char(PACKET_INTERNAL_NULL), char(PACKET_INTERNAL)}
+					}.data()), 1.5);
 
-					character->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5);
-					character->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0);
+					character->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
+						{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
+					}.data()), 0.0);
 				}
 
-				builder.Reset();
+				builder.Reset(4);
 				builder.SetID(PACKET_RECOVER, PACKET_PLAYER);
+
 				builder.AddShort(character->hp);
 				builder.AddShort(character->tp);
 				character->Send(builder);
@@ -1484,11 +1478,9 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 void Map::Face(Character *from, Direction direction)
 {
-	PacketBuilder builder;
-
 	from->direction = direction;
 
-	builder.SetID(PACKET_FACE, PACKET_PLAYER);
+	PacketBuilder builder(PACKET_FACE, PACKET_PLAYER, 3);
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
 
@@ -1505,11 +1497,9 @@ void Map::Face(Character *from, Direction direction)
 
 void Map::Sit(Character *from, SitState sit_type)
 {
-	PacketBuilder builder;
-
 	from->sitting = sit_type;
 
-	builder.SetID((sit_type == SIT_CHAIR) ? PACKET_CHAIR : PACKET_SIT, PACKET_PLAYER);
+	PacketBuilder builder((sit_type == SIT_CHAIR) ? PACKET_CHAIR : PACKET_SIT, PACKET_PLAYER, 6);
 	builder.AddShort(from->player->id);
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
@@ -1529,11 +1519,9 @@ void Map::Sit(Character *from, SitState sit_type)
 
 void Map::Stand(Character *from)
 {
-	PacketBuilder builder;
-
 	from->sitting = SIT_STAND;
 
-	builder.SetID(PACKET_SIT, PACKET_REMOVE);
+	PacketBuilder builder(PACKET_SIT, PACKET_REMOVE, 4);
 	builder.AddShort(from->player->id);
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
@@ -1551,9 +1539,7 @@ void Map::Stand(Character *from)
 
 void Map::Emote(Character *from, enum Emote emote, bool echo)
 {
-	PacketBuilder builder;
-
-	builder.SetID(PACKET_EMOTE, PACKET_PLAYER);
+	PacketBuilder builder(PACKET_EMOTE, PACKET_PLAYER, 3);
 	builder.AddShort(from->player->id);
 	builder.AddChar(emote);
 
@@ -1627,8 +1613,7 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 			}
 		}
 
-		PacketBuilder builder;
-		builder.SetID(PACKET_DOOR, PACKET_OPEN);
+		PacketBuilder builder(PACKET_DOOR, PACKET_OPEN, 3);
 		builder.AddChar(x);
 		builder.AddShort(y);
 
@@ -1673,8 +1658,7 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 {
 	Map_Item *newitem(new Map_Item(GenerateItemID(), id, amount, x, y, 0, 0));
 
-	PacketBuilder builder;
-	builder.SetID(PACKET_ITEM, PACKET_ADD);
+	PacketBuilder builder(PACKET_ITEM, PACKET_ADD, 9);
 	builder.AddShort(id);
 	builder.AddShort(newitem->uid);
 	builder.AddThree(amount);
@@ -1733,8 +1717,7 @@ void Map::DelItem(short uid, Character *from)
 	{
 		if ((*it)->uid == uid)
 		{
-			PacketBuilder builder;
-			builder.SetID(PACKET_ITEM, PACKET_REMOVE);
+			PacketBuilder builder(PACKET_ITEM, PACKET_REMOVE, 2);
 			builder.AddShort(uid);
 			UTIL_FOREACH(this->characters, character)
 			{
@@ -1756,8 +1739,7 @@ void Map::DelItem(Map_Item *item, Character *from)
 	{
 		if (item == *it)
 		{
-			PacketBuilder builder;
-			builder.SetID(PACKET_ITEM, PACKET_REMOVE);
+			PacketBuilder builder(PACKET_ITEM, PACKET_REMOVE, 2);
 			builder.AddShort((*it)->uid);
 			UTIL_FOREACH(this->characters, character)
 			{
@@ -1805,8 +1787,7 @@ Map_Warp *Map::GetWarp(unsigned char x, unsigned char y)
 
 void Map::Effect(int effect, int param)
 {
-	PacketBuilder builder;
-	builder.SetID(PACKET_EFFECT, PACKET_USE);
+	PacketBuilder builder(PACKET_EFFECT, PACKET_USE, 2);
 	builder.AddChar(effect);
 	builder.AddChar(param);
 
@@ -1855,9 +1836,6 @@ bool Map::Reload()
 
 	this->characters = temp;
 
-	PacketBuilder builder(0);
-	builder.AddChar(INIT_MAP_MUTATION);
-
 	std::string content;
 	std::fseek(fh, 0, SEEK_SET);
 	do {
@@ -1867,10 +1845,9 @@ bool Map::Reload()
 	} while (!std::feof(fh));
 	std::fclose(fh);
 
+	PacketBuilder builder(PACKET_F_INIT, PACKET_A_INIT, 1 + content.length());
+	builder.AddChar(INIT_MAP_MUTATION);
 	builder.AddString(content);
-
-	PacketBuilder protect_builder;
-	protect_builder.AddChar(INIT_BANNED);
 
 	UTIL_FOREACH(temp, character)
 	{
@@ -1879,6 +1856,8 @@ bool Map::Reload()
 
 		if (this->world->config["ProtectMaps"])
 		{
+			PacketBuilder protect_builder(PACKET_F_INIT, PACKET_A_INIT, 1);
+			protect_builder.AddChar(INIT_BANNED);
 			character->Send(protect_builder);
 		}
 	}

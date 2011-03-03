@@ -39,7 +39,7 @@ void Party::Msg(Character *from, std::string message, bool echo)
 {
 	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_OPEN);
+	PacketBuilder builder(PACKET_TALK, PACKET_OPEN, 2 + message.length());
 
 	builder.AddShort(from->player->id);
 	builder.AddString(message);
@@ -59,7 +59,7 @@ void Party::Join(Character *character)
 
 	this->members.push_back(character);
 
-	PacketBuilder builder(PACKET_PARTY, PACKET_ADD);
+	PacketBuilder builder(PACKET_PARTY, PACKET_ADD, 5 + character->name.length());
 	builder.AddShort(character->player->id);
 	builder.AddChar(character == this->leader);
 	builder.AddChar(character->level);
@@ -92,7 +92,7 @@ void Party::Leave(Character *character)
 
 		character->party = 0;
 
-		PacketBuilder builder(PACKET_PARTY, PACKET_REMOVE);
+		PacketBuilder builder(PACKET_PARTY, PACKET_REMOVE, 2);
 		builder.AddShort(character->player->id);
 		UTIL_FOREACH(this->members, checkcharacter)
 		{
@@ -102,9 +102,11 @@ void Party::Leave(Character *character)
 			}
 		}
 
-		builder.Reset();
+		builder.Reset(2);
 		builder.SetID(PACKET_PARTY, PACKET_CLOSE);
+
 		builder.AddShort(255);
+
 		character->Send(builder);
 	}
 	else
@@ -115,7 +117,7 @@ void Party::Leave(Character *character)
 
 void Party::RefreshMembers(Character *character)
 {
-	PacketBuilder builder(PACKET_PARTY, PACKET_CREATE);
+	PacketBuilder builder(PACKET_PARTY, PACKET_CREATE, this->members.size() * 18);
 
 	UTIL_FOREACH(this->members, member)
 	{
@@ -131,7 +133,7 @@ void Party::RefreshMembers(Character *character)
 
 void Party::UpdateHP(Character *character)
 {
-	PacketBuilder builder(PACKET_PARTY, PACKET_AGREE);
+	PacketBuilder builder(PACKET_PARTY, PACKET_AGREE, 3);
 	builder.AddShort(character->player->id);
 	builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
 
@@ -186,7 +188,7 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 
 		bool level_up = (member->level < static_cast<int>(this->world->config["MaxLevel"]) && member->exp >= this->world->exp_table[member->level+1]);
 
-		PacketBuilder builder(PACKET_PARTY, PACKET_EXP);
+		PacketBuilder builder(PACKET_PARTY, PACKET_EXP, 7);
 		builder.AddShort(member->player->id);
 		builder.AddInt(reward);
 		builder.AddChar(level_up);
@@ -213,7 +215,7 @@ Party::~Party()
 		);
 	}
 
-	PacketBuilder builder(PACKET_PARTY, PACKET_CLOSE);
+	PacketBuilder builder(PACKET_PARTY, PACKET_CLOSE, 1);
 	builder.AddByte(255); // ?
 
 	UTIL_FOREACH(this->members, member)

@@ -20,9 +20,7 @@ void server_ping_all(void *server_void)
 {
 	EOServer *server = static_cast<EOServer *>(server_void);
 
-	PacketBuilder builder;
-
-	builder.SetID(PACKET_CONNECTION, PACKET_PLAYER);
+	PacketBuilder builder(PACKET_CONNECTION, PACKET_PLAYER, 3);
 	builder.AddShort(0);
 	builder.AddChar(0);
 
@@ -67,7 +65,7 @@ void server_pump_queue(void *server_void)
 			ActionQueue_Action *action = client->queue.queue.front();
 			client->queue.queue.pop();
 
-			Handlers::Handle(action->family, action->action, client, action->reader, true);
+			Handlers::Handle(action->reader.Family(), action->reader.Action(), client, action->reader, !action->auto_queue);
 
 			client->queue.next = now + action->time;
 

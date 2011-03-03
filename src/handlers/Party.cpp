@@ -30,7 +30,7 @@ void Party_Request(Character *character, PacketReader &reader)
 	if (!invitee || character == invitee || !character->InRange(invitee))
 		return;
 
-	PacketBuilder builder(PACKET_PARTY, PACKET_REQUEST);
+	PacketBuilder builder(PACKET_PARTY, PACKET_REQUEST, 3 + character->name.length());
 	builder.AddChar(type);
 	builder.AddShort(character->player->id);
 	builder.AddString(character->name);
@@ -126,7 +126,7 @@ void Party_Take(Character *character, PacketReader &reader)
 }
 
 PACKET_HANDLER_REGISTER(PACKET_PARTY)
-	Register(PACKET_REQUEST, Party_Request, Playing);
+	Register(PACKET_REQUEST, Party_Request, Playing, 0.5);
 	Register(PACKET_ACCEPT, Party_Accept, Playing);
 	Register(PACKET_REMOVE, Packet_Remove, Playing);
 	Register(PACKET_TAKE, Party_Take, Playing);

@@ -34,7 +34,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 	if (client->server()->world->CheckBan(&username, 0, 0) != -1)
 	{
-		PacketBuilder reply;
+		PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 2);
 		reply.AddByte(INIT_BANNED);
 		reply.AddByte(INIT_BAN_PERM);
 		client->Send(reply);
@@ -42,10 +42,9 @@ void Login_Request(EOClient *client, PacketReader &reader)
 		return;
 	}
 
-	PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
-
 	if (username.length() < std::size_t(int(client->server()->world->config["AccountMinLength"])))
 	{
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
 		reply.AddShort(LOGIN_WRONG_USER);
 		client->Send(reply);
 		return;
@@ -53,6 +52,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 	if (password.length() < std::size_t(int(client->server()->world->config["PasswordMinLength"])))
 	{
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
 		reply.AddShort(LOGIN_WRONG_USERPASS);
 		client->Send(reply);
 		return;
@@ -60,6 +60,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 	if (client->server()->world->characters.size() >= static_cast<std::size_t>(static_cast<int>(client->server()->world->config["MaxPlayers"])))
 	{
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
 		reply.AddShort(LOGIN_BUSY);
 		client->Send(reply);
 		client->Close();
@@ -70,6 +71,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 	if (login_reply != LOGIN_OK)
 	{
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
 		reply.AddShort(login_reply);
 		client->Send(reply);
 		return;
@@ -80,20 +82,22 @@ void Login_Request(EOClient *client, PacketReader &reader)
 	if (!client->player)
 	{
 		// Someone deleted the account between checking it and logging in
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
 		reply.AddShort(LOGIN_WRONG_USER);
 		client->Send(reply);
 		return;
 	}
 
 	client->player->id = client->id;
-	client->player->client = client; // Not reference counted!
+	client->player->client = client;
 	client->state = EOClient::LoggedIn;
 
+	PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY, 5 + client->player->characters.size() * 34);
 	reply.AddShort(LOGIN_OK);
 	reply.AddChar(client->player->characters.size());
 	reply.AddByte(2);
 	reply.AddByte(255);
-	UTIL_FOREACH(client->player->characters,  character)
+	UTIL_FOREACH(client->player->characters, character)
 	{
 		reply.AddBreakString(character->name);
 		reply.AddInt(character->id);
@@ -114,7 +118,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 }
 
 PACKET_HANDLER_REGISTER(PACKET_LOGIN)
-	Register(PACKET_REQUEST, Login_Request, Menu);
+	Register(PACKET_REQUEST, Login_Request, Menu, 1.0);
 PACKET_HANDLER_REGISTER_END()
 
 }

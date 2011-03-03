@@ -303,12 +303,14 @@ void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int r
 
 	if (recruiter != joined) // Leader of new guild
 	{
-		PacketBuilder builder(PACKET_GUILD, PACKET_AGREE);
+		std::string rank_str = this->GetRank(rank);
+
+		PacketBuilder builder(PACKET_GUILD, PACKET_AGREE, 9 + this->name.length() + rank_str.length());
 		builder.AddShort(recruiter->player->id);
 		builder.AddByte(255);
 		builder.AddBreakString(this->tag);
 		builder.AddBreakString(this->name);
-		builder.AddBreakString(this->GetRank(rank));
+		builder.AddBreakString(rank_str);
 		joined->Send(builder);
 	}
 
@@ -443,8 +445,10 @@ void Guild::Msg(Character *from, std::string message, bool echo)
 {
 	message = util::text_cap(message, static_cast<int>(this->manager->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_REQUEST);
-	builder.AddBreakString(from ? from->name : "Server");
+	std::string from_name = from ? from->name : "Server";
+
+	PacketBuilder builder(PACKET_TALK, PACKET_REQUEST, 2 + from_name.length() + message.length());
+	builder.AddBreakString(from_name);
 	builder.AddBreakString(message);
 
 	UTIL_FOREACH(this->manager->world->characters, character)

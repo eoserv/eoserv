@@ -57,11 +57,11 @@ void Guild_Request(Character *character, PacketReader &reader)
 							std::shared_ptr<class Guild_Create> create = character->world->guildmanager->BeginCreate(tag, name, character);
 							character->guild_create = create;
 
-							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 1);
 							reply.AddChar(GUILD_CREATE_BEGIN);
 							character->Send(reply);
 
-							PacketBuilder builder(PACKET_GUILD, PACKET_REQUEST);
+							PacketBuilder builder(PACKET_GUILD, PACKET_REQUEST, 8 + name.length());
 							builder.AddShort(create->leader->player->id);
 							builder.AddString(util::ucfirst(util::lowercase(name)) + " (" + util::uppercase(tag) + ")");
 
@@ -76,24 +76,24 @@ void Guild_Request(Character *character, PacketReader &reader)
 
 							if (static_cast<int>(character->world->config["GuildCreateMembers"]) == 1)
 							{
-								PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
-								builder.AddShort(GUILD_CREATE_ADD_CONFIRM);
-								builder.AddString("");
-								character->Send(builder);
+								PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+								reply.AddShort(GUILD_CREATE_ADD_CONFIRM);
+								reply.AddString("");
+								character->Send(reply);
 							}
 						}
 					}
 					else
 					{
-						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_NOT_APPROVED);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+						reply.AddShort(GUILD_NOT_APPROVED);
 						character->Send(reply);
 					}
 				}
 				else
 				{
-					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-					reply.AddChar(GUILD_EXISTS);
+					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+					reply.AddShort(GUILD_EXISTS);
 					character->Send(reply);
 				}
 			}
@@ -114,7 +114,7 @@ void Guild_Accept(Character *character, PacketReader &reader)
 		{
 			create->AddMember(character->name);
 
-			PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
+			PacketBuilder builder(PACKET_GUILD, PACKET_REPLY, 2 + character->name.length());
 
 			if (create->members.size() == static_cast<std::size_t>(static_cast<int>(character->world->config["GuildCreateMembers"])))
 			{
@@ -173,8 +173,8 @@ void Guild_Agree(Character *character, PacketReader &reader)
 
 						character->guild->SetDescription(description);
 
-						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_UPDATED);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+						reply.AddShort(GUILD_UPDATED);
 						character->Send(reply);
 					}
 				}
@@ -199,8 +199,8 @@ void Guild_Agree(Character *character, PacketReader &reader)
 							character->guild->ranks[i] = reader.GetBreakString();
 						}
 
-						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_RANKS_UPDATED);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+						reply.AddShort(GUILD_RANKS_UPDATED);
 						character->Send(reply);
 					}
 				}
@@ -242,12 +242,14 @@ void Guild_Create(Character *character, PacketReader &reader)
 
 				character->DelItem(1, character->world->config["GuildPrice"]);
 
-				PacketBuilder reply(PACKET_GUILD, PACKET_CREATE);
+				std::string rank_str = guild->GetRank(character->guild_rank);
+
+				PacketBuilder reply(PACKET_GUILD, PACKET_CREATE, 13 + guild->name.length() + rank_str.length());
 				reply.AddShort(create->leader->player->id);
 				reply.AddByte(255);
 				reply.AddBreakString(guild->tag);
 				reply.AddBreakString(guild->name);
-				reply.AddBreakString(guild->GetRank(character->guild_rank));
+				reply.AddBreakString(rank_str);
 				reply.AddInt(character->HasItem(1));
 				character->Send(reply);
 
@@ -287,7 +289,7 @@ void Guild_Player(Character *character, PacketReader &reader)
 						{
 							character->guild_join = tag;
 
-							PacketBuilder builder(PACKET_GUILD, PACKET_REPLY);
+							PacketBuilder builder(PACKET_GUILD, PACKET_REPLY, 4 + character->name.length());
 							builder.AddShort(GUILD_JOIN_REQUEST);
 							builder.AddShort(character->player->id);
 							builder.AddString(util::ucfirst(character->name));
@@ -295,29 +297,29 @@ void Guild_Player(Character *character, PacketReader &reader)
 						}
 						else
 						{
-							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-							reply.AddChar(GUILD_NOT_RECRUITER);
+							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+							reply.AddShort(GUILD_NOT_RECRUITER);
 							character->Send(reply);
 						}
 					}
 					else
 					{
-						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_RECRUITER_WRONG_GUILD);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+						reply.AddShort(GUILD_RECRUITER_WRONG_GUILD);
 						character->Send(reply);
 					}
 				}
 				else
 				{
-					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-					reply.AddChar(GUILD_RECRUITER_NOT_HERE);
+					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+					reply.AddShort(GUILD_RECRUITER_NOT_HERE);
 					character->Send(reply);
 				}
 			}
 			else
 			{
-				PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-				reply.AddChar(GUILD_RECRUITER_OFFLINE);
+				PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+				reply.AddShort(GUILD_RECRUITER_OFFLINE);
 				character->Send(reply);
 			}
 		}
@@ -340,7 +342,7 @@ void Guild_Take(Character *character, PacketReader &reader)
 				{
 					if (character->guild_rank <= static_cast<int>(character->world->config["GuildEditRank"]))
 					{
-						PacketBuilder reply(PACKET_GUILD, PACKET_TAKE);
+						PacketBuilder reply(PACKET_GUILD, PACKET_TAKE, character->guild->description.length());
 						reply.AddString(character->guild->description);
 
 						character->Send(reply);
@@ -352,7 +354,7 @@ void Guild_Take(Character *character, PacketReader &reader)
 				{
 					if (character->guild_rank <= static_cast<int>(character->world->config["GuildEditRank"]))
 					{
-						PacketBuilder reply(PACKET_GUILD, PACKET_RANK);
+						PacketBuilder reply(PACKET_GUILD, PACKET_RANK, character->guild->ranks.size() * (1 + int(character->world->config["GuildMaxRankLength"])));
 
 						for (std::size_t i = 0; i < character->guild->ranks.size(); ++i)
 						{
@@ -366,7 +368,7 @@ void Guild_Take(Character *character, PacketReader &reader)
 
 				case GUILD_INFO_BANK:
 				{
-					PacketBuilder reply(PACKET_GUILD, PACKET_SELL);
+					PacketBuilder reply(PACKET_GUILD, PACKET_SELL, 4);
 					reply.AddInt(character->guild->bank);
 
 					character->Send(reply);
@@ -390,7 +392,7 @@ void Guild_Use(Character *character, PacketReader &reader)
 	 && character->map == joiner->map
 	 && joiner->guild_join == character->guild->tag)
 	{
-		PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+		PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
 
 		if (character->guild->bank >= static_cast<int>(character->world->config["RecruitCost"]))
 		{
@@ -398,12 +400,12 @@ void Guild_Use(Character *character, PacketReader &reader)
 			{
 				character->guild->AddMember(joiner, character, true);
 				character->guild->DelBank(character->world->config["RecruitCost"]);
-				reply.AddChar(GUILD_ACCEPTED);
+				reply.AddShort(GUILD_ACCEPTED);
 			}
 		}
 		else
 		{
-			reply.AddChar(GUILD_ACCOUNT_LOW);
+			reply.AddShort(GUILD_ACCOUNT_LOW);
 		}
 
 		character->Send(reply);
@@ -425,7 +427,7 @@ void Guild_Buy(Character *character, PacketReader &reader)
 				character->DelItem(1, gold);
 				character->guild->AddBank(gold);
 
-				PacketBuilder reply(PACKET_GUILD, PACKET_BUY);
+				PacketBuilder reply(PACKET_GUILD, PACKET_BUY, 4);
 				reply.AddInt(character->HasItem(1));
 				character->Send(reply);
 			}
@@ -445,7 +447,7 @@ void Guild_Open(Character *character, PacketReader &reader)
 			character->npc = npc;
 			character->npc_type = ENF::Guild;
 
-			PacketBuilder reply(PACKET_GUILD, PACKET_OPEN);
+			PacketBuilder reply(PACKET_GUILD, PACKET_OPEN, 3);
 			reply.AddThree(0); // Session token
 
 			character->Send(reply);
@@ -481,13 +483,13 @@ void Guild_Tell(Character *character, PacketReader &reader)
 
 		if (!guild)
 		{
-			PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
+			PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 1);
 			reply.AddChar(GUILD_NOT_FOUND);
 			character->Send(reply);
 		}
 		else
 		{
-			PacketBuilder reply(PACKET_GUILD, PACKET_TELL);
+			PacketBuilder reply(PACKET_GUILD, PACKET_TELL, 3 + guild->members.size() * 19);
 			reply.AddShort(guild->members.size());
 			reply.AddByte(255);
 
@@ -530,8 +532,9 @@ void Guild_Report(Character *character, PacketReader &reader)
 
 		if (!guild)
 		{
-			PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-			reply.AddChar(GUILD_NOT_FOUND);
+			PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+			reply.AddShort(GUILD_NOT_FOUND);
+			character->Send(reply);
 		}
 		else
 		{
@@ -566,12 +569,17 @@ void Guild_Report(Character *character, PacketReader &reader)
 			tm *local_time = localtime(&guild->created);
 			create_date = create_date.substr(0, strftime(&create_date[0], 31, static_cast<std::string>(character->world->config["GuildDateFormat"]).c_str(), local_time));
 
-			PacketBuilder reply(PACKET_GUILD, PACKET_REPORT);
+			std::string bank_str = util::to_string(guild->bank);
+
+			PacketBuilder reply(PACKET_GUILD, PACKET_REPORT,
+				21 + guild->name.length() + create_date.length() + guild->description.length() + bank_str.length()
+				+ leaders.size() * 15 + recruiters.size() * 15);
+
 			reply.AddBreakString(guild->name);
 			reply.AddBreakString(guild->tag);
 			reply.AddBreakString(create_date);
 			reply.AddBreakString(guild->description);
-			reply.AddBreakString(util::to_string(guild->bank));
+			reply.AddBreakString(bank_str);
 
 			for (std::size_t i = 0; i < guild->ranks.size(); ++i)
 			{
@@ -646,21 +654,21 @@ void Guild_Kick(Character *character, PacketReader &reader)
 					if (target->rank > character->guild_rank)
 					{
 						character->guild->DelMember(name, character, true);
-						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_REMOVED);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+						reply.AddShort(GUILD_REMOVED);
 						character->Send(reply);
 					}
 					else
 					{
-						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_REMOVE_LEADER);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+						reply.AddShort(GUILD_REMOVE_LEADER);
 						character->Send(reply);
 					}
 				}
 				else
 				{
-					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-					reply.AddChar(GUILD_REMOVE_NOT_MEMBER);
+					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+					reply.AddShort(GUILD_REMOVE_NOT_MEMBER);
 					character->Send(reply);
 				}
 			}
@@ -691,8 +699,8 @@ void Guild_Rank(Character *character, PacketReader &reader)
 			{
 				if (target->rank == 0)
 				{
-					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-					reply.AddChar(GUILD_RANKING_LEADER);
+					PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+					reply.AddShort(GUILD_RANKING_LEADER);
 					character->Send(reply);
 				}
 				else if (rank == 0)
@@ -700,8 +708,8 @@ void Guild_Rank(Character *character, PacketReader &reader)
 					if (character->guild_rank == 0 && character->world->config["GuildMultipleFounders"])
 					{
 						character->guild->SetMemberRank(target->name, 0);
-						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-						reply.AddChar(GUILD_UPDATED);
+						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+						reply.AddShort(GUILD_UPDATED);
 						character->Send(reply);
 					}
 				}
@@ -726,15 +734,15 @@ void Guild_Rank(Character *character, PacketReader &reader)
 							if (rank > character->guild_rank)
 							{
 								character->guild->SetMemberRank(target->name, rank);
-								PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-								reply.AddChar(GUILD_UPDATED);
+								PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+								reply.AddShort(GUILD_UPDATED);
 								character->Send(reply);
 							}
 						}
 						else
 						{
-							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-							reply.AddChar(GUILD_RANKING_LEADER);
+							PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+							reply.AddShort(GUILD_RANKING_LEADER);
 							character->Send(reply);
 						}
 					}
@@ -742,8 +750,8 @@ void Guild_Rank(Character *character, PacketReader &reader)
 			}
 			else
 			{
-				PacketBuilder reply(PACKET_GUILD, PACKET_REPLY);
-				reply.AddChar(GUILD_RANKING_NOT_MEMBER);
+				PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
+				reply.AddShort(GUILD_RANKING_NOT_MEMBER);
 				character->Send(reply);
 			}
 		}
@@ -751,18 +759,18 @@ void Guild_Rank(Character *character, PacketReader &reader)
 }
 
 PACKET_HANDLER_REGISTER(PACKET_GUILD)
-	Register(PACKET_REQUEST, Guild_Request, Playing);
+	Register(PACKET_REQUEST, Guild_Request, Playing, 1.0);
 	Register(PACKET_ACCEPT, Guild_Accept, Playing);
 	Register(PACKET_REMOVE, Guild_Remove, Playing);
 	Register(PACKET_AGREE, Guild_Agree, Playing);
-	Register(PACKET_CREATE, Guild_Create, Playing);
-	Register(PACKET_PLAYER, Guild_Player, Playing);
+	Register(PACKET_CREATE, Guild_Create, Playing, 1.0);
+	Register(PACKET_PLAYER, Guild_Player, Playing, 0.5);
 	Register(PACKET_TAKE, Guild_Take, Playing);
 	Register(PACKET_USE, Guild_Use, Playing);
 	Register(PACKET_BUY, Guild_Buy, Playing);
 	Register(PACKET_OPEN, Guild_Open, Playing);
-	Register(PACKET_TELL, Guild_Tell, Playing);
-	Register(PACKET_REPORT, Guild_Report, Playing);
+	Register(PACKET_TELL, Guild_Tell, Playing, 0.5);
+	Register(PACKET_REPORT, Guild_Report, Playing, 0.5);
 	Register(PACKET_JUNK, Guild_Junk, Playing);
 	Register(PACKET_KICK, Guild_Kick, Playing);
 	Register(PACKET_RANK, Guild_Rank, Playing);

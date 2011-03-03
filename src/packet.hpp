@@ -82,13 +82,18 @@ class PacketReader
 {
 	protected:
 		std::string data;
-		std::size_t length;
+		std::size_t pos;
 
 	public:
 		PacketReader(const std::string &);
 
 		std::size_t Length() const;
 		std::size_t Remaining() const;
+
+		PacketAction Action() const;
+		PacketFamily Family() const;
+
+		unsigned int GetNumber(std::size_t length);
 
 		unsigned char GetByte();
 		unsigned char GetChar();
@@ -105,12 +110,10 @@ class PacketBuilder
 {
 	protected:
 		unsigned short id;
-		std::size_t length;
 		std::string data;
 
 	public:
-		PacketBuilder(unsigned short id = 0);
-		PacketBuilder(PacketFamily family, PacketAction action);
+		PacketBuilder(PacketFamily family = PACKET_F_INIT, PacketAction action = PACKET_A_INIT, std::size_t size_guess = 0);
 
 		unsigned short SetID(unsigned short id);
 		unsigned short SetID(PacketFamily family, PacketAction action);
@@ -118,18 +121,21 @@ class PacketBuilder
 		unsigned short GetID() const;
 
 		std::size_t Length() const;
+		std::size_t Capacity() const;
 
-		unsigned char AddByte(unsigned char);
-		unsigned char AddChar(unsigned char);
-		unsigned short AddShort(unsigned short);
-		unsigned int AddThree(unsigned int);
-		unsigned int AddInt(unsigned int);
-		unsigned int AddVar(int min, int max, unsigned int);
+		void ReserveMore(std::size_t size_guess);
 
-		const std::string &AddString(const std::string &);
-		const std::string &AddBreakString(const std::string &, unsigned char breakchar = 0xFF);
+		PacketBuilder &AddByte(unsigned char);
+		PacketBuilder &AddChar(unsigned char);
+		PacketBuilder &AddShort(unsigned short);
+		PacketBuilder &AddThree(unsigned int);
+		PacketBuilder &AddInt(unsigned int);
+		PacketBuilder &AddVar(int min, int max, unsigned int);
 
-		void Reset();
+		PacketBuilder &AddString(const std::string &);
+		PacketBuilder &AddBreakString(const std::string &, unsigned char breakchar = 0xFF);
+
+		void Reset(std::size_t size_guess = 0);
 
 		std::string Get() const;
 

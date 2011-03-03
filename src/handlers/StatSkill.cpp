@@ -40,7 +40,7 @@ void StatSkill_Add(Character *character, PacketReader &reader)
 
 	character->CalculateStats();
 
-	PacketBuilder reply(PACKET_STATSKILL, PACKET_PLAYER);
+	PacketBuilder reply(PACKET_STATSKILL, PACKET_PLAYER, 32);
 	reply.AddShort(character->statpoints);
 	reply.AddShort(character->str);
 	reply.AddShort(character->intl);

@@ -26,13 +26,20 @@ void Paperdoll_Request(Character *character, PacketReader &reader)
 		target = character;
 	}
 
-	PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REPLY);
+	std::string home_str = target->world->GetHome(target)->name;
+	std::string guild_str = target->guild ? target->guild->name : "";
+	std::string rank_str = target->guild ? target->guild->GetRank(target->guild_rank) : "";
+
+	PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REPLY,
+		12 + target->name.length() + home_str.length() + target->partner.length() + target->title.length()
+		+ guild_str.length() + rank_str.length() + target->paperdoll.size() * 2);
+
 	reply.AddBreakString(target->name);
-	reply.AddBreakString(target->world->GetHome(target)->name);
+	reply.AddBreakString(home_str);
 	reply.AddBreakString(target->partner);
 	reply.AddBreakString(target->title);
-	reply.AddBreakString(target->guild ? target->guild->name : "");
-	reply.AddBreakString(target->guild ? target->guild->GetRank(target->guild_rank) : "");
+	reply.AddBreakString(guild_str);
+	reply.AddBreakString(rank_str);
 	reply.AddShort(target->player->id);
 	reply.AddChar(target->clas);
 	reply.AddChar(target->gender);
@@ -93,7 +100,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 
 	if (character->Unequip(itemid, subloc))
 	{
-		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REMOVE);
+		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REMOVE, 43);
 		reply.AddShort(character->player->id);
 		reply.AddChar(SLOT_CLOTHES);
 		reply.AddChar(0); // ?
@@ -121,8 +128,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	}
 	// TODO: Only send this if they change a viewable item
 
-	PacketBuilder builder;
-	builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
+	PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 14);
 	builder.AddShort(character->player->id);
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(subloc);
@@ -145,6 +151,8 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 // Equipping an item
 void Paperdoll_Add(Character *character, PacketReader &reader)
 {
+	if (character->trading) return;
+
 	int itemid = reader.GetShort();
 	int subloc = reader.GetChar(); // Used for double slot items (rings etc)
 
@@ -152,7 +160,7 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 
 	if (character->Equip(itemid, subloc))
 	{
-		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_AGREE);
+		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_AGREE, 46);
 		reply.AddShort(character->player->id);
 		reply.AddChar(SLOT_CLOTHES);
 		reply.AddChar(0); // ?
@@ -182,8 +190,7 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 
 	// TODO: Only send this if they change a viewable item
 
-	PacketBuilder builder;
-	builder.SetID(PACKET_CLOTHES, PACKET_AGREE);
+	PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 14);
 	builder.AddShort(character->player->id);
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(subloc);

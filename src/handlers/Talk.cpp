@@ -81,7 +81,7 @@ void Talk_Tell(Character *character, PacketReader &reader)
 	}
 	else
 	{
-		PacketBuilder reply(PACKET_TALK, PACKET_REPLY);
+		PacketBuilder reply(PACKET_TALK, PACKET_REPLY, 2 + name.length());
 		reply.AddShort(TALK_NOTFOUND);
 		reply.AddString(name);
 		character->Send(reply);
@@ -181,7 +181,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 			int amount = (arguments.size() >= 2)?util::to_int(arguments[1]):1;
 			if (character->AddItem(id, amount))
 			{
-				PacketBuilder reply(PACKET_ITEM, PACKET_GET);
+				PacketBuilder reply(PACKET_ITEM, PACKET_GET, 9);
 				reply.AddShort(0); // UID
 				reply.AddShort(id);
 				reply.AddThree(amount);
@@ -207,7 +207,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 					item->unprotecttime = Timer::GetTime() + static_cast<double>(character->world->config["ProtectPlayerDrop"]);
 					character->DelItem(id, amount);
 
-					PacketBuilder reply(PACKET_ITEM, PACKET_DROP);
+					PacketBuilder reply(PACKET_ITEM, PACKET_DROP, 15);
 					reply.AddShort(id);
 					reply.AddThree(amount);
 					reply.AddInt(character->HasItem(id));
@@ -306,7 +306,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 			if (victim)
 			{
 				std::string name = util::ucfirst(victim->name);
-				PacketBuilder reply(PACKET_ADMININTERACT, PACKET_TELL);
+				PacketBuilder reply(PACKET_ADMININTERACT, PACKET_TELL, 85 + name.length());
 				if (victim->admin >= 4)
 				{
 					reply.AddString("High Game Master ");

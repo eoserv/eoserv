@@ -71,8 +71,6 @@ void world_recover(void *world_void)
 {
 	World *world(static_cast<World *>(world_void));
 
-	PacketBuilder builder(PACKET_RECOVER, PACKET_PLAYER);
-
 	UTIL_FOREACH(world->characters, character)
 	{
 		bool updated = false;
@@ -98,7 +96,7 @@ void world_recover(void *world_void)
 
 		if (updated)
 		{
-			builder.Reset();
+			PacketBuilder builder(PACKET_RECOVER, PACKET_PLAYER, 6);
 			builder.AddShort(character->hp);
 			builder.AddShort(character->tp);
 			builder.AddShort(0); // ?
@@ -350,8 +348,10 @@ void World::Msg(Character *from, std::string message, bool echo)
 {
 	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_MSG);
-	builder.AddBreakString(from ? from->name : "Server");
+	std::string from_str = from ? from->name : "Server";
+
+	PacketBuilder builder(PACKET_TALK, PACKET_MSG, 2 + from_str.length() + message.length());
+	builder.AddBreakString(from_str);
 	builder.AddBreakString(message);
 
 	UTIL_FOREACH(this->characters, character)
@@ -369,8 +369,10 @@ void World::AdminMsg(Character *from, std::string message, int minlevel, bool ec
 {
 	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_ADMIN);
-	builder.AddBreakString(from ? from->name : "Server");
+	std::string from_str = from ? from->name : "Server";
+
+	PacketBuilder builder(PACKET_TALK, PACKET_ADMIN, 2 + from_str.length() + message.length());
+	builder.AddBreakString(from_str);
 	builder.AddBreakString(message);
 
 	UTIL_FOREACH(this->characters, character)
@@ -388,8 +390,10 @@ void World::AnnounceMsg(Character *from, std::string message, bool echo)
 {
 	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_ANNOUNCE);
-	builder.AddBreakString(from ? from->name : "Server");
+	std::string from_str = from ? from->name : "Server";
+
+	PacketBuilder builder(PACKET_TALK, PACKET_ANNOUNCE, 2 + from_str.length() + message.length());
+	builder.AddBreakString(from_str);
 	builder.AddBreakString(message);
 
 	UTIL_FOREACH(this->characters, character)
@@ -407,7 +411,7 @@ void World::ServerMsg(std::string message)
 {
 	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width("Server  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_SERVER);
+	PacketBuilder builder(PACKET_TALK, PACKET_SERVER, message.length());
 	builder.AddString(message);
 
 	UTIL_FOREACH(this->characters, character)
@@ -420,7 +424,7 @@ void World::AdminReport(Character *from, std::string reportee, std::string messa
 {
 	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  reports: " + reportee + ", "));
 
-	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY);
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY, 5 + from->name.length() + message.length() + reportee.length());
 	builder.AddChar(2); // message type
 	builder.AddByte(255);
 	builder.AddBreakString(from->name);
@@ -462,7 +466,7 @@ void World::AdminRequest(Character *from, std::string message)
 {
 	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  needs help: "));
 
-	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY);
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY, 4 + from->name.length() + message.length());
 	builder.AddChar(1); // message type
 	builder.AddByte(255);
 	builder.AddBreakString(from->name);
@@ -568,7 +572,7 @@ void World::ReloadPub()
 
 		std::fclose(fh);
 
-		PacketBuilder builder;
+		PacketBuilder builder(PACKET_F_INIT, PACKET_A_INIT, 2 + content.length());
 		builder.AddChar(replycode);
 		builder.AddChar(1); // fileid
 		builder.AddString(content);
@@ -704,7 +708,7 @@ Character *World::CreateCharacter(Player *player, std::string name, Gender gende
 	if (static_cast<int>(this->config["StartMap"]))
 	{
 		startmapinfo = ", `map`, `x`, `y`";
-		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(this->config["StartMap"]), static_cast<int>(this->config["StartX"]), static_cast<int>(this->config["StartY"]));
+		std::snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(this->config["StartMap"]), static_cast<int>(this->config["StartX"]), static_cast<int>(this->config["StartY"]));
 		startmapval = buffer;
 	}
 

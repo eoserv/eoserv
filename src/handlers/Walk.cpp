@@ -35,7 +35,7 @@ static void walk_common(Character *character, PacketReader &reader, bool (Charac
 
 		if (character->trading)
 		{
-			PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE);
+			PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
 			builder.AddShort(character->id);
 			character->trade_partner->Send(builder);
 

@@ -43,7 +43,7 @@ const char *OSErrorString()
 
 	if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, ErrorBuf, 1023, 0))
 	{
-		snprintf(ErrorBuf, 1024, "Unknown error %i", error);
+		std::snprintf(ErrorBuf, 1024, "Unknown error %i", error);
 	}
 	else
 	{

@@ -22,9 +22,9 @@ case ID: \
 	result = this->Handle_##FUNC(family, action, reader, false);\
 	break
 
-void ActionQueue::AddAction(PacketFamily family, PacketAction action, PacketReader reader, double time)
+void ActionQueue::AddAction(PacketReader reader, double time, bool auto_queue)
 {
-	this->queue.push(new ActionQueue_Action(family, action, reader, time));
+	this->queue.push(new ActionQueue_Action(reader, time, auto_queue));
 }
 
 ActionQueue::~ActionQueue()
@@ -49,34 +49,24 @@ void EOClient::Initialize()
 
 void EOClient::Execute(std::string data)
 {
-	PacketFamily family;
-	PacketAction action;
-
 	if (data.length() < 2)
-	{
 		return;
-	}
 
-	data = processor.Decode(data);
+	PacketReader reader(processor.Decode(data));
 
-	family = static_cast<PacketFamily>(static_cast<unsigned char>(data[1]));
-	action = static_cast<PacketAction>(static_cast<unsigned char>(data[0]));
-
-	if (family == PACKET_INTERNAL)
+	if (reader.Family() == PACKET_INTERNAL)
 	{
 		Console::Wrn("Closing client connection sending a reserved packet ID.");
 		this->Close();
 		return;
 	}
 
-	PacketReader reader(data.substr(2));
-
-	if (family != PACKET_F_INIT)
+	if (reader.Family() != PACKET_F_INIT)
 	{
 		reader.GetChar(); // Ordering Byte
 	}
 
-	Handlers::Handle(family, action, this, reader);
+	queue.AddAction(reader, 0.02, true);
 }
 
 void EOClient::Send(const PacketBuilder &builder)

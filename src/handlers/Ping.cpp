@@ -16,7 +16,7 @@ void Ping_Net(Character *character, PacketReader &reader)
 {
 	int something = reader.GetShort();
 
-	PacketBuilder reply(PACKET_PING, PACKET_NET2);
+	PacketBuilder reply(PACKET_PING, PACKET_NET2, 2);
 	reply.AddShort(something);
 	character->Send(reply);
 }

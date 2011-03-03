@@ -290,7 +290,7 @@ void NPC::Spawn(NPC *parent)
 	this->last_act = Timer::GetTime();
 	this->act_speed = speed_table[this->spawn_type];
 
-	PacketBuilder builder(PACKET_APPEAR, PACKET_REPLY);
+	PacketBuilder builder(PACKET_APPEAR, PACKET_REPLY, 8);
 	builder.AddChar(0);
 	builder.AddByte(255);
 	builder.AddChar(this->index);
@@ -476,7 +476,6 @@ void NPC::Damage(Character *from, int amount)
 	int sharemode = this->map->world->config["ShareMode"];
 	int partysharemode = this->map->world->config["PartyShareMode"];
 	std::set<Party *> parties;
-	PacketBuilder builder;
 
 	int limitamount = std::min(this->hp, amount);
 
@@ -512,7 +511,7 @@ void NPC::Damage(Character *from, int amount)
 
 	if (this->hp > 0)
 	{
-		builder.SetID(PACKET_NPC, PACKET_REPLY);
+		PacketBuilder builder(PACKET_NPC, PACKET_REPLY, 11);
 		builder.AddShort(from->player->id);
 		builder.AddChar(from->direction);
 		builder.AddShort(this->index);
@@ -634,9 +633,7 @@ void NPC::Damage(Character *from, int amount)
 			{
 				bool level_up = false;
 
-				builder.Reset();
-
-				builder.SetID(PACKET_NPC, PACKET_SPEC);
+				PacketBuilder builder(PACKET_NPC, PACKET_SPEC, 18);
 
 				if (this->Data()->exp != 0)
 				{
@@ -759,6 +756,7 @@ void NPC::Damage(Character *from, int amount)
 						if (level_up)
 						{
 							builder.SetID(PACKET_NPC, PACKET_ACCEPT);
+							builder.ReserveMore(11);
 						}
 					}
 				}
@@ -832,7 +830,7 @@ void NPC::Damage(Character *from, int amount)
 
 		if (childid != -1)
 		{
-			PacketBuilder builder(PACKET_NPC, PACKET_JUNK);
+			PacketBuilder builder(PACKET_NPC, PACKET_JUNK, 2);
 			builder.AddShort(childid);
 
 			UTIL_FOREACH(this->map->characters, character)
@@ -853,7 +851,7 @@ void NPC::Damage(Character *from, int amount)
 
 void NPC::RemoveFromView(Character *target)
 {
-	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER);
+	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER, 7);
 	builder.AddChar(this->index);
 	if (target->x > 200 && target->y > 200)
 	{
@@ -870,7 +868,7 @@ void NPC::RemoveFromView(Character *target)
 	builder.AddByte(255);
 	builder.AddByte(255);
 
-	PacketBuilder builder2(PACKET_NPC, PACKET_SPEC);
+	PacketBuilder builder2(PACKET_NPC, PACKET_SPEC, 5);
 	builder2.AddShort(0); // killer pid
 	builder2.AddChar(0); // killer direction
 	builder2.AddShort(this->index);
@@ -905,7 +903,7 @@ void NPC::Die(bool show)
 
 	if (show)
 	{
-		PacketBuilder builder(PACKET_NPC, PACKET_SPEC);
+		PacketBuilder builder(PACKET_NPC, PACKET_SPEC, 18);
 		builder.AddShort(0); // killer pid
 		builder.AddChar(0); // killer direction
 		builder.AddShort(this->index);
@@ -990,7 +988,7 @@ void NPC::Attack(Character *target)
 		}
 	}
 
-	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER);
+	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER, 18);
 	builder.AddByte(255);
 	builder.AddChar(this->index);
 	builder.AddChar(1 + (target->hp == 0));
@@ -1044,8 +1042,13 @@ void NPC::Attack(Character *target)
 
 		PacketReader reader("");
 
-		target->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_NULL, reader, 1.5);
-		target->player->client->queue.AddAction(PACKET_INTERNAL, PACKET_INTERNAL_WARP, reader, 0.0);
+		target->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
+			{char(PACKET_INTERNAL_NULL), char(PACKET_INTERNAL)}
+		}.data()), 1.5);
+
+		target->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
+			{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
+		}.data()), 0.0);
 	}
 }
 

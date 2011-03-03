@@ -54,7 +54,7 @@ void Citizen_Reply(Character *character, PacketReader &reader)
 			character->home = character->npc->citizenship->home;
 		}
 
-		PacketBuilder reply(PACKET_CITIZEN, PACKET_REPLY);
+		PacketBuilder reply(PACKET_CITIZEN, PACKET_REPLY, 1);
 		reply.AddChar(questions_wrong);
 
 		character->Send(reply);
@@ -69,7 +69,7 @@ void Citizen_Remove(Character *character, PacketReader &reader)
 
 	if (character->npc_type == ENF::Inn)
 	{
-		PacketBuilder reply(PACKET_CITIZEN, PACKET_REMOVE);
+		PacketBuilder reply(PACKET_CITIZEN, PACKET_REMOVE, 1);
 
 		if (character->home == character->npc->citizenship->home)
 		{
@@ -97,7 +97,9 @@ void Citizen_Open(Character *character, PacketReader &reader)
 			character->npc = npc;
 			character->npc_type = ENF::Inn;
 
-			PacketBuilder reply(PACKET_CITIZEN, PACKET_OPEN);
+			PacketBuilder reply(PACKET_CITIZEN, PACKET_OPEN,
+				9 + npc->citizenship->questions[0].length() + npc->citizenship->questions[1].length() + npc->citizenship->questions[2].length());
+
 			reply.AddThree(1); // ?
 			reply.AddChar(0); // ?
 			reply.AddShort(0); // session
@@ -114,7 +116,7 @@ void Citizen_Open(Character *character, PacketReader &reader)
 }
 
 PACKET_HANDLER_REGISTER(PACKET_CITIZEN)
-	Register(PACKET_REQUEST, Citizen_Request, Playing);
+	// Register(PACKET_REQUEST, Citizen_Request, Playing);
 	Register(PACKET_REPLY, Citizen_Reply, Playing);
 	Register(PACKET_REMOVE, Citizen_Remove, Playing);
 	Register(PACKET_OPEN, Citizen_Open, Playing);

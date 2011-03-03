@@ -134,12 +134,12 @@ std::string variant::GetString() const
 	switch (this->type)
 	{
 		case type_int:
-			snprintf(buf, 1024, "%i", this->val_int);
+			std::snprintf(buf, 1024, "%i", this->val_int);
 			this->val_string = buf;
 			break;
 
 		case type_float:
-			snprintf(buf, 1024, "%lf", this->val_float);
+			std::snprintf(buf, 1024, "%lf", this->val_float);
 			this->val_string = buf;
 			break;
 
@@ -608,6 +608,10 @@ unsigned int to_uint_raw(const std::string &subject)
 	unsigned int result = 0;
 
 	std::size_t i = subject.length();
+
+	if (i == 0)
+		return 0;
+
 	do {
 		--i;
 
