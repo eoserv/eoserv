@@ -147,7 +147,7 @@ void Welcome_Request(Player *player, PacketReader &reader)
 	reply.AddShort(player->character->evade);
 	reply.AddShort(player->character->armor);
 
-	if (player->client->version < 28)
+	if (!player->world->config["OldVersionCompat"] && player->client->version < 28)
 	{
 		reply.AddChar(player->character->str);
 		reply.AddChar(player->character->wis);

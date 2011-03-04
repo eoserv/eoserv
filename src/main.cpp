@@ -240,6 +240,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "CheckVersion"       , true);
 		eoserv_config_default(config, "MinVersion"         , 0);
 		eoserv_config_default(config, "MaxVersion"         , 0);
+		eoserv_config_default(config, "OldVersionCompat"   , false);
 		eoserv_config_default(config, "TimedSave"          , 0);
 		eoserv_config_default(config, "PasswordSalt"       , "ChangeMe");
 		eoserv_config_default(config, "DBType"             , "mysql");
