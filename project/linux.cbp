@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="eoserv" />
+		<Option platforms="Unix;" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="DEBUG+MYSQL+SQLITE">
+				<Option output="../eoserv-debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="../obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
+					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_MYSQL" />
+					<Add option="-DDATABASE_SQLITE" />
+				</Compiler>
+				<Linker>
+					<Add library="mysqlclient" />
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="DEBUG+MYSQL">
+				<Option output="../eoserv-debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="../obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
+					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_MYSQL" />
+				</Compiler>
+				<Linker>
+					<Add library="mysqlclient" />
+				</Linker>
+			</Target>
+			<Target title="DEBUG+SQLITE">
+				<Option output="../eoserv-debug" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="../obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
+					<Add option="-DDEBUG" />
+					<Add option="-DDATABASE_DEBUG" />
+					<Add option="-DDATABASE_SQLITE" />
+				</Compiler>
+				<Linker>
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="MYSQL+SQLITE">
+				<Option output="../eoserv" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="../obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DDATABASE_MYSQL" />
+					<Add option="-DDATABASE_SQLITE" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="mysqlclient" />
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+			<Target title="MYSQL">
+				<Option output="../eoserv" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="../obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DDATABASE_MYSQL" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="mysqlclient" />
+				</Linker>
+			</Target>
+			<Target title="SQLITE">
+				<Option output="../eoserv" prefix_auto="1" extension_auto="1" />
+				<Option working_dir=".." />
+				<Option object_output="../obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DDATABASE_SQLITE" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="sqlite3" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wextra" />
+			<Add option="-Wall" />
+			<Add option="-std=gnu++0x" />
+			<Add option="-include stdafx.h" />
+			<Add option="-DEOSERV_PROJECT" />
+			<Add option="-DEOSERV_PROJECT_CBP" />
+			<Add directory="../src/" />
+		</Compiler>
+		<Linker>
+			<Add library="pthread" />
+			<Add library="rt" />
+		</Linker>
+		<Unit filename="../src/arena.cpp" />
+		<Unit filename="../src/arena.hpp" />
+		<Unit filename="../src/character.cpp" />
+		<Unit filename="../src/character.hpp" />
+		<Unit filename="../src/config.cpp" />
+		<Unit filename="../src/config.hpp" />
+		<Unit filename="../src/console.cpp" />
+		<Unit filename="../src/console.hpp" />
+		<Unit filename="../src/database.cpp" />
+		<Unit filename="../src/database.hpp" />
+		<Unit filename="../src/database_impl.hpp" />
+		<Unit filename="../src/eoclient.cpp" />
+		<Unit filename="../src/eoclient.hpp" />
+		<Unit filename="../src/eodata.cpp" />
+		<Unit filename="../src/eodata.hpp" />
+		<Unit filename="../src/eoserver.cpp" />
+		<Unit filename="../src/eoserver.hpp" />
+		<Unit filename="../src/fwd/arena.hpp" />
+		<Unit filename="../src/fwd/character.hpp" />
+		<Unit filename="../src/fwd/config.hpp" />
+		<Unit filename="../src/fwd/console.hpp" />
+		<Unit filename="../src/fwd/database.hpp" />
+		<Unit filename="../src/fwd/eoclient.hpp" />
+		<Unit filename="../src/fwd/eodata.hpp" />
+		<Unit filename="../src/fwd/eoserver.hpp" />
+		<Unit filename="../src/fwd/guild.hpp" />
+		<Unit filename="../src/fwd/map.hpp" />
+		<Unit filename="../src/fwd/nanohttp.hpp" />
+		<Unit filename="../src/fwd/npc.hpp" />
+		<Unit filename="../src/fwd/packet.hpp" />
+		<Unit filename="../src/fwd/party.hpp" />
+		<Unit filename="../src/fwd/player.hpp" />
+		<Unit filename="../src/fwd/sln.hpp" />
+		<Unit filename="../src/fwd/socket.hpp" />
+		<Unit filename="../src/fwd/timer.hpp" />
+		<Unit filename="../src/fwd/world.hpp" />
+		<Unit filename="../src/guild.cpp" />
+		<Unit filename="../src/guild.hpp" />
+		<Unit filename="../src/handlers/Account.cpp" />
+		<Unit filename="../src/handlers/AdminInteract.cpp" />
+		<Unit filename="../src/handlers/Attack.cpp" />
+		<Unit filename="../src/handlers/Bank.cpp" />
+		<Unit filename="../src/handlers/Barber.cpp" />
+		<Unit filename="../src/handlers/Board.cpp" />
+		<Unit filename="../src/handlers/Book.cpp" />
+		<Unit filename="../src/handlers/Chair.cpp" />
+		<Unit filename="../src/handlers/Character.cpp" />
+		<Unit filename="../src/handlers/Chest.cpp" />
+		<Unit filename="../src/handlers/Citizen.cpp" />
+		<Unit filename="../src/handlers/Connection.cpp" />
+		<Unit filename="../src/handlers/Door.cpp" />
+		<Unit filename="../src/handlers/Emote.cpp" />
+		<Unit filename="../src/handlers/Face.cpp" />
+		<Unit filename="../src/handlers/Global.cpp" />
+		<Unit filename="../src/handlers/Guild.cpp" />
+		<Unit filename="../src/handlers/Init.cpp" />
+		<Unit filename="../src/handlers/Internal.cpp" />
+		<Unit filename="../src/handlers/Item.cpp" />
+		<Unit filename="../src/handlers/Jukebox.cpp" />
+		<Unit filename="../src/handlers/Locker.cpp" />
+		<Unit filename="../src/handlers/Login.cpp" />
+		<Unit filename="../src/handlers/Paperdoll.cpp" />
+		<Unit filename="../src/handlers/Party.cpp" />
+		<Unit filename="../src/handlers/Ping.cpp" />
+		<Unit filename="../src/handlers/Players.cpp" />
+		<Unit filename="../src/handlers/Refresh.cpp" />
+		<Unit filename="../src/handlers/Shop.cpp" />
+		<Unit filename="../src/handlers/Sit.cpp" />
+		<Unit filename="../src/handlers/StatSkill.cpp" />
+		<Unit filename="../src/handlers/Talk.cpp" />
+		<Unit filename="../src/handlers/Trade.cpp" />
+		<Unit filename="../src/handlers/Walk.cpp" />
+		<Unit filename="../src/handlers/Warp.cpp" />
+		<Unit filename="../src/handlers/Welcome.cpp" />
+		<Unit filename="../src/handlers/handlers.cpp" />
+		<Unit filename="../src/handlers/handlers.hpp" />
+		<Unit filename="../src/hash.cpp" />
+		<Unit filename="../src/hash.hpp" />
+		<Unit filename="../src/main.cpp" />
+		<Unit filename="../src/map.cpp" />
+		<Unit filename="../src/map.hpp" />
+		<Unit filename="../src/nanohttp.cpp" />
+		<Unit filename="../src/nanohttp.hpp" />
+		<Unit filename="../src/npc.cpp" />
+		<Unit filename="../src/npc.hpp" />
+		<Unit filename="../src/packet.cpp" />
+		<Unit filename="../src/packet.hpp" />
+		<Unit filename="../src/party.cpp" />
+		<Unit filename="../src/party.hpp" />
+		<Unit filename="../src/player.cpp" />
+		<Unit filename="../src/player.hpp" />
+		<Unit filename="../src/sha256.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/sha256.h" />
+		<Unit filename="../src/sln.cpp" />
+		<Unit filename="../src/sln.hpp" />
+		<Unit filename="../src/socket.cpp" />
+		<Unit filename="../src/socket.hpp" />
+		<Unit filename="../src/socket_impl.hpp" />
+		<Unit filename="../src/stdafx.h">
+			<Option compile="1" />
+			<Option weight="0" />
+		</Unit>
+		<Unit filename="../src/timer.cpp" />
+		<Unit filename="../src/timer.hpp" />
+		<Unit filename="../src/util.cpp" />
+		<Unit filename="../src/util.hpp" />
+		<Unit filename="../src/world.cpp" />
+		<Unit filename="../src/world.hpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<DoxyBlocks>
+				<comment_style block="0" line="0" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
