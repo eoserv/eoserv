@@ -203,7 +203,7 @@ static void sha256_process(sha256_context *ctx, const u8 data[BLOCK_SIZE])
 void sha256_update(sha256_context *ctx, const u8 *input, unsigned long length)
 {
 	unsigned long n;
-	int pos = ctx->length[0] & 0x3F;
+	unsigned int pos = ctx->length[0] & 0x3F;
 
 	ctx->length[0] += length;
 	ctx->length[0] &= u32_max;

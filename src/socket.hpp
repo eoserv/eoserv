@@ -220,20 +220,31 @@ class Client
 		std::auto_ptr<impl_> impl;
 
 	protected:
+		Server *server;
 		bool connected;
 		std::time_t closed_time;
-		std::string send_buffer;
-		std::string recv_buffer;
-		Server *server;
-		std::size_t recv_buffer_max;
-		std::size_t send_buffer_max;
 		std::time_t connect_time;
+
+		std::string recv_buffer;
+		std::size_t recv_buffer_gpos;
+		std::size_t recv_buffer_ppos;
+		std::size_t recv_buffer_used;
+
+		std::string send_buffer;
+		std::size_t send_buffer_gpos;
+		std::size_t send_buffer_ppos;
+		std::size_t send_buffer_used;
+
 
 	public:
 		Client();
 		Client(const IPAddress &addr, std::uint16_t port);
 		Client(Server *);
 		Client(const Socket &, Server *);
+
+		void SetRecvBuffer(std::size_t size);
+		void SetSendBuffer(std::size_t size);
+
 		bool Connect(const IPAddress &addr, std::uint16_t port);
 		void Bind(const IPAddress &addr, std::uint16_t port);
 		std::string Recv(std::size_t length);

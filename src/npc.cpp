@@ -633,7 +633,7 @@ void NPC::Damage(Character *from, int amount)
 			{
 				bool level_up = false;
 
-				PacketBuilder builder(PACKET_NPC, PACKET_SPEC, 18);
+				PacketBuilder builder(PACKET_NPC, PACKET_SPEC, 22);
 
 				if (this->Data()->exp != 0)
 				{

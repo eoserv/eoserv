@@ -6,9 +6,11 @@
 
 #include "socket.hpp"
 
+#include <algorithm>
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
+#include <stdexcept>
 
 #include "socket_impl.hpp"
 
@@ -209,41 +211,80 @@ struct Client::impl_
 
 Client::Client()
 	: impl(new impl_(socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)))
-	, connected(false)
 	, server(0)
-	, recv_buffer_max(-1U)
-	, send_buffer_max(-1U)
+	, connected(false)
 	, connect_time(0)
+	, recv_buffer_gpos(0)
+	, recv_buffer_ppos(0)
+	, recv_buffer_used(0)
+	, send_buffer_gpos(0)
+	, send_buffer_ppos(0)
+	, send_buffer_used(0)
 { }
 
 Client::Client(const IPAddress &addr, uint16_t port)
 	: impl(new impl_(socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)))
-	, connected(false)
 	, server(0)
-	, recv_buffer_max(-1U)
-	, send_buffer_max(-1U)
+	, connected(false)
 	, connect_time(0)
+	, recv_buffer_gpos(0)
+	, recv_buffer_ppos(0)
+	, recv_buffer_used(0)
+	, send_buffer_gpos(0)
+	, send_buffer_ppos(0)
+	, send_buffer_used(0)
 {
 	this->Connect(addr, port);
 }
 
 Client::Client(Server *server)
 	: impl(new impl_(socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)))
-	, connected(false)
 	, server(server)
-	, recv_buffer_max(-1U)
-	, send_buffer_max(-1U)
+	, connected(false)
 	, connect_time(0)
+	, recv_buffer_gpos(0)
+	, recv_buffer_ppos(0)
+	, recv_buffer_used(0)
+	, send_buffer_gpos(0)
+	, send_buffer_ppos(0)
+	, send_buffer_used(0)
 { }
 
 Client::Client(const Socket &sock, Server *server)
 	: impl(new impl_(sock.sock, sock.sin))
-	, connected(true)
 	, server(server)
-	, recv_buffer_max(-1U)
-	, send_buffer_max(-1U)
-	, connect_time(0)
+	, connected(true)
+	, connect_time(std::time(0))
+	, recv_buffer_gpos(0)
+	, recv_buffer_ppos(0)
+	, recv_buffer_used(0)
+	, send_buffer_gpos(0)
+	, send_buffer_ppos(0)
+	, send_buffer_used(0)
 { }
+
+inline void assert_power_of_two(std::size_t size)
+{
+	while ((size & 1) == 0)
+	{
+		size >>= 1;
+	}
+
+	if (size > 1)
+		throw std::runtime_error("Buffer size must be a power of two");
+}
+
+void Client::SetRecvBuffer(std::size_t size)
+{
+	assert_power_of_two(size);
+	this->recv_buffer.resize(size);
+}
+
+void Client::SetSendBuffer(std::size_t size)
+{
+	assert_power_of_two(size);
+	this->send_buffer.resize(size);
+}
 
 bool Client::Connect(const IPAddress &addr, uint16_t port)
 {
@@ -256,6 +297,8 @@ bool Client::Connect(const IPAddress &addr, uint16_t port)
 	{
 		return this->connected = false;
 	}
+
+	this->connect_time = std::time(0);
 
 	return this->connected = true;
 }
@@ -278,23 +321,39 @@ void Client::Bind(const IPAddress &addr, uint16_t port)
 
 std::string Client::Recv(std::size_t length)
 {
-	if (length <= 0)
+	length = std::min(length, this->recv_buffer_used);
+
+	std::string ret(length, char());
+
+	const std::size_t mask = this->recv_buffer.length() - 1;
+
+	for (std::size_t i = 0; i < length; ++i)
 	{
-		return "";
+		this->recv_buffer_gpos = (this->recv_buffer_gpos + 1) & mask;
+		ret[i] = this->recv_buffer[this->recv_buffer_gpos];
 	}
-	std::string ret = this->recv_buffer.substr(0, length);
-	this->recv_buffer.erase(0, length);
+
+	this->recv_buffer_used -= length;
+
 	return ret;
 }
 
 void Client::Send(const std::string &data)
 {
-	this->send_buffer += data;
-
-	if (this->send_buffer.length() > this->send_buffer_max)
+	if (data.length() > this->send_buffer.length() - this->send_buffer_used)
 	{
-		this->connected = false;
+		this->Close(true);
 	}
+
+	const std::size_t mask = this->send_buffer.length() - 1;
+
+	for (std::size_t i = 0; i < data.length(); ++i)
+	{
+		this->send_buffer_ppos = (this->send_buffer_ppos + 1) & mask;
+		this->send_buffer[this->send_buffer_ppos] = data[i];
+	}
+
+	this->send_buffer_used += data.length();
 }
 
 #if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
@@ -321,40 +380,64 @@ void Client::Tick(double timeout)
 	{
 		if (fd.revents & POLLERR || fd.revents & POLLHUP || fd.revents & POLLNVAL)
 		{
-			this->Close();
+			this->Close(true);
 			return;
 		}
 
 		if (fd.revents & POLLIN)
 		{
-			char buf[32767];
-			int recieved = recv(this->impl->sock, buf, 32767, 0);
+			char buf[8192];
+
+			const int to_recv = std::min(this->recv_buffer.length() - this->recv_buffer_used, sizeof(buf));
+
+			if (to_recv == 0)
+				return;
+
+			const int recieved = recv(this->impl->sock, buf, to_recv, 0);
+
 			if (recieved > 0)
 			{
-				this->recv_buffer.append(buf, recieved);
+				const std::size_t mask = this->recv_buffer.length() - 1;
+
+				for (int i = 0; i < recieved; ++i)
+				{
+					this->recv_buffer_ppos = (this->recv_buffer_ppos + 1) & mask;
+					this->recv_buffer[this->recv_buffer_ppos] = buf[i];
+				}
+
+				this->recv_buffer_used += recieved;
 			}
 			else
 			{
-				this->Close();
-				return;
-			}
-
-			if (this->recv_buffer.length() > this->recv_buffer_max)
-			{
-				this->Close();
+				this->Close(true);
 				return;
 			}
 		}
 
 		if (fd.revents & POLLOUT)
 		{
-			int written = send(this->impl->sock, this->send_buffer.c_str(), this->send_buffer.length(), 0);
+			char buf[8192];
+
+			const std::size_t mask = this->send_buffer.length() - 1;
+			const std::size_t gpos = this->send_buffer_gpos;
+
+			std::size_t to_send;
+			for (to_send = 0; to_send < std::min(this->send_buffer_used, sizeof(buf)); ++to_send)
+			{
+				this->send_buffer_gpos = (this->send_buffer_gpos + 1) & mask;
+				buf[to_send] = this->send_buffer[this->send_buffer_gpos];
+			}
+
+			const int written = send(this->impl->sock, buf, to_send, 0);
+
 			if (written == SOCKET_ERROR)
 			{
-				this->Close();
+				this->Close(true);
 				return;
 			}
-			this->send_buffer.erase(0,written);
+
+			this->send_buffer_gpos = (gpos + written) & mask;
+			this->send_buffer_used -= written;
 		}
 	}
 }
@@ -369,12 +452,12 @@ void Client::Tick(double timeout)
 	FD_ZERO(&write_fds);
 	FD_ZERO(&except_fds);
 
-	if (this->recv_buffer.length() < this->recv_buffer_max)
+	if (this->recv_buffer_used != this->recv_buffer.length())
 	{
 		FD_SET(this->impl->sock, &read_fds);
 	}
 
-	if (this->send_buffer.length() > 0)
+	if (this->send_buffer_used > 0)
 	{
 		FD_SET(this->impl->sock, &write_fds);
 	}
@@ -391,40 +474,64 @@ void Client::Tick(double timeout)
 	{
 		if (FD_ISSET(this->impl->sock, &except_fds))
 		{
-			this->Close();
+			this->Close(true);
 			return;
 		}
 
 		if (FD_ISSET(this->impl->sock, &read_fds))
 		{
-			char buf[32767];
-			int recieved = recv(this->impl->sock, buf, 32767, 0);
+			char buf[8192];
+
+			const int to_recv = std::min(this->recv_buffer.length() - this->recv_buffer_used, sizeof(buf));
+
+			if (to_recv == 0)
+				return;
+
+			const int recieved = recv(this->impl->sock, buf, to_recv, 0);
+
 			if (recieved > 0)
 			{
-				this->recv_buffer.append(buf, recieved);
+				const std::size_t mask = this->recv_buffer.length() - 1;
+
+				for (int i = 0; i < recieved; ++i)
+				{
+					this->recv_buffer_ppos = (this->recv_buffer_ppos + 1) & mask;
+					this->recv_buffer[this->recv_buffer_ppos] = buf[i];
+				}
+
+				this->recv_buffer_used += recieved;
 			}
 			else
 			{
-				this->Close();
-				return;
-			}
-
-			if (this->recv_buffer.length() > this->recv_buffer_max)
-			{
-				this->Close();
+				this->Close(true);
 				return;
 			}
 		}
 
 		if (FD_ISSET(this->impl->sock, &write_fds))
 		{
-			int written = send(this->impl->sock, this->send_buffer.c_str(), this->send_buffer.length(), 0);
+			char buf[8192];
+
+			const std::size_t mask = this->send_buffer.length() - 1;
+			const std::size_t gpos = this->send_buffer_gpos;
+
+			std::size_t to_send;
+			for (to_send = 0; to_send < std::min(this->send_buffer_used, sizeof(buf)); ++to_send)
+			{
+				this->send_buffer_gpos = (this->send_buffer_gpos + 1) & mask;
+				buf[to_send] = this->send_buffer[this->send_buffer_gpos];
+			}
+
+			const int written = send(this->impl->sock, buf, to_send, 0);
+
 			if (written == SOCKET_ERROR)
 			{
-				this->Close();
+				this->Close(true);
 				return;
 			}
-			this->send_buffer.erase(0,written);
+
+			this->send_buffer_gpos = (gpos + written) & mask;
+			this->send_buffer_used -= written;
 		}
 	}
 }
@@ -437,7 +544,7 @@ bool Client::Connected()
 
 void Client::Close(bool force)
 {
-	if (this->connected)
+	if (this->Connected())
 	{
 		this->connected = false;
 		this->closed_time = std::time(0);
@@ -462,9 +569,14 @@ time_t Client::ConnectTime()
 
 Client::~Client()
 {
-	if (this->connected)
+	if (this->Connected())
 	{
-		this->Close();
+		this->Close(true);
+#if defined(WIN32) || defined(WIN64)
+		closesocket(this->impl->sock);
+#else // defined(WIN32) || defined(WIN64)
+		close(this->impl->sock);
+#endif // defined(WIN32) || defined(WIN64)
 	}
 }
 
@@ -483,16 +595,16 @@ struct Server::impl_
 Server::Server()
 	: impl(new impl_(socket(AF_INET, SOCK_STREAM, 0)))
 	, state(Created)
-	, recv_buffer_max(128 * 1024)
-	, send_buffer_max(128 * 1024)
+	, recv_buffer_max(32 * 1024)
+	, send_buffer_max(32 * 1024)
 	, maxconn(0)
 { }
 
 Server::Server(const IPAddress &addr, uint16_t port)
 	: impl(new impl_(socket(AF_INET, SOCK_STREAM, 0)))
 	, state(Created)
-	, recv_buffer_max(128 * 1024)
-	, send_buffer_max(128 * 1024)
+	, recv_buffer_max(32 * 1024)
+	, send_buffer_max(32 * 1024)
 	, maxconn(0)
 {
 	this->Bind(addr, port);
@@ -577,9 +689,8 @@ Client *Server::Poll()
 #endif // defined(WIN32) || defined(WIN64)
 
 	newclient = this->ClientFactory(Socket(newsock, sin));
-	newclient->send_buffer_max = this->send_buffer_max;
-	newclient->recv_buffer_max = this->recv_buffer_max;
-	newclient->connect_time = time(0);
+	newclient->SetRecvBuffer(this->recv_buffer_max);
+	newclient->SetSendBuffer(this->send_buffer_max);
 
 	this->clients.push_back(newclient);
 
@@ -639,47 +750,71 @@ std::vector<Client *> *Server::Select(double timeout)
 			++i;
 			if (fds[i].revents & POLLERR || fds[i].revents & POLLHUP || fds[i].revents & POLLNVAL)
 			{
-				client->Close();
+				client->Close(true);
 				continue;
 			}
 
 			if (fds[i].revents & POLLIN)
 			{
-				char buf[32767];
-				int recieved = recv(client->impl->sock, buf, 32767, 0);
+				char buf[8192];
+
+				const int to_recv = std::min(client->recv_buffer.length() - client->recv_buffer_used, sizeof(buf));
+
+				if (to_recv == 0)
+					continue;
+
+				const int recieved = recv(client->impl->sock, buf, to_recv, 0);
+
 				if (recieved > 0)
 				{
-					client->recv_buffer.append(buf, recieved);
+					const std::size_t mask = client->recv_buffer.length() - 1;
+
+					for (int i = 0; i < recieved; ++i)
+					{
+						client->recv_buffer_ppos = (client->recv_buffer_ppos + 1) & mask;
+						client->recv_buffer[client->recv_buffer_ppos] = buf[i];
+					}
+
+					client->recv_buffer_used += recieved;
 				}
 				else
 				{
-					client->Close();
-					continue;
-				}
-
-				if (client->recv_buffer.length() > client->recv_buffer_max)
-				{
-					client->Close();
+					client->Close(true);
 					continue;
 				}
 			}
 
 			if (fds[i].revents & POLLOUT)
 			{
-				int written = send(client->impl->sock, client->send_buffer.c_str(), client->send_buffer.length(), 0);
+				char buf[8192];
+
+				const std::size_t mask = client->send_buffer.length() - 1;
+				const std::size_t gpos = client->send_buffer_gpos;
+
+				std::size_t to_send;
+				for (to_send = 0; to_send < std::min(client->send_buffer_used, sizeof(buf)); ++to_send)
+				{
+					client->send_buffer_gpos = (client->send_buffer_gpos + 1) & mask;
+					buf[to_send] = client->send_buffer[client->send_buffer_gpos];
+				}
+
+				const int written = send(client->impl->sock, buf, to_send, 0);
+
 				if (written == SOCKET_ERROR)
 				{
-					client->Close();
+					client->Close(true);
 					continue;
 				}
-				client->send_buffer.erase(0,written);
+
+				client->send_buffer_gpos = (gpos + written) & mask;
+				client->send_buffer_used -= written;
 			}
 		}
 	}
 
 	UTIL_FOREACH(this->clients, client)
 	{
-		if (client->connected || client->recv_buffer.length() > 0)
+		if (client->recv_buffer_used > 0)
 		{
 			selected.push_back(client);
 		}
@@ -702,12 +837,12 @@ std::vector<Client *> *Server::Select(double timeout)
 
 	UTIL_FOREACH(this->clients, client)
 	{
-		if (client->recv_buffer.length() < client->recv_buffer_max)
+		if (client->recv_buffer_used != client->recv_buffer.length())
 		{
 			FD_SET(client->impl->sock, &this->impl->read_fds);
 		}
 
-		if (client->send_buffer.length() > 0)
+		if (client->send_buffer_used > 0)
 		{
 			FD_SET(client->impl->sock, &this->impl->write_fds);
 		}
@@ -740,47 +875,70 @@ std::vector<Client *> *Server::Select(double timeout)
 		{
 			if (FD_ISSET(client->impl->sock, &this->impl->except_fds))
 			{
-				client->Close();
+				client->Close(true);
 				continue;
 			}
 
 			if (FD_ISSET(client->impl->sock, &this->impl->read_fds))
 			{
-				char buf[32767];
-				int recieved = recv(client->impl->sock, buf, 32767, 0);
+				char buf[8192];
+
+				const int to_recv = std::min(client->recv_buffer.length() - client->recv_buffer_used, sizeof(buf));
+
+				if (to_recv == 0)
+					continue;
+
+				const int recieved = recv(client->impl->sock, buf, to_recv, 0);
+
 				if (recieved > 0)
 				{
-					client->recv_buffer.append(buf, recieved);
+					const std::size_t mask = client->recv_buffer.length() - 1;
+
+					for (int i = 0; i < recieved; ++i)
+					{
+						client->recv_buffer_ppos = (client->recv_buffer_ppos + 1) & mask;
+						client->recv_buffer[client->recv_buffer_ppos] = buf[i];
+					}
+
+					client->recv_buffer_used += recieved;
 				}
 				else
 				{
-					client->Close();
-					continue;
-				}
-
-				if (client->recv_buffer.length() > client->recv_buffer_max)
-				{
-					client->Close();
+					client->Close(true);
 					continue;
 				}
 			}
 
 			if (FD_ISSET(client->impl->sock, &this->impl->write_fds))
 			{
-				int written = send(client->impl->sock, client->send_buffer.c_str(), client->send_buffer.length(), 0);
+				char buf[8192];
+
+				const std::size_t mask = client->send_buffer.length() - 1;
+				const std::size_t gpos = client->send_buffer_gpos;
+
+				std::size_t to_send;
+				for (to_send = 0; to_send < std::min(client->send_buffer_used, sizeof(buf)); ++to_send)
+				{
+					client->send_buffer_gpos = (client->send_buffer_gpos + 1) & mask;
+					buf[to_send] = client->send_buffer[client->send_buffer_gpos];
+				}
+
+				const int written = send(client->impl->sock, buf, to_send, 0);
 				if (written == SOCKET_ERROR)
 				{
-					client->Close();
+					client->Close(true);
 					continue;
 				}
-				client->send_buffer.erase(0,written);
+
+				client->send_buffer_gpos = (gpos + written) & mask;
+				client->send_buffer_used -= written;
 			}
 		}
 	}
 
 	UTIL_FOREACH(this->clients, client)
 	{
-		if (client->recv_buffer.length() > 0)
+		if (client->recv_buffer_used > 0)
 		{
 			selected.push_back(client);
 		}
