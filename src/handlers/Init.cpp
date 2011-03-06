@@ -61,11 +61,12 @@ void Init_Init(EOClient *client, PacketReader &reader)
 		}
 	}
 
-	if (pc_connections > static_cast<int>(client->server()->world->config["MaxConnectionsPerPC"]))
+	const int max_per_pc = int(client->server()->world->config["MaxConnectionsPerPC"]);
+
+	if (max_per_pc != 0 && pc_connections > max_per_pc)
 	{
-		Console::Wrn("Connection from %s was rejected (too many connections from this PC: %08X)", static_cast<std::string>(client->GetRemoteAddr()).c_str(), client->hdid);
+		Console::Wrn("Connection from %s was rejected (too many connections from this PC: %08x)", static_cast<std::string>(client->GetRemoteAddr()).c_str(), client->hdid);
 		client->Close(true);
-		return;
 	}
 
 	int ban_expires;

@@ -569,9 +569,12 @@ int main(int argc, char *argv[])
 				bool throttle = false;
 				IPAddress remote_addr = newclient->GetRemoteAddr();
 
+				const int reconnect_limit = int(config["IPReconnectLimit"]);
+				const int max_per_ip = int(config["MaxConnectionsPerIP"]);
+
 				UTIL_IFOREACH(connection_log, connection)
 				{
-					if (connection->second + static_cast<int>(config["IPReconnectLimit"]) < Timer::GetTime())
+					if (connection->second + reconnect_limit < Timer::GetTime())
 					{
 						connection = connection_log.erase(connection);
 
@@ -602,7 +605,7 @@ int main(int argc, char *argv[])
 					Console::Wrn("Connection from %s was rejected (reconnecting too fast)", static_cast<std::string>(newclient->GetRemoteAddr()).c_str());
 					newclient->Close(true);
 				}
-				else if (ip_connections > static_cast<int>(config["MaxConnectionsPerIP"]))
+				else if (max_per_ip != 0 && ip_connections > max_per_ip)
 				{
 					Console::Wrn("Connection from %s was rejected (too many connections from this address)", static_cast<std::string>(remote_addr).c_str());
 					newclient->Close(true);
