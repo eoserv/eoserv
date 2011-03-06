@@ -118,6 +118,7 @@
 			<Add option="-include stdafx.h" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
+			<Add directory="/usr/include/mysql" />
 			<Add directory="../src/" />
 		</Compiler>
 		<Linker>
