@@ -9,6 +9,7 @@
 #include <cmath>
 #include <stdexcept>
 
+#include "console.hpp"
 #include "eoclient.hpp"
 #include "world.hpp"
 
@@ -40,11 +41,30 @@ void Init_Init(EOClient *client, PacketReader &reader)
 
 	try
 	{
-		client->hdid = static_cast<int>(util::to_uint_raw(reader.GetEndString()));
+		client->hdid = int(util::to_uint_raw(reader.GetEndString()));
 	}
 	catch (std::invalid_argument)
 	{
 		client->Close();
+		return;
+	}
+
+	int pc_connections = 0;
+
+	UTIL_FOREACH(client->server()->clients, checkclient)
+	{
+		EOClient *checkeoclient = static_cast<EOClient *>(checkclient);
+
+		if (checkeoclient->hdid == client->hdid && checkeoclient->GetRemoteAddr() == client->GetRemoteAddr())
+		{
+			++pc_connections;
+		}
+	}
+
+	if (pc_connections > static_cast<int>(client->server()->world->config["MaxConnectionsPerPC"]))
+	{
+		Console::Wrn("Connection from %s was rejected (too many connections from this PC: %08X)", static_cast<std::string>(client->GetRemoteAddr()).c_str(), client->hdid);
+		client->Close(true);
 		return;
 	}
 
