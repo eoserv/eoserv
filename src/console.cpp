@@ -43,8 +43,20 @@ void ResetTextColor(Stream stream)
 #else // defined(WIN32) || defined(WIN64)
 void SetTextColor(Stream stream, Color color, bool bold)
 {
-	char command[6] = {27, '[', '3', '0', 'm', 0};
-	command[4] += (color - 30);
+	char command[8] = {27, '[', '1', ';', '3', '0', 'm', 0};
+
+	if (bold)
+	{
+		command[5] += (color - 30);
+	}
+	else
+	{
+		for (int i = 2; i < 6; ++i)
+			command[i] = command[i + 2];
+
+		command[3] += (color - 30);
+	}
+
 	std::fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
 }
 
