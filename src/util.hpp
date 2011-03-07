@@ -39,52 +39,13 @@ template <class T, size_t N> inline const T* cend(T(&a)[N]) { return a + N; }
 
 // C++0x for-range loops are still fairly unsupported
 
-template <class T> struct foreach_helper
-{
-	typedef T iterator;
-	iterator it;
-	iterator end;
-
-	foreach_helper(iterator begin, iterator end)
-		: it(begin)
-		, end(end)
-	{ }
-
-	iterator operator ++(int)
-	{
-		return ++it;
-	}
-
-	iterator operator ++()
-	{
-		return it++;
-	}
-
-	operator bool() const
-	{
-		return it != end;
-	}
-
-	iterator get() const
-	{
-		return it;
-	}
-};
-
-template <class T> foreach_helper<T> make_foreach_helper(T begin, T end)
-{
-	return foreach_helper<T>(begin, end);
-}
-
 #define UTIL_RANGE(c) (util::begin(c)), (util::end(c))
 #define UTIL_CRANGE(c) (util::cbegin(c)), (util::cend(c))
 
 #define UTIL_FOREACH_GENERIC(begin, end, as) \
-	for (int _util_i_ = -1; _util_i_ == -1; ) \
-		for (auto _util_foreach_ = util::make_foreach_helper((begin), (end)); _util_i_ == -1; ++_util_i_) \
-			for (_util_i_ = 3; _util_i_ == 3 && _util_foreach_; _util_i_ == 2 && (++_util_foreach_, ++_util_i_)) \
-				for (_util_i_ = 0; _util_i_ == 0; ++_util_i_) \
-					for (auto as = *_util_foreach_.get(); _util_i_ == 0; ++_util_i_)
+	if (int _util_continue_ = 1) \
+		for (auto _util_it_ = begin; _util_it_ != end && _util_continue_--; ++_util_it_) \
+				for (auto as = *_util_it_; !_util_continue_; _util_continue_ = 1)
 
 #define UTIL_FOREACH(c, as) UTIL_FOREACH_GENERIC(util::begin(c), util::end(c), as)
 #define UTIL_CFOREACH(c, as) UTIL_FOREACH_GENERIC(util::cbegin(c),util::cend(c), as)

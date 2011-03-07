@@ -28,6 +28,7 @@ void server_pump_queue(void *server_void);
 class EOServer : public Server
 {
 	private:
+		std::unordered_map<IPAddress, double, std::hash<IPAddress>> connection_log;
 		void Initialize(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 
 	protected:
@@ -42,6 +43,8 @@ class EOServer : public Server
 		{
 			this->Initialize(dbinfo, eoserv_config, admin_config);
 		}
+
+		void Tick();
 
 		~EOServer();
 };

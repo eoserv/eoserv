@@ -15,20 +15,41 @@ HTTP::HTTP(std::string host, unsigned short port, std::string path, const IPAddr
 {
 	std::string request;
 
+	this->status = 0;
 	this->done = false;
 
-	request = "GET " + path + " HTTP/1.0\r\n"
+	request = "GET " + path + " HTTP/1.1\r\n"
 	"Host: " + host + "\r\n"
 	"User-Agent: EOSERV\r\n"
-	"Accept: text/plain\r\n"
+	"Accept: */*\r\n"
+	"Accept-Encoding: \r\n"
 	"Connection: close\r\n"
 	"\r\n";
 
 	client = new Client;
+
 	if (static_cast<unsigned int>(outgoing) != 0)
 	{
-		client->Bind(outgoing, util::rand(49152, 65535));
+		int retry = 0;
+
+		while (true)
+		{
+			try
+			{
+				client->Bind(outgoing, util::rand(49152, 65535));
+				break;
+			}
+			catch (Socket_BindFailed &e)
+			{
+				if (++retry >= 10)
+					throw;
+			}
+		}
 	}
+
+	client->SetSendBuffer(8192);
+	client->SetRecvBuffer(8192);
+
 	client->Connect(IPAddress::Lookup(host), port);
 
 	this->done = false;
@@ -81,9 +102,10 @@ HTTP *HTTP::RequestURL(std::string url, const IPAddress &outgoing)
 
 void HTTP::Tick(double timeout)
 {
-	this->client->Tick(timeout);
-
-	this->response += this->client->Recv(32767);
+	if (this->client->Select(timeout))
+	{
+		this->response += this->client->Recv(8192);
+	}
 
 	if (!this->client->Connected())
 	{
@@ -91,7 +113,9 @@ void HTTP::Tick(double timeout)
 		{
 			this->status = util::to_int(this->response.substr(9,3));
 		}
+
 		std::size_t startcontent = this->response.find("\r\n\r\n");
+
 		if (startcontent == std::string::npos)
 		{
 			this->response = "";
@@ -100,6 +124,7 @@ void HTTP::Tick(double timeout)
 		{
 			this->response = this->response.substr(startcontent+4);
 		}
+
 		this->done = true;
 	}
 }

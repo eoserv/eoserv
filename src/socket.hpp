@@ -247,13 +247,22 @@ class Client
 
 		bool Connect(const IPAddress &addr, std::uint16_t port);
 		void Bind(const IPAddress &addr, std::uint16_t port);
+
 		std::string Recv(std::size_t length);
 		void Send(const std::string &data);
-		void Tick(double timeout);
-		bool Connected();
-		IPAddress GetRemoteAddr();
+
+		bool DoRecv();
+		bool DoSend();
+
+		bool Select(double timeout);
+
+		bool Connected() const;
+		IPAddress GetRemoteAddr() const;
+
 		void Close(bool force = false);
-		std::time_t ConnectTime();
+
+		std::time_t ConnectTime() const;
+
 		virtual ~Client();
 
 	// TODO: Separate Socket type
@@ -390,17 +399,17 @@ class Server
 		 */
 		void BuryTheDead();
 
-		State State()
+		State State() const
 		{
 			return this->state;
 		}
 
-		int Connections()
+		int Connections() const
 		{
 			return this->clients.size();
 		}
 
-		int MaxConnections()
+		int MaxConnections() const
 		{
 			return this->maxconn;
 		}

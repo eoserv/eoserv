@@ -343,6 +343,7 @@ void Client::Send(const std::string &data)
 	if (data.length() > this->send_buffer.length() - this->send_buffer_used)
 	{
 		this->Close(true);
+		return;
 	}
 
 	const std::size_t mask = this->send_buffer.length() - 1;
@@ -356,8 +357,64 @@ void Client::Send(const std::string &data)
 	this->send_buffer_used += data.length();
 }
 
+bool Client::DoRecv()
+{
+	char buf[8192];
+
+	const int to_recv = std::min(this->recv_buffer.length() - this->recv_buffer_used, sizeof(buf));
+
+	if (to_recv == 0)
+		return false;
+
+	const int recieved = recv(this->impl->sock, buf, to_recv, 0);
+
+	if (recieved > 0)
+	{
+		const std::size_t mask = this->recv_buffer.length() - 1;
+
+		for (int i = 0; i < recieved; ++i)
+		{
+			this->recv_buffer_ppos = (this->recv_buffer_ppos + 1) & mask;
+			this->recv_buffer[this->recv_buffer_ppos] = buf[i];
+		}
+
+		this->recv_buffer_used += recieved;
+	}
+	else
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool Client::DoSend()
+{
+	char buf[8192];
+
+	const std::size_t mask = this->send_buffer.length() - 1;
+	const std::size_t gpos = this->send_buffer_gpos;
+
+	std::size_t to_send;
+	for (to_send = 0; to_send < std::min(this->send_buffer_used, sizeof(buf)); ++to_send)
+	{
+		this->send_buffer_gpos = (this->send_buffer_gpos + 1) & mask;
+		buf[to_send] = this->send_buffer[this->send_buffer_gpos];
+	}
+
+	const int written = send(this->impl->sock, buf, to_send, 0);
+
+	if (written == SOCKET_ERROR)
+		return false;
+
+	this->send_buffer_gpos = (gpos + written) & mask;
+	this->send_buffer_used -= written;
+
+	return true;
+}
+
 #if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
-void Client::Tick(double timeout)
+bool Client::Select(double timeout)
 {
 	pollfd fd;
 
@@ -386,63 +443,29 @@ void Client::Tick(double timeout)
 
 		if (fd.revents & POLLIN)
 		{
-			char buf[8192];
-
-			const int to_recv = std::min(this->recv_buffer.length() - this->recv_buffer_used, sizeof(buf));
-
-			if (to_recv == 0)
-				return;
-
-			const int recieved = recv(this->impl->sock, buf, to_recv, 0);
-
-			if (recieved > 0)
-			{
-				const std::size_t mask = this->recv_buffer.length() - 1;
-
-				for (int i = 0; i < recieved; ++i)
-				{
-					this->recv_buffer_ppos = (this->recv_buffer_ppos + 1) & mask;
-					this->recv_buffer[this->recv_buffer_ppos] = buf[i];
-				}
-
-				this->recv_buffer_used += recieved;
-			}
-			else
+			if (!this->DoRecv())
 			{
 				this->Close(true);
-				return;
+				continue;
 			}
 		}
 
 		if (fd.revents & POLLOUT)
 		{
-			char buf[8192];
-
-			const std::size_t mask = this->send_buffer.length() - 1;
-			const std::size_t gpos = this->send_buffer_gpos;
-
-			std::size_t to_send;
-			for (to_send = 0; to_send < std::min(this->send_buffer_used, sizeof(buf)); ++to_send)
-			{
-				this->send_buffer_gpos = (this->send_buffer_gpos + 1) & mask;
-				buf[to_send] = this->send_buffer[this->send_buffer_gpos];
-			}
-
-			const int written = send(this->impl->sock, buf, to_send, 0);
-
-			if (written == SOCKET_ERROR)
+			if (!this->DoSend())
 			{
 				this->Close(true);
-				return;
+				continue;
 			}
-
-			this->send_buffer_gpos = (gpos + written) & mask;
-			this->send_buffer_used -= written;
 		}
+
+		return true;
 	}
+
+	return false;
 }
 #else // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
-void Client::Tick(double timeout)
+bool Client::Select(double timeout)
 {
 	fd_set read_fds, write_fds, except_fds;
 	long tsecs = long(timeout);
@@ -475,69 +498,35 @@ void Client::Tick(double timeout)
 		if (FD_ISSET(this->impl->sock, &except_fds))
 		{
 			this->Close(true);
-			return;
+			return false;
 		}
 
 		if (FD_ISSET(this->impl->sock, &read_fds))
 		{
-			char buf[8192];
-
-			const int to_recv = std::min(this->recv_buffer.length() - this->recv_buffer_used, sizeof(buf));
-
-			if (to_recv == 0)
-				return;
-
-			const int recieved = recv(this->impl->sock, buf, to_recv, 0);
-
-			if (recieved > 0)
-			{
-				const std::size_t mask = this->recv_buffer.length() - 1;
-
-				for (int i = 0; i < recieved; ++i)
-				{
-					this->recv_buffer_ppos = (this->recv_buffer_ppos + 1) & mask;
-					this->recv_buffer[this->recv_buffer_ppos] = buf[i];
-				}
-
-				this->recv_buffer_used += recieved;
-			}
-			else
+			if (!this->DoRecv())
 			{
 				this->Close(true);
-				return;
+				return false;
 			}
 		}
 
 		if (FD_ISSET(this->impl->sock, &write_fds))
 		{
-			char buf[8192];
-
-			const std::size_t mask = this->send_buffer.length() - 1;
-			const std::size_t gpos = this->send_buffer_gpos;
-
-			std::size_t to_send;
-			for (to_send = 0; to_send < std::min(this->send_buffer_used, sizeof(buf)); ++to_send)
-			{
-				this->send_buffer_gpos = (this->send_buffer_gpos + 1) & mask;
-				buf[to_send] = this->send_buffer[this->send_buffer_gpos];
-			}
-
-			const int written = send(this->impl->sock, buf, to_send, 0);
-
-			if (written == SOCKET_ERROR)
+			if (!this->DoSend())
 			{
 				this->Close(true);
-				return;
+				return false;
 			}
-
-			this->send_buffer_gpos = (gpos + written) & mask;
-			this->send_buffer_used -= written;
 		}
+
+		return true;
 	}
+
+	return false;
 }
 #endif // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
 
-bool Client::Connected()
+bool Client::Connected() const
 {
 	return this->connected;
 }
@@ -557,12 +546,12 @@ void Client::Close(bool force)
 	}
 }
 
-IPAddress Client::GetRemoteAddr()
+IPAddress Client::GetRemoteAddr() const
 {
 	return IPAddress(ntohl(this->impl->sin.sin_addr.s_addr));
 }
 
-time_t Client::ConnectTime()
+time_t Client::ConnectTime() const
 {
 	return this->connect_time;
 }
@@ -756,28 +745,7 @@ std::vector<Client *> *Server::Select(double timeout)
 
 			if (fds[i].revents & POLLIN)
 			{
-				char buf[8192];
-
-				const int to_recv = std::min(client->recv_buffer.length() - client->recv_buffer_used, sizeof(buf));
-
-				if (to_recv == 0)
-					continue;
-
-				const int recieved = recv(client->impl->sock, buf, to_recv, 0);
-
-				if (recieved > 0)
-				{
-					const std::size_t mask = client->recv_buffer.length() - 1;
-
-					for (int i = 0; i < recieved; ++i)
-					{
-						client->recv_buffer_ppos = (client->recv_buffer_ppos + 1) & mask;
-						client->recv_buffer[client->recv_buffer_ppos] = buf[i];
-					}
-
-					client->recv_buffer_used += recieved;
-				}
-				else
+				if (!client->DoRecv())
 				{
 					client->Close(true);
 					continue;
@@ -786,28 +754,11 @@ std::vector<Client *> *Server::Select(double timeout)
 
 			if (fds[i].revents & POLLOUT)
 			{
-				char buf[8192];
-
-				const std::size_t mask = client->send_buffer.length() - 1;
-				const std::size_t gpos = client->send_buffer_gpos;
-
-				std::size_t to_send;
-				for (to_send = 0; to_send < std::min(client->send_buffer_used, sizeof(buf)); ++to_send)
-				{
-					client->send_buffer_gpos = (client->send_buffer_gpos + 1) & mask;
-					buf[to_send] = client->send_buffer[client->send_buffer_gpos];
-				}
-
-				const int written = send(client->impl->sock, buf, to_send, 0);
-
-				if (written == SOCKET_ERROR)
+				if (!client->DoSend())
 				{
 					client->Close(true);
 					continue;
 				}
-
-				client->send_buffer_gpos = (gpos + written) & mask;
-				client->send_buffer_used -= written;
 			}
 		}
 	}
@@ -881,28 +832,7 @@ std::vector<Client *> *Server::Select(double timeout)
 
 			if (FD_ISSET(client->impl->sock, &this->impl->read_fds))
 			{
-				char buf[8192];
-
-				const int to_recv = std::min(client->recv_buffer.length() - client->recv_buffer_used, sizeof(buf));
-
-				if (to_recv == 0)
-					continue;
-
-				const int recieved = recv(client->impl->sock, buf, to_recv, 0);
-
-				if (recieved > 0)
-				{
-					const std::size_t mask = client->recv_buffer.length() - 1;
-
-					for (int i = 0; i < recieved; ++i)
-					{
-						client->recv_buffer_ppos = (client->recv_buffer_ppos + 1) & mask;
-						client->recv_buffer[client->recv_buffer_ppos] = buf[i];
-					}
-
-					client->recv_buffer_used += recieved;
-				}
-				else
+				if (!client->DoRecv())
 				{
 					client->Close(true);
 					continue;
@@ -911,27 +841,11 @@ std::vector<Client *> *Server::Select(double timeout)
 
 			if (FD_ISSET(client->impl->sock, &this->impl->write_fds))
 			{
-				char buf[8192];
-
-				const std::size_t mask = client->send_buffer.length() - 1;
-				const std::size_t gpos = client->send_buffer_gpos;
-
-				std::size_t to_send;
-				for (to_send = 0; to_send < std::min(client->send_buffer_used, sizeof(buf)); ++to_send)
-				{
-					client->send_buffer_gpos = (client->send_buffer_gpos + 1) & mask;
-					buf[to_send] = client->send_buffer[client->send_buffer_gpos];
-				}
-
-				const int written = send(client->impl->sock, buf, to_send, 0);
-				if (written == SOCKET_ERROR)
+				if (!client->DoSend())
 				{
 					client->Close(true);
 					continue;
 				}
-
-				client->send_buffer_gpos = (gpos + written) & mask;
-				client->send_buffer_used -= written;
 			}
 		}
 	}

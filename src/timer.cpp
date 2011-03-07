@@ -15,10 +15,10 @@
 #include <sys/types.h>
 #endif // WIN32
 
-int rres = 0;
-double gettime_offset = 0.0;
-double gettime_last = 0.0;
-bool gettime_init = false;
+static int rres = 0;
+static double gettime_offset = 0.0;
+static double gettime_last = 0.0;
+static bool gettime_init = false;
 
 Timer::Timer()
 {

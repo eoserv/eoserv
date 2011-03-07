@@ -103,6 +103,8 @@ class EOClient : public Client
 			this->Initialize();
 		}
 
+		void Tick();
+
 		void Execute(std::string data);
 
 		void Send(const PacketBuilder &packet);

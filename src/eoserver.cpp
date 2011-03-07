@@ -103,6 +103,89 @@ Client *EOServer::ClientFactory(const Socket &sock)
 	 return new EOClient(sock, this);
 }
 
+void EOServer::Tick()
+{
+	std::vector<Client *> *active_clients = 0;
+	EOClient *newclient = static_cast<EOClient *>(this->Poll());
+
+	if (newclient)
+	{
+		int ip_connections = 0;
+		bool throttle = false;
+		IPAddress remote_addr = newclient->GetRemoteAddr();
+
+		const int reconnect_limit = int(this->world->config["IPReconnectLimit"]);
+		const int max_per_ip = int(this->world->config["MaxConnectionsPerIP"]);
+
+		UTIL_IFOREACH(connection_log, connection)
+		{
+			if (connection->second + reconnect_limit < Timer::GetTime())
+			{
+				connection = connection_log.erase(connection);
+
+				if (connection == connection_log.end())
+					break;
+
+				continue;
+			}
+
+			if (connection->first == remote_addr)
+			{
+				throttle = true;
+			}
+		}
+
+		UTIL_FOREACH(this->clients, client)
+		{
+			if (client->GetRemoteAddr() == newclient->GetRemoteAddr())
+			{
+				++ip_connections;
+			}
+		}
+
+		if (throttle)
+		{
+			Console::Wrn("Connection from %s was rejected (reconnecting too fast)", std::string(newclient->GetRemoteAddr()).c_str());
+			newclient->Close(true);
+		}
+		else if (max_per_ip != 0 && ip_connections > max_per_ip)
+		{
+			Console::Wrn("Connection from %s was rejected (too many connections from this address)", std::string(remote_addr).c_str());
+			newclient->Close(true);
+		}
+		else
+		{
+			connection_log[remote_addr] = Timer::GetTime();
+			Console::Out("New connection from %s (%i/%i connections)", std::string(newclient->GetRemoteAddr()).c_str(), this->Connections(), this->MaxConnections());
+		}
+	}
+
+	try
+	{
+		active_clients = this->Select(0.001);
+	}
+	catch (Socket_SelectFailed &e)
+	{
+		if (errno != EINTR)
+			throw;
+	}
+
+	if (active_clients)
+	{
+		UTIL_FOREACH(*active_clients, client)
+		{
+			EOClient *eoclient = static_cast<EOClient *>(client);
+			eoclient->Tick();
+		}
+
+		active_clients->clear();
+	}
+
+	this->BuryTheDead();
+
+	this->world->timer.Tick();
+}
+
 EOServer::~EOServer()
 {
 	delete this->sln;
