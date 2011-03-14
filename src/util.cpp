@@ -7,6 +7,7 @@
 #include "util.hpp"
 
 #include <algorithm>
+#include <clocale>
 #include <cmath>
 #include <cstdio>
 #include <ctime>

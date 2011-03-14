@@ -438,7 +438,7 @@ bool Client::Select(double timeout)
 		if (fd.revents & POLLERR || fd.revents & POLLHUP || fd.revents & POLLNVAL)
 		{
 			this->Close(true);
-			return;
+			return false;
 		}
 
 		if (fd.revents & POLLIN)
@@ -446,7 +446,7 @@ bool Client::Select(double timeout)
 			if (!this->DoRecv())
 			{
 				this->Close(true);
-				continue;
+				return false;
 			}
 		}
 
@@ -455,7 +455,7 @@ bool Client::Select(double timeout)
 			if (!this->DoSend())
 			{
 				this->Close(true);
-				continue;
+				return false;
 			}
 		}
 
@@ -706,12 +706,12 @@ std::vector<Client *> *Server::Select(double timeout)
 
 		fd.events = 0;
 
-		if (client->recv_buffer.length() < client->recv_buffer_max)
+		if (client->recv_buffer_used != client->recv_buffer.length())
 		{
 			fd.events |= POLLIN;
 		}
 
-		if (client->send_buffer.length() > 0)
+		if (client->send_buffer_used > 0)
 		{
 			fd.events |= POLLOUT;
 		}
