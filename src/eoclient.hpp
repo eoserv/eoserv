@@ -9,12 +9,16 @@
 
 #include "fwd/eoclient.hpp"
 
+#include <cstddef>
+#include <cstdio>
 #include <queue>
+#include <string>
 
 #include "socket.hpp"
 
 #include "fwd/character.hpp"
 #include "fwd/player.hpp"
+#include "fwd/eodata.hpp"
 #include "eoserver.hpp"
 #include "packet.hpp"
 
@@ -75,6 +79,16 @@ class EOClient : public Client
 		void Initialize();
 		EOClient();
 
+		FileType upload_type;
+		std::FILE *upload_fh;
+		std::size_t upload_pos;
+		std::size_t upload_size;
+
+		std::string send_buffer2;
+		std::size_t send_buffer2_gpos;
+		std::size_t send_buffer2_ppos;
+		std::size_t send_buffer2_used;
+
 	public:
 		EOServer *server() { return static_cast<EOServer *>(Client::server); };
 		int version;
@@ -103,10 +117,14 @@ class EOClient : public Client
 			this->Initialize();
 		}
 
+		virtual bool NeedTick();
+
 		void Tick();
 
-		void Execute(std::string data);
+		void Execute(const std::string &data);
 
+		bool Upload(FileType type, int id, InitReply init_reply);
+		bool Upload(FileType type, const std::string &filename, InitReply init_reply);
 		void Send(const PacketBuilder &packet);
 
 		~EOClient();

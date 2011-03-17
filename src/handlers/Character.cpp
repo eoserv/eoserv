@@ -66,8 +66,8 @@ void Character_Create(Player *player, PacketReader &reader)
 	}
 	else
 	{
-		reply.ReserveMore(5 + player->characters.size() * 34);
 		player->AddCharacter(name, gender, hairstyle, haircolor, race);
+		reply.ReserveMore(5 + player->characters.size() * 34);
 		Console::Out("New character: %s (%s)", name.c_str(), player->username.c_str());
 
 		reply.AddShort(CHARACTER_OK);
@@ -111,8 +111,8 @@ void Character_Remove(Player *player, PacketReader &reader)
 		return;
 
 	player->world->DeleteCharacter((*it)->name);
-	player->characters.erase(it);
 	Console::Out("Deleted character: %s (%s)", (*it)->name.c_str(), player->username.c_str());
+	player->characters.erase(it);
 
 	PacketBuilder reply(PACKET_CHARACTER, PACKET_REPLY, 5 + player->characters.size() * 34);
 	reply.AddShort(CHARACTER_DELETED); // Reply code

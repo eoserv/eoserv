@@ -261,7 +261,6 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "HomeFile"           , "./data/home.ini");
 		eoserv_config_default(config, "MapDir"             , "./data/maps/");
 		eoserv_config_default(config, "Maps"               , 278);
-		eoserv_config_default(config, "ProtectMaps"        , false);
 		eoserv_config_default(config, "SLN"                , true);
 		eoserv_config_default(config, "SLNURL"             , "http://eoserv.net/SLN/");
 		eoserv_config_default(config, "SLNSite"            , "");

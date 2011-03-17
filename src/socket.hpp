@@ -235,18 +235,22 @@ class Client
 		std::size_t send_buffer_ppos;
 		std::size_t send_buffer_used;
 
-
 	public:
 		Client();
 		Client(const IPAddress &addr, std::uint16_t port);
 		Client(Server *);
 		Client(const Socket &, Server *);
 
+		virtual bool NeedTick() { return false; }
+
 		void SetRecvBuffer(std::size_t size);
 		void SetSendBuffer(std::size_t size);
 
 		bool Connect(const IPAddress &addr, std::uint16_t port);
 		void Bind(const IPAddress &addr, std::uint16_t port);
+
+		std::size_t RecvBufferRemaining() { return this->recv_buffer.length() - this->recv_buffer_used; }
+		std::size_t SendBufferRemaining() { return this->send_buffer.length() - this->send_buffer_used; }
 
 		std::string Recv(std::size_t length);
 		void Send(const std::string &data);

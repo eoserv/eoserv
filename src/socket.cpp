@@ -765,7 +765,7 @@ std::vector<Client *> *Server::Select(double timeout)
 
 	UTIL_FOREACH(this->clients, client)
 	{
-		if (client->recv_buffer_used > 0)
+		if (client->recv_buffer_used > 0 || client->NeedTick())
 		{
 			selected.push_back(client);
 		}
@@ -852,7 +852,7 @@ std::vector<Client *> *Server::Select(double timeout)
 
 	UTIL_FOREACH(this->clients, client)
 	{
-		if (client->recv_buffer_used > 0)
+		if (client->recv_buffer_used > 0 || client->NeedTick())
 		{
 			selected.push_back(client);
 		}

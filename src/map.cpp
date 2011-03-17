@@ -1836,30 +1836,12 @@ bool Map::Reload()
 
 	this->characters = temp;
 
-	std::string content;
-	std::fseek(fh, 0, SEEK_SET);
-	do {
-		char buf[4096];
-		int len = std::fread(buf, sizeof(char), 4096, fh);
-		content.append(buf, len);
-	} while (!std::feof(fh));
 	std::fclose(fh);
-
-	PacketBuilder builder(PACKET_F_INIT, PACKET_A_INIT, 1 + content.length());
-	builder.AddChar(INIT_MAP_MUTATION);
-	builder.AddString(content);
 
 	UTIL_FOREACH(temp, character)
 	{
-		character->Send(builder);
+		character->player->client->Upload(FILE_MAP, character->mapid, INIT_MAP_MUTATION);
 		character->Refresh(); // TODO: Find a better way to reload NPCs
-
-		if (this->world->config["ProtectMaps"])
-		{
-			PacketBuilder protect_builder(PACKET_F_INIT, PACKET_A_INIT, 1);
-			protect_builder.AddChar(INIT_BANNED);
-			character->Send(protect_builder);
-		}
 	}
 
 	this->exists = true;

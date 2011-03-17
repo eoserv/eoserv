@@ -111,6 +111,7 @@ class PacketBuilder
 	protected:
 		unsigned short id;
 		std::string data;
+		std::size_t add_size;
 
 	public:
 		PacketBuilder(PacketFamily family = PACKET_F_INIT, PacketAction action = PACKET_A_INIT, std::size_t size_guess = 0);
@@ -134,6 +135,8 @@ class PacketBuilder
 
 		PacketBuilder &AddString(const std::string &);
 		PacketBuilder &AddBreakString(const std::string &, unsigned char breakchar = 0xFF);
+
+		void AddSize(std::size_t size);
 
 		void Reset(std::size_t size_guess = 0);
 

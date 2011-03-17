@@ -434,6 +434,7 @@ std::string PacketReader::GetEndString()
 }
 
 PacketBuilder::PacketBuilder(PacketFamily family, PacketAction action, std::size_t size_guess)
+	: add_size(0)
 {
 	this->SetID(family, action);
 
@@ -631,6 +632,11 @@ PacketBuilder &PacketBuilder::AddBreakString(const std::string &str, unsigned ch
 	return *this;
 }
 
+void PacketBuilder::AddSize(std::size_t size)
+{
+	this->add_size += size;
+}
+
 void PacketBuilder::Reset(std::size_t size_guess)
 {
 	this->data.erase();
@@ -642,7 +648,7 @@ std::string PacketBuilder::Get() const
 	std::string retdata;
 	retdata.reserve(4 + this->data.length());
 	std::array<unsigned char, 2> id = PacketProcessor::EPID(this->id);
-	std::array<unsigned char, 4> length = PacketProcessor::ENumber(this->data.length() + 2);
+	std::array<unsigned char, 4> length = PacketProcessor::ENumber(this->data.length() + 2 + this->add_size);
 
 	retdata += length[0];
 	retdata += length[1];

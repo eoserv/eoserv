@@ -7,6 +7,7 @@
 #include "handlers.hpp"
 
 #include <cstdio>
+#include <stdexcept>
 #include <vector>
 
 #include "character.hpp"
@@ -377,83 +378,21 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 // Client wants a file
 void Welcome_Agree(Player *player, PacketReader &reader)
 {
-	std::string content;
-	char mapbuf[6] = {0};
-	std::sprintf(mapbuf, "%05i", int(std::abs(player->character->mapid)));
-	std::string filename = player->world->config["MapDir"];
-	std::FILE *fh;
-	InitReply replycode = INIT_FILE_MAP;
-	char fileid = 0;
-
-	filename += mapbuf;
-	filename += ".emf";
-
 	int file = reader.GetChar();
+	bool result = false;
 
 	switch (file)
 	{
-		case FILE_MAP: break; // Map file is pre-loaded in to the variable
-		case FILE_ITEM: filename = static_cast<std::string>(player->world->config["EIF"]); replycode = INIT_FILE_EIF; fileid = 1; break;
-		case FILE_NPC: filename = static_cast<std::string>(player->world->config["ENF"]); replycode = INIT_FILE_ENF; fileid = 1; break;
-		case FILE_SPELL: filename = static_cast<std::string>(player->world->config["ESF"]); replycode = INIT_FILE_ESF; fileid = 1; break;
-		case FILE_CLASS: filename = static_cast<std::string>(player->world->config["ECF"]); replycode = INIT_FILE_ECF; fileid = 1; break;
+		case FILE_MAP: result = player->client->Upload(FILE_MAP, player->character->mapid, INIT_FILE_MAP); break;
+		case FILE_ITEM: result = player->client->Upload(FILE_ITEM, 1, INIT_FILE_EIF); break;
+		case FILE_NPC: result = player->client->Upload(FILE_NPC, 1, INIT_FILE_ENF); break;
+		case FILE_SPELL: result = player->client->Upload(FILE_SPELL, 1, INIT_FILE_ESF); break;
+		case FILE_CLASS: result = player->client->Upload(FILE_CLASS, 1, INIT_FILE_ECF); break;
 		default: return;
 	}
 
-	if (file == FILE_MAP && !player->character->world->GetMap(player->character->mapid)->exists)
-	{
-		PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 2 + content.length());
-		reply.AddChar(replycode);
-		if (fileid != 0)
-		{
-			reply.AddChar(fileid);
-		}
-		reply.AddString(content);
-		player->Send(reply);
-		return;
-	}
-
-	fh = std::fopen(filename.c_str(), "rb");
-
-	if (!fh)
-	{
-		Console::Err("Could not load file: %s", filename.c_str());
-		return;
-	}
-
-	int p = 0;
-	do {
-		char buf[4096];
-		int len = std::fread(buf, sizeof(char), 4096, fh);
-
-		if (file == FILE_MAP && player->world->config["GlobalPK"] && !player->world->PKExcept(player->character->mapid))
-		{
-			if (p + len >= 0x04 && 0x03 - p > 0) buf[0x03 - p] = 0xFF;
-			if (p + len >= 0x05 && 0x04 - p > 0) buf[0x04 - p] = 0x01;
-			if (p + len >= 0x20 && 0x1F - p > 0) buf[0x1F - p] = 0x04;
-		}
-
-		p += len;
-		content.append(buf, len);
-	} while (!std::feof(fh));
-
-	std::fclose(fh);
-
-	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 2 + content.length());
-	reply.AddChar(replycode);
-	if (fileid != 0)
-	{
-		reply.AddChar(fileid);
-	}
-	reply.AddString(content);
-	player->Send(reply);
-
-	if (player->world->config["ProtectMaps"])
-	{
-		reply.Reset(1);
-		reply.AddChar(INIT_BANNED);
-		player->Send(reply);
-	}
+	if (!result)
+		throw std::runtime_error("Failed to upload file");
 }
 
 PACKET_HANDLER_REGISTER(PACKET_WELCOME)

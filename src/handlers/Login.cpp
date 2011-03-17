@@ -44,7 +44,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 	if (username.length() < std::size_t(int(client->server()->world->config["AccountMinLength"])))
 	{
-		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY, 2);
 		reply.AddShort(LOGIN_WRONG_USER);
 		client->Send(reply);
 		return;
@@ -52,7 +52,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 	if (password.length() < std::size_t(int(client->server()->world->config["PasswordMinLength"])))
 	{
-		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY, 2);
 		reply.AddShort(LOGIN_WRONG_USERPASS);
 		client->Send(reply);
 		return;
@@ -60,7 +60,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 	if (client->server()->world->characters.size() >= static_cast<std::size_t>(static_cast<int>(client->server()->world->config["MaxPlayers"])))
 	{
-		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY, 2);
 		reply.AddShort(LOGIN_BUSY);
 		client->Send(reply);
 		client->Close();
@@ -71,7 +71,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 	if (login_reply != LOGIN_OK)
 	{
-		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY, 2);
 		reply.AddShort(login_reply);
 		client->Send(reply);
 		return;
@@ -82,7 +82,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 	if (!client->player)
 	{
 		// Someone deleted the account between checking it and logging in
-		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY);
+		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY, 2);
 		reply.AddShort(LOGIN_WRONG_USER);
 		client->Send(reply);
 		return;

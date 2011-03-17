@@ -6,10 +6,12 @@
 
 #include "handlers.hpp"
 
+#include <stdexcept>
 #include <vector>
 
 #include "character.hpp"
 #include "console.hpp"
+#include "eoclient.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
 #include "npc.hpp"
@@ -128,52 +130,8 @@ void Warp_Take(Character *character, PacketReader &reader)
 {
 	(void)reader;
 
-	char mapbuf[6] = {0};
-	std::sprintf(mapbuf, "%05i", int(std::abs(character->mapid)));
-	std::string filename = character->world->config["MapDir"];
-	std::string content;
-	std::FILE *fh;
-
-	filename += mapbuf;
-	filename += ".emf";
-
-	fh = std::fopen(filename.c_str(), "rb");
-
-	if (!fh)
-	{
-		Console::Err("Could not load file: %s", filename.c_str());
-		return;
-	}
-
-	int p = 0;
-	do {
-		char buf[4096];
-		int len = std::fread(buf, sizeof(char), 4096, fh);
-
-		if (character->world->config["GlobalPK"] && !character->world->PKExcept(character->mapid))
-		{
-			if (p + len >= 0x04 && 0x03 - p > 0) buf[0x03 - p] = 0xFF;
-			if (p + len >= 0x05 && 0x04 - p > 0) buf[0x04 - p] = 0x01;
-			if (p + len >= 0x20 && 0x1F - p > 0) buf[0x1F - p] = 0x04;
-		}
-
-		p += len;
-		content.append(buf, len);
-	} while (!std::feof(fh));
-
-	std::fclose(fh);
-
-	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 1 + content.length());
-	reply.AddChar(INIT_BANNED); // wtf? When in Rome...
-	reply.AddString(content);
-	character->Send(reply);
-
-	if (character->world->config["ProtectMaps"])
-	{
-		reply.Reset(1);
-		reply.AddChar(INIT_BANNED);
-		character->Send(reply);
-	}
+	if (!character->player->client->Upload(FILE_MAP, character->mapid, INIT_BANNED))
+		throw std::runtime_error("Failed to upload file");
 }
 
 PACKET_HANDLER_REGISTER(PACKET_WARP)
