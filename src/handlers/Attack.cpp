@@ -22,6 +22,9 @@ void Attack_Use(Character *character, PacketReader &reader)
 	if (character->sitting != SIT_STAND)
 		return;
 
+	if (character->weight > character->maxweight)
+		return;
+
 	// TODO: Find a way to implement this
 
 	/*if (direction != character->direction)

@@ -98,11 +98,11 @@ void Item_Use(Character *character, PacketReader &reader)
 				builder.AddInt(hpgain);
 				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
 
-				UTIL_FOREACH(character->map->characters, character)
+				UTIL_FOREACH(character->map->characters, updatecharacter)
 				{
-					if (character != character && character->InRange(character))
+					if (updatecharacter != character && character->InRange(updatecharacter))
 					{
-						character->Send(builder);
+						updatecharacter->Send(builder);
 					}
 				}
 
@@ -134,11 +134,11 @@ void Item_Use(Character *character, PacketReader &reader)
 				builder.AddChar(0); // subloc
 				builder.AddChar(item->haircolor);
 
-				UTIL_FOREACH(character->map->characters, character)
+				UTIL_FOREACH(character->map->characters, updatecharacter)
 				{
-					if (character != character && character->InRange(character))
+					if (updatecharacter != character && character->InRange(updatecharacter))
 					{
-						character->Send(builder);
+						updatecharacter->Send(builder);
 					}
 				}
 
@@ -218,11 +218,11 @@ void Item_Use(Character *character, PacketReader &reader)
 				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 
-				UTIL_FOREACH(character->map->characters, character)
+				UTIL_FOREACH(character->map->characters, updatecharacter)
 				{
-					if (character != character && character->InRange(character))
+					if (updatecharacter != character && character->InRange(updatecharacter))
 					{
-						character->Send(builder);
+						updatecharacter->Send(builder);
 					}
 				}
 

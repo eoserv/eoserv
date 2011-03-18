@@ -83,9 +83,9 @@ void Barber_Buy(Character *character, PacketReader &reader)
 		builder.AddChar(style);
 		builder.AddChar(color);
 
-		UTIL_FOREACH(character->map->characters, character)
+		UTIL_FOREACH(character->map->characters, updatecharacter)
 		{
-			if (character != character && character->InRange(character))
+			if (updatecharacter != character && character->InRange(updatecharacter))
 			{
 				character->Send(builder);
 			}

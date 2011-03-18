@@ -138,12 +138,11 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 
-	UTIL_FOREACH(character->map->characters, character)
+	UTIL_FOREACH(character->map->characters, updatecharacter)
 	{
-		if (character == character || !character->InRange(character))
-		{
+		if (updatecharacter == character || !character->InRange(updatecharacter))
 			continue;
-		}
+
 		character->Send(builder);
 	}
 }
@@ -200,12 +199,11 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 
-	UTIL_FOREACH(character->map->characters, character)
+	UTIL_FOREACH(character->map->characters, updatecharacter)
 	{
-		if (character == character || !character->InRange(character))
-		{
+		if (updatecharacter == character || !character->InRange(updatecharacter))
 			continue;
-		}
+
 		character->Send(builder);
 	}
 }

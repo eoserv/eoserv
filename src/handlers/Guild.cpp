@@ -65,12 +65,12 @@ void Guild_Request(Character *character, PacketReader &reader)
 							builder.AddShort(create->leader->player->id);
 							builder.AddString(util::ucfirst(util::lowercase(name)) + " (" + util::uppercase(tag) + ")");
 
-							UTIL_FOREACH(character->map->characters, character)
+							UTIL_FOREACH(character->map->characters, updatecharacter)
 							{
-								if (character != character && !character->guild)
+								if (updatecharacter != character && !updatecharacter->guild)
 								{
-									character->guild_invite = tag;
-									character->Send(builder);
+									updatecharacter->guild_invite = tag;
+									updatecharacter->Send(builder);
 								}
 							}
 
