@@ -82,17 +82,22 @@ void Chest_Take(Character *character, PacketReader &reader)
 				if (chest->x == x && chest->y == y)
 				{
 					int amount = chest->DelItem(id);
+					int taken = character->CanHoldItem(id, amount);
 
-					if (amount)
+					if (taken)
 					{
-						character->AddItem(id, amount);
-						chest->Update(character->map, character);
+						character->AddItem(id, taken);
 
-						PacketBuilder reply(PACKET_CHEST, PACKET_GET, 7 + chest->items.size() * 5);
+						PacketBuilder reply(PACKET_CHEST, PACKET_GET, 7 + (chest->items.size() + 1) * 5);
 						reply.AddShort(id);
-						reply.AddThree(amount);
+						reply.AddThree(taken);
 						reply.AddChar(character->weight);
 						reply.AddChar(character->maxweight);
+
+						if (amount - taken > 0)
+						{
+							chest->AddItem(id, amount - taken);
+						}
 
 						UTIL_FOREACH(chest->items, item)
 						{
@@ -104,6 +109,8 @@ void Chest_Take(Character *character, PacketReader &reader)
 						}
 
 						character->Send(reply);
+
+						chest->Update(character->map, character);
 						break;
 					}
 				}

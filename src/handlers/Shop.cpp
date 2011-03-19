@@ -69,6 +69,9 @@ void Shop_Buy(Character *character, PacketReader &reader)
 	/*int shopid = reader.GetInt();*/
 
 	if (amount <= 0 || amount > static_cast<int>(character->world->config["MaxShopBuy"])) return;
+	if (character->weight >= character->maxweight) return;
+
+	// TODO: Limit number of items bought to under weight
 
 	if (character->npc_type == ENF::Shop)
 	{

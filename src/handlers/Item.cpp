@@ -405,17 +405,25 @@ void Item_Get(Character *character, PacketReader &reader)
 			return;
 		}
 
-		character->AddItem(item->id, item->amount);
+		int taken = character->CanHoldItem(item->id, item->amount);
+
+		Map_Item item_after = *item;
+		item_after.amount -= taken;
+
+		character->AddItem(item->id, taken);
 
 		PacketBuilder reply(PACKET_ITEM, PACKET_GET, 9);
 		reply.AddShort(uid);
 		reply.AddShort(item->id);
-		reply.AddThree(item->amount);
+		reply.AddThree(taken);
 		reply.AddChar(character->weight);
 		reply.AddChar(character->maxweight);
 		character->Send(reply);
 
 		character->map->DelItem(item, character);
+
+		if (item_after.amount > 0)
+			character->map->AddItem(item_after.id, item_after.amount, item_after.x, item_after.y);
 	}
 }
 

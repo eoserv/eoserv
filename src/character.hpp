@@ -163,6 +163,7 @@ class Character
 		int HasItem(short item);
 		bool AddItem(short item, int amount);
 		bool DelItem(short item, int amount);
+		int CanHoldItem(short item, int max_amount);
 		std::list<Character_Item>::iterator DelItem(std::list<Character_Item>::iterator, int amount);
 		bool AddTradeItem(short item, int amount);
 		bool DelTradeItem(short item);

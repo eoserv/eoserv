@@ -103,6 +103,8 @@ void Locker_Take(Character *character, PacketReader &reader)
 	unsigned char y = reader.GetChar();
 	short item = reader.GetShort();
 
+	// TODO: Limit number of items withdrawn to under weight
+
 	if (util::path_length(character->x, character->y, x, y) <= 1)
 	{
 		if (character->map->GetSpec(x, y) == Map_Tile::BankVault)
@@ -115,7 +117,7 @@ void Locker_Take(Character *character, PacketReader &reader)
 
 					character->CalculateStats();
 
-					PacketBuilder reply(PACKET_LOCKER, PACKET_GET, 7 + (character->bank.size() - 1) * 5);
+					PacketBuilder reply(PACKET_LOCKER, PACKET_GET, 7 + character->bank.size() * 5);
 					reply.AddShort(item);
 					reply.AddThree(it->amount);
 					reply.AddChar(character->weight);

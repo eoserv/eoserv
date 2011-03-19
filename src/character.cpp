@@ -6,6 +6,7 @@
 
 #include "character.hpp"
 
+#include <algorithm>
 #include <limits>
 #include <list>
 
@@ -436,6 +437,19 @@ std::list<Character_Item>::iterator Character::DelItem(std::list<Character_Item>
 	this->CalculateStats();
 
 	return it;
+}
+
+int Character::CanHoldItem(short itemid, int max_amount)
+{
+	EIF_Data *item = this->world->eif->Get(itemid);
+
+	if (!item || item->weight == 0)
+		return max_amount;
+
+	if (this->weight > this->maxweight)
+		return 0;
+
+	return std::min((this->maxweight - this->weight) / item->weight, max_amount);
 }
 
 bool Character::AddTradeItem(short item, int amount)
