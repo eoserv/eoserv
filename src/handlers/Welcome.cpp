@@ -192,7 +192,7 @@ void Welcome_Request(Player *player, PacketReader &reader)
 	reply.AddShort(10); // ?
 	reply.AddShort(0); // Admin command flood rate
 	reply.AddShort(2); // ?
-	reply.AddChar(0); // Login warning message
+	reply.AddChar((player->character->usage == 0) ? 2 : 0); // Login warning message
 	reply.AddByte(255);
 
 	player->Send(reply);
@@ -296,7 +296,8 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 		std::fclose(newsfh);
 	}
 
-	reply.ReserveMore(7 + player->character->inventory.size() * 3 + updatecharacters.size() * 60 + updatenpcs.size() * 6 + updateitems.size() * 9);
+	reply.ReserveMore(7 + player->character->inventory.size() * 3 + player->character->spells.size() * 4
+		+ updatecharacters.size() * 60 + updatenpcs.size() * 6 + updateitems.size() * 9);
 
 	// ??
 	reply.AddChar(player->character->weight); // Weight
@@ -307,14 +308,11 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 		reply.AddInt(item.amount);
 	}
 	reply.AddByte(255);
-	// foreach spell {
-	//reply.AddShort(1); // Spell ID
-	//reply.AddShort(100); // Spell Level
-	//reply.AddShort(2); // Spell ID
-	//reply.AddShort(100); // Spell Level
-	//reply.AddShort(18); // Spell ID
-	//reply.AddShort(100); // Spell Level
-	// }
+	UTIL_FOREACH(player->character->spells, spell)
+	{
+		reply.AddShort(spell.id); // Spell ID
+		reply.AddShort(spell.level); // Spell Level
+	}
 	reply.AddByte(255);
 
 	reply.AddChar(updatecharacters.size()); // Number of players

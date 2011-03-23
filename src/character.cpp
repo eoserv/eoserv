@@ -29,11 +29,11 @@ std::string ItemSerialize(const std::list<Character_Item> &list)
 {
 	std::string serialized;
 
-	for (std::list<Character_Item>::const_iterator it = list.begin(); it != list.end(); ++it)
+	UTIL_CFOREACH(list, item)
 	{
-		serialized.append(util::to_string(it->id));
+		serialized.append(util::to_string(item.id));
 		serialized.append(",");
-		serialized.append(util::to_string(it->amount));
+		serialized.append(util::to_string(item.amount));
 		serialized.append(";");
 	}
 
@@ -78,9 +78,9 @@ std::string DollSerialize(const std::array<int, 15> &list)
 {
 	std::string serialized;
 
-	for (std::array<int, 15>::const_iterator it = list.begin(); it != list.end(); ++it)
+	UTIL_CFOREACH(list, item)
 	{
-		serialized.append(util::to_string(*it));
+		serialized.append(util::to_string(item));
 		serialized.append(",");
 	}
 
@@ -102,6 +102,55 @@ std::array<int, 15> DollUnserialize(std::string serialized)
 	while ((p = serialized.find_first_of(',', p+1)) != std::string::npos)
 	{
 		list[i++] = util::to_int(serialized.substr(lastp+1, p-lastp-1));
+		lastp = p;
+	}
+
+	return list;
+}
+
+std::string SpellSerialize(const std::list<Character_Spell> &list)
+{
+	std::string serialized;
+
+	UTIL_CFOREACH(list, spell)
+	{
+		serialized.append(util::to_string(spell.id));
+		serialized.append(",");
+		serialized.append(util::to_string(spell.level));
+		serialized.append(";");
+	}
+
+	return serialized;
+}
+
+std::list<Character_Spell> SpellUnserialize(std::string serialized)
+{
+	std::list<Character_Spell> list;
+	std::size_t p = 0;
+	std::size_t lastp = std::numeric_limits<std::size_t>::max();
+
+	if (!serialized.empty() && *(serialized.end()-1) != ';')
+	{
+		serialized.push_back(';');
+	}
+
+	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
+	{
+		std::string part = serialized.substr(lastp+1, p-lastp-1);
+		std::size_t pp = 0;
+		pp = part.find_first_of(',', 0);
+
+		if (pp == std::string::npos)
+		{
+			continue;
+		}
+
+		Character_Spell newspell;
+		newspell.id = util::to_int(part.substr(0, pp));
+		newspell.level = util::to_int(part.substr(pp+1));
+
+		list.push_back(newspell);
+
 		lastp = p;
 	}
 
@@ -133,6 +182,7 @@ Character::Character(std::string name, World *world)
 	this->name = GetRow<std::string>(row, "name");
 	this->title = GetRow<std::string>(row, "title");
 	this->home = GetRow<std::string>(row, "home");
+	this->fiance = GetRow<std::string>(row, "fiance");
 	this->partner = GetRow<std::string>(row, "partner");
 
 	this->clas = GetRow<int>(row, "class");
@@ -195,6 +245,7 @@ Character::Character(std::string name, World *world)
 
 	this->sitting = static_cast<SitState>(GetRow<int>(row, "sitting"));
 	this->hidden = false;
+	this->whispers = true;
 
 	this->bankmax = GetRow<int>(row, "bankmax");
 
@@ -211,6 +262,7 @@ Character::Character(std::string name, World *world)
 	this->inventory = ItemUnserialize(row["inventory"]);
 	this->bank = ItemUnserialize(row["bank"]);
 	this->paperdoll = DollUnserialize(row["paperdoll"]);
+	this->spells = SpellUnserialize(row["spells"]);
 
 	this->player = 0;
 	std::string guild_tag = util::trim(static_cast<std::string>(row["guild"]));
@@ -227,6 +279,9 @@ Character::Character(std::string name, World *world)
 
 	this->party = 0;
 	this->map = this->world->GetMap(GetRow<int>(row, "map"));
+
+	this->last_walk = 0.0;
+	this->attacks = 0;
 }
 
 bool Character::ValidName(std::string name)
@@ -345,6 +400,11 @@ int Character::HasItem(short item)
 	}
 
 	return 0;
+}
+
+bool Character::HasSpell(short spell)
+{
+	return (std::find_if(UTIL_RANGE(this->spells), [&](Character_Spell cs) { return cs.id == spell; }) != this->spells.end());
 }
 
 bool Character::AddItem(short item, int amount)
@@ -501,7 +561,26 @@ bool Character::DelTradeItem(short item)
 	}
 
 	return false;
+}
 
+bool Character::AddSpell(short spell)
+{
+	if (spell <= 0 || std::size_t(spell) >= this->world->esf->data.size())
+		return false;
+
+	if (this->HasSpell(spell))
+		return false;
+
+	this->spells.push_back(Character_Spell(spell, 1));
+
+	return true;
+}
+
+bool Character::DelSpell(short spell)
+{
+	auto remove_it = std::remove_if(UTIL_RANGE(this->spells), [&](Character_Spell cs) { return cs.id == spell; });
+	this->spells.erase(remove_it, this->spells.end());
+	return (remove_it != this->spells.end());
 }
 
 bool Character::Unequip(short item, unsigned char subloc)
@@ -1233,16 +1312,17 @@ void Character::Save()
 #ifdef DEBUG
 	Console::Dbg("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
-	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
+	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `fiance` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
 		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
 		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, "
 		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
 		"`spells` = '$', `guild` = '$', guild_rank = #, `quest` = '$', `vars` = '$' WHERE `name` = '$'",
-		this->title.c_str(), this->home.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
+		this->title.c_str(), this->home.c_str(), this->fiance.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
 		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
-		DollSerialize(this->paperdoll).c_str(), "", (this->guild ? this->guild->tag.c_str() : ""), this->guild_rank, "", "", this->name.c_str());
+		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
+		this->guild_rank, "", "", this->name.c_str());
 }
 
 Character::~Character()

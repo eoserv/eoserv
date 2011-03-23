@@ -258,6 +258,9 @@ class Map
 		Map_Tile::TileSpec GetSpec(unsigned char x, unsigned char y);
 		Map_Warp *GetWarp(unsigned char x, unsigned char y);
 
+		std::vector<Character *> CharactersInRange(unsigned char x, unsigned char y, unsigned char range);
+		std::vector<NPC *> NPCsInRange(unsigned char x, unsigned char y, unsigned char range);
+
 		void Effect(int effect, int param);
 
 		bool Reload();

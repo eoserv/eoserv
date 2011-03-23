@@ -308,7 +308,7 @@ void ESF::Read(std::string filename)
 		newdata->sp = PacketProcessor::Number(buf[6], buf[7]);
 		newdata->cast_time = PacketProcessor::Number(buf[8]);
 
-		newdata->type = static_cast<ESF::Type>(PacketProcessor::Number(buf[10]));
+		newdata->type = static_cast<ESF::Type>(PacketProcessor::Number(buf[11]));
 		newdata->target_restrict = static_cast<ESF::TargetRestrict>(PacketProcessor::Number(buf[17]));
 		newdata->target = static_cast<ESF::Target>(PacketProcessor::Number(buf[18]));
 

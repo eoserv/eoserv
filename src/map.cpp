@@ -617,6 +617,8 @@ void Map::Enter(Character *character, WarpAnimation animation)
 {
 	this->characters.push_back(character);
 	character->map = this;
+	character->last_walk = Timer::GetTime();
+	character->attacks = 0;
 
 	PacketBuilder builder(PACKET_PLAYERS, PACKET_AGREE, 63);
 
@@ -780,6 +782,9 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 		return false;
 	}
+
+    from->last_walk = Timer::GetTime();
+    from->attacks = 0;
 
 	from->direction = direction;
 
@@ -1239,6 +1244,7 @@ bool Map::Walk(NPC *from, Direction direction)
 void Map::Attack(Character *from, Direction direction)
 {
 	from->direction = direction;
+	from->attacks += 1;
 
 	if (from->arena)
 	{
@@ -1348,6 +1354,8 @@ void Map::Attack(Character *from, Direction direction)
 
 bool Map::AttackPK(Character *from, Direction direction)
 {
+	(void)direction;
+
 	int target_x = from->x;
 	int target_y = from->y;
 
@@ -1783,6 +1791,32 @@ Map_Warp *Map::GetWarp(unsigned char x, unsigned char y)
 	}
 
 	return this->tiles[y].at(x)->warp;
+}
+
+std::vector<Character *> Map::CharactersInRange(unsigned char x, unsigned char y, unsigned char range)
+{
+	std::vector<Character *> characters;
+
+	UTIL_FOREACH(this->characters, character)
+	{
+		if (util::path_length(character->x, character->y, x, y) <= range)
+			characters.push_back(character);
+	}
+
+	return characters;
+}
+
+std::vector<NPC *> Map::NPCsInRange(unsigned char x, unsigned char y, unsigned char range)
+{
+	std::vector<NPC *> npcs;
+
+	UTIL_FOREACH(this->npcs, npc)
+	{
+		if (util::path_length(npc->x, npc->y, x, y) <= range)
+			npcs.push_back(npc);
+	}
+
+	return npcs;
 }
 
 void Map::Effect(int effect, int param)

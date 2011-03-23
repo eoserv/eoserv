@@ -333,6 +333,13 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "ItemDespawn"        , false);
 		eoserv_config_default(config, "ItemDespawnCheck"   , 60);
 		eoserv_config_default(config, "ItemDespawnRate"    , 600);
+		eoserv_config_default(config, "RecoverSpeed"       , 90);
+		eoserv_config_default(config, "NPCRecoverSpeed"    , 105);
+		eoserv_config_default(config, "HPRecoverRate"      , 0.1);
+		eoserv_config_default(config, "SitHPRecoverRate"   , 0.2);
+		eoserv_config_default(config, "TPRecoverRate"      , 0.1);
+		eoserv_config_default(config, "SitTPRecoverRate"   , 0.2);
+		eoserv_config_default(config, "NPCRecoverRate"     , 0.1);
 		eoserv_config_default(config, "ChatLength"         , 128);
 		eoserv_config_default(config, "ShareMode"          , 2);
 		eoserv_config_default(config, "PartyShareMode"     , 2);
@@ -376,6 +383,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "JukeboxTimer"       , 90);
 		eoserv_config_default(config, "RespawnBossChildren", true);
 		eoserv_config_default(config, "OldReports"         , false);
+		eoserv_config_default(config, "WarpSuck"           , 15);
 		eoserv_config_default(config, "DoorTimer"          , 3.0);
 		eoserv_config_default(config, "ChatMaxWidth"       , 1500);
 		eoserv_config_default(config, "AccountMinLength"   , 4);
@@ -385,6 +393,8 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "RealNameMaxLength"  , 64);
 		eoserv_config_default(config, "LocationMaxLength"  , 64);
 		eoserv_config_default(config, "EmailMaxLength"     , 64);
+		eoserv_config_default(config, "ComputerNameLength" , 64);
+		eoserv_config_default(config, "LimitAttack"        , 251);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
 		eoserv_config_default(config, "MaxItem"            , 10000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);

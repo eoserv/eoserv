@@ -25,6 +25,11 @@ void Attack_Use(Character *character, PacketReader &reader)
 	if (character->weight > character->maxweight)
 		return;
 
+	int limit_attack = character->world->config["LimitAttack"];
+
+	if (limit_attack != 0 && character->attacks >= limit_attack)
+		return;
+
 	// TODO: Find a way to implement this
 
 	/*if (direction != character->direction)

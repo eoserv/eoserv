@@ -34,7 +34,7 @@ Player::Player(std::string username, World *world)
 	this->username = static_cast<std::string>(row["username"]);
 	this->password = static_cast<std::string>(row["password"]);
 
-	res = this->world->db.Query("SELECT `name` FROM `characters` WHERE `account` = '$'", username.c_str());
+	res = this->world->db.Query("SELECT `name` FROM `characters` WHERE `account` = '$' ORDER BY `exp` DESC", username.c_str());
 
 	typedef std::unordered_map<std::string, util::variant> Database_Row;
 	UTIL_FOREACH(res, row)

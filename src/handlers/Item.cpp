@@ -35,8 +35,17 @@ void Item_Use(Character *character, PacketReader &reader)
 			case EIF::Teleport:
 			{
 				if (!character->map->scroll)
-				{
 					break;
+
+				if (item->scrollmap == 0)
+				{
+					if (character->mapid == character->SpawnMap() && character->x == character->SpawnX() && character->y == character->SpawnY())
+						break;
+				}
+				else
+				{
+					if (character->mapid == item->scrollmap && character->x == item->scrollx && character->y == item->scrolly)
+						break;
 				}
 
 				character->DelItem(id, 1);
@@ -72,6 +81,9 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				hpgain = std::max(hpgain, 0);
 				tpgain = std::max(tpgain, 0);
+
+				if (hpgain == 0 && tpgain == 0)
+					break;
 
 				character->hp += hpgain;
 				character->tp += tpgain;
@@ -117,6 +129,9 @@ void Item_Use(Character *character, PacketReader &reader)
 
 			case EIF::HairDye:
 			{
+				if (character->haircolor == item->haircolor)
+					break;
+
 				character->haircolor = item->haircolor;
 
 				character->DelItem(id, 1);
@@ -177,13 +192,19 @@ void Item_Use(Character *character, PacketReader &reader)
 
 			case EIF::CureCurse:
 			{
+				bool found = false;
+
 				for (std::size_t i = 0; i < character->paperdoll.size(); ++i)
 				{
 					if (character->world->eif->Get(character->paperdoll[i])->special == EIF::Cursed)
 					{
 						character->paperdoll[i] = 0;
+						found = true;
 					}
 				}
+
+				if (!found)
+					break;
 
 				character->CalculateStats();
 
@@ -233,6 +254,9 @@ void Item_Use(Character *character, PacketReader &reader)
 			case EIF::EXPReward:
 			{
 				bool level_up = false;
+
+				if (character->x >= static_cast<int>(character->map->world->config["MaxExp"]))
+					break;
 
 				character->exp += item->expreward;
 

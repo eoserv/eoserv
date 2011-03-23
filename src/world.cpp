@@ -77,7 +77,9 @@ void world_recover(void *world_void)
 
 		if (character->hp < character->maxhp)
 		{
-			character->hp += character->maxhp / 10;
+			if (character->sitting != SIT_STAND) character->hp += character->maxhp * double(world->config["SitHPRecoverRate"]);
+			else                                 character->hp += character->maxhp * double(world->config["HPRecoverRate"]);
+
 			character->hp = std::min(character->hp, character->maxhp);
 			updated = true;
 
@@ -89,7 +91,9 @@ void world_recover(void *world_void)
 
 		if (character->tp < character->maxtp)
 		{
-			character->tp += character->maxtp / 10;
+			if (character->sitting != SIT_STAND) character->tp += character->maxtp * double(world->config["SitTPRecoverRate"]);
+			else                                 character->tp += character->maxtp * double(world->config["TPRecoverRate"]);
+
 			character->tp = std::min(character->tp, character->maxtp);
 			updated = true;
 		}
@@ -102,6 +106,91 @@ void world_recover(void *world_void)
 			builder.AddShort(0); // ?
 			character->Send(builder);
 		}
+	}
+}
+
+void world_npc_recover(void *world_void)
+{
+	World *world(static_cast<World *>(world_void));
+
+	UTIL_FOREACH(world->maps, map)
+	{
+		UTIL_FOREACH(map->npcs, npc)
+		{
+			if (npc->alive && npc->hp < npc->Data()->hp)
+			{
+				npc->hp += npc->Data()->hp * double(world->config["NPCRecoverRate"]);
+
+				npc->hp = std::min(npc->hp, npc->Data()->hp);
+			}
+		}
+	}
+}
+
+void world_warp_suck(void *world_void)
+{
+	struct Warp_Suck_Action
+	{
+		Character *character;
+		short map;
+		unsigned char x;
+		unsigned char y;
+
+		Warp_Suck_Action(Character *character, short map, unsigned char x, unsigned char y)
+			: character(character)
+			, map(map)
+			, x(x)
+			, y(y)
+		{ }
+	};
+
+	std::vector<Warp_Suck_Action> actions;
+
+	World *world(static_cast<World *>(world_void));
+
+	double now = Timer::GetTime();
+	double delay = world->config["WarpSuck"];
+	Map_Warp *warp = 0;
+
+	UTIL_FOREACH(world->maps, map)
+	{
+		UTIL_FOREACH(map->characters, character)
+		{
+			if (character->last_walk + delay >= now)
+				continue;
+
+			character->last_walk = now;
+
+#define CHECK_WARP(test, x, y) (test && (warp = map->GetWarp(x, y)) && warp->levelreq <= character->level \
+	&& (warp->spec == Map_Warp::Door|| warp->spec == Map_Warp::NoDoor))
+
+			if (CHECK_WARP(true, character->x, character->y))
+			{
+				actions.push_back({character, warp->map, warp->x, warp->y});
+			}
+			else if (CHECK_WARP(character->x > 0, character->x - 1, character->y))
+			{
+				actions.push_back({character, warp->map, warp->x, warp->y});
+			}
+			else if (CHECK_WARP(character->x < map->width, character->x + 1, character->y))
+			{
+				actions.push_back({character, warp->map, warp->x, warp->y});
+			}
+			else if (CHECK_WARP(character->y > 0, character->x, character->y - 1))
+			{
+				actions.push_back({character, warp->map, warp->x, warp->y});
+			}
+			else if (CHECK_WARP(character->y, character->x, character->y + 1))
+			{
+				actions.push_back({character, warp->map, warp->x, warp->y});
+			}
+#undef CHECK_WARP
+		}
+	}
+
+	UTIL_FOREACH(actions, act)
+	{
+		act.character->Warp(act.map, act.x, act.y);
 	}
 }
 
@@ -202,7 +291,19 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	event = new TimeEvent(world_act_npcs, this, 0.05, Timer::FOREVER);
 	this->timer.Register(event);
 
-	event = new TimeEvent(world_recover, this, 90.0, Timer::FOREVER);
+	if (int(this->config["RecoverSpeed"]) > 0)
+	{
+		event = new TimeEvent(world_recover, this, double(this->config["RecoverSpeed"]), Timer::FOREVER);
+		this->timer.Register(event);
+	}
+
+	if (int(this->config["NPCRecoverSpeed"]) > 0)
+	{
+		event = new TimeEvent(world_npc_recover, this, double(this->config["NPCRecoverSpeed"]), Timer::FOREVER);
+		this->timer.Register(event);
+	}
+
+	event = new TimeEvent(world_warp_suck, this, 1.0, Timer::FOREVER);
 	this->timer.Register(event);
 
 	if (this->config["ItemDespawn"])

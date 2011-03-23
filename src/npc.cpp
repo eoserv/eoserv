@@ -756,7 +756,7 @@ void NPC::Damage(Character *from, int amount)
 						if (level_up)
 						{
 							builder.SetID(PACKET_NPC, PACKET_ACCEPT);
-							builder.ReserveMore(11);
+							builder.ReserveMore(33);
 						}
 					}
 				}
