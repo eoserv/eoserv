@@ -143,7 +143,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 		if (updatecharacter == character || !character->InRange(updatecharacter))
 			continue;
 
-		character->Send(builder);
+		updatecharacter->Send(builder);
 	}
 }
 
@@ -204,7 +204,7 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 		if (updatecharacter == character || !character->InRange(updatecharacter))
 			continue;
 
-		character->Send(builder);
+		updatecharacter->Send(builder);
 	}
 }
 
