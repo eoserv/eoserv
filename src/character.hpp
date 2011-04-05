@@ -184,6 +184,7 @@ class Character
 		void Effect(int effect, bool echo = true);
 		int HasItem(short item);
 		bool HasSpell(short spell);
+		short SpellLevel(short spell);
 		bool AddItem(short item, int amount);
 		bool DelItem(short item, int amount);
 		int CanHoldItem(short item, int max_amount);

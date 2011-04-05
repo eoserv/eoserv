@@ -307,29 +307,103 @@ void Talk_Report(Character *character, PacketReader &reader)
 				character->map->arena->Spawn(true);
 			}
 		}
+		else if (command.length() >= 1 && command.compare(0,1,"l") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["learn"]))
+		{
+			short skill_id = util::to_int(arguments[0]);
+			short level = -1;
+
+			if (arguments.size() >= 2)
+			{
+				level = util::to_int(arguments[1]);
+
+				level = std::max(0, std::min<int>(character->world->config["MaxSkillLevel"], level));
+			}
+
+			if (character->AddSpell(skill_id))
+			{
+				PacketBuilder builder(PACKET_STATSKILL, PACKET_TAKE, 6);
+				builder.AddShort(skill_id);
+				builder.AddInt(character->HasItem(1));
+				character->Send(builder);
+			}
+
+			if (level >= 0)
+			{
+				auto it = std::find_if(UTIL_RANGE(character->spells), [&](Character_Spell spell) { return spell.id == skill_id; });
+
+				if (it != character->spells.end())
+				{
+					it->level = level;
+
+					PacketBuilder builder(PACKET_STATSKILL, PACKET_ACCEPT, 6);
+					builder.AddShort(character->skillpoints);
+					builder.AddShort(skill_id);
+					builder.AddShort(it->level);
+					character->Send(builder);
+				}
+			}
+		}
+		else if (command.length() >= 3 && command.compare(0,3,"inv") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["inventory"]))
+		{
+			Character *victim = character->world->GetCharacter(arguments[0]);
+
+			if (victim)
+			{
+				std::string name = util::ucfirst(victim->name);
+
+				PacketBuilder reply(PACKET_ADMININTERACT, PACKET_LIST, 32 + name.length() + victim->inventory.size() * 6 + victim->bank.size() * 7);
+
+				switch (victim->admin)
+				{
+					case ADMIN_HGM: reply.AddString("High Game Master "); break;
+					case ADMIN_GM: reply.AddString("Game Master "); break;
+					case ADMIN_GUARDIAN: reply.AddString("Guardian "); break;
+					case ADMIN_GUIDE: reply.AddString("Light Guide "); break;
+					default: ;
+				}
+
+				reply.AddString(name);
+				reply.AddString(" ");
+				reply.AddBreakString(util::trim(victim->PaddedGuildTag()));
+				reply.AddInt(victim->Usage());
+				reply.AddByte(255);
+				reply.AddInt(victim->goldbank);
+				reply.AddByte(255);
+
+				UTIL_CFOREACH(victim->inventory, item)
+				{
+					reply.AddShort(item.id);
+					reply.AddInt(item.amount);
+				}
+				reply.AddByte(255);
+
+				UTIL_CFOREACH(victim->bank, item)
+				{
+					reply.AddShort(item.id);
+					reply.AddThree(item.amount);
+				}
+
+				character->Send(reply);
+			}
+		}
 		else if (command.length() >= 2 && command.compare(0,2,"in") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["info"]))
 		{
 			Character *victim = character->world->GetCharacter(arguments[0]);
 			if (victim)
 			{
 				std::string name = util::ucfirst(victim->name);
+
 				PacketBuilder reply(PACKET_ADMININTERACT, PACKET_TELL, 85 + name.length());
-				if (victim->admin >= 4)
+
+				switch (victim->admin)
 				{
-					reply.AddString("High Game Master ");
+					case ADMIN_HGM: reply.AddString("High Game Master "); break;
+					case ADMIN_GM: reply.AddString("Game Master "); break;
+					case ADMIN_GUARDIAN: reply.AddString("Guardian "); break;
+					case ADMIN_GUIDE: reply.AddString("Light Guide "); break;
+					default: ;
 				}
-				else if (victim->admin >= 3)
-				{
-					reply.AddString("Game Master ");
-				}
-				else if (victim->admin >= 2)
-				{
-					reply.AddString("Guardian ");
-				}
-				else if (victim->admin >= 1)
-				{
-					reply.AddString("Light Guide ");
-				}
+
 				reply.AddString(name);
 				reply.AddString(" ");
 				reply.AddBreakString(util::trim(victim->PaddedGuildTag()));
@@ -364,6 +438,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 				reply.AddShort(0); // wind
 				reply.AddChar(victim->weight);
 				reply.AddChar(victim->maxweight);
+
 				character->Send(reply);
 			}
 		}

@@ -407,6 +407,16 @@ bool Character::HasSpell(short spell)
 	return (std::find_if(UTIL_RANGE(this->spells), [&](Character_Spell cs) { return cs.id == spell; }) != this->spells.end());
 }
 
+short Character::SpellLevel(short spell)
+{
+	auto it = std::find_if(UTIL_RANGE(this->spells), [&](Character_Spell cs) { return cs.id == spell; });
+
+	if (it != this->spells.end())
+		return it->level;
+	else
+		return 0;
+}
+
 bool Character::AddItem(short item, int amount)
 {
 	if (amount <= 0)

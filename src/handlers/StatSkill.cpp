@@ -192,7 +192,7 @@ void StatSkill_Add(Character *character, PacketReader &reader)
 
 		case TRAIN_SKILL:
 			if (character->skillpoints <= 0 || !character->HasSpell(stat_id)
-			 || character->HasSpell(stat_id) >= int(character->world->config["MaxSkillLevel"]))
+			 || character->SpellLevel(stat_id) >= int(character->world->config["MaxSkillLevel"]))
 			{
 				return;
 			}

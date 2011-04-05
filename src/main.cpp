@@ -414,6 +414,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "spell"         , 1);
 		eoserv_config_default(aconfig, "class"         , 1);
 		eoserv_config_default(aconfig, "info"          , 1);
+		eoserv_config_default(aconfig, "inventory"     , 1);
 		eoserv_config_default(aconfig, "uptime"        , 1);
 		eoserv_config_default(aconfig, "kick"          , 1);
 		eoserv_config_default(aconfig, "skick"         , 3);
