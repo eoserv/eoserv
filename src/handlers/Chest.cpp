@@ -37,6 +37,8 @@ void Chest_Add(Character *character, PacketReader &reader)
 			{
 				if (chest->x == x && chest->y == y)
 				{
+					amount = std::min(amount, int(character->world->config["MaxChest"]) - chest->HasItem(id));
+
 					if (character->HasItem(id) >= amount && chest->AddItem(id, amount))
 					{
 						character->DelItem(id, amount);
@@ -58,8 +60,9 @@ void Chest_Add(Character *character, PacketReader &reader)
 						}
 
 						character->Send(reply);
-						break;
 					}
+
+					break;
 				}
 			}
 		}

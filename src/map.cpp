@@ -107,6 +107,19 @@ void map_close_door(void *map_close_door_struct_void)
 	close->map->CloseDoor(close->x, close->y);
 }
 
+int Map_Chest::HasItem(short item)
+{
+	UTIL_IFOREACH(this->items, it)
+	{
+		if ((*it)->id == item)
+		{
+			return (*it)->amount;
+		}
+	}
+
+	return 0;
+}
+
 int Map_Chest::AddItem(short item, int amount, int slot)
 {
 	if (amount <= 0)

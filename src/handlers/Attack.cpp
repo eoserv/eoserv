@@ -22,7 +22,7 @@ void Attack_Use(Character *character, PacketReader &reader)
 	if (character->sitting != SIT_STAND)
 		return;
 
-	if (character->weight > character->maxweight)
+	if (int(character->world->config["EnforceWeight"]) >= 1 && character->weight > character->maxweight)
 		return;
 
 	int limit_attack = character->world->config["LimitAttack"];

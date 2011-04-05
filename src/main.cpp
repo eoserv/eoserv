@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "ComputerNameLength" , 64);
 		eoserv_config_default(config, "LimitAttack"        , 251);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
-		eoserv_config_default(config, "MaxItem"            , 10000000);
+		eoserv_config_default(config, "MaxItem"            , 2000000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);
 		eoserv_config_default(config, "MaxChest"           , 10000000);
 		eoserv_config_default(config, "ChestSlots"         , 5);
@@ -407,7 +407,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "MaxBankUpgrades"    , 7);
 		eoserv_config_default(config, "MaxTile"            , 8);
 		eoserv_config_default(config, "MaxMap"             , 400);
-		eoserv_config_default(config, "MaxTrade"           , 10000000);
+		eoserv_config_default(config, "MaxTrade"           , 2000000000);
 
 		eoserv_config_default(aconfig, "item"          , 1);
 		eoserv_config_default(aconfig, "npc"           , 1);

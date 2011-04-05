@@ -418,10 +418,20 @@ void Guild_Buy(Character *character, PacketReader &reader)
 	/*int session = */reader.GetInt();
 	int gold = reader.GetInt();
 
+	if (gold < 0)
+		return;
+
 	if (character->npc_type == ENF::Guild)
 	{
 		if (character->guild)
 		{
+			int max_deposit = int(character->world->config["GuildBankMax"]) - character->guild->bank;
+
+			if (max_deposit <= 0)
+				return;
+
+			gold = std::min(gold, max_deposit);
+
 			if (gold >= static_cast<int>(character->world->config["GuildMinDeposit"]) && character->HasItem(1) >= gold)
 			{
 				character->DelItem(1, gold);

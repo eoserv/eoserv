@@ -113,17 +113,23 @@ void Locker_Take(Character *character, PacketReader &reader)
 			{
 				if (it->id == item)
 				{
-					character->AddItem(item, it->amount);
+					int amount = it->amount;
+					int taken = character->CanHoldItem(it->id, amount);
+
+					character->AddItem(item, taken);
 
 					character->CalculateStats();
 
 					PacketBuilder reply(PACKET_LOCKER, PACKET_GET, 7 + character->bank.size() * 5);
 					reply.AddShort(item);
-					reply.AddThree(it->amount);
+					reply.AddThree(taken);
 					reply.AddChar(character->weight);
 					reply.AddChar(character->maxweight);
 
-					character->bank.erase(it);
+					it->amount -= taken;
+
+					if (it->amount <= 0)
+						character->bank.erase(it);
 
 					UTIL_FOREACH(character->bank, item)
 					{

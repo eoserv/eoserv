@@ -188,6 +188,7 @@ struct Map_Chest
 	int maxchest;
 	int chestslots;
 
+	int HasItem(short item);
 	int AddItem(short item, int amount, int slot = 0);
 	int DelItem(short item);
 

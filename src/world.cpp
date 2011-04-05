@@ -304,8 +304,11 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 		this->timer.Register(event);
 	}
 
-	event = new TimeEvent(world_warp_suck, this, 1.0, Timer::FOREVER);
-	this->timer.Register(event);
+	if (int(this->config["WarpSuck"]) > 0)
+	{
+		event = new TimeEvent(world_warp_suck, this, 1.0, Timer::FOREVER);
+		this->timer.Register(event);
+	}
 
 	if (this->config["ItemDespawn"])
 	{

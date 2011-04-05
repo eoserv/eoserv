@@ -77,7 +77,14 @@ void Talk_Tell(Character *character, PacketReader &reader)
 
 	if (to && !to->hidden)
 	{
-		to->Msg(character, message);
+		if (to->whispers)
+		{
+			to->Msg(character, message);
+		}
+		else
+		{
+			character->Msg(to, "Sorry, " + to->name + " cannot hear any whispers at the moment.");
+		}
 	}
 	else
 	{

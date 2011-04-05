@@ -311,7 +311,7 @@ void Character::Msg(Character *from, std::string message)
 {
 	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
 
-	PacketBuilder builder(PACKET_TALK, PACKET_TELL, from->name.length() + message.length());
+	PacketBuilder builder(PACKET_TALK, PACKET_TELL, 2 + from->name.length() + message.length());
 	builder.AddBreakString(from->name);
 	builder.AddBreakString(message);
 	this->player->Send(builder);
@@ -501,20 +501,26 @@ std::list<Character_Item>::iterator Character::DelItem(std::list<Character_Item>
 
 int Character::CanHoldItem(short itemid, int max_amount)
 {
-	EIF_Data *item = this->world->eif->Get(itemid);
+	int amount = max_amount;
 
-	if (!item || item->weight == 0)
-		return max_amount;
+	if (int(this->world->config["EnforceWeight"]) >= 2)
+	{
+		EIF_Data *item = this->world->eif->Get(itemid);
 
-	if (this->weight > this->maxweight)
-		return 0;
+		if (this->weight > this->maxweight)
+			amount = 0;
+		else if (!item || item->weight == 0)
+			amount = max_amount;
+		else
+			amount = std::min((this->maxweight - this->weight) / item->weight, max_amount);
+	}
 
-	return std::min((this->maxweight - this->weight) / item->weight, max_amount);
+	return std::min<int>(amount, this->world->config["MaxItem"]);
 }
 
 bool Character::AddTradeItem(short item, int amount)
 {
-	if (amount <= 0)
+	if (amount <= 0 || amount > int(this->world->config["MaxTrade"]))
 	{
 		return false;
 	}

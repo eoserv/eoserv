@@ -23,7 +23,6 @@ static inline unsigned int stupid_hash(unsigned int i)
 namespace Handlers
 {
 
-// Check if a character exists
 void Init_Init(EOClient *client, PacketReader &reader)
 {
 	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 10);
