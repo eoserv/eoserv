@@ -1441,6 +1441,14 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				character->hp -= limitamount;
 
+				PacketBuilder from_builder(PACKET_AVATAR, PACKET_REPLY, 10);
+				from_builder.AddShort(0);
+				from_builder.AddShort(character->player->id);
+				from_builder.AddThree(amount);
+				from_builder.AddChar(from->direction);
+				from_builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+				from_builder.AddChar(character->hp == 0);
+
 				PacketBuilder builder(PACKET_AVATAR, PACKET_REPLY, 10);
 				builder.AddShort(from->player->id);
 				builder.AddShort(character->player->id);
@@ -1449,9 +1457,11 @@ bool Map::AttackPK(Character *from, Direction direction)
 				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
 				builder.AddChar(character->hp == 0);
 
+				from->Send(from_builder);
+
 				UTIL_FOREACH(this->characters, checkchar)
 				{
-					if (character->InRange(checkchar))
+					if (from != checkchar && character->InRange(checkchar))
 					{
 						checkchar->Send(builder);
 					}
