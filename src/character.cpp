@@ -571,7 +571,7 @@ bool Character::AddSpell(short spell)
 	if (this->HasSpell(spell))
 		return false;
 
-	this->spells.push_back(Character_Spell(spell, 1));
+	this->spells.push_back(Character_Spell(spell, 0));
 
 	return true;
 }
@@ -579,8 +579,9 @@ bool Character::AddSpell(short spell)
 bool Character::DelSpell(short spell)
 {
 	auto remove_it = std::remove_if(UTIL_RANGE(this->spells), [&](Character_Spell cs) { return cs.id == spell; });
+	bool removed = (remove_it != this->spells.end());
 	this->spells.erase(remove_it, this->spells.end());
-	return (remove_it != this->spells.end());
+	return removed;
 }
 
 bool Character::Unequip(short item, unsigned char subloc)
@@ -1229,6 +1230,23 @@ void Character::Unhide()
 	{
 		character->Send(builder);
 	}
+}
+
+void Character::Reset()
+{
+	this->str = 0;
+	this->intl = 0;
+	this->wis = 0;
+	this->agi = 0;
+	this->con = 0;
+	this->cha = 0;
+
+	this->spells.clear();
+
+	this->statpoints = this->level * int(this->world->config["StatPerLevel"]);
+	this->skillpoints = this->level * int(this->world->config["SkillPerLevel"]);
+
+	this->CalculateStats();
 }
 
 #define v(x) vars[prefix + #x] = x;

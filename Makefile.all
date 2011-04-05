@@ -75,9 +75,9 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/handlers/Jukebox.o \
        $(OBJDIR)/handlers/Locker.o \
        $(OBJDIR)/handlers/Login.o \
+       $(OBJDIR)/handlers/Message.o \
        $(OBJDIR)/handlers/Paperdoll.o \
        $(OBJDIR)/handlers/Party.o \
-       $(OBJDIR)/handlers/Ping.o \
        $(OBJDIR)/handlers/Players.o \
        $(OBJDIR)/handlers/Refresh.o \
        $(OBJDIR)/handlers/Shop.o \

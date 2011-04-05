@@ -76,7 +76,7 @@ void Barber_Buy(Character *character, PacketReader &reader)
 		reply.AddChar(style);
 		reply.AddChar(color);
 
-		PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 6);
+		PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 6);
 		builder.AddShort(character->player->id);
 		builder.AddChar(SLOT_HAIR);
 		builder.AddChar(0); // subloc

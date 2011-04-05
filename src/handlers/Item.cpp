@@ -143,7 +143,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				reply.AddChar(item->haircolor);
 
-				PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 5);
+				PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 5);
 				builder.AddShort(character->player->id);
 				builder.AddChar(SLOT_HAIRCOLOR);
 				builder.AddChar(0); // subloc
@@ -229,7 +229,7 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddShort(character->evade);
 				reply.AddShort(character->armor);
 
-				PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 14);
+				PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
 				builder.AddShort(character->player->id);
 				builder.AddChar(SLOT_CLOTHES);
 				builder.AddChar(0);

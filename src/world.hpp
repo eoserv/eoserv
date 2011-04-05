@@ -87,6 +87,7 @@ class World
 		Config arenas_config;
 		Config formulas_config;
 		Config home_config;
+		Config skills_config;
 
 		std::vector<Character *> characters;
 		std::vector<Guild *> guilds;

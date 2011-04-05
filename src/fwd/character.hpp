@@ -107,4 +107,10 @@ enum SitAction
 	SIT_ACT_STAND = 2
 };
 
+enum TrainType
+{
+    TRAIN_STAT = 1,
+    TRAIN_SKILL = 2
+};
+
 #endif // FWD_CHARACTER_HPP_INCLUDED

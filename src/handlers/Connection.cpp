@@ -19,7 +19,7 @@ void Connection_Accept(EOClient *client, PacketReader &reader)
 }
 
 // Ping reply
-void Connection_Net(EOClient *client, PacketReader &reader)
+void Connection_Ping(EOClient *client, PacketReader &reader)
 {
 	(void)reader;
 
@@ -27,8 +27,8 @@ void Connection_Net(EOClient *client, PacketReader &reader)
 }
 
 PACKET_HANDLER_REGISTER(PACKET_CONNECTION)
-	Register(PACKET_ACCEPT, Connection_Net, Menu);
-	Register(PACKET_NET, Connection_Net, Any | OutOfBand);
+	Register(PACKET_ACCEPT, Connection_Accept, Menu);
+	Register(PACKET_PING, Connection_Ping, Any | OutOfBand);
 PACKET_HANDLER_REGISTER_END()
 
 }

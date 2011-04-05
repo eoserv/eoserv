@@ -128,7 +128,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	}
 	// TODO: Only send this if they change a viewable item
 
-	PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 14);
+	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
 	builder.AddShort(character->player->id);
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(subloc);
@@ -189,7 +189,7 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 
 	// TODO: Only send this if they change a viewable item
 
-	PacketBuilder builder(PACKET_CLOTHES, PACKET_AGREE, 14);
+	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
 	builder.AddShort(character->player->id);
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(subloc);

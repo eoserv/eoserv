@@ -671,7 +671,7 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 {
 	if (!silent)
 	{
-		PacketBuilder builder(PACKET_CLOTHES, PACKET_REMOVE, 3);
+		PacketBuilder builder(PACKET_AVATAR, PACKET_REMOVE, 3);
 		builder.AddShort(character->player->id);
 
 		if (animation != WARP_ANIMATION_NONE)
@@ -912,12 +912,12 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		}
 	}
 
-	PacketBuilder builder(PACKET_CLOTHES, PACKET_REMOVE, 2);
+	PacketBuilder builder(PACKET_AVATAR, PACKET_REMOVE, 2);
 	builder.AddShort(from->player->id);
 
 	UTIL_FOREACH(oldchars, character)
 	{
-		PacketBuilder rbuilder(PACKET_CLOTHES, PACKET_REMOVE, 2);
+		PacketBuilder rbuilder(PACKET_AVATAR, PACKET_REMOVE, 2);
 		rbuilder.AddShort(character->player->id);
 
 		character->Send(builder);
@@ -1428,7 +1428,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				character->hp -= limitamount;
 
-				PacketBuilder builder(PACKET_CLOTHES, PACKET_REPLY, 10);
+				PacketBuilder builder(PACKET_AVATAR, PACKET_REPLY, 10);
 				builder.AddShort(from->player->id);
 				builder.AddShort(character->player->id);
 				builder.AddThree(amount);

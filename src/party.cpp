@@ -188,7 +188,7 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 
 		bool level_up = (member->level < static_cast<int>(this->world->config["MaxLevel"]) && member->exp >= this->world->exp_table[member->level+1]);
 
-		PacketBuilder builder(PACKET_PARTY, PACKET_EXP, 7);
+		PacketBuilder builder(PACKET_PARTY, PACKET_TARGET_GROUP, 7);
 		builder.AddShort(member->player->id);
 		builder.AddInt(reward);
 		builder.AddChar(level_up);

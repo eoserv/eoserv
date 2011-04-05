@@ -70,6 +70,7 @@ void NPC::LoadShopDrop()
 	this->drops.clear();
 	this->shop_trade.clear();
 	this->shop_craft.clear();
+	this->skill_learn.clear();
 
 	Config::iterator drops = map->world->drops_config.find(util::to_string(this->id));
 	if (drops != map->world->drops_config.end())
@@ -167,6 +168,48 @@ void NPC::LoadShopDrop()
 				item->ingredients = ingredients;
 
 				this->shop_craft[i/9] = item;
+			}
+		}
+	}
+
+    this->skill_name = static_cast<std::string>(map->world->skills_config[util::to_string(this->id) + ".name"]);
+    Config::iterator skills = this->map->world->skills_config.find(util::to_string(this->id) + ".learn");
+	if (skills != this->map->world->skills_config.end())
+	{
+		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*skills).second));
+
+		if (parts.size() > 1)
+		{
+			if (parts.size() % 14 != 0)
+			{
+				Console::Err("WARNING: skipping invalid skill learn data for NPC #%i", id);
+				return;
+			}
+
+			this->skill_learn.resize(parts.size() / 14);
+
+			for (std::size_t i = 0; i < parts.size(); i += 14)
+			{
+				NPC_Learn_Skill *skill = new NPC_Learn_Skill;
+
+				skill->id = util::to_int(parts[i]);
+				skill->cost = util::to_int(parts[i+1]);
+				skill->levelreq = util::to_int(parts[i+2]);
+				skill->classreq = util::to_int(parts[i+3]);
+
+				skill->skillreq[0] = util::to_int(parts[i+4]);
+				skill->skillreq[1] = util::to_int(parts[i+5]);
+				skill->skillreq[2] = util::to_int(parts[i+6]);
+				skill->skillreq[3] = util::to_int(parts[i+7]);
+
+				skill->strreq = util::to_int(parts[i+8]);
+				skill->intreq = util::to_int(parts[i+9]);
+				skill->wisreq = util::to_int(parts[i+10]);
+				skill->agireq = util::to_int(parts[i+11]);
+				skill->conreq = util::to_int(parts[i+12]);
+				skill->chareq = util::to_int(parts[i+13]);
+
+				this->skill_learn[i/14] = skill;
 			}
 		}
 	}

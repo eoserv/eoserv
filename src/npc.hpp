@@ -79,6 +79,19 @@ struct NPC_Citizenship
 };
 
 /**
+ * Used by the NPC class to store skill master data
+ */
+struct NPC_Learn_Skill
+{
+	unsigned short id;
+	int cost;
+    unsigned char levelreq;
+    unsigned char classreq;
+	std::array<short, 4> skillreq;
+	short strreq, intreq, wisreq, agireq, conreq, chareq;
+};
+
+/**
  * An instance of an NPC created and managed by a Map
  */
 class NPC
@@ -93,8 +106,10 @@ class NPC
 		unsigned char spawn_x, spawn_y;
 		std::vector<NPC_Drop *> drops;
 		std::string shop_name;
+		std::string skill_name;
 		std::vector<NPC_Shop_Trade_Item *> shop_trade;
 		std::vector<NPC_Shop_Craft_Item *> shop_craft;
+		std::vector<NPC_Learn_Skill *> skill_learn;
 		NPC_Citizenship *citizenship;
 
 		NPC *parent;

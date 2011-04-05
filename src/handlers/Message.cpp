@@ -12,17 +12,17 @@ namespace Handlers
 {
 
 // User sending a ping request (#ping)
-void Ping_Net(Character *character, PacketReader &reader)
+void Message_Ping(Character *character, PacketReader &reader)
 {
 	int something = reader.GetShort();
 
-	PacketBuilder reply(PACKET_PING, PACKET_NET2, 2);
+	PacketBuilder reply(PACKET_MESSAGE, PACKET_PONG, 2);
 	reply.AddShort(something);
 	character->Send(reply);
 }
 
-PACKET_HANDLER_REGISTER(PACKET_PING)
-	Register(PACKET_NET, Ping_Net, Playing | OutOfBand)
+PACKET_HANDLER_REGISTER(PACKET_MESSAGE)
+	Register(PACKET_PING, Message_Ping, Playing | OutOfBand)
 PACKET_HANDLER_REGISTER_END()
 
 }

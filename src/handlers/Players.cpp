@@ -21,13 +21,13 @@ void Players_Accept(Character *character, PacketReader &reader)
 	std::string name = reader.GetEndString();
 	Character *victim = character->world->GetCharacter(name);
 
-	PacketBuilder reply(PACKET_PLAYERS, PACKET_NET, name.length());
+	PacketBuilder reply(PACKET_PLAYERS, PACKET_PING, name.length());
 
 	if (victim && !victim->hidden)
 	{
 		if (victim->mapid == character->mapid && !victim->nowhere)
 		{
-			reply.SetID(PACKET_PLAYERS, PACKET_NET2);
+			reply.SetID(PACKET_PLAYERS, PACKET_PONG);
 		}
 		else
 		{

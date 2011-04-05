@@ -186,9 +186,9 @@
 		<Unit filename="../src/handlers/Jukebox.cpp" />
 		<Unit filename="../src/handlers/Locker.cpp" />
 		<Unit filename="../src/handlers/Login.cpp" />
+		<Unit filename="../src/handlers/Message.cpp" />
 		<Unit filename="../src/handlers/Paperdoll.cpp" />
 		<Unit filename="../src/handlers/Party.cpp" />
-		<Unit filename="../src/handlers/Ping.cpp" />
 		<Unit filename="../src/handlers/Players.cpp" />
 		<Unit filename="../src/handlers/Refresh.cpp" />
 		<Unit filename="../src/handlers/Shop.cpp" />

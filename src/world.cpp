@@ -256,6 +256,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 		this->arenas_config.Read(this->config["ArenasFile"]);
 		this->formulas_config.Read(this->config["FormulasFile"]);
 		this->home_config.Read(this->config["HomeFile"]);
+		this->skills_config.Read(this->config["SkillsFile"]);
 	}
 	catch (std::runtime_error &e)
 	{
@@ -615,6 +616,7 @@ void World::Rehash()
 		this->arenas_config.Read(this->config["ArenasFile"]);
 		this->formulas_config.Read(this->config["FormulasFile"]);
 		this->home_config.Read(this->config["HomeFile"]);
+		this->skills_config.Read(this->config["SkillsFile"]);
 	}
 	catch (std::runtime_error &e)
 	{

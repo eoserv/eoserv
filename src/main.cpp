@@ -259,6 +259,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "ArenasFile"         , "./data/arenas.ini");
 		eoserv_config_default(config, "FormulasFile"       , "./data/formulas.ini");
 		eoserv_config_default(config, "HomeFile"           , "./data/home.ini");
+		eoserv_config_default(config, "SkillsFile"         , "./data/skills.ini");
 		eoserv_config_default(config, "MapDir"             , "./data/maps/");
 		eoserv_config_default(config, "Maps"               , 278);
 		eoserv_config_default(config, "SLN"                , true);
