@@ -647,19 +647,6 @@ Client *Server::Poll()
 	unsigned long nonblocking;
 #endif // defined(WIN32) || defined(WIN64)
 
-	if (this->clients.size() >= this->maxconn)
-	{
-		if ((newsock = accept(this->impl->sock, reinterpret_cast<sockaddr *>(&sin), &addrsize)) != INVALID_SOCKET)
-		{
-#if defined(WIN32) || defined(WIN64)
-			closesocket(newsock);
-#else // defined(WIN32) || defined(WIN64)
-			close(newsock);
-#endif // defined(WIN32) || defined(WIN64)
-			return 0;
-		}
-	}
-
 #if defined(WIN32) || defined(WIN64)
 	nonblocking = 1;
 	ioctlsocket(this->impl->sock, FIONBIO, &nonblocking);
@@ -668,6 +655,15 @@ Client *Server::Poll()
 #endif // defined(WIN32) || defined(WIN64)
 	if ((newsock = accept(this->impl->sock, reinterpret_cast<sockaddr *>(&sin), &addrsize)) == INVALID_SOCKET)
 	{
+		if (this->clients.size() >= this->maxconn)
+		{
+#if defined(WIN32) || defined(WIN64)
+			closesocket(newsock);
+#else // defined(WIN32) || defined(WIN64)
+			close(newsock);
+#endif // defined(WIN32) || defined(WIN64)
+		}
+
 		return 0;
 	}
 #if defined(WIN32) || defined(WIN64)
