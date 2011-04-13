@@ -23,11 +23,6 @@
 #include "world.hpp"
 #include "handlers/handlers.hpp"
 
-#define CLIENT_F_HANDLE(ID,FUNC) \
-case ID: \
-	result = this->Handle_##FUNC(family, action, reader, false);\
-	break
-
 void ActionQueue::AddAction(PacketReader reader, double time, bool auto_queue)
 {
 	this->queue.push(new ActionQueue_Action(reader, time, auto_queue));

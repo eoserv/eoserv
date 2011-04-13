@@ -38,10 +38,11 @@ void SLN::Request()
 
 void *SLN::RequestThread(void *void_sln)
 {
+	SLN *sln(static_cast<SLN *>(void_sln));
+
 	try
 	{
 		HTTP *http;
-		SLN *sln(static_cast<SLN *>(void_sln));
 
 		std::string url = sln->server->world->config["SLNURL"];
 		url += "check?software=EOSERV";
@@ -93,12 +94,12 @@ void *SLN::RequestThread(void *void_sln)
 		catch (Socket_Exception &e)
 		{
 			Console::Err(e.error());
-			return 0;
+			goto end;
 		}
 		catch (...)
 		{
 			Console::Err("There was a problem trying to make the HTTP request...");
-			return 0;
+			goto end;
 		}
 
 		while (!http->Done())
@@ -239,15 +240,16 @@ void *SLN::RequestThread(void *void_sln)
 			}
 		}
 
-		TimeEvent *event = new TimeEvent(SLN::TimedRequest, sln, static_cast<int>(sln->server->world->config["SLNPeriod"]), 1);
-		sln->server->world->timer.Register(event);
-
 		delete http;
 	}
 	catch (...)
 	{
 		Console::Wrn("There was an unknown SLN error");
 	}
+
+end:
+	TimeEvent *event = new TimeEvent(SLN::TimedRequest, sln, static_cast<int>(sln->server->world->config["SLNPeriod"]), 1);
+	sln->server->world->timer.Register(event);
 
 	return 0;
 }

@@ -16,16 +16,19 @@
 #include "../fwd/eoclient.hpp"
 #include "../fwd/player.hpp"
 
+#define PACKET_HANDLER_PASTE_AUX2(base, id) base##id
+#define PACKET_HANDLER_PASTE_AUX(base, id) PACKET_HANDLER_PASTE_AUX2(base, id)
+
 #define PACKET_HANDLER_REGISTER(family) \
-static struct packet_handler_register_##family##_helper : public packet_handler_register_helper<family> \
+namespace { struct PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_, __LINE__) : public packet_handler_register_helper<family> \
 { \
-	packet_handler_register_##family##_helper() \
+	PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_, __LINE__)() \
 	{ \
 		packet_handler_register_init _init; \
 
 #define PACKET_HANDLER_REGISTER_END() ; \
 	} \
-} packet_handler_register_helper_instance_##__LINE__;
+} PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_instance_, __LINE__); }
 
 namespace Handlers
 {
