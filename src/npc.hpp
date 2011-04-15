@@ -135,8 +135,9 @@ class NPC
 		void Act();
 
 		bool Walk(Direction);
-		void Damage(Character *from, int amount);
+		void Damage(Character *from, int amount, int spell_id = -1);
 		void RemoveFromView(Character *target);
+		void Killed(Character *from, int amount, int spell_id = -1);
 		void Die(bool show = true);
 
 		void Attack(Character *target);

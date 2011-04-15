@@ -512,14 +512,8 @@ bool NPC::Walk(Direction direction)
 	return this->map->Walk(this, direction);
 }
 
-void NPC::Damage(Character *from, int amount)
+void NPC::Damage(Character *from, int amount, int spell_id)
 {
-	double droprate = this->map->world->config["DropRate"];
-	double exprate = this->map->world->config["ExpRate"];
-	int sharemode = this->map->world->config["ShareMode"];
-	int partysharemode = this->map->world->config["PartyShareMode"];
-	std::set<Party *> parties;
-
 	int limitamount = std::min(this->hp, amount);
 
 	if (this->map->world->config["LimitDamage"])
@@ -554,13 +548,21 @@ void NPC::Damage(Character *from, int amount)
 
 	if (this->hp > 0)
 	{
-		PacketBuilder builder(PACKET_NPC, PACKET_REPLY, 11);
+		PacketBuilder builder(spell_id == -1 ? PACKET_NPC : PACKET_CAST, PACKET_REPLY, 14);
+
+		if (spell_id != -1)
+			builder.AddShort(spell_id);
+
 		builder.AddShort(from->player->id);
 		builder.AddChar(from->direction);
 		builder.AddShort(this->index);
 		builder.AddThree(amount);
 		builder.AddShort(int(double(this->hp) / double(this->Data()->hp) * 100.0));
-		builder.AddChar(1); // ?
+
+		if (spell_id != -1)
+			builder.AddShort(from->tp);
+		else
+			builder.AddChar(1); // ?
 
 		UTIL_FOREACH(this->map->characters, character)
 		{
@@ -572,323 +574,7 @@ void NPC::Damage(Character *from, int amount)
 	}
 	else
 	{
-		int most_damage_counter = 0;
-		Character *most_damage = 0;
-		this->alive = false;
-
-		this->dead_since = int(Timer::GetTime());
-
-		std::vector<NPC_Drop *> drops;
-		NPC_Drop *drop = 0;
-		UTIL_FOREACH(this->drops, checkdrop)
-		{
-			if ((double(util::rand(0,10000)) / 100.0) < checkdrop->chance * droprate)
-			{
-				drops.push_back(checkdrop);
-			}
-		}
-
-		if (drops.size() > 0)
-		{
-			drop = drops[util::rand(0, drops.size()-1)];
-		}
-
-		if (sharemode == 1)
-		{
-			UTIL_FOREACH(this->damagelist, opponent)
-			{
-				if (opponent->damage > most_damage_counter)
-				{
-					most_damage_counter = opponent->damage;
-					most_damage = opponent->attacker;
-				}
-			}
-		}
-
-		int dropuid = 0;
-		int dropid = 0;
-		int dropamount = 0;
-		if (drop)
-		{
-			dropuid = this->map->GenerateItemID();
-			dropid = drop->id;
-			dropamount = util::rand(drop->min, drop->max);
-			Map_Item *newitem(new Map_Item(dropuid, dropid, dropamount, this->x, this->y, from->player->id, Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])));
-			this->map->items.push_back(newitem);
-
-			// Selects a random number between 0 and maxhp, and decides the winner based on that
-			switch (sharemode)
-			{
-				case 0:
-					this->map->items.back()->owner = from->player->id;
-					break;
-
-				case 1:
-					this->map->items.back()->owner = most_damage->player->id;
-					break;
-
-				case 2:
-				{
-					int rewarded_hp = util::rand(0, this->Data()->hp);
-					int count_hp = 0;
-					UTIL_FOREACH(this->damagelist, opponent)
-					{
-						if (opponent->attacker->InRange(this))
-						{
-							if (rewarded_hp >= count_hp && rewarded_hp < opponent->damage)
-							{
-								this->map->items.back()->owner = opponent->attacker->player->id;
-								break;
-							}
-
-							count_hp += opponent->damage;
-						}
-					}
-				}
-					break;
-
-				case 3:
-				{
-					int rand = util::rand(0, this->damagelist.size());
-					int i = 0;
-					UTIL_FOREACH(this->damagelist, opponent)
-					{
-						if (opponent->attacker->InRange(this))
-						{
-							if (rand == i++)
-							{
-								this->map->items.back()->owner = opponent->attacker->player->id;
-								break;
-							}
-						}
-					}
-				}
-					break;
-			}
-		}
-
-		UTIL_FOREACH(this->map->characters, character)
-		{
-			std::list<NPC_Opponent *>::iterator findopp = this->damagelist.begin();
-			for (; findopp != this->damagelist.end() && (*findopp)->attacker != character; ++findopp); // no loop body
-
-			if (findopp != this->damagelist.end() || character->InRange(this))
-			{
-				bool level_up = false;
-
-				PacketBuilder builder(PACKET_NPC, PACKET_SPEC, 22);
-
-				if (this->Data()->exp != 0)
-				{
-					if (findopp != this->damagelist.end())
-					{
-						int reward;
-						switch (sharemode)
-						{
-							case 0:
-								if (character == from)
-								{
-									reward = int(std::ceil(double(this->Data()->exp) * exprate));
-
-									if (reward > 0)
-									{
-										if (partysharemode)
-										{
-											if (character->party)
-											{
-												character->party->ShareEXP(reward, partysharemode, this->map);
-											}
-											else
-											{
-												character->exp += reward;
-											}
-										}
-										else
-										{
-											character->exp += reward;
-										}
-									}
-								}
-								break;
-
-							case 1:
-								if (character == most_damage)
-								{
-									reward = int(std::ceil(double(this->Data()->exp) * exprate));
-
-									if (reward > 0)
-									{
-										if (partysharemode)
-										{
-											if (character->party)
-											{
-												character->party->ShareEXP(reward, partysharemode, this->map);
-											}
-											else
-											{
-												character->exp += reward;
-											}
-										}
-										else
-										{
-											character->exp += reward;
-										}
-									}
-								}
-								break;
-
-							case 2:
-								reward = int(std::ceil(double(this->Data()->exp) * exprate * (double((*findopp)->damage) / double(this->totaldamage))));
-
-								if (reward > 0)
-								{
-									if (partysharemode)
-									{
-										if (character->party)
-										{
-											character->party->temp_expsum += reward;
-											parties.insert(character->party);
-										}
-										else
-										{
-											character->exp += reward;
-										}
-									}
-									else
-									{
-										character->exp += reward;
-									}
-								}
-								break;
-
-							case 3:
-								reward = int(std::ceil(double(this->Data()->exp) * exprate * (double(this->damagelist.size()) / 1.0)));
-
-								if (reward > 0)
-								{
-									if (partysharemode)
-									{
-										if (character->party)
-										{
-											character->party->temp_expsum += reward;
-										}
-										else
-										{
-											character->exp += reward;
-										}
-									}
-									else
-									{
-										character->exp += reward;
-									}
-								}
-								break;
-						}
-
-						character->exp = std::min(character->exp, static_cast<int>(this->map->world->config["MaxExp"]));
-
-						while (character->level < static_cast<int>(this->map->world->config["MaxLevel"]) && character->exp >= this->map->world->exp_table[character->level+1])
-						{
-							level_up = true;
-							++character->level;
-							character->statpoints += static_cast<int>(this->map->world->config["StatPerLevel"]);
-							character->skillpoints += static_cast<int>(this->map->world->config["SkillPerLevel"]);
-							character->CalculateStats();
-						}
-
-						if (level_up)
-						{
-							builder.SetID(PACKET_NPC, PACKET_ACCEPT);
-							builder.ReserveMore(33);
-						}
-					}
-				}
-
-				builder.AddShort(from->player->id);
-				builder.AddChar(from->direction);
-				builder.AddShort(this->index);
-				builder.AddShort(dropuid);
-				builder.AddShort(dropid);
-				builder.AddChar(this->x);
-				builder.AddChar(this->y);
-				builder.AddInt(dropamount);
-				builder.AddThree(amount);
-
-				if ((sharemode == 0 && character == from) || (sharemode != 0 && findopp != this->damagelist.end()))
-				{
-					builder.AddInt(character->exp);
-				}
-
-				if (level_up)
-				{
-					builder.AddChar(character->level);
-					builder.AddShort(character->statpoints);
-					builder.AddShort(character->skillpoints);
-					builder.AddShort(character->maxhp);
-					builder.AddShort(character->maxtp);
-					builder.AddShort(character->maxsp);
-				}
-
-				character->Send(builder);
-			}
-		}
-
-		UTIL_FOREACH(parties, party)
-		{
-			party->ShareEXP(party->temp_expsum, partysharemode, this->map);
-			party->temp_expsum = 0;
-		}
-
-		UTIL_FOREACH(this->damagelist, opponent)
-		{
-			opponent->attacker->unregister_npc.erase(
-				std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), this),
-				opponent->attacker->unregister_npc.end()
-			);
-		}
-
-		this->damagelist.clear();
-		this->totaldamage = 0;
-
-		short childid = -1;
-
-		if (this->Data()->boss)
-		{
-			UTIL_FOREACH(this->map->npcs, npc)
-			{
-				if (npc->Data()->child && !npc->Data()->boss)
-				{
-					if (childid == -1 || childid == npc->Data()->id)
-					{
-						npc->Die(false);
-						childid = npc->Data()->id;
-					}
-					else
-					{
-						npc->Die(true);
-					}
-				}
-			}
-		}
-
-		if (childid != -1)
-		{
-			PacketBuilder builder(PACKET_NPC, PACKET_JUNK, 2);
-			builder.AddShort(childid);
-
-			UTIL_FOREACH(this->map->characters, character)
-			{
-				character->Send(builder);
-			}
-		}
-
-		if (this->temporary)
-		{
-			this->map->npcs.erase(
-				std::remove(this->map->npcs.begin(), this->map->npcs.end(), this),
-				this->map->npcs.end()
-			);
-		}
+		this->Killed(from, amount, spell_id);
 	}
 }
 
@@ -926,6 +612,339 @@ void NPC::RemoveFromView(Character *target)
 
 	target->Send(builder);
 	target->Send(builder2);
+}
+
+void NPC::Killed(Character *from, int amount, int spell_id)
+{
+	double droprate = this->map->world->config["DropRate"];
+	double exprate = this->map->world->config["ExpRate"];
+	int sharemode = this->map->world->config["ShareMode"];
+	int partysharemode = this->map->world->config["PartyShareMode"];
+	std::set<Party *> parties;
+
+	int most_damage_counter = 0;
+	Character *most_damage = 0;
+	this->alive = false;
+
+	this->dead_since = int(Timer::GetTime());
+
+	std::vector<NPC_Drop *> drops;
+	NPC_Drop *drop = 0;
+	UTIL_FOREACH(this->drops, checkdrop)
+	{
+		if ((double(util::rand(0,10000)) / 100.0) < checkdrop->chance * droprate)
+		{
+			drops.push_back(checkdrop);
+		}
+	}
+
+	if (drops.size() > 0)
+	{
+		drop = drops[util::rand(0, drops.size()-1)];
+	}
+
+	if (sharemode == 1)
+	{
+		UTIL_FOREACH(this->damagelist, opponent)
+		{
+			if (opponent->damage > most_damage_counter)
+			{
+				most_damage_counter = opponent->damage;
+				most_damage = opponent->attacker;
+			}
+		}
+	}
+
+	int dropuid = 0;
+	int dropid = 0;
+	int dropamount = 0;
+	if (drop)
+	{
+		dropuid = this->map->GenerateItemID();
+		dropid = drop->id;
+		dropamount = util::rand(drop->min, drop->max);
+		Map_Item *newitem(new Map_Item(dropuid, dropid, dropamount, this->x, this->y, from->player->id, Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])));
+		this->map->items.push_back(newitem);
+
+		// Selects a random number between 0 and maxhp, and decides the winner based on that
+		switch (sharemode)
+		{
+			case 0:
+				this->map->items.back()->owner = from->player->id;
+				break;
+
+			case 1:
+				this->map->items.back()->owner = most_damage->player->id;
+				break;
+
+			case 2:
+			{
+				int rewarded_hp = util::rand(0, this->Data()->hp);
+				int count_hp = 0;
+				UTIL_FOREACH(this->damagelist, opponent)
+				{
+					if (opponent->attacker->InRange(this))
+					{
+						if (rewarded_hp >= count_hp && rewarded_hp < opponent->damage)
+						{
+							this->map->items.back()->owner = opponent->attacker->player->id;
+							break;
+						}
+
+						count_hp += opponent->damage;
+					}
+				}
+			}
+				break;
+
+			case 3:
+			{
+				int rand = util::rand(0, this->damagelist.size());
+				int i = 0;
+				UTIL_FOREACH(this->damagelist, opponent)
+				{
+					if (opponent->attacker->InRange(this))
+					{
+						if (rand == i++)
+						{
+							this->map->items.back()->owner = opponent->attacker->player->id;
+							break;
+						}
+					}
+				}
+			}
+				break;
+		}
+	}
+
+	UTIL_FOREACH(this->map->characters, character)
+	{
+		std::list<NPC_Opponent *>::iterator findopp = this->damagelist.begin();
+		for (; findopp != this->damagelist.end() && (*findopp)->attacker != character; ++findopp); // no loop body
+
+		if (findopp != this->damagelist.end() || character->InRange(this))
+		{
+			bool level_up = false;
+
+			PacketBuilder builder(spell_id == -1 ? PACKET_NPC : PACKET_CAST, PACKET_SPEC, 26);
+
+			if (this->Data()->exp != 0)
+			{
+				if (findopp != this->damagelist.end())
+				{
+					int reward;
+					switch (sharemode)
+					{
+						case 0:
+							if (character == from)
+							{
+								reward = int(std::ceil(double(this->Data()->exp) * exprate));
+
+								if (reward > 0)
+								{
+									if (partysharemode)
+									{
+										if (character->party)
+										{
+											character->party->ShareEXP(reward, partysharemode, this->map);
+										}
+										else
+										{
+											character->exp += reward;
+										}
+									}
+									else
+									{
+										character->exp += reward;
+									}
+								}
+							}
+							break;
+
+						case 1:
+							if (character == most_damage)
+							{
+								reward = int(std::ceil(double(this->Data()->exp) * exprate));
+
+								if (reward > 0)
+								{
+									if (partysharemode)
+									{
+										if (character->party)
+										{
+											character->party->ShareEXP(reward, partysharemode, this->map);
+										}
+										else
+										{
+											character->exp += reward;
+										}
+									}
+									else
+									{
+										character->exp += reward;
+									}
+								}
+							}
+							break;
+
+						case 2:
+							reward = int(std::ceil(double(this->Data()->exp) * exprate * (double((*findopp)->damage) / double(this->totaldamage))));
+
+							if (reward > 0)
+							{
+								if (partysharemode)
+								{
+									if (character->party)
+									{
+										character->party->temp_expsum += reward;
+										parties.insert(character->party);
+									}
+									else
+									{
+										character->exp += reward;
+									}
+								}
+								else
+								{
+									character->exp += reward;
+								}
+							}
+							break;
+
+						case 3:
+							reward = int(std::ceil(double(this->Data()->exp) * exprate * (double(this->damagelist.size()) / 1.0)));
+
+							if (reward > 0)
+							{
+								if (partysharemode)
+								{
+									if (character->party)
+									{
+										character->party->temp_expsum += reward;
+									}
+									else
+									{
+										character->exp += reward;
+									}
+								}
+								else
+								{
+									character->exp += reward;
+								}
+							}
+							break;
+					}
+
+					character->exp = std::min(character->exp, static_cast<int>(this->map->world->config["MaxExp"]));
+
+					while (character->level < static_cast<int>(this->map->world->config["MaxLevel"]) && character->exp >= this->map->world->exp_table[character->level+1])
+					{
+						level_up = true;
+						++character->level;
+						character->statpoints += static_cast<int>(this->map->world->config["StatPerLevel"]);
+						character->skillpoints += static_cast<int>(this->map->world->config["SkillPerLevel"]);
+						character->CalculateStats();
+					}
+
+					if (level_up)
+					{
+						builder.SetID(spell_id == -1 ? PACKET_NPC : PACKET_CAST, PACKET_ACCEPT);
+						builder.ReserveMore(33);
+					}
+				}
+			}
+
+			if (spell_id != -1)
+				builder.AddShort(spell_id);
+
+			builder.AddShort(from->player->id);
+			builder.AddChar(from->direction);
+			builder.AddShort(this->index);
+			builder.AddShort(dropuid);
+			builder.AddShort(dropid);
+			builder.AddChar(this->x);
+			builder.AddChar(this->y);
+			builder.AddInt(dropamount);
+			builder.AddThree(amount);
+
+			if (spell_id != -1)
+				builder.AddShort(from->tp);
+
+			if ((sharemode == 0 && character == from) || (sharemode != 0 && findopp != this->damagelist.end()))
+			{
+				builder.AddInt(character->exp);
+			}
+
+			if (level_up)
+			{
+				builder.AddChar(character->level);
+				builder.AddShort(character->statpoints);
+				builder.AddShort(character->skillpoints);
+				builder.AddShort(character->maxhp);
+				builder.AddShort(character->maxtp);
+				builder.AddShort(character->maxsp);
+			}
+
+			character->Send(builder);
+		}
+	}
+
+	UTIL_FOREACH(parties, party)
+	{
+		party->ShareEXP(party->temp_expsum, partysharemode, this->map);
+		party->temp_expsum = 0;
+	}
+
+	UTIL_FOREACH(this->damagelist, opponent)
+	{
+		opponent->attacker->unregister_npc.erase(
+			std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), this),
+			opponent->attacker->unregister_npc.end()
+		);
+	}
+
+	this->damagelist.clear();
+	this->totaldamage = 0;
+
+	short childid = -1;
+
+	if (this->Data()->boss)
+	{
+		UTIL_FOREACH(this->map->npcs, npc)
+		{
+			if (npc->Data()->child && !npc->Data()->boss)
+			{
+				if (childid == -1 || childid == npc->Data()->id)
+				{
+					npc->Die(false);
+					childid = npc->Data()->id;
+				}
+				else
+				{
+					npc->Die(true);
+				}
+			}
+		}
+	}
+
+	if (childid != -1)
+	{
+		PacketBuilder builder(PACKET_NPC, PACKET_JUNK, 2);
+		builder.AddShort(childid);
+
+		UTIL_FOREACH(this->map->characters, character)
+		{
+			character->Send(builder);
+		}
+	}
+
+	if (this->temporary)
+	{
+		this->map->npcs.erase(
+			std::remove(this->map->npcs.begin(), this->map->npcs.end(), this),
+			this->map->npcs.end()
+		);
+	}
 }
 
 void NPC::Die(bool show)

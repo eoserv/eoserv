@@ -247,6 +247,11 @@ class Map
 		bool OpenDoor(Character *from, unsigned char x, unsigned char y);
 		void CloseDoor(unsigned char x, unsigned char y);
 
+		void SpellSelf(Character *from, unsigned short spell_id);
+		void SpellAttack(Character *from, NPC *victim, unsigned short spell_id);
+		void SpellAttackPK(Character *from, Character *victim, unsigned short spell_id);
+		void SpellGroup(Character *from, unsigned short spell_id);
+
 		bool Walk(NPC *from, Direction direction);
 
 		Map_Item *AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from = 0);
@@ -269,6 +274,7 @@ class Map
 		Character *GetCharacter(std::string name);
 		Character *GetCharacterPID(unsigned int id);
 		Character *GetCharacterCID(unsigned int id);
+		NPC *GetNPCIndex(unsigned char index);
 
 		enum OccupiedTarget
 		{

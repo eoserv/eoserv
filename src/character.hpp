@@ -25,6 +25,8 @@
 #include "eodata.hpp"
 #include "guild.hpp"
 
+void character_cast_spell(void *character_void);
+
 /**
  * Serialize a list of items in to a text format that can be restored with ItemUnserialize
  */
@@ -139,6 +141,21 @@ class Character
 		std::string guild_join;
 		std::string guild_invite;
 
+		enum SpellTarget
+		{
+			TargetInvalid,
+			TargetSelf,
+			TargetNPC,
+			TargetPlayer,
+			TargetGroup
+		};
+
+		bool spell_ready;
+		unsigned short spell_id;
+		TimeEvent *spell_event;
+		SpellTarget spell_target;
+		unsigned short spell_target_id;
+
 		double last_walk;
 		int attacks;
 
@@ -193,6 +210,8 @@ class Character
 		bool DelTradeItem(short item);
 		bool AddSpell(short spell);
 		bool DelSpell(short spell);
+		void CancelSpell();
+		void SpellAct();
 		bool Unequip(short item, unsigned char subloc);
 		bool Equip(short item, unsigned char subloc);
 		bool InRange(unsigned char x, unsigned char y);

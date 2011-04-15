@@ -249,8 +249,8 @@ class ESF
 	public:
 		enum Type
 		{
-			Damage,
 			Heal,
+			Damage,
 			Bard
 		};
 
@@ -275,6 +275,8 @@ class ESF
 		std::vector<ESF_Data *> data;
 		ESF(std::string filename) { Read(filename); }
 		void Read(std::string filename);
+
+		ESF_Data *Get(unsigned int id);
 };
 
 /**

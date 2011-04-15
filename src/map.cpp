@@ -7,6 +7,7 @@
 #include "map.hpp"
 
 #include <algorithm>
+#include <set>
 
 #include "console.hpp"
 #include "timer.hpp"
@@ -19,6 +20,7 @@
 #include "eoserver.hpp"
 #include "npc.hpp"
 #include "packet.hpp"
+#include "party.hpp"
 #include "player.hpp"
 #include "world.hpp"
 
@@ -632,6 +634,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	character->map = this;
 	character->last_walk = Timer::GetTime();
 	character->attacks = 0;
+	character->CancelSpell();
 
 	PacketBuilder builder(PACKET_PLAYERS, PACKET_AGREE, 63);
 
@@ -798,6 +801,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
     from->last_walk = Timer::GetTime();
     from->attacks = 0;
+    from->CancelSpell();
 
 	from->direction = direction;
 
@@ -1259,6 +1263,8 @@ void Map::Attack(Character *from, Direction direction)
 	from->direction = direction;
 	from->attacks += 1;
 
+	from->CancelSpell();
+
 	if (from->arena)
 	{
 		from->arena->Attack(from, direction);
@@ -1357,7 +1363,7 @@ void Map::Attack(Character *from, Direction direction)
 				return;
 			}
 		}
-		
+
 		if (!this->Walkable(target_x, target_y, true))
 		{
 			return;
@@ -1511,6 +1517,8 @@ void Map::Face(Character *from, Direction direction)
 {
 	from->direction = direction;
 
+	from->CancelSpell();
+
 	PacketBuilder builder(PACKET_FACE, PACKET_PLAYER, 3);
 	builder.AddShort(from->player->id);
 	builder.AddChar(direction);
@@ -1529,6 +1537,8 @@ void Map::Face(Character *from, Direction direction)
 void Map::Sit(Character *from, SitState sit_type)
 {
 	from->sitting = sit_type;
+
+	from->CancelSpell();
 
 	PacketBuilder builder((sit_type == SIT_CHAIR) ? PACKET_CHAIR : PACKET_SIT, PACKET_PLAYER, 6);
 	builder.AddShort(from->player->id);
@@ -1551,6 +1561,8 @@ void Map::Sit(Character *from, SitState sit_type)
 void Map::Stand(Character *from)
 {
 	from->sitting = SIT_STAND;
+
+	from->CancelSpell();
 
 	PacketBuilder builder(PACKET_SIT, PACKET_REMOVE, 4);
 	builder.AddShort(from->player->id);
@@ -1682,6 +1694,313 @@ void Map::CloseDoor(unsigned char x, unsigned char y)
 		}
 
 		warp->open = false;
+	}
+}
+
+ESF_Data *map_spell_common(Character *from, unsigned short spell_id)
+{
+	ESF_Data *spell = from->world->esf->Get(spell_id);
+
+	if (spell->id == 0)
+		return 0;
+
+	if (from->tp < spell->tp)
+		return 0;
+
+	return spell;
+}
+
+void Map::SpellSelf(Character *from, unsigned short spell_id)
+{
+	ESF_Data *spell = map_spell_common(from, spell_id);
+
+	if (!spell || spell->type != ESF::Heal)
+		return;
+
+	from->tp -= spell->tp;
+
+	int hpgain = spell->hp;
+
+	if (this->world->config["LimitDamage"])
+		hpgain = std::min(hpgain, from->maxhp - from->hp);
+
+	hpgain = std::max(hpgain, 0);
+
+	from->hp += hpgain;
+
+	if (this->world->config["LimitDamage"])
+		from->hp = std::min(from->hp, from->maxhp);
+
+	PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_SELF, 15);
+	builder.AddShort(from->player->id);
+	builder.AddShort(spell_id);
+	builder.AddInt(spell->hp);
+	builder.AddChar(int(double(from->hp) / double(from->maxhp) * 100.0));
+
+	UTIL_FOREACH(this->characters, character)
+	{
+		if (character != from && from->InRange(character))
+			character->Send(builder);
+	}
+
+	builder.AddShort(from->hp);
+	builder.AddShort(from->tp);
+	builder.AddShort(1);
+
+	from->Send(builder);
+}
+
+void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
+{
+	ESF_Data *spell = map_spell_common(from, spell_id);
+
+	if (!spell || spell->type != ESF::Damage)
+		return;
+
+	if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive) && npc->alive)
+	{
+		int amount = util::rand(from->mindam, from->maxdam);
+		double rand = util::rand(0.0, 1.0);
+
+		bool critical = rand < static_cast<double>(this->world->config["CriticalRate"]);
+
+		std::unordered_map<std::string, double> formula_vars;
+
+		from->FormulaVars(formula_vars);
+		npc->FormulaVars(formula_vars, "target_");
+		formula_vars["modifier"] = this->world->config["MobRate"];
+		formula_vars["damage"] = amount;
+		formula_vars["critical"] = critical;
+
+		amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
+		double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
+
+		if (rand > hit_rate)
+		{
+			amount = 0;
+		}
+
+		amount = std::max(amount, 0);
+
+		int limitamount = std::min(amount, int(npc->hp));
+
+		if (this->world->config["LimitDamage"])
+		{
+			amount = limitamount;
+		}
+
+		npc->Damage(from, amount, spell_id);
+	}
+}
+
+void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell_id)
+{
+	ESF_Data *spell = map_spell_common(from, spell_id);
+
+	if (!spell || (spell->type != ESF::Heal && spell->type != ESF::Damage))
+		return;
+
+	if (spell->type == ESF::Damage && from->map->pk)
+	{
+		from->tp -= spell->tp;
+
+		int amount = util::rand(from->mindam, from->maxdam);
+		double rand = util::rand(0.0, 1.0);
+
+		bool critical = rand < static_cast<double>(this->world->config["CriticalRate"]);
+
+		std::unordered_map<std::string, double> formula_vars;
+
+		from->FormulaVars(formula_vars);
+		victim->FormulaVars(formula_vars, "target_");
+		formula_vars["modifier"] = this->world->config["PKRate"];
+		formula_vars["damage"] = amount;
+		formula_vars["critical"] = critical;
+
+		amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
+		double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
+
+		if (rand > hit_rate)
+		{
+			amount = 0;
+		}
+
+		amount = std::max(amount, 0);
+
+		int limitamount = std::min(amount, int(victim->hp));
+
+		if (this->world->config["LimitDamage"])
+		{
+			amount = limitamount;
+		}
+
+		victim->hp -= limitamount;
+
+		PacketBuilder builder(PACKET_AVATAR, PACKET_ADMIN, 12);
+		builder.AddShort(from->player->id);
+		builder.AddShort(victim->player->id);
+		builder.AddThree(amount);
+		builder.AddChar(from->direction);
+		builder.AddChar(int(double(victim->hp) / double(victim->maxhp) * 100.0));
+		builder.AddChar(victim->hp == 0);
+		builder.AddShort(spell_id);
+
+		UTIL_FOREACH(this->characters, character)
+		{
+			if (victim->InRange(character))
+				character->Send(builder);
+		}
+
+		if (victim->hp == 0)
+		{
+			victim->hp = int(victim->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0);
+
+			if (this->world->config["Deadly"])
+			{
+				victim->DropAll(from);
+			}
+
+			victim->map->Leave(victim, WARP_ANIMATION_NONE, true);
+			victim->nowhere = true;
+			victim->map = this->world->GetMap(victim->SpawnMap());
+			victim->mapid = victim->SpawnMap();
+			victim->x = victim->SpawnX();
+			victim->y = victim->SpawnY();
+
+			victim->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
+				{char(PACKET_INTERNAL_NULL), char(PACKET_INTERNAL)}
+			}.data()), 1.5);
+
+			victim->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
+				{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
+			}.data()), 0.0);
+		}
+
+		builder.Reset(4);
+		builder.SetID(PACKET_RECOVER, PACKET_PLAYER);
+
+		builder.AddShort(victim->hp);
+		builder.AddShort(victim->tp);
+		victim->Send(builder);
+
+		if (victim->party)
+		{
+			victim->party->UpdateHP(victim);
+		}
+	}
+	else if (spell->type == ESF::Heal)
+	{
+		from->tp -= spell->tp;
+
+		int hpgain = spell->hp;
+
+		if (this->world->config["LimitDamage"])
+			hpgain = std::min(hpgain, victim->maxhp - victim->hp);
+
+		hpgain = std::max(hpgain, 0);
+
+		victim->hp += hpgain;
+
+		if (this->world->config["LimitDamage"])
+			victim->hp = std::min(victim->hp, victim->maxhp);
+
+		PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_OTHER, 18);
+		builder.AddShort(victim->player->id);
+		builder.AddShort(from->player->id);
+		builder.AddChar(from->direction);
+		builder.AddShort(spell_id);
+		builder.AddInt(spell->hp);
+		builder.AddChar(int(double(victim->hp) / double(victim->maxhp) * 100.0));
+
+		UTIL_FOREACH(this->characters, character)
+		{
+			if (character != victim && victim->InRange(character))
+				character->Send(builder);
+		}
+
+		builder.AddShort(victim->hp);
+
+		victim->Send(builder);
+
+		if (victim->party)
+		{
+			victim->party->UpdateHP(victim);
+		}
+	}
+
+	PacketBuilder builder(PACKET_RECOVER, PACKET_PLAYER, 4);
+	builder.AddShort(from->hp);
+	builder.AddShort(from->tp);
+	from->Send(builder);
+}
+
+void Map::SpellGroup(Character *from, unsigned short spell_id)
+{
+	ESF_Data *spell = map_spell_common(from, spell_id);
+
+	if (!spell || spell->type != ESF::Heal || !from->party)
+		return;
+
+	from->tp -= spell->tp;
+
+	int hpgain = spell->hp;
+
+	if (this->world->config["LimitDamage"])
+		hpgain = std::min(hpgain, from->maxhp - from->hp);
+
+	hpgain = std::max(hpgain, 0);
+
+	from->hp += hpgain;
+
+	if (this->world->config["LimitDamage"])
+		from->hp = std::min(from->hp, from->maxhp);
+
+	std::set<Character *> in_range;
+
+	PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_GROUP, 8 + from->party->members.size() * 10);
+	builder.AddShort(spell_id);
+	builder.AddShort(from->player->id);
+	builder.AddShort(from->tp);
+	builder.AddShort(spell->hp);
+
+	UTIL_FOREACH(from->party->members, member)
+	{
+		if (member->map != from->map)
+			continue;
+
+		int hpgain = spell->hp;
+
+		if (this->world->config["LimitDamage"])
+			hpgain = std::min(hpgain, member->maxhp - member->hp);
+
+		hpgain = std::max(hpgain, 0);
+
+		member->hp += hpgain;
+
+		if (this->world->config["LimitDamage"])
+			member->hp = std::min(member->hp, member->maxhp);
+
+		// wat?
+		builder.AddByte(255);
+		builder.AddByte(255);
+		builder.AddByte(255);
+		builder.AddByte(255);
+		builder.AddByte(255);
+
+		builder.AddShort(member->player->id);
+		builder.AddChar(int(double(member->hp) / double(member->maxhp) * 100.0));
+		builder.AddShort(member->hp);
+
+		UTIL_FOREACH(this->characters, character)
+		{
+			if (member->InRange(character))
+				in_range.insert(character);
+		}
+	}
+
+	UTIL_FOREACH(in_range, character)
+	{
+		character->Send(builder);
 	}
 }
 
@@ -1941,6 +2260,19 @@ Character *Map::GetCharacterCID(unsigned int id)
 		if (character->id == id)
 		{
 			return character;
+		}
+	}
+
+	return 0;
+}
+
+NPC *Map::GetNPCIndex(unsigned char index)
+{
+	UTIL_FOREACH(this->npcs, npc)
+	{
+		if (npc->index == index)
+		{
+			return npc;
 		}
 	}
 

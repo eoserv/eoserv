@@ -340,6 +340,18 @@ void ESF::Read(std::string filename)
 	std::fclose(fh);
 }
 
+ESF_Data *ESF::Get(unsigned int id)
+{
+	if (id > 0 && id < this->data.size())
+	{
+		return this->data[id];
+	}
+	else
+	{
+		return this->data[0];
+	}
+}
+
 void ECF::Read(std::string filename)
 {
 	this->data.clear();

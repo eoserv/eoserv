@@ -24,6 +24,26 @@
 #include "player.hpp"
 #include "world.hpp"
 
+void character_cast_spell(void *character_void)
+{
+	Character *character(static_cast<Character *>(character_void));
+
+	if (!character->spell_event)
+		return;
+
+	character->spell_event = 0;
+
+	ESF_Data *spell = character->world->esf->Get(character->spell_id);
+
+	if (spell->id == 0)
+		return;
+
+	if (character->spell_target != Character::TargetInvalid)
+		character->SpellAct();
+	else
+		character->spell_ready = true;
+}
+
 // TODO: Clean up these functions
 std::string ItemSerialize(const std::list<Character_Item> &list)
 {
@@ -237,6 +257,11 @@ Character::Character(std::string name, World *world)
 	this->npc_type = ENF::NPC;
 	this->board = 0;
 	this->jukebox_open = false;
+
+	this->spell_ready = false;
+	this->spell_id = 0;
+	this->spell_event = 0;
+	this->spell_target = TargetInvalid;
 
 	this->next_arena = 0;
 	this->arena = 0;
@@ -598,6 +623,85 @@ bool Character::DelSpell(short spell)
 	bool removed = (remove_it != this->spells.end());
 	this->spells.erase(remove_it, this->spells.end());
 	return removed;
+}
+
+void Character::CancelSpell()
+{
+	this->spell_target = TargetInvalid;
+
+	if (this->spell_event)
+	{
+		this->world->timer.Unregister(this->spell_event);
+		this->spell_event = 0;
+	}
+
+	if (this->spell_ready)
+	{
+		this->spell_ready = false;
+	}
+}
+
+void Character::SpellAct()
+{
+	ESF_Data *spell = world->esf->Get(this->spell_id);
+
+	if (spell->id == 0 || spell->type == ESF::Bard)
+	{
+		this->CancelSpell();
+		return;
+	}
+
+	Character *victim;
+	NPC *npc_victim;
+
+	SpellTarget spell_target = this->spell_target;
+	short spell_id = this->spell_id;
+	unsigned short spell_target_id = this->spell_target_id;
+	this->CancelSpell();
+
+	switch (spell_target)
+	{
+		case TargetSelf:
+			if (spell->target_restrict == ESF::Opponent || spell->target != ESF::Self)
+				return;
+
+			this->map->SpellSelf(this, spell_id);
+
+			break;
+
+		case TargetNPC:
+			if (spell->target_restrict == ESF::Friendly || spell->target != ESF::Normal)
+				return;
+
+			npc_victim = this->map->GetNPCIndex(spell_target_id);
+
+			if (npc_victim)
+				this->map->SpellAttack(this, npc_victim, spell_id);
+
+			break;
+
+		case TargetPlayer:
+			if ((spell->target_restrict == ESF::Opponent && !this->map->pk) || spell->target != ESF::Normal)
+				return;
+
+			victim = this->map->GetCharacterPID(spell_target_id);
+
+			if (victim)
+				this->map->SpellAttackPK(this, victim, spell_id);
+
+			break;
+
+		case TargetGroup:
+			if (spell->target_restrict == ESF::Opponent || spell->target != ESF::Group)
+				return;
+
+			this->map->SpellGroup(this, spell_id);
+
+			break;
+
+		default:
+			break;
+	}
 }
 
 bool Character::Unequip(short item, unsigned char subloc)
@@ -1259,6 +1363,8 @@ void Character::Reset()
 
 	this->spells.clear();
 
+	this->CancelSpell();
+
 	this->statpoints = this->level * int(this->world->config["StatPerLevel"]);
 	this->skillpoints = this->level * int(this->world->config["SkillPerLevel"]);
 
@@ -1290,6 +1396,8 @@ void Character::Logout()
 	{
 		return;
 	}
+
+	this->CancelSpell();
 
 	if (this->trading)
 	{
