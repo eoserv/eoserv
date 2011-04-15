@@ -1317,11 +1317,6 @@ void Map::Attack(Character *from, Direction direction)
 				break;
 		}
 
-		if (!this->Walkable(target_x, target_y, true))
-		{
-			return;
-		}
-
 		UTIL_FOREACH(this->npcs, npc)
 		{
 			if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive || from->admin > static_cast<int>(this->world->admin_config["killnpcs"]))
@@ -1362,6 +1357,11 @@ void Map::Attack(Character *from, Direction direction)
 				return;
 			}
 		}
+		
+		if (!this->Walkable(target_x, target_y, true))
+		{
+			return;
+		}
 	}
 }
 
@@ -1398,11 +1398,6 @@ bool Map::AttackPK(Character *from, Direction direction)
 			case DIRECTION_LEFT:
 				target_x -= 1;
 				break;
-		}
-
-		if (!this->Walkable(target_x, target_y, true))
-		{
-			return false;
 		}
 
 		UTIL_FOREACH(this->characters, character)
@@ -1501,6 +1496,11 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				return true;
 			}
+		}
+
+		if (!this->Walkable(target_x, target_y, true))
+		{
+			return false;
 		}
 	}
 

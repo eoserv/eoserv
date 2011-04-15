@@ -65,6 +65,23 @@ void Arena::Spawn(bool force)
 		return;
 	}
 
+	struct Arena_Spawn_Action
+	{
+		Character *character;
+		short map;
+		unsigned char x;
+		unsigned char y;
+
+		Arena_Spawn_Action(Character *character, short map, unsigned char x, unsigned char y)
+			: character(character)
+			, map(map)
+			, x(x)
+			, y(y)
+		{ }
+	};
+
+	std::vector<Arena_Spawn_Action> actions;
+
 	UTIL_FOREACH(this->spawns, spawn)
 	{
 		UTIL_FOREACH(this->map->characters, character)
@@ -73,10 +90,15 @@ void Arena::Spawn(bool force)
 			{
 				character->next_arena = this;
 				character->arena_kills = 0;
-				character->Warp(this->map->id, spawn->dx, spawn->dy);
+				actions.push_back({character, this->map->id, spawn->dx, spawn->dy});
 				break;
 			}
 		}
+	}
+
+	UTIL_FOREACH(actions, act)
+	{
+		act.character->Warp(act.map, act.x, act.y);
 	}
 
 	PacketBuilder builder(PACKET_ARENA, PACKET_USE, 1);
@@ -114,12 +136,29 @@ void Arena::Attack(Character *from, Direction direction)
 			break;
 	}
 
+	struct Arena_Spawn_Action
+	{
+		Character *character;
+		short map;
+		unsigned char x;
+		unsigned char y;
+
+		Arena_Spawn_Action(Character *character, short map, unsigned char x, unsigned char y)
+			: character(character)
+			, map(map)
+			, x(x)
+			, y(y)
+		{ }
+	};
+
+	std::vector<Arena_Spawn_Action> actions;
+
 	UTIL_FOREACH(this->map->characters, character)
 	{
 		if (character->arena == this && character->x == target_x && character->y == target_y)
 		{
 			++from->arena_kills;
-			character->Warp(this->map->id, this->map->relog_x, this->map->relog_y);
+			actions.push_back({character, this->map->id, this->map->relog_x, this->map->relog_y});
 
 			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC, 9 + from->name.length() + character->name.length());
 			builder.AddShort(0); // ?
@@ -139,7 +178,7 @@ void Arena::Attack(Character *from, Direction direction)
 
 			if (from->arena->occupants == 1)
 			{
-				from->Warp(this->map->id, this->map->relog_x, this->map->relog_y);
+				actions.push_back({from, this->map->id, this->map->relog_x, this->map->relog_y});
 
 				builder.Reset(from->name.length());
 				builder.SetID(PACKET_ARENA, PACKET_ACCEPT);
@@ -152,6 +191,11 @@ void Arena::Attack(Character *from, Direction direction)
 			}
 			break;
 		}
+	}
+
+	UTIL_FOREACH(actions, act)
+	{
+		act.character->Warp(act.map, act.x, act.y);
 	}
 }
 
