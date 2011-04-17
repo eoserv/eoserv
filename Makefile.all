@@ -82,6 +82,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/handlers/Refresh.o \
        $(OBJDIR)/handlers/Shop.o \
        $(OBJDIR)/handlers/Sit.o \
+       $(OBJDIR)/handlers/Spell.o \
        $(OBJDIR)/handlers/StatSkill.o \
        $(OBJDIR)/handlers/Talk.o \
        $(OBJDIR)/handlers/Trade.o \

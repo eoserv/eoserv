@@ -198,6 +198,7 @@
 		<Unit filename="..\src\handlers\Refresh.cpp" />
 		<Unit filename="..\src\handlers\Shop.cpp" />
 		<Unit filename="..\src\handlers\Sit.cpp" />
+		<Unit filename="..\src\handlers\Spell.cpp" />
 		<Unit filename="..\src\handlers\StatSkill.cpp" />
 		<Unit filename="..\src\handlers\Talk.cpp" />
 		<Unit filename="..\src\handlers\Trade.cpp" />
