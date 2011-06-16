@@ -59,18 +59,23 @@ void Init_Init(EOClient *client, PacketReader &reader)
 			++pc_connections;
 		}
 	}
+	
+	const bool ignore_hdid = client->server()->world->config["IgnoreHDID"];
 
-	const int max_per_pc = int(client->server()->world->config["MaxConnectionsPerPC"]);
-
-	if (max_per_pc != 0 && pc_connections > max_per_pc)
+	if (!ignore_hdid)
 	{
-		Console::Wrn("Connection from %s was rejected (too many connections from this PC: %08x)", static_cast<std::string>(client->GetRemoteAddr()).c_str(), client->hdid);
-		client->Close(true);
+		const int max_per_pc = int(client->server()->world->config["MaxConnectionsPerPC"]);
+
+		if (max_per_pc != 0 && pc_connections > max_per_pc)
+		{
+			Console::Wrn("Connection from %s was rejected (too many connections from this PC: %08x)", static_cast<std::string>(client->GetRemoteAddr()).c_str(), client->hdid);
+			client->Close(true);
+		}
 	}
 
 	int ban_expires;
 	IPAddress remote_addr = client->GetRemoteAddr();
-	if ((ban_expires = client->server()->world->CheckBan(0, &remote_addr, &client->hdid)) != -1)
+	if ((ban_expires = client->server()->world->CheckBan(0, &remote_addr, ignore_hdid ? 0 : &client->hdid)) != -1)
 	{
 		reply.AddByte(INIT_BANNED);
 		if (ban_expires == 0)
