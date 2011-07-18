@@ -169,4 +169,5 @@ std::string HTTP::URLEncode(std::string raw)
 
 HTTP::~HTTP()
 {
+	delete client;
 }
