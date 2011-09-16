@@ -146,6 +146,7 @@ struct EIF_Data
 		int expreward;
 		int haircolor;
 		int effect;
+		int key;
 	};
 
 	union

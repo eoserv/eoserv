@@ -1650,7 +1650,7 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 
 		if (from && warp->spec > Map_Warp::Door)
 		{
-			if (!from->HasItem(this->world->eif->GetKey(warp->spec - static_cast<int>(Map_Warp::Door))))
+			if (!from->HasItem(this->world->eif->GetKey(warp->spec - static_cast<int>(Map_Warp::Door) + 1)))
 			{
 				return false;
 			}
