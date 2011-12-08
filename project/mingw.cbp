@@ -147,6 +147,8 @@
 		<Unit filename="..\src\eoserver.hpp" />
 		<Unit filename="..\src\extra\ntservice.cpp" />
 		<Unit filename="..\src\extra\ntservice.hpp" />
+		<Unit filename="..\src\extra\seose_compat.cpp" />
+		<Unit filename="..\src\extra\seose_compat.hpp" />
 		<Unit filename="..\src\fwd\arena.hpp" />
 		<Unit filename="..\src\fwd\character.hpp" />
 		<Unit filename="..\src\fwd\config.hpp" />

@@ -15,6 +15,8 @@
 #include "player.hpp"
 #include "world.hpp"
 
+#include "extra/seose_compat.hpp"
+
 namespace Handlers
 {
 
@@ -83,6 +85,9 @@ void Account_Create(EOClient *client, PacketReader &reader)
 
 	username = util::lowercase(username);
 
+	if (client->server()->world->config["SeoseCompat"])
+		password = seose_str_hash(password, client->server()->world->config["SeoseCompatKey"]);
+
 	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 
 	if (!Player::ValidName(username))
@@ -137,6 +142,12 @@ void Account_Agree(Player *player, PacketReader &reader)
 	{
 		return;
 	}
+
+	if (player->world->config["SeoseCompat"])
+		oldpassword = seose_str_hash(oldpassword, player->world->config["SeoseCompatKey"]);
+
+	if (player->world->config["SeoseCompat"])
+		newpassword = seose_str_hash(newpassword, player->world->config["SeoseCompatKey"]);
 
 	Player *changepass = player->world->Login(username, oldpassword);
 

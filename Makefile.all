@@ -51,6 +51,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/timer.o \
        $(OBJDIR)/util.o \
        $(OBJDIR)/world.o \
+       $(OBJDIR)/extra/seose_compat.o \
        $(OBJDIR)/handlers/handlers.o \
        $(OBJDIR)/handlers/Account.o \
        $(OBJDIR)/handlers/AdminInteract.o \

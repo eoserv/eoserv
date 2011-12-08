@@ -15,6 +15,8 @@
 #include "player.hpp"
 #include "world.hpp"
 
+#include "extra/seose_compat.hpp"
+
 namespace Handlers
 {
 
@@ -31,6 +33,9 @@ void Login_Request(EOClient *client, PacketReader &reader)
 	}
 
 	username = util::lowercase(username);
+
+	if (client->server()->world->config["SeoseCompat"])
+		password = seose_str_hash(password, client->server()->world->config["SeoseCompatKey"]);
 
 	if (client->server()->world->CheckBan(&username, 0, 0) != -1)
 	{
