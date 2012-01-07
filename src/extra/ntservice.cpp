@@ -75,6 +75,9 @@ void service_handler(int code)
 
 void service_main(int argc, char *argv[])
 {
+	(void)argc;
+	(void)argv;
+
 	if (!(service_handle = RegisterServiceCtrlHandler(service_name, reinterpret_cast<LPHANDLER_FUNCTION>(service_handler))))
 	{
 		Console::Err("Could not register service handle: %s", OSErrorString());

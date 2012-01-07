@@ -692,14 +692,13 @@ static unsigned long long_rand()
 int rand(int min, int max)
 {
 	rand_init();
-	rand(double(min), double(max));
-	return static_cast<int>(double(long_rand()) / (double(4294967295) + 1.0) * double(max - min + 1) + double(min));
+	return static_cast<int>(double(long_rand()) / 4294967295.0 * double(max - min + 1) + double(min));
 }
 
 double rand(double min, double max)
 {
 	rand_init();
-	return double(long_rand()) / double(4294967295) * (max - min) + min;
+	return double(long_rand()) / 4294967295.0 * (max - min) + min;
 }
 
 double round(double subject)
