@@ -158,6 +158,7 @@
 		<Unit filename="..\src\fwd\eodata.hpp" />
 		<Unit filename="..\src\fwd\eoserver.hpp" />
 		<Unit filename="..\src\fwd\guild.hpp" />
+		<Unit filename="..\src\fwd\i18n.hpp" />
 		<Unit filename="..\src\fwd\map.hpp" />
 		<Unit filename="..\src\fwd\nanohttp.hpp" />
 		<Unit filename="..\src\fwd\npc.hpp" />
@@ -211,6 +212,8 @@
 		<Unit filename="..\src\handlers\handlers.hpp" />
 		<Unit filename="..\src\hash.cpp" />
 		<Unit filename="..\src\hash.hpp" />
+		<Unit filename="..\src\i18n.cpp" />
+		<Unit filename="..\src\i18n.hpp" />
 		<Unit filename="..\src\main.cpp" />
 		<Unit filename="..\src\map.cpp" />
 		<Unit filename="..\src\map.hpp" />
