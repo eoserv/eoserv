@@ -17,6 +17,7 @@
 #include "npc.hpp"
 #include "party.hpp"
 #include "player.hpp"
+#include "world.hpp"
 
 extern volatile std::sig_atomic_t eoserv_sig_abort;
 
@@ -83,7 +84,7 @@ void Talk_Tell(Character *character, PacketReader &reader)
 		}
 		else
 		{
-			character->Msg(to, "Sorry, " + to->name + " cannot hear any whispers at the moment.");
+			character->Msg(to, character->world->i18n.Format("whisper_blocked", to->name));
 		}
 	}
 	else
@@ -355,14 +356,13 @@ void Talk_Report(Character *character, PacketReader &reader)
 
 				switch (victim->admin)
 				{
-					case ADMIN_HGM: reply.AddString("High Game Master "); break;
-					case ADMIN_GM: reply.AddString("Game Master "); break;
-					case ADMIN_GUARDIAN: reply.AddString("Guardian "); break;
-					case ADMIN_GUIDE: reply.AddString("Light Guide "); break;
+					case ADMIN_HGM: reply.AddString(character->world->i18n.Format("high_game_master_title", name)); break;
+					case ADMIN_GM: reply.AddString(character->world->i18n.Format("game_master_title", name)); break;
+					case ADMIN_GUARDIAN: reply.AddString(character->world->i18n.Format("guardian_title", name)); break;
+					case ADMIN_GUIDE: reply.AddString(character->world->i18n.Format("light_guide_title", name)); break;
 					default: ;
 				}
 
-				reply.AddString(name);
 				reply.AddString(" ");
 				reply.AddBreakString(util::trim(victim->PaddedGuildTag()));
 				reply.AddInt(victim->Usage());
@@ -397,14 +397,13 @@ void Talk_Report(Character *character, PacketReader &reader)
 
 				switch (victim->admin)
 				{
-					case ADMIN_HGM: reply.AddString("High Game Master "); break;
-					case ADMIN_GM: reply.AddString("Game Master "); break;
-					case ADMIN_GUARDIAN: reply.AddString("Guardian "); break;
-					case ADMIN_GUIDE: reply.AddString("Light Guide "); break;
+					case ADMIN_HGM: reply.AddString(character->world->i18n.Format("high_game_master_title", name)); break;
+					case ADMIN_GM: reply.AddString(character->world->i18n.Format("game_master_title", name)); break;
+					case ADMIN_GUARDIAN: reply.AddString(character->world->i18n.Format("guardian_title", name)); break;
+					case ADMIN_GUIDE: reply.AddString(character->world->i18n.Format("light_guide_title", name)); break;
 					default: ;
 				}
 
-				reply.AddString(name);
 				reply.AddString(" ");
 				reply.AddBreakString(util::trim(victim->PaddedGuildTag()));
 				reply.AddInt(victim->Usage());

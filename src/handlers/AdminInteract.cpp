@@ -22,7 +22,7 @@ void AdminInteract_Tell(Character *character, PacketReader &reader)
 
 	if (character->world->config["OldReports"])
 	{
-		message = "[Request] " + message;
+		message = character->world->i18n.Format("admin_request", message);
 		character->world->AdminMsg(character, message, static_cast<int>(character->world->admin_config["reports"]));
 	}
 	else
@@ -39,7 +39,7 @@ void AdminInteract_Report(Character *character, PacketReader &reader)
 
 	if (character->world->config["OldReports"])
 	{
-		message = "[Report:" + reportee + "] " + message;
+		message = character->world->i18n.Format("admin_report", reportee, message);
 		character->world->AdminMsg(character, message, static_cast<int>(character->world->admin_config["reports"]));
 	}
 	else

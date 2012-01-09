@@ -225,6 +225,7 @@ void world_timed_save(void *world_void)
 }
 
 World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
+	: i18n(eoserv_config.find("ServerLanguage")->second)
 {
 	if (int(this->timer.resolution * 1000.0) > 1)
 	{
@@ -919,13 +920,7 @@ bool World::PlayerOnline(std::string username)
 void World::Kick(Character *from, Character *victim, bool announce)
 {
 	if (announce)
-	{
-		std::string msg("Attention!! ");
-		msg += victim->name + " has been removed from the game ";
-		if (from) msg += "-" + from->name + " ";
-		msg += "[kicked]";
-		this->ServerMsg(msg);
-	}
+		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->name : "server", i18n.Format("kicked")));
 
 	victim->player->client->Close();
 }
@@ -933,13 +928,7 @@ void World::Kick(Character *from, Character *victim, bool announce)
 void World::Jail(Character *from, Character *victim, bool announce)
 {
 	if (announce)
-	{
-		std::string msg("Attention!! ");
-		msg += victim->name + " has been removed from the game ";
-		if (from) msg += "-" + from->name + " ";
-		msg += "[jailed]";
-		this->ServerMsg(msg);
-	}
+		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->name : "server", i18n.Format("jailed")));
 
 	victim->Warp(static_cast<int>(this->server->world->config["JailMap"]), static_cast<int>(this->server->world->config["JailX"]), static_cast<int>(this->server->world->config["JailY"]), WARP_ANIMATION_ADMIN);
 }
@@ -947,13 +936,7 @@ void World::Jail(Character *from, Character *victim, bool announce)
 void World::Ban(Character *from, Character *victim, int duration, bool announce)
 {
 	if (announce)
-	{
-		std::string msg("Attention!! ");
-		msg += victim->name + " has been removed from the game ";
-		if (from) msg += "-" + from->name + " ";
-		msg += "[banned]";
-		this->ServerMsg(msg);
-	}
+		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->name : "server", i18n.Format("banned")));
 
 	std::string query("INSERT INTO bans (username, ip, hdid, expires, setter) VALUES ");
 

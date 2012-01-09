@@ -16,6 +16,7 @@
 
 #include "config.hpp"
 #include "database.hpp"
+#include "i18n.hpp"
 #include "timer.hpp"
 
 #include "fwd/character.hpp"
@@ -88,6 +89,8 @@ class World
 		Config formulas_config;
 		Config home_config;
 		Config skills_config;
+
+		I18N i18n;
 
 		std::vector<Character *> characters;
 		std::vector<Guild *> guilds;

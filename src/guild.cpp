@@ -318,15 +318,10 @@ void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int r
 	{
 		std::string name = joined->name;
 
-		std::string msg = "***  ";
-		msg += util::ucfirst(name);
-		msg += " has joined the guild.";
+		std::string msg = manager->world->i18n.Format("guild_join", util::ucfirst(name));
 
 		if (recruiter)
-		{
-			msg += " Recruited by ";
-			msg += util::ucfirst(recruiter->name);
-		}
+			msg += " " + manager->world->i18n.Format("guild_recruit", util::ucfirst(recruiter->name));
 
 		this->Msg(0, msg);
 	}
@@ -338,15 +333,10 @@ void Guild::DelMember(std::string kicked, Character *kicker, bool alert)
 
 	if (alert && this->manager->world->config["GuildAnnounce"])
 	{
-		std::string msg = "***  ";
-		msg += util::ucfirst(kicked);
-		msg += " left the guild.";
+		std::string msg = manager->world->i18n.Format("guild_leave", util::ucfirst(kicked));
 
 		if (kicker)
-		{
-			msg += " Kicked by ";
-			msg += util::ucfirst(kicker->name);
-		}
+			msg += " " + manager->world->i18n.Format("guild_kick", util::ucfirst(kicker->name));
 
 		this->Msg(0, msg);
 	}

@@ -243,6 +243,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "OldVersionCompat"   , false);
 		eoserv_config_default(config, "TimedSave"          , 0);
 		eoserv_config_default(config, "IgnoreHDID"         , false);
+		eoserv_config_default(config, "ServerLanguage"     , "./lang/en.ini");
 		eoserv_config_default(config, "PasswordSalt"       , "ChangeMe");
 		eoserv_config_default(config, "SeoseCompat"        , "ChangeMe");
 		eoserv_config_default(config, "SeoseCompatKey"     , "D4q9_f30da%#q02#)8");
