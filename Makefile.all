@@ -38,6 +38,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/eoserver.o \
        $(OBJDIR)/guild.o \
        $(OBJDIR)/hash.o \
+       $(OBJDIR)/i18n.o \
        $(OBJDIR)/main.o \
        $(OBJDIR)/map.o \
        $(OBJDIR)/nanohttp.o \
