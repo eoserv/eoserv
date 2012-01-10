@@ -406,6 +406,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "EmailMaxLength"     , 64);
 		eoserv_config_default(config, "ComputerNameLength" , 64);
 		eoserv_config_default(config, "LimitAttack"        , 251);
+		eoserv_config_default(config, "MuteLength"         , 90);
 		eoserv_config_default(config, "MaxBankGold"        , 2000000000);
 		eoserv_config_default(config, "MaxItem"            , 2000000000);
 		eoserv_config_default(config, "MaxDrop"            , 10000000);
@@ -432,6 +433,8 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "sjail"         , 3);
 		eoserv_config_default(aconfig, "ban"           , 2);
 		eoserv_config_default(aconfig, "sban"          , 3);
+		eoserv_config_default(aconfig, "mute"          , 2);
+		eoserv_config_default(aconfig, "smute"         , 3);
 		eoserv_config_default(aconfig, "warp"          , 2);
 		eoserv_config_default(aconfig, "warptome"      , 2);
 		eoserv_config_default(aconfig, "warpmeto"      , 2);

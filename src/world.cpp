@@ -985,6 +985,14 @@ void World::Ban(Character *from, Character *victim, int duration, bool announce)
 	victim->player->client->Close();
 }
 
+void World::Mute(Character *from, Character *victim, bool announce)
+{
+	if (announce)
+		this->ServerMsg(i18n.Format("announce_muted", victim->name, from ? from->name : "server", i18n.Format("banned")));
+
+	victim->Mute(from);
+}
+
 int World::CheckBan(const std::string *username, const IPAddress *address, const int *hdid)
 {
 	std::string query("SELECT COALESCE(MAX(expires),-1) AS expires FROM bans WHERE (");

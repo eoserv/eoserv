@@ -7,6 +7,7 @@
 #include "character.hpp"
 
 #include <algorithm>
+#include <ctime>
 #include <limits>
 #include <list>
 
@@ -183,7 +184,8 @@ template <typename T> T GetRow(std::unordered_map<std::string, util::variant> &r
 }
 
 Character::Character(std::string name, World *world)
-	: world(world)
+	: muted_until(0)
+	, world(world)
 	, display_str(this->world->config["UseAdjustedStats"] ? adj_str : str)
 	, display_intl(this->world->config["UseAdjustedStats"] ? adj_intl : intl)
 	, display_wis(this->world->config["UseAdjustedStats"] ? adj_wis : wis)
@@ -1414,11 +1416,19 @@ void Character::Reset()
 	this->CalculateStats();
 }
 
+void Character::Mute(const Character *by)
+{
+	this->muted_until = time(0) + int(this->world->config["MuteLength"]);
+    PacketBuilder builder(PACKET_TALK, PACKET_SPEC, by->name.length());
+    builder.AddString(by->name);
+    this->Send(builder);
+}
+
 void Character::PlaySound(unsigned char id)
 {
 	PacketBuilder builder(PACKET_MUSIC, PACKET_PLAYER, 1);
 	builder.AddChar(id);
-	Send(builder);
+	this->Send(builder);
 }
 
 #define v(x) vars[prefix + #x] = x;

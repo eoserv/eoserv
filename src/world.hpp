@@ -127,6 +127,7 @@ class World
 		void Kick(Character *from, Character *victim, bool announce = true);
 		void Jail(Character *from, Character *victim, bool announce = true);
 		void Ban(Character *from, Character *victim, int duration, bool announce = true);
+		void Mute(Character *from, Character *victim, bool announce = true);
 
 		int CheckBan(const std::string *username, const IPAddress *address, const int *hdid);
 

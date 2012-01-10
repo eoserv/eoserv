@@ -7,6 +7,7 @@
 #include "handlers.hpp"
 
 #include <csignal>
+#include <ctime>
 
 #include "arena.hpp"
 #include "character.hpp"
@@ -36,6 +37,7 @@ namespace Handlers
 void Talk_Request(Character *character, PacketReader &reader)
 {
 	if (!character->guild) return;
+	if (character->muted_until > time(0)) return;
 
 	std::string message = reader.GetEndString(); // message
 	limit_message(message, static_cast<int>(character->world->config["ChatLength"]));
@@ -47,6 +49,7 @@ void Talk_Request(Character *character, PacketReader &reader)
 void Talk_Open(Character *character, PacketReader &reader)
 {
 	if (!character->party) return;
+	if (character->muted_until > time(0)) return;
 
 	std::string message = reader.GetEndString(); // message
 	limit_message(message, static_cast<int>(character->world->config["ChatLength"]));
@@ -57,6 +60,8 @@ void Talk_Open(Character *character, PacketReader &reader)
 // Global chat message
 void Talk_Msg(Character *character, PacketReader &reader)
 {
+	if (character->muted_until > time(0)) return;
+
 	if (character->mapid == static_cast<int>(character->world->config["JailMap"]))
 	{
 		return;
@@ -71,6 +76,8 @@ void Talk_Msg(Character *character, PacketReader &reader)
 // Private chat message
 void Talk_Tell(Character *character, PacketReader &reader)
 {
+	if (character->muted_until > time(0)) return;
+
 	std::string name = reader.GetBreakString();
 	std::string message = reader.GetEndString();
 	limit_message(message, static_cast<int>(character->world->config["ChatLength"]));
@@ -99,6 +106,8 @@ void Talk_Tell(Character *character, PacketReader &reader)
 // Public chat message
 void Talk_Report(Character *character, PacketReader &reader)
 {
+	if (character->muted_until > time(0)) return;
+
 	std::string message = reader.GetEndString();
 	limit_message(message, static_cast<int>(character->world->config["ChatLength"]));
 
@@ -201,6 +210,27 @@ void Talk_Report(Character *character, PacketReader &reader)
 				if (victim->admin < character->admin)
 				{
 					character->world->Jail(character, victim, command[0] != 's');
+				}
+				else
+				{
+					character->ServerMsg(character->world->i18n.Format("command_access_denied"));
+				}
+			}
+		}
+		else if ((command.length() >= 1 && command.compare(0,1,"m") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["mute"]))
+		 || (command.length() >= 2 && command.compare(0,2,"sm") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["smute"])))
+		{
+			Character *victim = character->world->GetCharacter(arguments[0]);
+
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
+			{
+				if (victim->admin < character->admin)
+				{
+					character->world->Mute(character, victim);
 				}
 				else
 				{
@@ -706,6 +736,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 void Talk_Admin(Character *character, PacketReader &reader)
 {
 	if (character->admin < ADMIN_GUARDIAN) return;
+	if (character->muted_until > time(0)) return;
 
 	std::string message = reader.GetEndString(); // message
 	limit_message(message, static_cast<int>(character->world->config["ChatLength"]));
@@ -717,6 +748,7 @@ void Talk_Admin(Character *character, PacketReader &reader)
 void Talk_Announce(Character *character, PacketReader &reader)
 {
 	if (character->admin < ADMIN_GUARDIAN) return;
+	if (character->muted_until > time(0)) return;
 
 	std::string message = reader.GetEndString(); // message
 	limit_message(message, static_cast<int>(character->world->config["ChatLength"]));

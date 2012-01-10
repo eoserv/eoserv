@@ -194,8 +194,8 @@ void EOClient::Tick()
 				default:
 					// If the code ever gets here, something is broken, so we just reset the client's state.
 					std::fill(UTIL_RANGE(data), '\0');
-					data.erase();
 					std::fill(UTIL_RANGE(this->data), '\0');
+					data.erase();
 					this->data.erase();
 					this->packet_state = EOClient::ReadLen1;
 			}

@@ -115,6 +115,7 @@ class Character
 		int bankmax;
 		int goldbank;
 		int usage;
+		int muted_until;
 
 		Arena *next_arena;
 		Arena *arena;
@@ -233,6 +234,7 @@ class Character
 		void Unhide();
 		void Reset();
 
+		void Mute(const Character *by);
 		void PlaySound(unsigned char id);
 
 		void FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix = "");
