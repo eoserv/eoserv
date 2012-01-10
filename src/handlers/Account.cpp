@@ -6,9 +6,11 @@
 
 #include "handlers.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 
 #include "console.hpp"
+#include "util.hpp"
 
 #include "eoclient.hpp"
 #include "eoserver.hpp"
@@ -86,7 +88,11 @@ void Account_Create(EOClient *client, PacketReader &reader)
 	username = util::lowercase(username);
 
 	if (client->server()->world->config["SeoseCompat"])
-		password = seose_str_hash(password, client->server()->world->config["SeoseCompatKey"]);
+	{
+		std::string seose_hash = seose_str_hash(password, client->server()->world->config["SeoseCompatKey"]);
+		std::fill(UTIL_RANGE(password), '\0');
+		password = seose_hash;
+	}
 
 	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 
@@ -144,13 +150,21 @@ void Account_Agree(Player *player, PacketReader &reader)
 	}
 
 	if (player->world->config["SeoseCompat"])
-		oldpassword = seose_str_hash(oldpassword, player->world->config["SeoseCompatKey"]);
+	{
+		std::string seose_hash = seose_str_hash(oldpassword, player->world->config["SeoseCompatKey"]);
+		std::fill(UTIL_RANGE(oldpassword), '\0');
+		oldpassword = seose_hash;
+	}
 
 	if (player->world->config["SeoseCompat"])
-		newpassword = seose_str_hash(newpassword, player->world->config["SeoseCompatKey"]);
+	{
+		std::string seose_hash = seose_str_hash(newpassword, player->world->config["SeoseCompatKey"]);
+		std::fill(UTIL_RANGE(newpassword), '\0');
+		newpassword = seose_hash;
+	}
 
 	{
-		std::unique_ptr<Player>changepass(player->world->Login(username, std::string(oldpassword)));
+		std::unique_ptr<Player> changepass(player->world->Login(username, std::string(oldpassword)));
 
 		if (!changepass)
 		{

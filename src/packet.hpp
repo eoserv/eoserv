@@ -104,6 +104,8 @@ class PacketReader
 		std::string GetFixedString(std::size_t length);
 		std::string GetBreakString(unsigned char breakchar = 0xFF);
 		std::string GetEndString();
+
+		~PacketReader();
 };
 
 class PacketBuilder
@@ -143,6 +145,8 @@ class PacketBuilder
 		std::string Get() const;
 
 		operator std::string() const;
+
+		~PacketBuilder();
 };
 
 #endif // PACKET_HPP_INCLUDED

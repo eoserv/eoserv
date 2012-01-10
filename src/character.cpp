@@ -109,7 +109,7 @@ std::string DollSerialize(const std::array<int, 15> &list)
 
 std::array<int, 15> DollUnserialize(std::string serialized)
 {
-	std::array<int, 15> list;
+	std::array<int, 15> list{{}};
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	int i = 0;
@@ -347,6 +347,15 @@ void Character::ServerMsg(std::string message)
 	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width("Server  "));
 
 	PacketBuilder builder(PACKET_TALK, PACKET_SERVER, message.length());
+	builder.AddString(message);
+	this->player->Send(builder);
+}
+
+void Character::StatusMsg(std::string message)
+{
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]));
+
+	PacketBuilder builder(PACKET_MESSAGE, PACKET_OPEN, message.length());
 	builder.AddString(message);
 	this->player->Send(builder);
 }
@@ -1369,6 +1378,13 @@ void Character::Reset()
 	this->skillpoints = this->level * int(this->world->config["SkillPerLevel"]);
 
 	this->CalculateStats();
+}
+
+void Character::PlaySound(unsigned char id)
+{
+	PacketBuilder builder(PACKET_MUSIC, PACKET_PLAYER, 1);
+	builder.AddChar(id);
+	Send(builder);
 }
 
 #define v(x) vars[prefix + #x] = x;

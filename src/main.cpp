@@ -389,6 +389,9 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "RespawnBossChildren", true);
 		eoserv_config_default(config, "OldReports"         , false);
 		eoserv_config_default(config, "WarpSuck"           , 15);
+		eoserv_config_default(config, "EvacuateSound"      , 51);
+		eoserv_config_default(config, "EvacuateLength"     , 3);
+		eoserv_config_default(config, "EvacuateStep"       , 10.0);
 		eoserv_config_default(config, "DoorTimer"          , 3.0);
 		eoserv_config_default(config, "ChatMaxWidth"       , 1500);
 		eoserv_config_default(config, "AccountMinLength"   , 4);

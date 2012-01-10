@@ -468,6 +468,10 @@ void Talk_Report(Character *character, PacketReader &reader)
 				character->Hide();
 			}
 		}
+		else if (command.length() >= 1 && command.compare(0,1,"e") == 0 && character->admin >= static_cast<int>(character->world->admin_config["evacuate"]))
+		{
+			character->map->Evacuate();
+		}
 	}
 	else
 	{

@@ -192,6 +192,7 @@ class Character
 
 		void Msg(Character *from, std::string message);
 		void ServerMsg(std::string message);
+		void StatusMsg(std::string message);
 		bool Walk(Direction direction);
 		bool AdminWalk(Direction direction);
 		void Attack(Direction direction);
@@ -231,6 +232,8 @@ class Character
 		void Hide();
 		void Unhide();
 		void Reset();
+
+		void PlaySound(unsigned char id);
 
 		void FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix = "");
 

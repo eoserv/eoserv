@@ -102,11 +102,49 @@ struct map_close_door_struct
 	unsigned char x, y;
 };
 
-void map_close_door(void *map_close_door_struct_void)
+void map_close_door(void *map_close_void)
 {
-	map_close_door_struct *close(static_cast<map_close_door_struct *>(map_close_door_struct_void));
+	map_close_door_struct *close(static_cast<map_close_door_struct *>(map_close_void));
 
 	close->map->CloseDoor(close->x, close->y);
+}
+
+struct map_evacuate_struct
+{
+	Map *map;
+	int step;
+};
+
+void map_evacuate(void *map_evacuate_void)
+{
+	map_evacuate_struct *evac(static_cast<map_evacuate_struct *>(map_evacuate_void));
+
+	if (evac->step > 0)
+	{
+		UTIL_FOREACH(evac->map->characters, character)
+		{
+			character->StatusMsg(character->world->i18n.Format("map_evacuate", evac->step * 10));
+			character->PlaySound(int(evac->map->world->config["EvacuateSound"]));
+		}
+
+		--evac->step;
+	}
+	else
+	{
+		restart_loop:
+		UTIL_FOREACH(evac->map->characters, character)
+		{
+			// We have to announce this from server as the $evacuate caller may have logged out
+
+			if (character->admin < ADMIN_GUIDE)
+			{
+				character->world->Jail(0, character);
+				goto restart_loop;
+			}
+		}
+
+		evac->map->evacuate_lock = false;
+	}
 }
 
 int Map_Chest::HasItem(short item)
@@ -246,6 +284,7 @@ Map::Map(int id, World *world)
 	this->exists = false;
 	this->jukebox_protect = 0.0;
 	this->arena = 0;
+	this->evacuate_lock = false;
 
 	this->LoadArena();
 
@@ -2170,6 +2209,28 @@ void Map::Effect(int effect, int param)
 	UTIL_FOREACH(this->characters, character)
 	{
 		character->Send(builder);
+	}
+}
+
+bool Map::Evacuate()
+{
+	if (!this->evacuate_lock)
+	{
+		this->evacuate_lock = true;
+
+		map_evacuate_struct *evac = new map_evacuate_struct;
+		evac->map = this;
+		evac->step = this->world->config["EvacuateLength"];
+
+		TimeEvent *event = new TimeEvent(map_evacuate, evac, this->world->config["EvacuateStep"], evac->step);
+		this->world->timer.Register(event);
+
+		map_evacuate(evac);
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 

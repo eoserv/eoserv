@@ -58,6 +58,7 @@ std::string PacketProcessor::GetFamilyName(PacketFamily family)
 		case PACKET_LOCKER: return "Locker";
 		case PACKET_BARBER: return "Barber";
 		case PACKET_GUILD: return "Guild";
+		case PACKET_MUSIC: return "Music";
 		case PACKET_SIT: return "Sit";
 		case PACKET_RECOVER: return "Recover";
 		case PACKET_BOARD: return "Board";
@@ -442,6 +443,11 @@ std::string PacketReader::GetEndString()
 	return GetFixedString(this->Remaining());
 }
 
+PacketReader::~PacketReader()
+{
+	std::fill(UTIL_RANGE(this->data), '\0');
+}
+
 PacketBuilder::PacketBuilder(PacketFamily family, PacketAction action, std::size_t size_guess)
 	: add_size(0)
 {
@@ -671,4 +677,9 @@ std::string PacketBuilder::Get() const
 PacketBuilder::operator std::string() const
 {
 	return this->Get();
+}
+
+PacketBuilder::~PacketBuilder()
+{
+	std::fill(UTIL_RANGE(this->data), '\0');
 }

@@ -224,6 +224,7 @@ class Map
 		bool exists;
 		double jukebox_protect;
 		std::string jukebox_player;
+		bool evacuate_lock;
 
 		Arena *arena;
 
@@ -268,6 +269,8 @@ class Map
 		std::vector<NPC *> NPCsInRange(unsigned char x, unsigned char y, unsigned char range);
 
 		void Effect(int effect, int param);
+
+		bool Evacuate();
 
 		bool Reload();
 

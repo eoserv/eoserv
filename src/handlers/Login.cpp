@@ -6,6 +6,8 @@
 
 #include "handlers.hpp"
 
+#include <algorithm>
+
 #include "util.hpp"
 
 #include "character.hpp"
@@ -35,7 +37,11 @@ void Login_Request(EOClient *client, PacketReader &reader)
 	username = util::lowercase(username);
 
 	if (client->server()->world->config["SeoseCompat"])
-		password = seose_str_hash(password, client->server()->world->config["SeoseCompatKey"]);
+	{
+		std::string seose_hash = seose_str_hash(password, client->server()->world->config["SeoseCompatKey"]);
+		std::fill(UTIL_RANGE(password), '\0');
+		password = seose_hash;
+	}
 
 	if (client->server()->world->CheckBan(&username, 0, 0) != -1)
 	{
