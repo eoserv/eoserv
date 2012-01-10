@@ -119,11 +119,19 @@ void Talk_Report(Character *character, PacketReader &reader)
 		{
 			Character *victim = character->world->GetCharacter(arguments[0]);
 
-			if (victim)
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
 			{
 				if (victim->admin < character->admin)
 				{
 					character->world->Kick(character, victim, command[0] != 's');
+				}
+				else
+				{
+					character->ServerMsg(character->world->i18n.Format("command_access_denied"));
 				}
 			}
 		}
@@ -163,11 +171,19 @@ void Talk_Report(Character *character, PacketReader &reader)
 				duration = int(util::tdparse(character->world->config["DefaultBanLength"]));
 			}
 
-			if (victim)
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
 			{
 				if (victim->admin < character->admin)
 				{
 					character->world->Ban(character, victim, duration, command[0] != 's');
+				}
+				else
+				{
+					character->ServerMsg(character->world->i18n.Format("command_access_denied"));
 				}
 			}
 		}
@@ -175,11 +191,20 @@ void Talk_Report(Character *character, PacketReader &reader)
 		 || (command.length() >= 2 && command.compare(0,2,"sj") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["sjail"])))
 		{
 			Character *victim = character->world->GetCharacter(arguments[0]);
-			if (victim)
+
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
 			{
 				if (victim->admin < character->admin)
 				{
 					character->world->Jail(character, victim, command[0] != 's');
+				}
+				else
+				{
+					character->ServerMsg(character->world->i18n.Format("command_access_denied"));
 				}
 			}
 		}
@@ -255,7 +280,12 @@ void Talk_Report(Character *character, PacketReader &reader)
 		else if (command.length() >= 5 && command.compare(0,5,"warpm") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["warpmeto"]))
 		{
 			Character *victim = character->world->GetCharacter(arguments[0]);
-			if (victim)
+
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
 			{
 				character->Warp(victim->mapid, victim->x, victim->y, character->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 			}
@@ -263,7 +293,12 @@ void Talk_Report(Character *character, PacketReader &reader)
 		else if (command.length() >= 5 && command.compare(0,5,"warpt") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["warptome"]))
 		{
 			Character *victim = character->world->GetCharacter(arguments[0]);
-			if (victim)
+
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
 			{
 				victim->Warp(character->mapid, character->x, character->y, character->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 			}
@@ -348,7 +383,11 @@ void Talk_Report(Character *character, PacketReader &reader)
 		{
 			Character *victim = character->world->GetCharacter(arguments[0]);
 
-			if (victim)
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
 			{
 				std::string name = util::ucfirst(victim->name);
 
@@ -389,7 +428,12 @@ void Talk_Report(Character *character, PacketReader &reader)
 		else if (command.length() >= 2 && command.compare(0,2,"in") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["info"]))
 		{
 			Character *victim = character->world->GetCharacter(arguments[0]);
-			if (victim)
+
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
 			{
 				std::string name = util::ucfirst(victim->name);
 
@@ -471,6 +515,185 @@ void Talk_Report(Character *character, PacketReader &reader)
 		else if ((command == "e" || (command.length() >= 2 && command.compare(0,2,"ev") == 0)) && character->admin >= static_cast<int>(character->world->admin_config["evacuate"]))
 		{
 			character->map->Evacuate();
+		}
+		else if (command.length() >= 2 && command.compare(0,2,"st") == 0 && character->admin >= static_cast<int>(character->world->admin_config["strip"]))
+		{
+			Character *victim = ((arguments.size() >= 1) ? character->world->GetCharacter(arguments[0]) : character);
+
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
+			{
+				if (victim->admin < character->admin || victim == character)
+				{
+					for (std::size_t i = 0; i < victim->paperdoll.size(); ++i)
+					{
+						if (victim->paperdoll[i] != 0)
+						{
+							int itemid = victim->paperdoll[i];
+							int subloc = ((i == Character::Ring2 || i == Character::Armlet2 || i == Character::Bracer2) ? 1 : 0);
+
+							if (victim->Unequip(victim->paperdoll[i], subloc))
+							{
+								PacketBuilder builder(PACKET_PAPERDOLL, PACKET_REMOVE, 43);
+								builder.AddShort(victim->player->id);
+								builder.AddChar(SLOT_CLOTHES);
+								builder.AddChar(0); // ?
+								builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Boots])->dollgraphic);
+								builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Armor])->dollgraphic);
+								builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Hat])->dollgraphic);
+								builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Weapon])->dollgraphic);
+								builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Shield])->dollgraphic);
+								builder.AddShort(itemid);
+								builder.AddChar(subloc);
+								builder.AddShort(victim->maxhp);
+								builder.AddShort(victim->maxtp);
+								builder.AddShort(victim->display_str);
+								builder.AddShort(victim->display_intl);
+								builder.AddShort(victim->display_wis);
+								builder.AddShort(victim->display_agi);
+								builder.AddShort(victim->display_con);
+								builder.AddShort(victim->display_cha);
+								builder.AddShort(victim->mindam);
+								builder.AddShort(victim->maxdam);
+								builder.AddShort(victim->accuracy);
+								builder.AddShort(victim->evade);
+								builder.AddShort(victim->armor);
+								victim->Send(builder);
+							}
+						}
+					}
+
+					PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
+					builder.AddShort(victim->player->id);
+					builder.AddChar(SLOT_CLOTHES);
+					builder.AddChar(0);
+					builder.AddShort(0);
+					builder.AddShort(0);
+					builder.AddShort(0);
+					builder.AddShort(0);
+					builder.AddShort(0);
+
+					UTIL_FOREACH(victim->map->characters, updatecharacter)
+					{
+						if (updatecharacter == victim || !victim->InRange(updatecharacter))
+							continue;
+
+						updatecharacter->Send(builder);
+					}
+				}
+				else
+				{
+					character->ServerMsg(character->world->i18n.Format("command_access_denied"));
+				}
+			}
+		}
+		else if (command.length() >= 3 && command.compare(0,3,"set") == 0 && arguments.size() >= 2)
+		{
+			std::string set = command.substr(3);
+			Character *victim = character->world->GetCharacter(arguments[0]);
+
+			if (!victim)
+			{
+				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+			}
+			else
+			{
+				bool appearance = false;
+				bool failure = false;
+				bool level = false;
+				bool stats = false;
+				bool karma = false;
+
+				bool statpoints = false;
+				bool skillpoints = false;
+
+					 if (set == "level") (level = true, victim->level) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]));
+				else if (set == "exp") (level = true, victim->exp) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxEXP"]));
+				else if (set == "str") (stats = true, victim->str) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+				else if (set == "int") (stats = true, victim->intl) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+				else if (set == "wis") (stats = true, victim->wis) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+				else if (set == "agi") (stats = true, victim->agi) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+				else if (set == "con") (stats = true, victim->con) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+				else if (set == "cha") (stats = true, victim->cha) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+				else if (set == "statpoints") (statpoints = true, victim->statpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]) * int(character->world->config["StatPerLevel"]));
+				else if (set == "skillpoints") (skillpoints = true, victim->skillpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]) * int(character->world->config["SkillPerLevel"]));
+				else if (set == "title") victim->title = arguments[1];
+				else if (set == "fiance") victim->fiance = arguments[1];
+				else if (set == "partner") victim->partner = arguments[1];
+				else if (set == "home") victim->home = arguments[1];
+				else if (set == "gender") (appearance = true, victim->gender) = Gender(std::min(std::max(util::to_int(arguments[1]), 0), 1));
+				else if (set == "hairstyle") (appearance = true, victim->hairstyle) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxHairStyle"]));
+				else if (set == "haircolor") (appearance = true, victim->haircolor) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxHairColor"]));
+				else if (set == "race") (appearance = true, victim->race) = Skin(std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxSkin"])));
+				else if (set == "guildrank") victim->guild_rank = std::min(std::max(util::to_int(arguments[1]), 0), 9);
+				else if (set == "karma") (karma = true, victim->karma) = std::min(std::max(util::to_int(arguments[1]), 0), 2000);
+				else if (set == "class") (stats = true, victim->clas) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->ecf->data.size() - 1));
+				else failure = true;
+
+				if (failure)
+				{
+					character->ServerMsg(character->world->i18n.Format("invalid_setx"));
+				}
+				else
+				{
+					// Easiest way to get the character to update on everyone nearby's screen
+					if (appearance)
+						victim->Warp(victim->map->id, victim->x, victim->y);
+
+					// TODO: Good way of updating skillpoints
+					(void)skillpoints;
+
+					if (stats || statpoints)
+					{
+						victim->CalculateStats();
+
+						PacketBuilder builder(PACKET_RECOVER, PACKET_LIST, 32);
+
+						if (statpoints)
+						{
+							builder.SetID(PACKET_STATSKILL, PACKET_PLAYER);
+							builder.AddShort(character->statpoints);
+						}
+						else
+						{
+							builder.AddShort(victim->clas);
+						}
+
+						builder.AddShort(victim->display_str);
+						builder.AddShort(victim->display_intl);
+						builder.AddShort(victim->display_wis);
+						builder.AddShort(victim->display_agi);
+						builder.AddShort(victim->display_con);
+						builder.AddShort(victim->display_cha);
+						builder.AddShort(victim->maxhp);
+						builder.AddShort(victim->maxtp);
+						builder.AddShort(victim->maxsp);
+						builder.AddShort(victim->maxweight);
+						builder.AddShort(victim->mindam);
+						builder.AddShort(victim->maxdam);
+						builder.AddShort(victim->accuracy);
+						builder.AddShort(victim->evade);
+						builder.AddShort(victim->armor);
+						victim->Send(builder);
+					}
+
+					if (karma || level)
+					{
+						PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY, 7);
+						builder.AddInt(victim->exp);
+						builder.AddShort(victim->karma);
+						builder.AddChar(level ? victim->level : 0);
+						victim->Send(builder);
+					}
+				}
+			}
+		}
+		else
+		{
+			character->ServerMsg(character->world->i18n.Format("unknown_command"));
 		}
 	}
 	else

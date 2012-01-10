@@ -792,14 +792,23 @@ bool Character::Equip(short item, unsigned char subloc)
 		return false;
 	}
 
-	EIF::Type type = this->world->eif->Get(item)->type;
+	EIF_Data *eif = this->world->eif->Get(item);
+	ECF_Data *ecf = this->world->ecf->Get(this->clas);
 
-	if (type == EIF::Armor && this->world->eif->Get(item)->gender != this->gender)
+	if (eif->type == EIF::Armor && eif->gender != this->gender)
 	{
 		return false;
 	}
 
-	switch (type)
+	if (this->level < eif->levelreq || (this->clas != eif->classreq && ecf->base != eif->classreq)
+	 || this->display_str < eif->strreq || this->display_intl < eif->intreq
+	 || this->display_wis < eif->wisreq || this->display_agi < eif->agireq
+	 || this->display_con < eif->conreq || this->display_cha < eif->chareq)
+	{
+		return false;
+	}
+
+	switch (eif->type)
 	{
 		case EIF::Weapon: return character_equip_oneslot(this, item, subloc, Weapon);
 		case EIF::Shield: return character_equip_oneslot(this, item, subloc, Shield);
@@ -1204,6 +1213,9 @@ void Character::CalculateStats()
 		this->weight = 250;
 	}
 
+	std::unordered_map<std::string, double> formula_vars;
+	this->FormulaVars(formula_vars);
+
 	this->maxhp += rpn_eval(rpn_parse(this->world->formulas_config["hp"]), formula_vars);
 	this->maxtp += rpn_eval(rpn_parse(this->world->formulas_config["tp"]), formula_vars);
 	this->maxsp += rpn_eval(rpn_parse(this->world->formulas_config["sp"]), formula_vars);
@@ -1216,9 +1228,6 @@ void Character::CalculateStats()
 
 	if (this->world->config["UseClassFormulas"])
 	{
-		std::unordered_map<std::string, double> formula_vars;
-		this->FormulaVars(formula_vars);
-
 		auto dam = rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".damage"]), formula_vars);
 
 		this->mindam += dam;

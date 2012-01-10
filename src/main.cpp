@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(config, "MaxWeight"          , 250);
 		eoserv_config_default(config, "MaxLevel"           , 250);
 		eoserv_config_default(config, "MaxExp"             , 2000000000);
-		eoserv_config_default(config, "MaxStat"            , 1000);
+		eoserv_config_default(config, "MaxStat"            , 10000);
 		eoserv_config_default(config, "MaxSkillLevel"      , 100);
 		eoserv_config_default(config, "MaxSkills"          , 48);
 		eoserv_config_default(config, "MaxCharacters"      , 3);
@@ -469,6 +469,7 @@ int main(int argc, char *argv[])
 		eoserv_config_default(aconfig, "setguild"      , 3);
 		eoserv_config_default(aconfig, "setguildrank"  , 3);
 		eoserv_config_default(aconfig, "setkarma"      , 3);
+		eoserv_config_default(aconfig, "setclass"      , 3);
 		eoserv_config_default(aconfig, "strip"         , 3);
 		eoserv_config_default(aconfig, "killnpc"       , 2);
 		eoserv_config_default(aconfig, "boardmod"      , 1);
