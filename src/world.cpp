@@ -190,7 +190,15 @@ void world_warp_suck(void *world_void)
 
 	UTIL_FOREACH(actions, act)
 	{
-		act.character->Warp(act.map, act.x, act.y);
+		if (act.character->admin < ADMIN_GUIDE && world->GetMap(act.map)->evacuate_lock)
+		{
+			act.character->StatusMsg(world->i18n.Format("map_evacuate_block"));
+			act.character->Refresh();
+		}
+		else
+		{
+			act.character->Warp(act.map, act.x, act.y);
+		}
 	}
 }
 
@@ -942,7 +950,7 @@ void World::Jail(Character *from, Character *victim, bool announce)
 	if (announce)
 		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->name : "server", i18n.Format("jailed")));
 
-	victim->Warp(static_cast<int>(this->server->world->config["JailMap"]), static_cast<int>(this->server->world->config["JailX"]), static_cast<int>(this->server->world->config["JailY"]), WARP_ANIMATION_ADMIN);
+	victim->Warp(static_cast<int>(this->config["JailMap"]), static_cast<int>(this->config["JailX"]), static_cast<int>(this->config["JailY"]), this->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 }
 
 void World::Ban(Character *from, Character *victim, int duration, bool announce)

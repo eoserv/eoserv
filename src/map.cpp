@@ -119,11 +119,17 @@ void map_evacuate(void *map_evacuate_void)
 {
 	map_evacuate_struct *evac(static_cast<map_evacuate_struct *>(map_evacuate_void));
 
+	int ticks_per_step = int(evac->map->world->config["EvacuateStep"]) / int(evac->map->world->config["EvacuateTick"]);
+
 	if (evac->step > 0)
 	{
+		bool step = evac->step % ticks_per_step == 0;
+
 		UTIL_FOREACH(evac->map->characters, character)
 		{
-			character->StatusMsg(character->world->i18n.Format("map_evacuate", evac->step * 10));
+			if (step)
+				character->ServerMsg(character->world->i18n.Format("map_evacuate", (evac->step / ticks_per_step) * int(evac->map->world->config["EvacuateStep"])));
+
 			character->PlaySound(int(evac->map->world->config["EvacuateSound"]));
 		}
 
@@ -134,11 +140,9 @@ void map_evacuate(void *map_evacuate_void)
 		restart_loop:
 		UTIL_FOREACH(evac->map->characters, character)
 		{
-			// We have to announce this from server as the $evacuate caller may have logged out
-
 			if (character->admin < ADMIN_GUIDE)
 			{
-				character->world->Jail(0, character);
+				character->world->Jail(0, character, false);
 				goto restart_loop;
 			}
 		}
@@ -827,12 +831,21 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		return false;
 	}
 
-	Map_Warp *warp;
+	Map_Warp *warp
+	;
 	if (!admin && (warp = this->GetWarp(target_x, target_y)))
 	{
 		if (from->level >= warp->levelreq && (warp->spec == Map_Warp::NoDoor || warp->open))
 		{
-			from->Warp(warp->map, warp->x, warp->y);
+			if (from->admin < ADMIN_GUIDE && this->world->GetMap(warp->map)->evacuate_lock)
+			{
+				from->StatusMsg(this->world->i18n.Format("map_evacuate_block"));
+				from->Refresh();
+			}
+			else
+			{
+				from->Warp(warp->map, warp->x, warp->y);
+			}
 		}
 
 		return false;
@@ -2220,9 +2233,9 @@ bool Map::Evacuate()
 
 		map_evacuate_struct *evac = new map_evacuate_struct;
 		evac->map = this;
-		evac->step = this->world->config["EvacuateLength"];
+		evac->step = int(evac->map->world->config["EvacuateLength"]) / int(evac->map->world->config["EvacuateTick"]);
 
-		TimeEvent *event = new TimeEvent(map_evacuate, evac, this->world->config["EvacuateStep"], evac->step);
+		TimeEvent *event = new TimeEvent(map_evacuate, evac, this->world->config["EvacuateTick"], evac->step);
 		this->world->timer.Register(event);
 
 		map_evacuate(evac);

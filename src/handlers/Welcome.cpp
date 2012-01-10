@@ -150,21 +150,21 @@ void Welcome_Request(Player *player, PacketReader &reader)
 
 	if (!player->world->config["OldVersionCompat"] && player->client->version < 28)
 	{
-		reply.AddChar(player->character->str);
-		reply.AddChar(player->character->wis);
-		reply.AddChar(player->character->intl);
-		reply.AddChar(player->character->agi);
-		reply.AddChar(player->character->con);
-		reply.AddChar(player->character->cha);
+		reply.AddChar(player->character->display_str);
+		reply.AddChar(player->character->display_wis);
+		reply.AddChar(player->character->display_intl);
+		reply.AddChar(player->character->display_agi);
+		reply.AddChar(player->character->display_con);
+		reply.AddChar(player->character->display_cha);
 	}
 	else
 	{
-		reply.AddShort(player->character->str);
-		reply.AddShort(player->character->wis);
-		reply.AddShort(player->character->intl);
-		reply.AddShort(player->character->agi);
-		reply.AddShort(player->character->con);
-		reply.AddShort(player->character->cha);
+		reply.AddShort(player->character->display_str);
+		reply.AddShort(player->character->display_wis);
+		reply.AddShort(player->character->display_intl);
+		reply.AddShort(player->character->display_agi);
+		reply.AddShort(player->character->display_con);
+		reply.AddShort(player->character->display_cha);
 	}
 
 	UTIL_FOREACH(player->character->paperdoll, item)

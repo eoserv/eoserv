@@ -251,6 +251,8 @@ class Character
 		unsigned char guild_rank;
 		Party *party;
 		Map *map;
+
+		const short &display_str, &display_intl, &display_wis, &display_agi, &display_con, &display_cha;
 };
 
 struct CharacterEvent

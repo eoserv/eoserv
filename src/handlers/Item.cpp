@@ -217,12 +217,14 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				reply.AddShort(character->maxhp);
 				reply.AddShort(character->maxtp);
-				reply.AddShort(character->str);
-				reply.AddShort(character->intl);
-				reply.AddShort(character->wis);
-				reply.AddShort(character->agi);
-				reply.AddShort(character->con);
-				reply.AddShort(character->cha);
+				
+				reply.AddShort(character->display_str);
+				reply.AddShort(character->display_intl);
+				reply.AddShort(character->display_wis);
+				reply.AddShort(character->display_agi);
+				reply.AddShort(character->display_con);
+				reply.AddShort(character->display_cha);
+
 				reply.AddShort(character->mindam);
 				reply.AddShort(character->maxdam);
 				reply.AddShort(character->accuracy);

@@ -71,9 +71,9 @@ void StatSkill_Take(Character *character, PacketReader &reader)
 			if (spell->id == spell_id)
 			{
 				if (character->level < spell->levelreq || character->HasItem(1) < spell->cost
-				 || character->str < spell->strreq || character->intl < spell->intreq
-				 || character->wis < spell->wisreq || character->agi < spell->agireq
-				 || character->con < spell->conreq || character->cha < spell->chareq)
+				 || character->display_str < spell->strreq || character->display_intl < spell->intreq
+				 || character->display_wis < spell->wisreq || character->display_agi < spell->agireq
+				 || character->display_con < spell->conreq || character->display_cha < spell->chareq)
 				{
 					// No correct reply for these
 					PacketBuilder reply(PACKET_STATSKILL, PACKET_REPLY, 4);
@@ -170,12 +170,12 @@ void StatSkill_Add(Character *character, PacketReader &reader)
 			reply.SetID(PACKET_STATSKILL, PACKET_PLAYER);
 			reply.ReserveMore(32);
 			reply.AddShort(character->statpoints);
-			reply.AddShort(character->str);
-			reply.AddShort(character->intl);
-			reply.AddShort(character->wis);
-			reply.AddShort(character->agi);
-			reply.AddShort(character->con);
-			reply.AddShort(character->cha);
+			reply.AddShort(character->display_str);
+			reply.AddShort(character->display_intl);
+			reply.AddShort(character->display_wis);
+			reply.AddShort(character->display_agi);
+			reply.AddShort(character->display_con);
+			reply.AddShort(character->display_cha);
 			reply.AddShort(character->maxhp);
 			reply.AddShort(character->maxtp);
 			reply.AddShort(character->maxsp);
@@ -235,12 +235,12 @@ void StatSkill_Junk(Character *character, PacketReader &reader)
 		builder.AddShort(character->tp);
 		builder.AddShort(character->maxtp);
 		builder.AddShort(character->maxsp);
-		builder.AddShort(character->str);
-		builder.AddShort(character->intl);
-		builder.AddShort(character->wis);
-		builder.AddShort(character->agi);
-		builder.AddShort(character->con);
-		builder.AddShort(character->cha);
+		builder.AddShort(character->display_str);
+		builder.AddShort(character->display_intl);
+		builder.AddShort(character->display_wis);
+		builder.AddShort(character->display_agi);
+		builder.AddShort(character->display_con);
+		builder.AddShort(character->display_cha);
 		builder.AddShort(character->mindam);
 		builder.AddShort(character->maxdam);
 		builder.AddShort(character->accuracy);

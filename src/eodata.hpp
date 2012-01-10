@@ -322,6 +322,8 @@ class ECF
 		std::vector<ECF_Data *> data;
 		ECF(std::string filename) { Read(filename); }
 		void Read(std::string filename);
+
+		ECF_Data *Get(unsigned int id);
 };
 
 /**
@@ -342,7 +344,7 @@ struct ECF_Data
 	short con;
 	short cha;
 
-	ECF_Data() : id(0), base(0), type(0), str(0), intl(0), wis(0), agi(0), con(0), cha(0) { }
+	ECF_Data() : id(0), base(4), type(4), str(0), intl(0), wis(0), agi(0), con(0), cha(0) { }
 };
 
 #endif // EODATA_HPP_INCLUDED

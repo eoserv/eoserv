@@ -257,7 +257,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 			Character *victim = character->world->GetCharacter(arguments[0]);
 			if (victim)
 			{
-				character->Warp(victim->mapid, victim->x, victim->y, WARP_ANIMATION_ADMIN);
+				character->Warp(victim->mapid, victim->x, victim->y, character->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 			}
 		}
 		else if (command.length() >= 5 && command.compare(0,5,"warpt") == 0 && arguments.size() >= 1 && character->admin >= static_cast<int>(character->world->admin_config["warptome"]))
@@ -265,7 +265,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 			Character *victim = character->world->GetCharacter(arguments[0]);
 			if (victim)
 			{
-				victim->Warp(character->mapid, character->x, character->y, WARP_ANIMATION_ADMIN);
+				victim->Warp(character->mapid, character->x, character->y, character->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 			}
 		}
 		else if (command.length() >= 1 && command.compare(0,1,"w") == 0 && arguments.size() >= 3 && character->admin >= static_cast<int>(character->world->admin_config["warp"]))
@@ -279,7 +279,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 				return;
 			}
 
-			character->Warp(map, x, y, WARP_ANIMATION_ADMIN);
+			character->Warp(map, x, y, character->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 		}
 		else if (command.length() >= 3 && command.compare(0,3,"rem") == 0 && character->admin >= static_cast<int>(character->world->admin_config["remap"]))
 		{
@@ -418,12 +418,12 @@ void Talk_Report(Character *character, PacketReader &reader)
 				reply.AddShort(victim->maxhp);
 				reply.AddShort(victim->tp);
 				reply.AddShort(victim->maxtp);
-				reply.AddShort(victim->str);
-				reply.AddShort(victim->intl);
-				reply.AddShort(victim->wis);
-				reply.AddShort(victim->agi);
-				reply.AddShort(victim->con);
-				reply.AddShort(victim->cha);
+				reply.AddShort(victim->display_str);
+				reply.AddShort(victim->display_intl);
+				reply.AddShort(victim->display_wis);
+				reply.AddShort(victim->display_agi);
+				reply.AddShort(victim->display_con);
+				reply.AddShort(victim->display_cha);
 				reply.AddShort(victim->maxdam);
 				reply.AddShort(victim->mindam);
 				reply.AddShort(victim->accuracy);
@@ -468,7 +468,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 				character->Hide();
 			}
 		}
-		else if (command.length() >= 1 && command.compare(0,1,"e") == 0 && character->admin >= static_cast<int>(character->world->admin_config["evacuate"]))
+		else if ((command == "e" || (command.length() >= 2 && command.compare(0,2,"ev") == 0)) && character->admin >= static_cast<int>(character->world->admin_config["evacuate"]))
 		{
 			character->map->Evacuate();
 		}

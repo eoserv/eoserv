@@ -183,9 +183,14 @@ template <typename T> T GetRow(std::unordered_map<std::string, util::variant> &r
 }
 
 Character::Character(std::string name, World *world)
+	: world(world)
+	, display_str(this->world->config["UseAdjustedStats"] ? adj_str : str)
+	, display_intl(this->world->config["UseAdjustedStats"] ? adj_intl : intl)
+	, display_wis(this->world->config["UseAdjustedStats"] ? adj_wis : wis)
+	, display_agi(this->world->config["UseAdjustedStats"] ? adj_agi : agi)
+	, display_con(this->world->config["UseAdjustedStats"] ? adj_con : con)
+	, display_cha(this->world->config["UseAdjustedStats"] ? adj_cha : cha)
 {
-	this->world = world;
-
 	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `fiance`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`,"
 	"`map`, `x`, `y`, `direction`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
 	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` FROM `characters` "
@@ -275,7 +280,7 @@ Character::Character(std::string name, World *world)
 	this->bankmax = GetRow<int>(row, "bankmax");
 
 	// EOSERV originally set the default bankmax to 20
-	if (this->bankmax > static_cast<int>(world->config["MaxBankUpgrades"]))
+	if (this->bankmax > static_cast<int>(this->world->config["MaxBankUpgrades"]))
 	{
 		this->bankmax = 0;
 	}
@@ -1142,19 +1147,16 @@ unsigned char Character::SpawnY()
 // TODO: calculate equipment bonuses, check formulas
 void Character::CalculateStats()
 {
-	short calcstr = this->str;
-	short calcintl = this->intl;
-	short calcwis = this->wis;
-	short calcagi = this->agi;
-	short calccon = this->con;
-	short calccha = this->cha;
-	this->maxweight = 70 + this->str;
+	ECF_Data *ecf = world->ecf->Get(this->clas);
 
-	if (this->maxweight < 70 || this->maxweight > 250)
-	{
-		this->maxweight = 250;
-	}
+	this->adj_str = this->str + ecf->str;
+	this->adj_intl = this->intl + ecf->intl;
+	this->adj_wis = this->wis + ecf->wis;
+	this->adj_agi = this->agi + ecf->agi;
+	this->adj_con = this->con + ecf->con;
+	this->adj_cha = this->cha + ecf->cha;
 
+	this->maxweight = 70;
 	this->weight = 0;
 	this->maxhp = 0;
 	this->maxtp = 0;
@@ -1188,12 +1190,12 @@ void Character::CalculateStats()
 			this->accuracy += item->accuracy;
 			this->evade += item->evade;
 			this->armor += item->armor;
-			calcstr += item->str;
-			calcintl += item->intl;
-			calcwis += item->wis;
-			calcagi += item->agi;
-			calccon += item->con;
-			calccha += item->cha;
+			this->adj_str += item->str;
+			this->adj_intl += item->intl;
+			this->adj_wis += item->wis;
+			this->adj_agi += item->agi;
+			this->adj_con += item->con;
+			this->adj_cha += item->cha;
 		}
 	}
 
@@ -1202,14 +1204,37 @@ void Character::CalculateStats()
 		this->weight = 250;
 	}
 
-	this->maxhp += 10 + calccon*3;
-	this->maxtp += 10 + calcwis*3;
-	this->mindam += 1 + calcstr/2;
-	this->maxdam += 2 + calcstr/2;
-	this->accuracy += 0 + calcagi/2;
-	this->evade += 0 + calcagi/2;
-	this->armor += 0 + calccon/2;
-	this->maxsp += std::min(20 + this->level*2, 100);
+	this->maxhp += rpn_eval(rpn_parse(this->world->formulas_config["hp"]), formula_vars);
+	this->maxtp += rpn_eval(rpn_parse(this->world->formulas_config["tp"]), formula_vars);
+	this->maxsp += rpn_eval(rpn_parse(this->world->formulas_config["sp"]), formula_vars);
+	this->maxweight = rpn_eval(rpn_parse(this->world->formulas_config["weight"]), formula_vars);
+
+	if (this->maxweight < 70 || this->maxweight > 250)
+	{
+		this->maxweight = 250;
+	}
+
+	if (this->world->config["UseClassFormulas"])
+	{
+		std::unordered_map<std::string, double> formula_vars;
+		this->FormulaVars(formula_vars);
+
+		auto dam = rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".damage"]), formula_vars);
+
+		this->mindam += dam;
+		this->maxdam += dam;
+		this->armor += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".defence"]), formula_vars);
+		this->accuracy += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".accuracy"]), formula_vars);
+		this->evade += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".evade"]), formula_vars);
+	}
+	else
+	{
+		this->mindam += 1 + this->adj_str / 2;
+		this->maxdam += 2 + this->adj_str / 2;
+		this->accuracy += 0 + this->adj_agi / 2;
+		this->evade += 0 + this->adj_agi / 2;
+		this->armor += 0 + this->adj_con / 2;
+	}
 
 	if (this->party)
 	{
@@ -1303,12 +1328,12 @@ void Character::DropAll(Character *killer)
 				builder.AddChar(subloc);
 				builder.AddShort(this->maxhp);
 				builder.AddShort(this->maxtp);
-				builder.AddShort(this->str);
-				builder.AddShort(this->intl);
-				builder.AddShort(this->wis);
-				builder.AddShort(this->agi);
-				builder.AddShort(this->con);
-				builder.AddShort(this->cha);
+				builder.AddShort(this->display_str);
+				builder.AddShort(this->display_intl);
+				builder.AddShort(this->display_wis);
+				builder.AddShort(this->display_agi);
+				builder.AddShort(this->display_con);
+				builder.AddShort(this->display_cha);
 				builder.AddShort(this->mindam);
 				builder.AddShort(this->maxdam);
 				builder.AddShort(this->accuracy);
@@ -1394,7 +1419,9 @@ void Character::FormulaVars(std::unordered_map<std::string, double> &vars, std::
 {
 	v(level) v(exp) v(hp) v(maxhp) v(tp) v(maxtp) v(maxsp)
 	v(weight) v(maxweight) v(karma) v(mindam) v(maxdam)
-	v(str) vv(intl, "int") v(wis) v(agi) v(con) v(cha)
+	vv(adj_str, "str") vv(adj_intl, "int") vv(adj_wis, "wis") vv(adj_agi, "agi") vv(adj_con, "con") vv(adj_cha, "cha")
+	vv(str, "base_str") vv(intl, "base_int") vv(wis, "base_wis") vv(agi, "base_agi") vv(con, "base_con") vv(cha, "base_cha")
+	v(display_str) vv(display_intl, "display_int") v(display_wis) v(display_agi) v(display_con) v(display_cha)
 	v(accuracy) v(evade) v(armor) v(admin)
 }
 

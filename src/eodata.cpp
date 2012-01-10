@@ -385,6 +385,14 @@ void ECF::Read(std::string filename)
 		newdata->name = name;
 
 		newdata->base = PacketProcessor::Number(buf[0]);
+		newdata->type = PacketProcessor::Number(buf[1]);
+
+		newdata->str = PacketProcessor::Number(buf[2], buf[3]);
+		newdata->intl = PacketProcessor::Number(buf[4], buf[5]);
+		newdata->wis = PacketProcessor::Number(buf[6], buf[7]);
+		newdata->agi = PacketProcessor::Number(buf[8], buf[9]);
+		newdata->con = PacketProcessor::Number(buf[10], buf[11]);
+		newdata->cha = PacketProcessor::Number(buf[12], buf[13]);
 
 		this->data[i] = newdata;
 
@@ -404,3 +412,14 @@ void ECF::Read(std::string filename)
 	std::fclose(fh);
 }
 
+ECF_Data *ECF::Get(unsigned int id)
+{
+	if (id > 0 && id < this->data.size())
+	{
+		return this->data[id];
+	}
+	else
+	{
+		return this->data[0];
+	}
+}
