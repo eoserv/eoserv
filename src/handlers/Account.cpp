@@ -57,7 +57,7 @@ void Account_Create(EOClient *client, PacketReader &reader)
 	reader.GetByte(); // ?
 
 	std::string username = reader.GetBreakString();
-	std::string password = reader.GetBreakString();
+	util::secure_string password(std::move(reader.GetBreakString()));
 	std::string fullname = reader.GetBreakString();
 	std::string location = reader.GetBreakString();
 	std::string email = reader.GetBreakString();
@@ -65,8 +65,8 @@ void Account_Create(EOClient *client, PacketReader &reader)
 
 	if (username.length() < std::size_t(int(client->server()->world->config["AccountMinLength"]))
 	 || username.length() > std::size_t(int(client->server()->world->config["AccountMaxLength"]))
-	 || password.length() < std::size_t(int(client->server()->world->config["PasswordMinLength"]))
-	 || password.length() > std::size_t(int(client->server()->world->config["PasswordMaxLength"]))
+	 || password.str().length() < std::size_t(int(client->server()->world->config["PasswordMinLength"]))
+	 || password.str().length() > std::size_t(int(client->server()->world->config["PasswordMaxLength"]))
 	 || fullname.length() > std::size_t(int(client->server()->world->config["RealNameMaxLength"]))
 	 || location.length() > std::size_t(int(client->server()->world->config["LocationMaxLength"]))
 	 || email.length() > std::size_t(int(client->server()->world->config["EmailMaxLength"]))
@@ -88,11 +88,7 @@ void Account_Create(EOClient *client, PacketReader &reader)
 	username = util::lowercase(username);
 
 	if (client->server()->world->config["SeoseCompat"])
-	{
-		std::string seose_hash = seose_str_hash(password, client->server()->world->config["SeoseCompatKey"]);
-		std::fill(UTIL_RANGE(password), '\0');
-		password = seose_hash;
-	}
+		password = std::move(seose_str_hash(password.str(), client->server()->world->config["SeoseCompatKey"]));
 
 	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 
@@ -123,15 +119,15 @@ void Account_Create(EOClient *client, PacketReader &reader)
 void Account_Agree(Player *player, PacketReader &reader)
 {
 	std::string username = reader.GetBreakString();
-	std::string oldpassword = reader.GetBreakString();
-	std::string newpassword = reader.GetBreakString();
+	util::secure_string oldpassword(std::move(reader.GetBreakString()));
+	util::secure_string newpassword(std::move(reader.GetBreakString()));
 
 	if (username.length() < std::size_t(int(player->world->config["AccountMinLength"]))
 	 || username.length() > std::size_t(int(player->world->config["AccountMaxLength"]))
-	 || oldpassword.length() < std::size_t(int(player->world->config["PasswordMinLength"]))
-	 || oldpassword.length() > std::size_t(int(player->world->config["PasswordMaxLength"]))
-	 || newpassword.length() < std::size_t(int(player->world->config["PasswordMinLength"]))
-	 || newpassword.length() > std::size_t(int(player->world->config["PasswordMaxLength"])))
+	 || oldpassword.str().length() < std::size_t(int(player->world->config["PasswordMinLength"]))
+	 || oldpassword.str().length() > std::size_t(int(player->world->config["PasswordMaxLength"]))
+	 || newpassword.str().length() < std::size_t(int(player->world->config["PasswordMinLength"]))
+	 || newpassword.str().length() > std::size_t(int(player->world->config["PasswordMaxLength"])))
 	{
 		return;
 	}
@@ -150,21 +146,13 @@ void Account_Agree(Player *player, PacketReader &reader)
 	}
 
 	if (player->world->config["SeoseCompat"])
-	{
-		std::string seose_hash = seose_str_hash(oldpassword, player->world->config["SeoseCompatKey"]);
-		std::fill(UTIL_RANGE(oldpassword), '\0');
-		oldpassword = seose_hash;
-	}
+		oldpassword = std::move(seose_str_hash(oldpassword.str(), player->world->config["SeoseCompatKey"]));
 
 	if (player->world->config["SeoseCompat"])
-	{
-		std::string seose_hash = seose_str_hash(newpassword, player->world->config["SeoseCompatKey"]);
-		std::fill(UTIL_RANGE(newpassword), '\0');
-		newpassword = seose_hash;
-	}
+		newpassword = std::move(seose_str_hash(newpassword.str(), player->world->config["SeoseCompatKey"]));
 
 	{
-		std::unique_ptr<Player> changepass(player->world->Login(username, std::string(oldpassword)));
+		std::unique_ptr<Player> changepass(player->world->Login(username, std::move(oldpassword)));
 
 		if (!changepass)
 		{

@@ -18,6 +18,7 @@
 #include "database.hpp"
 #include "i18n.hpp"
 #include "timer.hpp"
+#include "util.hpp"
 
 #include "fwd/character.hpp"
 #include "fwd/eodata.hpp"
@@ -143,11 +144,11 @@ class World
 		Character *CreateCharacter(Player *, std::string name, Gender, int hairstyle, int haircolor, Skin);
 		void DeleteCharacter(std::string name);
 
-		Player *Login(const std::string& username, std::string&& password);
+		Player *Login(const std::string& username, util::secure_string&& password);
 		Player *Login(std::string username);
-		LoginReply LoginCheck(const std::string& username, std::string&& password);
+		LoginReply LoginCheck(const std::string& username, util::secure_string&& password);
 
-		bool CreatePlayer(const std::string& username, std::string&& password,
+		bool CreatePlayer(const std::string& username, util::secure_string&& password,
 			const std::string& fullname,const std::string& location, const std::string& email,
 			const std::string& computer, const std::string& hdid, const std::string& ip);
 

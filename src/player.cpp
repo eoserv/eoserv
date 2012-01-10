@@ -34,7 +34,6 @@ Player::Player(std::string username, World *world)
 	this->character = 0;
 
 	this->username = static_cast<std::string>(row["username"]);
-	this->password = static_cast<std::string>(row["password"]);
 
 	res = this->world->db.Query("SELECT `name` FROM `characters` WHERE `account` = '$' ORDER BY `exp` DESC", username.c_str());
 
@@ -83,18 +82,14 @@ bool Player::AddCharacter(std::string name, Gender gender, int hairstyle, int ha
 	return true;
 }
 
-void Player::ChangePass(std::string&& password)
+void Player::ChangePass(util::secure_string&& password)
 {
-	std::string password_buffer = std::string(this->world->config["PasswordSalt"]) + this->username + password;
+	{
+		util::secure_string password_buffer(std::move(std::string(this->world->config["PasswordSalt"]) + this->username + password.str()));
+		password = sha256(password_buffer.str());
+	}
 
-	password = sha256(password_buffer);
-
-	// Write over the password in memory
-	std::fill(UTIL_RANGE(password_buffer), '\0');
-
-	this->password = password;
-
-	this->world->db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.c_str(), this->username.c_str());
+	this->world->db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.str().c_str(), this->username.c_str());
 }
 
 void Player::Send(const PacketBuilder &builder)

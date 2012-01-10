@@ -840,7 +840,7 @@ void World::DeleteCharacter(std::string name)
 	this->db.Query("DELETE FROM `characters` WHERE name = '$'", name.c_str());
 }
 
-Player *World::Login(const std::string& username, std::string&& password)
+Player *World::Login(const std::string& username, util::secure_string&& password)
 {
 	if (LoginCheck(username, std::move(password)) == LOGIN_WRONG_USERPASS)
 		return 0;
@@ -867,16 +867,14 @@ Player *World::Login(std::string username)
 	}
 }
 
-LoginReply World::LoginCheck(const std::string& username, std::string&& password)
+LoginReply World::LoginCheck(const std::string& username, util::secure_string&& password)
 {
-	std::string password_buffer = std::string(this->config["PasswordSalt"]) + username + password;
+	{
+		util::secure_string password_buffer(std::move(std::string(this->config["PasswordSalt"]) + username + password.str()));
+		password = sha256(password_buffer.str());
+	}
 
-	password = sha256(password_buffer);
-
-	// Write over the password in memory
-	std::fill(UTIL_RANGE(password_buffer), '\0');
-
-	Database_Result res = this->db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.c_str());
+	Database_Result res = this->db.Query("SELECT 1 FROM `accounts` WHERE `username` = '$' AND `password` = '$'", username.c_str(), password.str().c_str());
 
 	if (res.empty())
 	{
@@ -892,18 +890,17 @@ LoginReply World::LoginCheck(const std::string& username, std::string&& password
 	}
 }
 
-bool World::CreatePlayer(const std::string& username, std::string&& password,
+bool World::CreatePlayer(const std::string& username, util::secure_string&& password,
 	const std::string& fullname, const std::string& location, const std::string& email,
 	const std::string& computer, const std::string& hdid, const std::string& ip)
 {
-	std::string password_buffer = std::string(this->config["PasswordSalt"]) + username + password;
+	{
+		util::secure_string password_buffer(std::move(std::string(this->config["PasswordSalt"]) + username + password.str()));
+		password = sha256(password_buffer.str());
+	}
 
-	password = sha256(password_buffer);
-
-	// Write over the password in memory
-	std::fill(UTIL_RANGE(password_buffer), '\0');
-
-	Database_Result result = this->db.Query("INSERT INTO `accounts` (`username`, `password`, `fullname`, `location`, `email`, `computer`, `hdid`, `regip`, `created`) VALUES ('$','$','$','$','$','$','$','$',#)", username.c_str(), password.c_str(), fullname.c_str(), location.c_str(), email.c_str(), computer.c_str(), hdid.c_str(), ip.c_str(), std::time(0));
+	Database_Result result = this->db.Query("INSERT INTO `accounts` (`username`, `password`, `fullname`, `location`, `email`, `computer`, `hdid`, `regip`, `created`) VALUES ('$','$','$','$','$','$','$','$',#)",
+		username.c_str(), password.str().c_str(), fullname.c_str(), location.c_str(), email.c_str(), computer.c_str(), hdid.c_str(), ip.c_str(), std::time(0));
 
 	return !result.Error();
 }

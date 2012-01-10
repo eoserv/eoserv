@@ -26,10 +26,10 @@ namespace Handlers
 void Login_Request(EOClient *client, PacketReader &reader)
 {
 	std::string username = reader.GetBreakString();
-	std::string password = reader.GetBreakString();
+	util::secure_string password(std::move(reader.GetBreakString()));
 
 	if (username.length() > std::size_t(int(client->server()->world->config["AccountMaxLength"]))
-	 || password.length() > std::size_t(int(client->server()->world->config["PasswordMaxLength"])))
+	 || password.str().length() > std::size_t(int(client->server()->world->config["PasswordMaxLength"])))
 	{
 		return;
 	}
@@ -37,11 +37,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 	username = util::lowercase(username);
 
 	if (client->server()->world->config["SeoseCompat"])
-	{
-		std::string seose_hash = seose_str_hash(password, client->server()->world->config["SeoseCompatKey"]);
-		std::fill(UTIL_RANGE(password), '\0');
-		password = seose_hash;
-	}
+		password = std::move(seose_str_hash(password.str(), client->server()->world->config["SeoseCompatKey"]));
 
 	if (client->server()->world->CheckBan(&username, 0, 0) != -1)
 	{
@@ -61,7 +57,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 		return;
 	}
 
-	if (password.length() < std::size_t(int(client->server()->world->config["PasswordMinLength"])))
+	if (password.str().length() < std::size_t(int(client->server()->world->config["PasswordMinLength"])))
 	{
 		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY, 2);
 		reply.AddShort(LOGIN_WRONG_USERPASS);

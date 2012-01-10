@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include "util.hpp"
+
 #include "fwd/character.hpp"
 #include "fwd/eoclient.hpp"
 #include "fwd/packet.hpp"
@@ -27,7 +29,6 @@ class Player
 		bool online;
 		unsigned int id;
 		std::string username;
-		std::string password;
 
 		Player(std::string username, World *);
 
@@ -36,7 +37,7 @@ class Player
 
 		static bool ValidName(std::string username);
 		bool AddCharacter(std::string name, Gender gender, int hairstyle, int haircolor, Skin race);
-		void ChangePass(std::string&& password);
+		void ChangePass(util::secure_string&& password);
 
 		void Send(const PacketBuilder &);
 
