@@ -12,6 +12,6 @@
 /**
  * Convert a string to the hex representation of it's sha256 hash
  */
-std::string sha256(std::string);
+std::string sha256(const std::string&);
 
 #endif // HASH_HPP_INCLUDED

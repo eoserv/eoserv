@@ -331,6 +331,7 @@ std::string Client::Recv(std::size_t length)
 	{
 		this->recv_buffer_gpos = (this->recv_buffer_gpos + 1) & mask;
 		ret[i] = this->recv_buffer[this->recv_buffer_gpos];
+		this->recv_buffer[this->recv_buffer_gpos] = '\0';
 	}
 
 	this->recv_buffer_used -= length;
@@ -404,8 +405,13 @@ bool Client::DoSend()
 
 	const int written = send(this->impl->sock, buf, to_send, 0);
 
-	if (written == SOCKET_ERROR)
+	if (written < 0 || written == SOCKET_ERROR)
 		return false;
+
+	for (int i = 0; i < written; ++i)
+	{
+		this->send_buffer[i & mask] = '\0';
+	}
 
 	this->send_buffer_gpos = (gpos + written) & mask;
 	this->send_buffer_used -= written;

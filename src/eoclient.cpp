@@ -113,6 +113,7 @@ void EOClient::Tick()
 			{
 				case EOClient::ReadLen1:
 					this->raw_length[0] = data[0];
+					data[0] = '\0';
 					data.erase(0, 1);
 					this->packet_state = EOClient::ReadLen2;
 
@@ -123,6 +124,7 @@ void EOClient::Tick()
 
 				case EOClient::ReadLen2:
 					this->raw_length[1] = data[0];
+					data[0] = '\0';
 					data.erase(0, 1);
 					this->length = PacketProcessor::Number(this->raw_length[0], this->raw_length[1]);
 					this->packet_state = EOClient::ReadData;
@@ -135,6 +137,7 @@ void EOClient::Tick()
 				case EOClient::ReadData:
 					oldlength = this->data.length();
 					this->data += data.substr(0, this->length);
+					std::fill(data.begin(), data.begin() + this->length, '\0');
 					data.erase(0, this->length);
 					this->length -= this->data.length() - oldlength;
 
@@ -180,6 +183,7 @@ void EOClient::Tick()
 							this->Close();
 						}
 
+						std::fill(UTIL_RANGE(this->data), '\0');
 						this->data.erase();
 						this->packet_state = EOClient::ReadLen1;
 
@@ -189,7 +193,9 @@ void EOClient::Tick()
 
 				default:
 					// If the code ever gets here, something is broken, so we just reset the client's state.
+					std::fill(UTIL_RANGE(data), '\0');
 					data.erase();
+					std::fill(UTIL_RANGE(this->data), '\0');
 					this->data.erase();
 					this->packet_state = EOClient::ReadLen1;
 			}

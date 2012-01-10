@@ -72,7 +72,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 		return;
 	}
 
-	LoginReply login_reply = client->server()->world->LoginCheck(username, password);
+	LoginReply login_reply = client->server()->world->LoginCheck(username, std::move(password));
 
 	if (login_reply != LOGIN_OK)
 	{

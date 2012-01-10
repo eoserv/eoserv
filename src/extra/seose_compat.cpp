@@ -38,7 +38,7 @@ std::uint16_t seose_hash(const char *input, std::size_t length, std::uint16_t me
 	return result;
 }
 
-std::string seose_str_hash(std::string input, std::string key)
+std::string seose_str_hash(const std::string& input, const std::string& key)
 {
 	std::string result;
 
@@ -48,7 +48,7 @@ std::string seose_str_hash(std::string input, std::string key)
 
 		// Remind me to strangle Sordie for using pound symbols in the default key
 		if (kc == '#')
-			kc = char(0xA3); // 'Â£'
+			kc = char(0xA3); // '£'
 
 		result += seose_to_base62(seose_hash(input.data(), input.length(), (i + 1) * kc));
 	}

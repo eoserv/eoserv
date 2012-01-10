@@ -30,8 +30,10 @@ std::string I18N::FormatV(std::string id, std::vector<util::variant> &&v)
 	{
 		std::string result = id;
 
-		for (auto x : v)
+		UTIL_FOREACH(v, x)
+		{
 			result += " " + std::string(x);
+		}
 
 		return result;
 	}
@@ -41,7 +43,7 @@ std::string I18N::FormatV(std::string id, std::vector<util::variant> &&v)
 	std::string number_buffer;
 	int state = 0;
 
-	for (auto c : format)
+	UTIL_FOREACH(format, c)
 	{
 		if (state == 0)
 		{

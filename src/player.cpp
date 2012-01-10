@@ -8,6 +8,8 @@
 
 #include <stdexcept>
 
+#include "util.hpp"
+
 #include "character.hpp"
 #include "console.hpp"
 #include "database.hpp"
@@ -81,10 +83,17 @@ bool Player::AddCharacter(std::string name, Gender gender, int hairstyle, int ha
 	return true;
 }
 
-void Player::ChangePass(std::string password)
+void Player::ChangePass(std::string&& password)
 {
-	password = sha256(static_cast<std::string>(this->world->config["PasswordSalt"]) + username + password);
+	std::string password_buffer = std::string(this->world->config["PasswordSalt"]) + this->username + password;
+
+	password = sha256(password_buffer);
+
+	// Write over the password in memory
+	std::fill(UTIL_RANGE(password_buffer), '\0');
+
 	this->password = password;
+
 	this->world->db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.c_str(), this->username.c_str());
 }
 

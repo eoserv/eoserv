@@ -104,7 +104,7 @@ void Account_Create(EOClient *client, PacketReader &reader)
 	{
 		username = util::lowercase(username);
 
-		client->server()->world->CreatePlayer(username, password, fullname, location, email, computer, util::to_string(hdid), static_cast<std::string>(client->GetRemoteAddr()));
+		client->server()->world->CreatePlayer(username, std::move(password), fullname, location, email, computer, util::to_string(hdid), static_cast<std::string>(client->GetRemoteAddr()));
 		reply.AddShort(ACCOUNT_CREATED);
 		reply.AddString("OK");
 		Console::Out("New account: %s", username.c_str());
@@ -149,20 +149,20 @@ void Account_Agree(Player *player, PacketReader &reader)
 	if (player->world->config["SeoseCompat"])
 		newpassword = seose_str_hash(newpassword, player->world->config["SeoseCompatKey"]);
 
-	Player *changepass = player->world->Login(username, oldpassword);
-
-	if (!changepass)
 	{
-		PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
-		reply.AddShort(ACCOUNT_CHANGE_FAILED);
-		reply.AddString("NO");
-		player->Send(reply);
-		return;
+		std::unique_ptr<Player>changepass(player->world->Login(username, std::string(oldpassword)));
+
+		if (!changepass)
+		{
+			PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
+			reply.AddShort(ACCOUNT_CHANGE_FAILED);
+			reply.AddString("NO");
+			player->Send(reply);
+			return;
+		}
+
+		changepass->ChangePass(std::move(newpassword));
 	}
-
-	changepass->ChangePass(newpassword);
-
-	delete changepass;
 
 	PacketBuilder reply(PACKET_ACCOUNT, PACKET_REPLY, 4);
 	reply.AddShort(ACCOUNT_CHANGED);

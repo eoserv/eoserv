@@ -36,7 +36,7 @@ class Player
 
 		static bool ValidName(std::string username);
 		bool AddCharacter(std::string name, Gender gender, int hairstyle, int haircolor, Skin race);
-		void ChangePass(std::string password);
+		void ChangePass(std::string&& password);
 
 		void Send(const PacketBuilder &);
 
