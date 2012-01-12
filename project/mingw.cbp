@@ -118,6 +118,7 @@
 			<Add option="-include stdafx.h" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
+			<Add option='-DVERSION_STRING=&quot;\&quot;0.5.3\&quot;&quot;' />
 			<Add directory="..\src\" />
 		</Compiler>
 		<Linker>

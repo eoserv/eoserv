@@ -14,6 +14,7 @@
 #endif // DATABASE_MYSQL
 
 #include <exception>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -71,6 +72,11 @@ class Database_Result : public std::vector<std::unordered_map<std::string, util:
 		bool error;
 
 	public:
+		Database_Result()
+			: affected_rows(0)
+			, error(false)
+		{ }
+
 		/**
 		 * Returns the number of affected rows from an UPDATE or INSERT query
 		 */
@@ -108,6 +114,19 @@ class Database
 		unsigned int port;
 
 	public:
+		struct Bulk_Query_Context
+		{
+			Database& db;
+			bool pending;
+
+			Bulk_Query_Context(Database&);
+			Bulk_Query_Context(const Bulk_Query_Context&) = delete;
+			void RawQuery(const std::string& query);
+			void Commit();
+			void Rollback();
+			~Bulk_Query_Context();
+		};
+
 		/**
 		 * Constructs a zombie Database object that should have Connect() called on it before anything else
 		 */
@@ -134,7 +153,14 @@ class Database
 		void Close();
 
 		/**
-		 * Executes a query and returns it's result. [Re]connects to the database if required
+		 * Executes a raw query and returns it's result. [Re]connects to the database if required
+		 * @throw Database_QueryFailed
+		 * @throw Database_OpenFailed
+		 */
+		Database_Result RawQuery(const char* query);
+
+		/**
+		 * Executes a formatted query and returns it's result. [Re]connects to the database if required
 		 * @throw Database_QueryFailed
 		 * @throw Database_OpenFailed
 		 */
@@ -144,6 +170,34 @@ class Database
 		 * Escapes a piece of text (including Query replacement tokens)
 		 */
 		std::string Escape(std::string);
+
+		/**
+		 * Executes a set of queries, rolling back the result of any previous queries if one fails.
+		 * @throw Database_QueryFailed
+		 * @throw Database_OpenFailed
+		 */
+		template <class IT> void ExecuteQueries(IT begin, IT end)
+		{
+			using namespace std::placeholders;
+
+			Bulk_Query_Context qc(*this);
+
+			std::for_each(begin, end, std::bind(&Bulk_Query_Context::RawQuery, &qc, _1));
+
+			qc.Commit();
+		}
+
+		/**
+		 * Executes the contents of a multi-sql command file separated with semicolons.
+		 * See ExecuteQueries() for more information.
+		 * @throw Database_QueryFailed
+		 * @throw Database_OpenFailed
+		 */
+		void ExecuteFile(std::string filename);
+
+		void BeginTransaction();
+		void Commit();
+		void Rollback();
 
 		/**
 		 * Closes the database connection if one is active

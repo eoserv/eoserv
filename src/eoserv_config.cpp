@@ -104,6 +104,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "BoardDatePosts"     , true);
 	eoserv_config_default(config, "AdminBoard"         , 8);
 	eoserv_config_default(config, "AdminBoardLimit"    , 100);
+	eoserv_config_default(config, "FirstCharacterAdmin", true);
 	eoserv_config_default(config, "ShowLevel"          , false);
 	eoserv_config_default(config, "WarpBubbles"        , true);
 	eoserv_config_default(config, "HideGlobal"         , false);
@@ -251,16 +252,17 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "snpc"          , 3);
 	eoserv_config_default(config, "learn"         , 3);
 	eoserv_config_default(config, "quake"         , 2);
-	eoserv_config_default(config, "setlevel"      , 4);
-	eoserv_config_default(config, "setexp"        , 4);
-	eoserv_config_default(config, "setstr"        , 4);
-	eoserv_config_default(config, "setint"        , 4);
-	eoserv_config_default(config, "setwis"        , 4);
-	eoserv_config_default(config, "setagi"        , 4);
-	eoserv_config_default(config, "setcon"        , 4);
-	eoserv_config_default(config, "setcha"        , 4);
-	eoserv_config_default(config, "setstatpoints" , 4);
-	eoserv_config_default(config, "setskillpoints", 4);
+	eoserv_config_default(config, "setlevel"      , 3);
+	eoserv_config_default(config, "setexp"        , 3);
+	eoserv_config_default(config, "setstr"        , 3);
+	eoserv_config_default(config, "setint"        , 3);
+	eoserv_config_default(config, "setwis"        , 3);
+	eoserv_config_default(config, "setagi"        , 3);
+	eoserv_config_default(config, "setcon"        , 3);
+	eoserv_config_default(config, "setcha"        , 3);
+	eoserv_config_default(config, "setstatpoints" , 3);
+	eoserv_config_default(config, "setskillpoints", 3);
+	eoserv_config_default(config, "setadmin"      , 3);
 	eoserv_config_default(config, "setfiance"     , 3);
 	eoserv_config_default(config, "setpartner"    , 3);
 	eoserv_config_default(config, "sethome"       , 3);
@@ -277,5 +279,6 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "killnpc"       , 2);
 	eoserv_config_default(config, "boardmod"      , 1);
 	eoserv_config_default(config, "reports"       , 1);
-	eoserv_config_default(config, "seehide"       , 4);
+	eoserv_config_default(config, "nowall"        , 2);
+	eoserv_config_default(config, "seehide"       , 3);
 }

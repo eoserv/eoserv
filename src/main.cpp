@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
 
 		std::puts("\
                           ___ ___  ___ ___ _____   __\n\
-   EOSERV Version 0.5.3  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
+   EOSERV Version "VERSION_STRING"  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
                          |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
 \n");
@@ -311,6 +311,8 @@ int main(int argc, char *argv[])
 				Console::Out("  Characters: %i (%i staff)", int(character_count.front()["count"]), int(admin_character_count.front()["count"]));
 				Console::Out("  Guilds:     %i", int(guild_count.front()["count"]));
 
+				server.world->UpdateAdminCount(int(admin_character_count.front()["count"]));
+
 				tables_exist = true;
 			}
 			catch (Database_Exception &e)
@@ -318,8 +320,8 @@ int main(int argc, char *argv[])
 				if (!tried_install)
 				{
 					tried_install = true;
-					Console::Wrn("A required table is missing. Attempting to execute install.sql (NOT IMPLEMENTED)");
-					// TODO: server.world->db.ExecuteFile(config["InstallSQL"]);
+					Console::Wrn("A required table is missing. Attempting to execute install.sql");
+					server.world->db.ExecuteFile(config["InstallSQL"]);
 				}
 				else
 				{

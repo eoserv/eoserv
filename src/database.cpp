@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "console.hpp"
+#include "util.hpp"
 
 #include "database_impl.hpp"
 
@@ -74,6 +75,41 @@ int Database_Result::AffectedRows()
 bool Database_Result::Error()
 {
 	return this->error;
+}
+
+Database::Bulk_Query_Context::Bulk_Query_Context(Database& db)
+	: db(db)
+	, pending(false)
+{
+	db.BeginTransaction();
+	pending = true;
+}
+
+void Database::Bulk_Query_Context::RawQuery(const std::string& query)
+{
+	db.RawQuery(query.c_str());
+}
+
+void Database::Bulk_Query_Context::Commit()
+{
+	if (pending)
+		db.Commit();
+
+	pending = false;
+}
+
+void Database::Bulk_Query_Context::Rollback()
+{
+	if (pending)
+		db.Rollback();
+
+	pending = false;
+}
+
+Database::Bulk_Query_Context::~Bulk_Query_Context()
+{
+	if (pending)
+		db.Rollback();
 }
 
 Database::Database()
@@ -177,68 +213,14 @@ void Database::Close()
 	}
 }
 
-Database_Result Database::Query(const char *format, ...)
+Database_Result Database::RawQuery(const char* query)
 {
-	if (!this->connected)
-	{
-		this->Connect(this->engine, this->host, this->port, this->user, this->pass, this->db);
-	}
+	std::size_t query_length = std::strlen(query);
 
-	std::va_list ap;
-	va_start(ap, format);
-
-	std::string finalquery;
-	int tempi;
-	char *tempc;
-	char *escret;
 	Database_Result result;
 
-	for (const char *p = format; *p != '\0'; ++p)
-	{
-		if (*p == '#')
-		{
-			tempi = va_arg(ap,int);
-			finalquery += util::to_string(tempi);
-		}
-		else if (*p == '@')
-		{
-			tempc = va_arg(ap,char *);
-			finalquery += static_cast<std::string>(tempc);
-		}
-		else if (*p == '$')
-		{
-			tempc = va_arg(ap,char *);
-			switch (this->engine)
-			{
-#ifdef DATABASE_MYSQL
-				case MySQL:
-					tempi = strlen(tempc);
-					escret = new char[tempi*2+1];
-					mysql_real_escape_string(this->impl->mysql_handle, escret, tempc, tempi);
-					finalquery += escret;
-					delete[] escret;
-					break;
-#endif // DATABASE_MYSQL
-
-#ifdef DATABASE_SQLITE
-				case SQLite:
-					escret = sqlite3_mprintf("%q",tempc);
-					finalquery += escret;
-					sqlite3_free(escret);
-					break;
-#endif // DATABASE_SQLITE
-			}
-		}
-		else
-		{
-			finalquery += *p;
-		}
-	}
-
-	va_end(ap);
-
 #ifdef DATABASE_DEBUG
-	Console::Dbg(finalquery.c_str());
+	Console::Dbg(query);
 #endif // DATABASE_DEBUG
 
 	switch (this->engine)
@@ -251,7 +233,7 @@ Database_Result Database::Query(const char *format, ...)
 			int num_fields;
 
 			exec_query:
-			if (mysql_real_query(this->impl->mysql_handle, finalquery.c_str(), finalquery.length()) != 0)
+			if (mysql_real_query(this->impl->mysql_handle, query, query_length) != 0)
 			{
 				int myerr = mysql_errno(this->impl->mysql_handle);
 
@@ -326,7 +308,7 @@ Database_Result Database::Query(const char *format, ...)
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
-			if (sqlite3_exec(this->impl->sqlite_handle, finalquery.c_str(), sqlite_callback, (void *)this, 0) != SQLITE_OK)
+			if (sqlite3_exec(this->impl->sqlite_handle, query, sqlite_callback, (void *)this, 0) != SQLITE_OK)
 			{
 				throw Database_QueryFailed(sqlite3_errmsg(this->impl->sqlite_handle));
 			}
@@ -334,9 +316,74 @@ Database_Result Database::Query(const char *format, ...)
 			this->callbackdata.clear();
 			break;
 #endif // DATABASE_SQLITE
+
+		default:
+			throw Database_QueryFailed("Unknown database engine");
 	}
 
 	return result;
+}
+
+Database_Result Database::Query(const char *format, ...)
+{
+	if (!this->connected)
+	{
+		this->Connect(this->engine, this->host, this->port, this->user, this->pass, this->db);
+	}
+
+	std::va_list ap;
+	va_start(ap, format);
+
+	std::string finalquery;
+	int tempi;
+	char *tempc;
+	char *escret;
+
+	for (const char *p = format; *p != '\0'; ++p)
+	{
+		if (*p == '#')
+		{
+			tempi = va_arg(ap,int);
+			finalquery += util::to_string(tempi);
+		}
+		else if (*p == '@')
+		{
+			tempc = va_arg(ap,char *);
+			finalquery += static_cast<std::string>(tempc);
+		}
+		else if (*p == '$')
+		{
+			tempc = va_arg(ap,char *);
+			switch (this->engine)
+			{
+#ifdef DATABASE_MYSQL
+				case MySQL:
+					tempi = strlen(tempc);
+					escret = new char[tempi*2+1];
+					mysql_real_escape_string(this->impl->mysql_handle, escret, tempc, tempi);
+					finalquery += escret;
+					delete[] escret;
+					break;
+#endif // DATABASE_MYSQL
+
+#ifdef DATABASE_SQLITE
+				case SQLite:
+					escret = sqlite3_mprintf("%q",tempc);
+					finalquery += escret;
+					sqlite3_free(escret);
+					break;
+#endif // DATABASE_SQLITE
+			}
+		}
+		else
+		{
+			finalquery += *p;
+		}
+	}
+
+	va_end(ap);
+
+	return this->RawQuery(finalquery.c_str());
 }
 
 std::string Database::Escape(std::string raw)
@@ -372,6 +419,82 @@ std::string Database::Escape(std::string raw)
 	}
 
 	return raw;
+}
+
+void Database::ExecuteFile(std::string filename)
+{
+	std::list<std::string> queries;
+	std::string query;
+
+	FILE* fh = std::fopen(filename.c_str(), "rt");
+
+	try
+	{
+		while (true)
+		{
+			char buf[4096];
+
+			const char *result = std::fgets(buf, 4096, fh);
+
+			if (!result || std::feof(fh))
+				break;
+
+			for (char* p = buf; *p != '\0'; ++p)
+			{
+				if (*p == ';')
+				{
+					queries.push_back(query);
+					query.erase();
+				}
+				else
+				{
+					query += *p;
+				}
+			}
+		}
+	}
+	catch (std::exception &e)
+	{
+		std::fclose(fh);
+		throw;
+	}
+
+	std::fclose(fh);
+
+	queries.push_back(query);
+	query.erase();
+
+	std::remove_if(UTIL_RANGE(queries), [&](const std::string& s) { return util::trim(s).length() == 0; });
+
+	this->ExecuteQueries(UTIL_RANGE(queries));
+}
+
+void Database::BeginTransaction()
+{
+	switch (this->engine)
+	{
+#ifdef DATABASE_MYSQL
+		case MySQL:
+			this->RawQuery("START TRANSACTION");
+			break;
+#endif // DATABASE_MYSQL
+
+#ifdef DATABASE_SQLITE
+		case SQLite:
+			this->RawQuery("BEGIN");
+			break;
+#endif // DATABASE_SQLITE
+	}
+}
+
+void Database::Commit()
+{
+	this->RawQuery("COMMIT");
+}
+
+void Database::Rollback()
+{
+	this->RawQuery("ROLLBACK");
 }
 
 Database::~Database()

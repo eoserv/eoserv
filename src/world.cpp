@@ -234,6 +234,7 @@ void world_timed_save(void *world_void)
 
 World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
 	: i18n(eoserv_config.find("ServerLanguage")->second)
+	, admin_count(0)
 {
 	if (int(this->timer.resolution * 1000.0) > 1)
 	{
@@ -345,6 +346,17 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	this->guildmanager = new GuildManager(this);
 
 	this->LoadHome();
+}
+
+void World::UpdateAdminCount(int admin_count)
+{
+	this->admin_count = admin_count;
+
+	if (admin_count == 0 && this->config["FirstCharacterAdmin"])
+	{
+		Console::Out("There are no admin characters!");
+		Console::Out("The next character created will be given HGM status!");
+	}
 }
 
 void World::LoadHome()

@@ -1516,14 +1516,14 @@ void Character::Save()
 #ifdef DEBUG
 	Console::Dbg("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
-	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `fiance` = '$', `partner` = '$', `class` = #, `gender` = #, `race` = #, "
+	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `fiance` = '$', `partner` = '$', `admin` = #, `class` = #, `gender` = #, `race` = #, "
 		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
 		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, "
 		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
 		"`spells` = '$', `guild` = '$', guild_rank = #, `quest` = '$', `vars` = '$' WHERE `name` = '$'",
-		this->title.c_str(), this->home.c_str(), this->fiance.c_str(), this->partner.c_str(), this->clas, this->gender, this->race,
-		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, this->direction, this->level, this->exp, this->hp, this->tp,
-		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, this->sitting,
+		this->title.c_str(), this->home.c_str(), this->fiance.c_str(), this->partner.c_str(), int(this->admin), this->clas, int(this->gender), int(this->race),
+		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, int(this->direction), this->level, this->exp, this->hp, this->tp,
+		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, int(this->sitting),
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
 		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
 		this->guild_rank, "", "", this->name.c_str());

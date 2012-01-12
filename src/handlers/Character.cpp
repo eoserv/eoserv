@@ -112,6 +112,10 @@ void Character_Remove(Player *player, PacketReader &reader)
 
 	player->world->DeleteCharacter((*it)->name);
 	Console::Out("Deleted character: %s (%s)", (*it)->name.c_str(), player->username.c_str());
+
+	if ((*it)->admin > 0)
+		player->world->DecAdminCount();
+
 	player->characters.erase(it);
 
 	PacketBuilder reply(PACKET_CHARACTER, PACKET_REPLY, 5 + player->characters.size() * 34);

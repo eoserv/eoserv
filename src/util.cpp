@@ -54,12 +54,25 @@ variant::variant(bool b)
 
 int variant::int_length(int x)
 {
-	int count = 1;
-	int val = 10;
+	int count = 0;
 
-	while (x >= val)
+	if (x == 0)
+		return 1;
+
+	if (x < 0)
 	{
-		val *= 10;
+		x = -x;
+		++count;
+	}
+
+	if (x < 0)
+	{
+		return 1;
+	}
+
+	while (x > 0)
+	{
+		x /= 10;
 		++count;
 	}
 

@@ -660,6 +660,24 @@ void Talk_Report(Character *character, PacketReader &reader)
 					else if (set == "cha") (stats = true, victim->cha) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
 					else if (set == "statpoints") (statpoints = true, victim->statpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]) * int(character->world->config["StatPerLevel"]));
 					else if (set == "skillpoints") (skillpoints = true, victim->skillpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]) * int(character->world->config["SkillPerLevel"]));
+					else if (set == "admin")
+					{
+						if (victim->admin < character->admin || character->admin == ADMIN_HGM)
+						{
+							AdminLevel level = std::min(std::max(AdminLevel(util::to_int(arguments[1])), ADMIN_PLAYER), ADMIN_HGM);
+
+							if (level == ADMIN_PLAYER && victim->admin != ADMIN_PLAYER)
+								victim->world->DecAdminCount();
+							else if (level != ADMIN_PLAYER && victim->admin == ADMIN_PLAYER)
+								victim->world->IncAdminCount();
+
+							victim->admin = level;
+						}
+						else
+						{
+							character->ServerMsg(character->world->i18n.Format("command_access_denied"));
+						}
+					}
 					else if (set == "title") victim->title = (arguments.size() > 1) ? message.substr(11 + victim->name.length()) : "";
 					else if (set == "fiance") victim->fiance = (arguments.size() > 1) ? arguments[1] : "";
 					else if (set == "partner") victim->partner = (arguments.size() > 1) ? arguments[1] : "";
