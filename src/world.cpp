@@ -984,7 +984,7 @@ void World::Ban(Character *from, Character *victim, int duration, bool announce)
 
 void World::Mute(Character *from, Character *victim, bool announce)
 {
-	if (announce)
+	if (announce && !this->config["SilentMute"])
 		this->ServerMsg(i18n.Format("announce_muted", victim->name, from ? from->name : "server", i18n.Format("banned")));
 
 	victim->Mute(from);

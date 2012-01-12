@@ -143,6 +143,8 @@
 		<Unit filename="..\src\eoclient.hpp" />
 		<Unit filename="..\src\eodata.cpp" />
 		<Unit filename="..\src\eodata.hpp" />
+		<Unit filename="..\src\eoserv_config.cpp" />
+		<Unit filename="..\src\eoserv_config.hpp" />
 		<Unit filename="..\src\eoserver.cpp" />
 		<Unit filename="..\src\eoserver.hpp" />
 		<Unit filename="..\src\extra\ntservice.cpp" />

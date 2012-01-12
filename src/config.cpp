@@ -77,15 +77,25 @@ void Config::Read(std::string filename)
 		{
 			this->Read(val);
 		}
-		else if (key == "INCLUDE")
+		else if (key == "INCLUDE" || key == "INCLUDE_NOWARN")
 		{
 			try
 			{
 				this->Read(val);
 			}
-			catch (std::runtime_error)
+			catch (std::runtime_error &e)
 			{
-				Console::Wrn("INCLUDEd configuration file not found: %s", val.c_str());
+#ifndef DEBUG
+				if (key != "INCLUDE_NOWARN")
+				{
+#endif
+					if (key == "INCLUDE_NOWARN")
+						Console::Dbg("%s'd configuration file not found: %s", key.c_str(), val.c_str());
+					else
+						Console::Wrn("%s'd configuration file not found: %s", key.c_str(), val.c_str());
+#ifndef DEBUG
+				}
+#endif
 			}
 		}
 		else

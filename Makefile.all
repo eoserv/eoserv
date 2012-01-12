@@ -35,6 +35,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/database.o \
        $(OBJDIR)/eoclient.o \
        $(OBJDIR)/eodata.o \
+       $(OBJDIR)/eoserv_config.o \
        $(OBJDIR)/eoserver.o \
        $(OBJDIR)/guild.o \
        $(OBJDIR)/hash.o \

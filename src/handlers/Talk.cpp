@@ -620,103 +620,114 @@ void Talk_Report(Character *character, PacketReader &reader)
 				}
 			}
 		}
-		else if (command.length() >= 3 && command.compare(0,3,"set") == 0 && arguments.size() >= 2)
+		else if (command.length() >= 3 && command.compare(0,3,"set") == 0 && arguments.size() >= 1)
 		{
 			std::string set = command.substr(3);
-			Character *victim = character->world->GetCharacter(arguments[0]);
 
-			if (!victim)
+			auto aconfig_it = character->world->admin_config.find("set" + set);
+
+			if (aconfig_it == character->world->admin_config.end()
+				|| (arguments.size() < 2 && (set != "title" || set != "fiance" || set != "partner" || set != "home")))
 			{
-				character->ServerMsg(character->world->i18n.Format("character_not_found"));
+				character->ServerMsg(character->world->i18n.Format("unknown_command"));
 			}
 			else
 			{
-				bool appearance = false;
-				bool failure = false;
-				bool level = false;
-				bool stats = false;
-				bool karma = false;
+				Character *victim = character->world->GetCharacter(arguments[0]);
 
-				bool statpoints = false;
-				bool skillpoints = false;
-
-					 if (set == "level") (level = true, victim->level) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]));
-				else if (set == "exp") (level = true, victim->exp) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxEXP"]));
-				else if (set == "str") (stats = true, victim->str) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
-				else if (set == "int") (stats = true, victim->intl) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
-				else if (set == "wis") (stats = true, victim->wis) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
-				else if (set == "agi") (stats = true, victim->agi) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
-				else if (set == "con") (stats = true, victim->con) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
-				else if (set == "cha") (stats = true, victim->cha) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
-				else if (set == "statpoints") (statpoints = true, victim->statpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]) * int(character->world->config["StatPerLevel"]));
-				else if (set == "skillpoints") (skillpoints = true, victim->skillpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]) * int(character->world->config["SkillPerLevel"]));
-				else if (set == "title") victim->title = arguments[1];
-				else if (set == "fiance") victim->fiance = arguments[1];
-				else if (set == "partner") victim->partner = arguments[1];
-				else if (set == "home") victim->home = arguments[1];
-				else if (set == "gender") (appearance = true, victim->gender) = Gender(std::min(std::max(util::to_int(arguments[1]), 0), 1));
-				else if (set == "hairstyle") (appearance = true, victim->hairstyle) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxHairStyle"]));
-				else if (set == "haircolor") (appearance = true, victim->haircolor) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxHairColor"]));
-				else if (set == "race") (appearance = true, victim->race) = Skin(std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxSkin"])));
-				else if (set == "guildrank") victim->guild_rank = std::min(std::max(util::to_int(arguments[1]), 0), 9);
-				else if (set == "karma") (karma = true, victim->karma) = std::min(std::max(util::to_int(arguments[1]), 0), 2000);
-				else if (set == "class") (stats = true, victim->clas) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->ecf->data.size() - 1));
-				else failure = true;
-
-				if (failure)
+				if (!victim)
 				{
-					character->ServerMsg(character->world->i18n.Format("invalid_setx"));
+					character->ServerMsg(character->world->i18n.Format("character_not_found"));
 				}
 				else
 				{
-					// Easiest way to get the character to update on everyone nearby's screen
-					if (appearance)
-						victim->Warp(victim->map->id, victim->x, victim->y);
+					bool appearance = false;
+					bool failure = false;
+					bool level = false;
+					bool stats = false;
+					bool karma = false;
 
-					// TODO: Good way of updating skillpoints
-					(void)skillpoints;
+					bool statpoints = false;
+					bool skillpoints = false;
 
-					if (stats || statpoints)
+						 if (set == "level") (level = true, victim->level) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]));
+					else if (set == "exp") (level = true, victim->exp) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxEXP"]));
+					else if (set == "str") (stats = true, victim->str) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+					else if (set == "int") (stats = true, victim->intl) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+					else if (set == "wis") (stats = true, victim->wis) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+					else if (set == "agi") (stats = true, victim->agi) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+					else if (set == "con") (stats = true, victim->con) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+					else if (set == "cha") (stats = true, victim->cha) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxStat"]));
+					else if (set == "statpoints") (statpoints = true, victim->statpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]) * int(character->world->config["StatPerLevel"]));
+					else if (set == "skillpoints") (skillpoints = true, victim->skillpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxLevel"]) * int(character->world->config["SkillPerLevel"]));
+					else if (set == "title") victim->title = (arguments.size() > 1) ? message.substr(11 + victim->name.length()) : "";
+					else if (set == "fiance") victim->fiance = (arguments.size() > 1) ? arguments[1] : "";
+					else if (set == "partner") victim->partner = (arguments.size() > 1) ? arguments[1] : "";
+					else if (set == "home") victim->home = (arguments.size() > 1) ? arguments[1] : "";
+					else if (set == "gender") (appearance = true, victim->gender) = Gender(std::min(std::max(util::to_int(arguments[1]), 0), 1));
+					else if (set == "hairstyle") (appearance = true, victim->hairstyle) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxHairStyle"]));
+					else if (set == "haircolor") (appearance = true, victim->haircolor) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxHairColor"]));
+					else if (set == "race") (appearance = true, victim->race) = Skin(std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->config["MaxSkin"])));
+					else if (set == "guildrank") victim->guild_rank = std::min(std::max(util::to_int(arguments[1]), 0), 9);
+					else if (set == "karma") (karma = true, victim->karma) = std::min(std::max(util::to_int(arguments[1]), 0), 2000);
+					else if (set == "class") (stats = true, victim->clas) = std::min(std::max(util::to_int(arguments[1]), 0), int(character->world->ecf->data.size() - 1));
+					else failure = true;
+
+					if (failure)
 					{
-						victim->CalculateStats();
-
-						PacketBuilder builder(PACKET_RECOVER, PACKET_LIST, 32);
-
-						if (statpoints)
-						{
-							builder.SetID(PACKET_STATSKILL, PACKET_PLAYER);
-							builder.AddShort(character->statpoints);
-						}
-						else
-						{
-							builder.AddShort(victim->clas);
-						}
-
-						builder.AddShort(victim->display_str);
-						builder.AddShort(victim->display_intl);
-						builder.AddShort(victim->display_wis);
-						builder.AddShort(victim->display_agi);
-						builder.AddShort(victim->display_con);
-						builder.AddShort(victim->display_cha);
-						builder.AddShort(victim->maxhp);
-						builder.AddShort(victim->maxtp);
-						builder.AddShort(victim->maxsp);
-						builder.AddShort(victim->maxweight);
-						builder.AddShort(victim->mindam);
-						builder.AddShort(victim->maxdam);
-						builder.AddShort(victim->accuracy);
-						builder.AddShort(victim->evade);
-						builder.AddShort(victim->armor);
-						victim->Send(builder);
+						character->ServerMsg(character->world->i18n.Format("invalid_setx"));
 					}
-
-					if (karma || level)
+					else
 					{
-						PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY, 7);
-						builder.AddInt(victim->exp);
-						builder.AddShort(victim->karma);
-						builder.AddChar(level ? victim->level : 0);
-						victim->Send(builder);
+						// Easiest way to get the character to update on everyone nearby's screen
+						if (appearance)
+							victim->Warp(victim->map->id, victim->x, victim->y);
+
+						// TODO: Good way of updating skillpoints
+						(void)skillpoints;
+
+						if (stats || statpoints)
+						{
+							victim->CalculateStats();
+
+							PacketBuilder builder(PACKET_RECOVER, PACKET_LIST, 32);
+
+							if (statpoints)
+							{
+								builder.SetID(PACKET_STATSKILL, PACKET_PLAYER);
+								builder.AddShort(character->statpoints);
+							}
+							else
+							{
+								builder.AddShort(victim->clas);
+							}
+
+							builder.AddShort(victim->display_str);
+							builder.AddShort(victim->display_intl);
+							builder.AddShort(victim->display_wis);
+							builder.AddShort(victim->display_agi);
+							builder.AddShort(victim->display_con);
+							builder.AddShort(victim->display_cha);
+							builder.AddShort(victim->maxhp);
+							builder.AddShort(victim->maxtp);
+							builder.AddShort(victim->maxsp);
+							builder.AddShort(victim->maxweight);
+							builder.AddShort(victim->mindam);
+							builder.AddShort(victim->maxdam);
+							builder.AddShort(victim->accuracy);
+							builder.AddShort(victim->evade);
+							builder.AddShort(victim->armor);
+							victim->Send(builder);
+						}
+
+						if (karma || level)
+						{
+							PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY, 7);
+							builder.AddInt(victim->exp);
+							builder.AddShort(victim->karma);
+							builder.AddChar(level ? victim->level : 0);
+							victim->Send(builder);
+						}
 					}
 				}
 			}
