@@ -802,6 +802,35 @@ bool Character::Equip(short item, unsigned char subloc)
 		return false;
 	}
 
+	if (eif->type == EIF::Weapon && eif->subtype == EIF::TwoHanded)
+	{
+		if (this->paperdoll[Shield])
+		{
+			EIF_Data *shield_eif = this->world->eif->Get(this->paperdoll[Shield]);
+
+			if (eif->dual_wield_dollgraphic || (shield_eif->subtype != EIF::Arrows && shield_eif->subtype != EIF::Wings))
+			{
+				this->StatusMsg(this->world->i18n.Format("two_handed_fail_1"));
+				return false;
+			}
+		}
+	}
+
+	if (eif->type == EIF::Shield)
+	{
+		if (this->paperdoll[Weapon])
+		{
+			EIF_Data *weapon_eif = this->world->eif->Get(this->paperdoll[Weapon]);
+
+			if (weapon_eif->subtype == EIF::TwoHanded
+			 && (weapon_eif->dual_wield_dollgraphic || (eif->subtype != EIF::Arrows && eif->subtype != EIF::Wings)))
+			{
+				this->StatusMsg(this->world->i18n.Format("two_handed_fail_2"));
+				return false;
+			}
+		}
+	}
+
 	if (this->level < eif->levelreq || (this->clas != eif->classreq && ecf->base != eif->classreq)
 	 || this->display_str < eif->strreq || this->display_intl < eif->intreq
 	 || this->display_wis < eif->wisreq || this->display_agi < eif->agireq
@@ -1022,8 +1051,16 @@ void Character::Refresh()
 		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 		builder.AddShort(0); // ??
 		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+
+		EIF_Data* wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+			builder.AddShort(wep->dual_wield_dollgraphic);
+		else
+			builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+		builder.AddShort(wep->dollgraphic);
+
 		builder.AddChar(character->sitting);
 		builder.AddChar(character->hidden);
 		builder.AddByte(255);

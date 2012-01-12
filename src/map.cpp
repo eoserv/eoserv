@@ -707,8 +707,16 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 	builder.AddShort(0); // ??
 	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+
+	EIF_Data* wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+	if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+		builder.AddShort(wep->dual_wield_dollgraphic);
+	else
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+	builder.AddShort(wep->dollgraphic);
+
 	builder.AddChar(character->sitting);
 	builder.AddChar(character->hidden);
 	builder.AddChar(animation);
@@ -838,7 +846,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		if (from->level >= warp->levelreq && (warp->spec == Map_Warp::NoDoor || warp->open))
 		{
 			Map* map = this->world->GetMap(warp->map);
-			if (from->admin < ADMIN_GUIDE && map->evacuate_lock)
+			if (from->admin < ADMIN_GUIDE && map->evacuate_lock && map->id != from->map->id)
 			{
 				from->StatusMsg(this->world->i18n.Format("map_evacuate_block"));
 				from->Refresh();
@@ -1059,8 +1067,16 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 		rbuilder.AddShort(0); // ??
 		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+
+		EIF_Data* wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+			rbuilder.AddShort(wep->dual_wield_dollgraphic);
+		else
+			rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+		rbuilder.AddShort(wep->dollgraphic);
+
 		rbuilder.AddChar(character->sitting);
 		rbuilder.AddChar(character->hidden);
 		rbuilder.AddByte(255);

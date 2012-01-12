@@ -53,7 +53,8 @@ class EIF
 			None,
 			Ranged,
 			Arrows,
-			Wings
+			Wings,
+			TwoHanded
 		};
 
 		enum Special
@@ -158,6 +159,7 @@ struct EIF_Data
 	union
 	{
 		unsigned char scrolly;
+		unsigned char dual_wield_dollgraphic;
 	};
 
 	short levelreq;

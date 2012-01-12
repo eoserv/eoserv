@@ -23,7 +23,7 @@ namespace Handlers
 // Player accepting a warp request from the server
 void Warp_Accept(Character *character, PacketReader &reader)
 {
-	int map = reader.GetShort();
+	/*int map = */reader.GetShort();
 
 	int anim = character->warp_anim;
 
@@ -101,8 +101,16 @@ void Warp_Accept(Character *character, PacketReader &reader)
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 		reply.AddShort(0); // ??
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+
+		EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+			reply.AddShort(wep->dual_wield_dollgraphic);
+		else
+			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+		reply.AddShort(wep->dollgraphic);
+
 		reply.AddChar(character->sitting);
 		reply.AddChar(character->hidden);
 		reply.AddByte(255);

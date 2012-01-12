@@ -87,8 +87,16 @@ void Character_Create(Player *player, PacketReader &reader)
 			reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 			reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 			reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-			reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-			reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+
+			EIF_Data* wep = player->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+			if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+				reply.AddShort(wep->dual_wield_dollgraphic);
+			else
+				reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+			reply.AddShort(wep->dollgraphic);
+
 			reply.AddByte(255);
 		}
 	}
@@ -136,8 +144,16 @@ void Character_Remove(Player *player, PacketReader &reader)
 		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
-		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
+
+		EIF_Data* wep = player->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+			reply.AddShort(wep->dual_wield_dollgraphic);
+		else
+			reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+		reply.AddShort(wep->dollgraphic);
+
 		reply.AddByte(255);
 	}
 

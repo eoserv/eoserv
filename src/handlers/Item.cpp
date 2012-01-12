@@ -217,7 +217,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				reply.AddShort(character->maxhp);
 				reply.AddShort(character->maxtp);
-				
+
 				reply.AddShort(character->display_str);
 				reply.AddShort(character->display_intl);
 				reply.AddShort(character->display_wis);
@@ -238,8 +238,15 @@ void Item_Use(Character *character, PacketReader &reader)
 				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
-				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+				EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+				builder.AddShort(wep->dollgraphic);
+
+				if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+					builder.AddShort(wep->dual_wield_dollgraphic);
+				else
+					builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 
 				UTIL_FOREACH(character->map->characters, updatecharacter)
 				{

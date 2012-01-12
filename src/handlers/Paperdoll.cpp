@@ -107,8 +107,16 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+		EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+		reply.AddShort(wep->dollgraphic);
+
+		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+			reply.AddShort(wep->dual_wield_dollgraphic);
+		else
+			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
 		reply.AddShort(itemid);
 		reply.AddChar(subloc);
 		reply.AddShort(character->maxhp);
@@ -135,8 +143,15 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+	EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+	builder.AddShort(wep->dollgraphic);
+
+	if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+		builder.AddShort(wep->dual_wield_dollgraphic);
+	else
+		builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 
 	UTIL_FOREACH(character->map->characters, updatecharacter)
 	{
@@ -166,8 +181,16 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+		EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+		reply.AddShort(wep->dollgraphic);
+
+		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+			reply.AddShort(wep->dual_wield_dollgraphic);
+		else
+			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
 		reply.AddShort(itemid);
 		reply.AddThree(character->HasItem(itemid));
 		reply.AddChar(subloc);
@@ -196,8 +219,15 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Weapon])->dollgraphic);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+
+	EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+
+	builder.AddShort(wep->dollgraphic);
+
+	if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
+		builder.AddShort(wep->dual_wield_dollgraphic);
+	else
+		builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
 
 	UTIL_FOREACH(character->map->characters, updatecharacter)
 	{
