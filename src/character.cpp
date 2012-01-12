@@ -218,7 +218,6 @@ Character::Character(std::string name, World *world)
 	this->hairstyle = GetRow<int>(row, "hairstyle");
 	this->haircolor = GetRow<int>(row, "haircolor");
 
-	this->mapid = GetRow<int>(row, "map");
 	this->x = GetRow<int>(row, "x");
 	this->y = GetRow<int>(row, "y");
 	this->direction = static_cast<Direction>(GetRow<int>(row, "direction"));
@@ -311,6 +310,7 @@ Character::Character(std::string name, World *world)
 
 	this->party = 0;
 	this->map = this->world->GetMap(GetRow<int>(row, "map"));
+	this->mapid = this->map->id;
 
 	this->last_walk = 0.0;
 	this->attacks = 0;
@@ -865,7 +865,7 @@ bool Character::InRange(Map_Item *other)
 
 void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation)
 {
-	if (!this->world->GetMap(map)->exists)
+	if (map <= 0 || map > int(this->world->maps.size()) || !this->world->GetMap(map)->exists)
 	{
 		return;
 	}
@@ -910,7 +910,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	}
 
 	this->map = this->world->GetMap(map);
-	this->mapid = map;
+	this->mapid = this->map->id;
 	this->x = x;
 	this->y = y;
 	this->sitting = SIT_STAND;

@@ -65,7 +65,45 @@ void server_pump_queue(void *server_void)
 			ActionQueue_Action *action = client->queue.queue.front();
 			client->queue.queue.pop();
 
-			Handlers::Handle(action->reader.Family(), action->reader.Action(), client, action->reader, !action->auto_queue);
+			try
+			{
+				Handlers::Handle(action->reader.Family(), action->reader.Action(), client, action->reader, !action->auto_queue);
+			}
+			catch (Socket_Exception& e)
+			{
+				Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(client->GetRemoteAddr()).c_str());
+				Console::Err("%s: %s", e.what(), e.error());
+				client->Close();
+			}
+			catch (Database_Exception& e)
+			{
+				Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(client->GetRemoteAddr()).c_str());
+				Console::Err("%s: %s", e.what(), e.error());
+				client->Close();
+			}
+			catch (std::runtime_error& e)
+			{
+				Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(client->GetRemoteAddr()).c_str());
+				Console::Err("Runtime Error: %s", e.what());
+				client->Close();
+			}
+			catch (std::logic_error& e)
+			{
+				Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(client->GetRemoteAddr()).c_str());
+				Console::Err("Logic Error: %s", e.what());
+				client->Close();
+			}
+			catch (std::exception& e)
+			{
+				Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(client->GetRemoteAddr()).c_str());
+				Console::Err("Uncaught Exception: %s", e.what());
+				client->Close();
+			}
+			catch (...)
+			{
+				Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(client->GetRemoteAddr()).c_str());
+				client->Close();
+			}
 
 			client->queue.next = now + action->time;
 

@@ -278,20 +278,19 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	this->esf = new ESF(this->config["ESF"]);
 	this->ecf = new ECF(this->config["ECF"]);
 
-	this->maps.resize(static_cast<int>(this->config["Maps"])+1);
-	this->maps[0] = new Map(1, this); // Just in case
+	this->maps.resize(static_cast<int>(this->config["Maps"]));
 	int loaded = 0;
 	int npcs = 0;
-	for (int i = 1; i <= static_cast<int>(this->config["Maps"]); ++i)
+	for (int i = 0; i < static_cast<int>(this->config["Maps"]); ++i)
 	{
-		this->maps[i] = new Map(i, this);
+		this->maps[i] = new Map(i + 1, this);
 		if (this->maps[i]->exists)
 		{
 			npcs += this->maps[i]->npcs.size();
 			++loaded;
 		}
 	}
-	Console::Out("%i/%i maps loaded.", loaded, this->maps.size()-1);
+	Console::Out("%i/%i maps loaded.", loaded, this->maps.size());
 	Console::Out("%i NPCs loaded.", npcs);
 
 	this->last_character_id = 0;
@@ -761,13 +760,13 @@ Map *World::GetMap(short id)
 {
 	try
 	{
-		return this->maps.at(id);
+		return this->maps.at(id - 1);
 	}
 	catch (...)
 	{
 		try
 		{
-			return this->maps.at(1);
+			return this->maps.at(0);
 		}
 		catch (...)
 		{

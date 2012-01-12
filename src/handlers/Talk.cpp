@@ -339,11 +339,6 @@ void Talk_Report(Character *character, PacketReader &reader)
 			int x = util::to_int(arguments[1]);
 			int y = util::to_int(arguments[2]);
 
-			if (map < 0 || map >= static_cast<int>(character->world->maps.size()))
-			{
-				return;
-			}
-
 			character->Warp(map, x, y, character->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 		}
 		else if (command.length() >= 3 && command.compare(0,3,"rem") == 0 && character->admin >= static_cast<int>(character->world->admin_config["remap"]))

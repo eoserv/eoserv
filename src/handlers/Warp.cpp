@@ -27,7 +27,9 @@ void Warp_Accept(Character *character, PacketReader &reader)
 
 	int anim = character->warp_anim;
 
-	if (anim != WARP_ANIMATION_INVALID && character->mapid == map)
+	// Removed (character->mapid == map) check as it interferes with fallback maps
+
+	if (anim != WARP_ANIMATION_INVALID)
 	{
 		character->warp_anim = WARP_ANIMATION_INVALID;
 	}
@@ -68,7 +70,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 		7 + updatecharacters.size() * 60 + updatenpcs.size() * 6 + updateitems.size() * 9);
 
 	reply.AddChar(2); // ?
-	reply.AddShort(map);
+	reply.AddShort(character->mapid);
 	reply.AddChar(anim);
 	reply.AddChar(updatecharacters.size());
 	reply.AddByte(255);

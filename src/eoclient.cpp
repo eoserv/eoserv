@@ -143,45 +143,7 @@ void EOClient::Tick()
 
 					if (this->length == 0)
 					{
-						try
-						{
 							this->Execute(this->data);
-						}
-						catch (Socket_Exception &e)
-						{
-							Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(this->GetRemoteAddr()).c_str());
-							Console::Err("%s: %s", e.what(), e.error());
-							this->Close();
-						}
-						catch (Database_Exception &e)
-						{
-							Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(this->GetRemoteAddr()).c_str());
-							Console::Err("%s: %s", e.what(), e.error());
-							this->Close();
-						}
-						catch (std::runtime_error &e)
-						{
-							Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(this->GetRemoteAddr()).c_str());
-							Console::Err("Runtime Error: %s", e.what());
-							this->Close();
-						}
-						catch (std::logic_error &e)
-						{
-							Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(this->GetRemoteAddr()).c_str());
-							Console::Err("Logic Error: %s", e.what());
-							this->Close();
-						}
-						catch (std::exception &e)
-						{
-							Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(this->GetRemoteAddr()).c_str());
-							Console::Err("Uncaught Exception: %s", e.what());
-							this->Close();
-						}
-						catch (...)
-						{
-							Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(this->GetRemoteAddr()).c_str());
-							this->Close();
-						}
 
 						std::fill(UTIL_RANGE(this->data), '\0');
 						this->data.erase();

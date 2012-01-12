@@ -831,13 +831,14 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		return false;
 	}
 
-	Map_Warp *warp
-	;
-	if (!admin && (warp = this->GetWarp(target_x, target_y)))
+	Map_Warp *warp = this->GetWarp(target_x, target_y);
+
+	if (!admin && warp)
 	{
 		if (from->level >= warp->levelreq && (warp->spec == Map_Warp::NoDoor || warp->open))
 		{
-			if (from->admin < ADMIN_GUIDE && this->world->GetMap(warp->map)->evacuate_lock)
+			Map* map = this->world->GetMap(warp->map);
+			if (from->admin < ADMIN_GUIDE && map->evacuate_lock)
 			{
 				from->StatusMsg(this->world->i18n.Format("map_evacuate_block"));
 				from->Refresh();
