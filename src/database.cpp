@@ -8,6 +8,7 @@
 
 #include <cstdarg>
 #include <cstring>
+#include <list>
 
 #include "console.hpp"
 #include "util.hpp"
