@@ -51,14 +51,14 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`bankmax`     INTEGER     NOT NULL DEFAULT 0,
 	`goldbank`    INTEGER     NOT NULL DEFAULT 0,
 	`usage`       INTEGER     NOT NULL DEFAULT 0,
-	`inventory`   TEXT        NOT NULL,
-	`bank`        TEXT        NOT NULL,
-	`paperdoll`   TEXT        NOT NULL,
-	`spells`      TEXT        NOT NULL,
+	`inventory`   TEXT,
+	`bank`        TEXT,
+	`paperdoll`   TEXT,
+	`spells`      TEXT,
 	`guild`       CHAR(3)              DEFAULT NULL,
 	`guild_rank`  INTEGER              DEFAULT NULL,
-	`quest`       TEXT        NOT NULL,
-	`vars`        TEXT        NOT NULL,
+	`quest`       TEXT,
+	`vars`        TEXT,
 
 	PRIMARY KEY (`name`)
 );
@@ -67,9 +67,9 @@ CREATE TABLE IF NOT EXISTS `guilds`
 (
 	`tag`         CHAR(3)     NOT NULL,
 	`name`        VARCHAR(32) NOT NULL,
-	`description` TEXT        NOT NULL,
+	`description` TEXT,
 	`created`     INTEGER     NOT NULL,
-	`ranks`       TEXT        NOT NULL,
+	`ranks`       TEXT,
 	`bank`        INTEGER     NOT NULL DEFAULT 0,
 
 	PRIMARY KEY (`tag`),
