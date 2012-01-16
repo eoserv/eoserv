@@ -44,6 +44,7 @@ static void eoserv_terminate(int signal)
 	eoserv_sig_abort = true;
 }
 
+#ifndef DEBUG
 static void eoserv_crash(int signal)
 {
 	const char *extype = "Unknown error";
@@ -67,6 +68,7 @@ static void eoserv_crash(int signal)
 	std::exit(1);
 #endif // DEBUG
 }
+#endif // DEBUG
 
 #if defined(WIN32) || defined(WIN64)
 HANDLE eoserv_close_event;
@@ -82,6 +84,18 @@ static BOOL WINAPI eoserv_win_event_handler(DWORD event)
 }
 #endif // defined(WIN32) || defined(WIN64)
 
+static void exception_test() throw()
+{
+	try
+	{
+		throw std::runtime_error("You cannot run this program. Exception handling is working incorrectly.");
+	}
+	catch (std::exception& e)
+	{
+		// Ignore
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	// Type checks
@@ -94,6 +108,8 @@ int main(int argc, char *argv[])
 	if (std::numeric_limits<int>::digits < 31){ Console::Err("You cannot run this program (int is less than 32 bits)"); std::exit(1); }
 
 	if (!std::numeric_limits<char>::is_signed) Console::Wrn("char is not signed, correct operation of the server cannot be guaranteed.");
+
+	exception_test();
 
 #if defined(WIN32) || defined(WIN64)
 	if (argc >= 2)

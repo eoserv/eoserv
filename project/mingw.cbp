@@ -70,7 +70,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O3" />
+					<Add option="-O2" />
 					<Add option="-DDATABASE_MYSQL" />
 					<Add option="-DDATABASE_SQLITE" />
 				</Compiler>
@@ -87,7 +87,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O3" />
+					<Add option="-O2" />
 					<Add option="-DDATABASE_MYSQL" />
 				</Compiler>
 				<Linker>
@@ -102,7 +102,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O3" />
+					<Add option="-O2" />
 					<Add option="-DDATABASE_SQLITE" />
 				</Compiler>
 				<Linker>
