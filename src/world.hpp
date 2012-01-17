@@ -21,6 +21,7 @@
 #include "util.hpp"
 
 #include "fwd/character.hpp"
+#include "fwd/command_source.hpp"
 #include "fwd/eodata.hpp"
 #include "fwd/eoserver.hpp"
 #include "fwd/guild.hpp"
@@ -111,6 +112,8 @@ class World
 		void IncAdminCount() { UpdateAdminCount(this->admin_count + 1); }
 		void DecAdminCount() { UpdateAdminCount(this->admin_count - 1); }
 
+		void Command(std::string command, const std::vector<std::string>& arguments, Command_Source* from = 0);
+
 		void LoadHome();
 
 		int GenerateCharacterID();
@@ -119,9 +122,9 @@ class World
 		void Login(Character *);
 		void Logout(Character *);
 
-		void Msg(Character *from, std::string message, bool echo = true);
-		void AdminMsg(Character *from, std::string message, int minlevel = ADMIN_GUARDIAN, bool echo = true);
-		void AnnounceMsg(Character *from, std::string message, bool echo = true);
+		void Msg(Command_Source *from, std::string message, bool echo = true);
+		void AdminMsg(Command_Source *from, std::string message, int minlevel = ADMIN_GUARDIAN, bool echo = true);
+		void AnnounceMsg(Command_Source *from, std::string message, bool echo = true);
 		void ServerMsg(std::string message);
 		void AdminReport(Character *from, std::string reportee, std::string message);
 		void AdminRequest(Character *from, std::string message);
@@ -132,10 +135,10 @@ class World
 		void Rehash();
 		void ReloadPub();
 
-		void Kick(Character *from, Character *victim, bool announce = true);
-		void Jail(Character *from, Character *victim, bool announce = true);
-		void Ban(Character *from, Character *victim, int duration, bool announce = true);
-		void Mute(Character *from, Character *victim, bool announce = true);
+		void Kick(Command_Source *from, Character *victim, bool announce = true);
+		void Jail(Command_Source *from, Character *victim, bool announce = true);
+		void Ban(Command_Source *from, Character *victim, int duration, bool announce = true);
+		void Mute(Command_Source *from, Character *victim, bool announce = true);
 
 		int CheckBan(const std::string *username, const IPAddress *address, const int *hdid);
 

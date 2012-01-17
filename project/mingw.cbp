@@ -141,8 +141,8 @@
 		<Unit filename="..\src\commands\commands.hpp" />
 		<Unit filename="..\src\commands\debug.cpp" />
 		<Unit filename="..\src\commands\info.cpp" />
+		<Unit filename="..\src\commands\map.cpp" />
 		<Unit filename="..\src\commands\moderation.cpp" />
-		<Unit filename="..\src\commands\novelty.cpp" />
 		<Unit filename="..\src\commands\server.cpp" />
 		<Unit filename="..\src\commands\warp.cpp" />
 		<Unit filename="..\src\config.cpp" />

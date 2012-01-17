@@ -147,13 +147,4 @@ class NPC
 		~NPC();
 };
 
-struct NPCEvent
-{
-	NPC *npc;
-	Character *target_character;
-	std::string target_character_name;
-
-	NPCEvent() : npc(0), target_character(0) { }
-};
-
 #endif // NPC_HPP_INCLUDED

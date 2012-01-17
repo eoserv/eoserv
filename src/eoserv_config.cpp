@@ -122,7 +122,6 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "MaxCharacters"      , 3);
 	eoserv_config_default(config, "MaxShopBuy"         , 4);
 	eoserv_config_default(config, "GhostTimer"         , 4);
-	eoserv_config_default(config, "AttackLimit"        , 251);
 	eoserv_config_default(config, "DropTimer"          , 120);
 	eoserv_config_default(config, "DropAmount"         , 15);
 	eoserv_config_default(config, "ProtectPlayerDrop"  , 5);
@@ -281,4 +280,5 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "reports"       , 1);
 	eoserv_config_default(config, "nowall"        , 2);
 	eoserv_config_default(config, "seehide"       , 3);
+	eoserv_config_default(config, "cmdprotect"    , 3);
 }

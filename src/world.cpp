@@ -17,6 +17,7 @@
 #include "util.hpp"
 
 #include "character.hpp"
+#include "command_source.hpp"
 #include "config.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
@@ -27,6 +28,7 @@
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
+#include "commands/commands.hpp"
 
 void world_spawn_npcs(void *world_void)
 {
@@ -358,6 +360,19 @@ void World::UpdateAdminCount(int admin_count)
 	}
 }
 
+void World::Command(std::string command, const std::vector<std::string>& arguments, Command_Source* from)
+{
+	std::unique_ptr<System_Command_Source> system_source;
+
+	if (!from)
+	{
+		system_source.reset(new System_Command_Source(this));
+		from = system_source.get();
+	}
+
+	Commands::Handle(util::lowercase(command), arguments, from);
+}
+
 void World::LoadHome()
 {
 	this->homes.clear();
@@ -469,11 +484,11 @@ void World::Logout(Character *character)
 	);
 }
 
-void World::Msg(Character *from, std::string message, bool echo)
+void World::Msg(Command_Source *from, std::string message, bool echo)
 {
-	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
+	std::string from_str = from ? from->SourceName() : "server";
 
-	std::string from_str = from ? from->name : "Server";
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from_str) + "  "));
 
 	PacketBuilder builder(PACKET_TALK, PACKET_MSG, 2 + from_str.length() + message.length());
 	builder.AddBreakString(from_str);
@@ -490,11 +505,11 @@ void World::Msg(Character *from, std::string message, bool echo)
 	}
 }
 
-void World::AdminMsg(Character *from, std::string message, int minlevel, bool echo)
+void World::AdminMsg(Command_Source *from, std::string message, int minlevel, bool echo)
 {
-	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
+	std::string from_str = from ? from->SourceName() : "server";
 
-	std::string from_str = from ? from->name : "Server";
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from_str) + "  "));
 
 	PacketBuilder builder(PACKET_TALK, PACKET_ADMIN, 2 + from_str.length() + message.length());
 	builder.AddBreakString(from_str);
@@ -511,11 +526,11 @@ void World::AdminMsg(Character *from, std::string message, int minlevel, bool ec
 	}
 }
 
-void World::AnnounceMsg(Character *from, std::string message, bool echo)
+void World::AnnounceMsg(Command_Source *from, std::string message, bool echo)
 {
-	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
+	std::string from_str = from ? from->SourceName() : "server";
 
-	std::string from_str = from ? from->name : "Server";
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from_str) + "  "));
 
 	PacketBuilder builder(PACKET_TALK, PACKET_ANNOUNCE, 2 + from_str.length() + message.length());
 	builder.AddBreakString(from_str);
@@ -945,26 +960,26 @@ bool World::PlayerOnline(std::string username)
 	return false;
 }
 
-void World::Kick(Character *from, Character *victim, bool announce)
+void World::Kick(Command_Source *from, Character *victim, bool announce)
 {
 	if (announce)
-		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->name : "server", i18n.Format("kicked")));
+		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->SourceName() : "server", i18n.Format("kicked")));
 
 	victim->player->client->Close();
 }
 
-void World::Jail(Character *from, Character *victim, bool announce)
+void World::Jail(Command_Source *from, Character *victim, bool announce)
 {
 	if (announce)
-		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->name : "server", i18n.Format("jailed")));
+		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->SourceName() : "server", i18n.Format("jailed")));
 
 	victim->Warp(static_cast<int>(this->config["JailMap"]), static_cast<int>(this->config["JailX"]), static_cast<int>(this->config["JailY"]), this->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 }
 
-void World::Ban(Character *from, Character *victim, int duration, bool announce)
+void World::Ban(Command_Source *from, Character *victim, int duration, bool announce)
 {
 	if (announce)
-		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->name : "server", i18n.Format("banned")));
+		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->SourceName() : "server", i18n.Format("banned")));
 
 	std::string query("INSERT INTO bans (username, ip, hdid, expires, setter) VALUES ");
 
@@ -981,7 +996,7 @@ void World::Ban(Character *from, Character *victim, int duration, bool announce)
 	}
 	if (from)
 	{
-		query += ", '" + db.Escape(from->name) + "')";
+		query += ", '" + db.Escape(from->SourceName()) + "')";
 	}
 	else
 	{
@@ -993,10 +1008,10 @@ void World::Ban(Character *from, Character *victim, int duration, bool announce)
 	victim->player->client->Close();
 }
 
-void World::Mute(Character *from, Character *victim, bool announce)
+void World::Mute(Command_Source *from, Character *victim, bool announce)
 {
 	if (announce && !this->config["SilentMute"])
-		this->ServerMsg(i18n.Format("announce_muted", victim->name, from ? from->name : "server", i18n.Format("banned")));
+		this->ServerMsg(i18n.Format("announce_muted", victim->name, from ? from->SourceName() : "server", i18n.Format("banned")));
 
 	victim->Mute(from);
 }

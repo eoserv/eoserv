@@ -22,6 +22,8 @@
 #include "fwd/party.hpp"
 #include "fwd/player.hpp"
 #include "fwd/world.hpp"
+
+#include "command_source.hpp"
 #include "eodata.hpp"
 #include "guild.hpp"
 
@@ -81,7 +83,7 @@ struct Character_Spell
 	Character_Spell(short id, unsigned char level) : id(id), level(level) { }
 };
 
-class Character
+class Character : public Command_Source
 {
 	public:
 		int login_time;
@@ -234,7 +236,7 @@ class Character
 		void Unhide();
 		void Reset();
 
-		void Mute(const Character *by);
+		void Mute(const Command_Source *by);
 		void PlaySound(unsigned char id);
 
 		void FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix = "");
@@ -243,6 +245,11 @@ class Character
 
 		void Logout();
 		void Save();
+
+		AdminLevel SourceAccess() const;
+		std::string SourceName() const;
+		Character* SourceCharacter();
+		World* SourceWorld();
 
 		~Character();
 
@@ -255,23 +262,6 @@ class Character
 		Map *map;
 
 		const short &display_str, &display_intl, &display_wis, &display_agi, &display_con, &display_cha;
-};
-
-struct CharacterEvent
-{
-	Character *character;
-	Character *target_character;
-	std::string target_character_name;
-	Map *target_map;
-	short target_mapid;
-	unsigned char target_x;
-	unsigned char target_y;
-	NPC *target_npc;
-	std::string text;
-	bool success;
-	SitState sit_state;
-
-	CharacterEvent() : character(0), target_character(0), target_map(0), target_mapid(0), target_x(0), target_y(0), target_npc(0), sit_state(SIT_STAND) { }
 };
 
 #endif // CHARACTER_HPP_INCLUDED

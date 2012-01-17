@@ -280,12 +280,6 @@ Character::Character(std::string name, World *world)
 
 	this->bankmax = GetRow<int>(row, "bankmax");
 
-	// EOSERV originally set the default bankmax to 20
-	if (this->bankmax > static_cast<int>(this->world->config["MaxBankUpgrades"]))
-	{
-		this->bankmax = 0;
-	}
-
 	this->goldbank = GetRow<int>(row, "goldbank");
 
 	this->usage = GetRow<int>(row, "usage");
@@ -335,6 +329,9 @@ bool Character::ValidName(std::string name)
 			return false;
 		}
 	}
+
+	if (name == "server")
+		return false;
 
 	return true;
 }
@@ -1453,11 +1450,11 @@ void Character::Reset()
 	this->CalculateStats();
 }
 
-void Character::Mute(const Character *by)
+void Character::Mute(const Command_Source *by)
 {
 	this->muted_until = time(0) + int(this->world->config["MuteLength"]);
-    PacketBuilder builder(PACKET_TALK, PACKET_SPEC, by->name.length());
-    builder.AddString(by->name);
+    PacketBuilder builder(PACKET_TALK, PACKET_SPEC, by->SourceName().length());
+    builder.AddString(by->SourceName());
     this->Send(builder);
 }
 
@@ -1564,6 +1561,26 @@ void Character::Save()
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
 		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
 		this->guild_rank, "", "", this->name.c_str());
+}
+
+AdminLevel Character::SourceAccess() const
+{
+	return admin;
+}
+
+std::string Character::SourceName() const
+{
+	return name;
+}
+
+Character* Character::SourceCharacter()
+{
+	return this;
+}
+
+World* Character::SourceWorld()
+{
+	return this->world;
 }
 
 Character::~Character()

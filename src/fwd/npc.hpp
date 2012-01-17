@@ -16,8 +16,6 @@ struct NPC_Shop_Craft_Ingredient;
 struct NPC_Shop_Craft_Item;
 struct NPC_Citizenship;
 
-struct NPCEvent;
-
 enum InnUnsubscribeReply
 {
 	UNSUBSCRIBE_NOT_CITIZEN = 0,

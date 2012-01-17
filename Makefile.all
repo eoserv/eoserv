@@ -54,6 +54,14 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/util.o \
        $(OBJDIR)/world.o \
        $(OBJDIR)/extra/seose_compat.o \
+       $(OBJDIR)/commands/commands.o \
+       $(OBJDIR)/commands/char_mod.o \
+       $(OBJDIR)/commands/debug.o \
+       $(OBJDIR)/commands/info.o \
+       $(OBJDIR)/commands/map.o \
+       $(OBJDIR)/commands/moderation.o \
+       $(OBJDIR)/commands/server.o \
+       $(OBJDIR)/commands/warp.o \
        $(OBJDIR)/handlers/handlers.o \
        $(OBJDIR)/handlers/Account.o \
        $(OBJDIR)/handlers/AdminInteract.o \

@@ -21,7 +21,6 @@
 #include "timer.hpp"
 #include "socket.hpp"
 #include "world.hpp"
-#include "handlers/handlers.hpp"
 
 void ActionQueue::AddAction(PacketReader reader, double time, bool auto_queue)
 {

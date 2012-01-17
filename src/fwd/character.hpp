@@ -12,8 +12,6 @@ class Character;
 struct Character_Item;
 struct Character_Spell;
 
-struct CharacterEvent;
-
 enum AdminLevel
 {
 	ADMIN_PLAYER = 0,
