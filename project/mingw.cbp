@@ -119,7 +119,6 @@
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
 			<Add option="-DEOSERV_MINGW" />
-			<Add option='-DVERSION_STRING=&quot;\&quot;0.5.4\&quot;&quot;' />
 			<Add directory="..\src\" />
 		</Compiler>
 		<Linker>
@@ -127,9 +126,6 @@
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
 		</Linker>
-		<Unit filename="winres.rc">
-			<Option compilerVar="WINDRES" />
-		</Unit>
 		<Unit filename="..\src\arena.cpp" />
 		<Unit filename="..\src\arena.hpp" />
 		<Unit filename="..\src\character.cpp" />
@@ -261,8 +257,12 @@
 		<Unit filename="..\src\timer.hpp" />
 		<Unit filename="..\src\util.cpp" />
 		<Unit filename="..\src\util.hpp" />
+		<Unit filename="..\src\version.h" />
 		<Unit filename="..\src\world.cpp" />
 		<Unit filename="..\src\world.hpp" />
+		<Unit filename="winres.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />

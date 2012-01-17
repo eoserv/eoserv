@@ -59,7 +59,7 @@ void Init_Init(EOClient *client, PacketReader &reader)
 			++pc_connections;
 		}
 	}
-	
+
 	const bool ignore_hdid = client->server()->world->config["IgnoreHDID"];
 
 	if (!ignore_hdid)
@@ -96,7 +96,7 @@ void Init_Init(EOClient *client, PacketReader &reader)
 	int minversion = client->server()->world->config["MinVersion"];
 	if (!minversion)
 	{
-		minversion = client->server()->world->config["Version27Compat"] ? 27 : 28;
+		minversion = client->server()->world->config["OldVersionCompat"] ? 27 : 28;
 	}
 
 	int maxversion = client->server()->world->config["MaxVersion"];
@@ -105,7 +105,7 @@ void Init_Init(EOClient *client, PacketReader &reader)
 		maxversion = 28;
 	}
 
-	if (client->server()->world->config["OldVersionCompat"] && (client->version < minversion || client->version > maxversion))
+	if (client->server()->world->config["CheckVersion"] && (client->version < minversion || client->version > maxversion))
 	{
 		reply.AddByte(INIT_OUT_OF_DATE);
 		reply.AddChar(0);

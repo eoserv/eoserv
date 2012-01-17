@@ -22,6 +22,7 @@
 #include "world.hpp"
 
 #include "platform.h"
+#include "version.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -245,7 +246,7 @@ int main(int argc, char *argv[])
 
 		std::puts("\
                           ___ ___  ___ ___ _____   __\n\
-   EOSERV Version "VERSION_STRING"  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
+   EOSERV Version "EOSERV_VERSION_STRING"  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
                          |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
 \n");
