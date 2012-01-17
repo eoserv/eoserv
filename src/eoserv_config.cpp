@@ -191,6 +191,9 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "EvacuateTick"       , 2.0);
 	eoserv_config_default(config, "UseClassFormulas"   , false);
 	eoserv_config_default(config, "UseAdjustedStats"   , true);
+	eoserv_config_default(config, "BaseMinDamage"      , 0);
+	eoserv_config_default(config, "BaseMaxDamage"      , 1);
+	eoserv_config_default(config, "BaseDamageAtZero"   , true);
 	eoserv_config_default(config, "SilentMute"         , true);
 	eoserv_config_default(config, "DoorTimer"          , 3.0);
 	eoserv_config_default(config, "ChatMaxWidth"       , 1500);

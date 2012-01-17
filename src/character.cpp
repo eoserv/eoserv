@@ -1274,12 +1274,18 @@ void Character::CalculateStats()
 	}
 	else
 	{
-		this->mindam += 1 + this->adj_str / 2;
-		this->maxdam += 2 + this->adj_str / 2;
-		this->accuracy += 0 + this->adj_agi / 2;
-		this->evade += 0 + this->adj_agi / 2;
-		this->armor += 0 + this->adj_con / 2;
+		this->mindam += this->adj_str / 2;
+		this->maxdam += this->adj_str / 2;
+		this->accuracy += this->adj_agi / 2;
+		this->evade += this->adj_agi / 2;
+		this->armor += this->adj_con / 2;
 	}
+
+	if (this->mindam == 0 || !this->world->config["BaseDamageAtZero"])
+		this->mindam += int(this->world->config["BaseMinDamage"]);
+
+	if (this->maxdam == 0 || !this->world->config["BaseDamageAtZero"])
+		this->maxdam += int(this->world->config["BaseMaxDamage"]);
 
 	if (this->party)
 	{
