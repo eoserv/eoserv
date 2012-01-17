@@ -118,6 +118,7 @@
 			<Add option="-include stdafx.h" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
+			<Add option="-DEOSERV_MINGW" />
 			<Add option='-DVERSION_STRING=&quot;\&quot;0.5.4\&quot;&quot;' />
 			<Add directory="..\src\" />
 		</Compiler>
@@ -133,6 +134,17 @@
 		<Unit filename="..\src\arena.hpp" />
 		<Unit filename="..\src\character.cpp" />
 		<Unit filename="..\src\character.hpp" />
+		<Unit filename="..\src\command_source.cpp" />
+		<Unit filename="..\src\command_source.hpp" />
+		<Unit filename="..\src\commands\char_mod.cpp" />
+		<Unit filename="..\src\commands\commands.cpp" />
+		<Unit filename="..\src\commands\commands.hpp" />
+		<Unit filename="..\src\commands\debug.cpp" />
+		<Unit filename="..\src\commands\info.cpp" />
+		<Unit filename="..\src\commands\moderation.cpp" />
+		<Unit filename="..\src\commands\novelty.cpp" />
+		<Unit filename="..\src\commands\server.cpp" />
+		<Unit filename="..\src\commands\warp.cpp" />
 		<Unit filename="..\src\config.cpp" />
 		<Unit filename="..\src\config.hpp" />
 		<Unit filename="..\src\console.cpp" />
@@ -154,6 +166,7 @@
 		<Unit filename="..\src\extra\seose_compat.hpp" />
 		<Unit filename="..\src\fwd\arena.hpp" />
 		<Unit filename="..\src\fwd\character.hpp" />
+		<Unit filename="..\src\fwd\command_source.hpp" />
 		<Unit filename="..\src\fwd\config.hpp" />
 		<Unit filename="..\src\fwd\console.hpp" />
 		<Unit filename="..\src\fwd\database.hpp" />
@@ -228,6 +241,7 @@
 		<Unit filename="..\src\packet.hpp" />
 		<Unit filename="..\src\party.cpp" />
 		<Unit filename="..\src\party.hpp" />
+		<Unit filename="..\src\platform.h" />
 		<Unit filename="..\src\player.cpp" />
 		<Unit filename="..\src\player.hpp" />
 		<Unit filename="..\src\sha256.c">

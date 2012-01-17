@@ -12,11 +12,13 @@
 #include <cstring>
 #include <stdexcept>
 
+#include "platform.hpp"
+
 #include "socket_impl.hpp"
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 static WSADATA socket_wsadata;
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 #include "util.hpp"
 
@@ -38,7 +40,7 @@ static std::size_t eoserv_strlcpy(char *dest, const char *src, std::size_t size)
 	return size;
 }
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 const char *OSErrorString()
 {
 	int error = GetLastError();
@@ -54,23 +56,23 @@ const char *OSErrorString()
 
 	return ErrorBuf;
 }
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 // POSIX string.h for strerror
 #include <string.h>
 const char *OSErrorString()
 {
 	eoserv_strlcpy(ErrorBuf, strerror(errno), sizeof(ErrorBuf));
 }
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 void Socket_Init::init()
 {
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	if (WSAStartup(MAKEWORD(2,0), &socket_wsadata) != 0)
 	{
 		throw Socket_InitFailed(OSErrorString());
 	}
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 }
 
 static Socket_Init socket_init;
@@ -419,7 +421,7 @@ bool Client::DoSend()
 	return true;
 }
 
-#if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+#if defined(SOCKET_POLL) && !defined(WIN32)
 bool Client::Select(double timeout)
 {
 	pollfd fd;
@@ -470,7 +472,7 @@ bool Client::Select(double timeout)
 
 	return false;
 }
-#else // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+#else // defined(SOCKET_POLL) && !defined(WIN32)
 bool Client::Select(double timeout)
 {
 	fd_set read_fds, write_fds, except_fds;
@@ -530,7 +532,7 @@ bool Client::Select(double timeout)
 
 	return false;
 }
-#endif // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+#endif // defined(SOCKET_POLL) && !defined(WIN32)
 
 bool Client::Connected() const
 {
@@ -567,11 +569,11 @@ Client::~Client()
 	if (this->Connected())
 	{
 		this->Close(true);
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 		closesocket(this->impl->sock);
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 		close(this->impl->sock);
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 	}
 }
 
@@ -649,35 +651,35 @@ Client *Server::Poll()
 	sockaddr_in sin;
 	socklen_t addrsize = sizeof(sockaddr_in);
 	Client *newclient;
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	unsigned long nonblocking;
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	nonblocking = 1;
 	ioctlsocket(this->impl->sock, FIONBIO, &nonblocking);
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 	fcntl(this->impl->sock, F_SETFL, FNONBLOCK|FASYNC);
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 	if ((newsock = accept(this->impl->sock, reinterpret_cast<sockaddr *>(&sin), &addrsize)) == INVALID_SOCKET)
 	{
 		if (this->clients.size() >= this->maxconn)
 		{
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 			closesocket(newsock);
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 			close(newsock);
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 		}
 
 		return 0;
 	}
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	nonblocking = 0;
 	ioctlsocket(this->impl->sock, FIONBIO, &nonblocking);
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 	fcntl(this->impl->sock, F_SETFL, 0);
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 	newclient = this->ClientFactory(Socket(newsock, sin));
 	newclient->SetRecvBuffer(this->recv_buffer_max);
@@ -688,7 +690,7 @@ Client *Server::Poll()
 	return newclient;
 }
 
-#if defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+#if defined(SOCKET_POLL) && !defined(WIN32)
 std::vector<Client *> *Server::Select(double timeout)
 {
 	static std::vector<Client *> selected;
@@ -775,7 +777,7 @@ std::vector<Client *> *Server::Select(double timeout)
 
 	return &selected;
 }
-#else // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+#else // defined(SOCKET_POLL) && !defined(WIN32)
 std::vector<Client *> *Server::Select(double timeout)
 {
 	long tsecs = long(timeout);
@@ -862,7 +864,7 @@ std::vector<Client *> *Server::Select(double timeout)
 
 	return &selected;
 }
-#endif // defined(SOCKET_POLL) && !defined(WIN32) && !defined(WIN64)
+#endif // defined(SOCKET_POLL) && !defined(WIN32)
 
 void Server::BuryTheDead()
 {
@@ -874,11 +876,11 @@ void Server::BuryTheDead()
 
 		if (!client->Connected() && ((client->send_buffer.length() == 0 && client->recv_buffer.length() == 0) || client->closed_time + 2 < std::time(0)))
 		{
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 			closesocket(client->impl->sock);
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 			close(client->impl->sock);
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 			delete client;
 			this->clients.erase(it);
 			goto restart_loop;
@@ -888,9 +890,9 @@ void Server::BuryTheDead()
 
 Server::~Server()
 {
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	closesocket(this->impl->sock);
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 	close(this->impl->sock);
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 }

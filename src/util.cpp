@@ -14,9 +14,11 @@
 #include <limits>
 #include <stdexcept>
 
-#if defined(WIN32) || defined(WIN64)
+#include "platform.hpp"
+
+#ifdef WIN32
 #include <windows.h>
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 namespace util
 {
@@ -759,14 +761,14 @@ std::string timeago(double time, double current_time)
 
 void sleep(double seconds)
 {
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	Sleep(int(seconds * 1000.0));
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 	unsigned long sec = seconds;
 	unsigned long nsec = (seconds - double(sec)) * 1000000000.0;
 	timespec ts = {sec, nsec};
 	nanosleep(&ts, 0);
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 }
 
 static int sizes[256] = {

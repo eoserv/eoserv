@@ -7,7 +7,9 @@
 #ifndef SOCKET_IMPL_HPP_INCLUDED
 #define SOCKET_IMPL_HPP_INCLUDED
 
-#if defined(WIN32) || defined(WIN64)
+#include "platform.hpp"
+
+#ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
 #ifdef NTDDI_WIN2K
@@ -26,7 +28,7 @@
  */
 typedef int socklen_t;
 
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 // Stop doxygen generating a gigantic include graph
 #ifndef DOXYGEN
 #include <sys/types.h>
@@ -57,7 +59,7 @@ const SOCKET INVALID_SOCKET = -1;
  */
 const int SOCKET_ERROR = -1;
 
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 struct Socket
 {

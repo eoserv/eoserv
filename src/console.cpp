@@ -9,16 +9,18 @@
 #include <cstdio>
 #include <cstdarg>
 
-#if defined(WIN32) || defined(WIN64)
+#include "platform.hpp"
+
+#ifdef WIN32
 #include <windows.h>
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 namespace Console
 {
 
 bool Styled[2] = {true, true};
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 static HANDLE Handles[2];
 
 inline void Init(Stream i)
@@ -40,7 +42,7 @@ void ResetTextColor(Stream stream)
 	Init(stream);
 	SetConsoleTextAttribute(Handles[stream], COLOR_GREY);
 }
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 void SetTextColor(Stream stream, Color color, bool bold)
 {
 	char command[8] = {27, '[', '1', ';', '3', '0', 'm', 0};
@@ -65,7 +67,7 @@ void ResetTextColor(Stream stream)
 	char command[5] = {27, '[', '0', 'm', 0};
 	std::fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
 }
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 #define CONSOLE_GENERIC_OUT(prefix, stream, color, bold) \
 	if (Styled[stream]) SetTextColor(stream, color, bold); \

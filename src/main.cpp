@@ -10,6 +10,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "platform.hpp"
+
 #include "character.hpp"
 #include "config.hpp"
 #include "console.hpp"
@@ -21,10 +23,10 @@
 #include "socket.hpp"
 #include "world.hpp"
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 #include <windows.h>
 #include "extra/ntservice.hpp"
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 volatile std::sig_atomic_t eoserv_sig_abort = false;
 volatile std::sig_atomic_t eoserv_sig_rehash = false;
@@ -70,7 +72,7 @@ static void eoserv_crash(int signal)
 }
 #endif // DEBUG
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 HANDLE eoserv_close_event;
 
 static BOOL WINAPI eoserv_win_event_handler(DWORD event)
@@ -82,7 +84,7 @@ static BOOL WINAPI eoserv_win_event_handler(DWORD event)
 
 	return TRUE;
 }
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 static void exception_test() throw()
 {
@@ -111,7 +113,7 @@ int main(int argc, char *argv[])
 
 	exception_test();
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	if (argc >= 2)
 	{
 		std::string mode(argv[1]);
@@ -183,7 +185,7 @@ int main(int argc, char *argv[])
 
 		return 0;
 	}
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 #ifdef SIGHUP
 	std::signal(SIGHUP, eoserv_rehash);
@@ -202,7 +204,7 @@ int main(int argc, char *argv[])
 	std::signal(SIGILL, eoserv_crash);
 #endif
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	eoserv_close_event = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	SetConsoleTitle("EOSERV");
@@ -212,7 +214,7 @@ int main(int argc, char *argv[])
 		Console::Err("Could not install Windows console event handler");
 		Console::Err("$shutdown must be used to exit the server cleanly");
 	}
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 	try
 	{
@@ -398,9 +400,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 	::SetEvent(eoserv_close_event);
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 	return 0;
 }

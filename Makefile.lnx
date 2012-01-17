@@ -1,6 +1,6 @@
 
-CFLAGS += -DEOSERV_MAKEFILE_LNX -I"/usr/include/mysql/"
-CXXFLAGS += -std=gnu++0x -DEOSERV_MAKEFILE_LNX -I"/usr/include/mysql/"
+CFLAGS += -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX -I"/usr/include/mysql/"
+CXXFLAGS += -std=gnu++0x -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX -I"/usr/include/mysql/"
 LIBS += -lrt
 
 MYSQL_LIB = -lmysqlclient

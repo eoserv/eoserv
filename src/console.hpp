@@ -11,12 +11,14 @@
 
 #include <string>
 
+#include "platform.hpp"
+
 namespace Console
 {
 
 extern bool Styled[2];
 
-#if defined(WIN32) || defined(WIN64)
+#ifdef WIN32
 enum Color
 {
 	COLOR_BLUE = 1,
@@ -28,7 +30,7 @@ enum Color
 	COLOR_GREY = 7,
 	COLOR_BLACK = 8
 };
-#else // defined(WIN32) || defined(WIN64)
+#else // WIN32
 enum Color
 {
 	COLOR_BLUE = 34,
@@ -40,7 +42,7 @@ enum Color
 	COLOR_GREY = 37,
 	COLOR_BLACK = 30
 };
-#endif // defined(WIN32) || defined(WIN64)
+#endif // WIN32
 
 enum Stream
 {

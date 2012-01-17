@@ -8,6 +8,8 @@
 
 #include "util.hpp"
 
+#include "platform.hpp"
+
 #ifdef WIN32
 #include <windows.h>
 #else // WIN32
