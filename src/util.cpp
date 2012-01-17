@@ -14,7 +14,7 @@
 #include <limits>
 #include <stdexcept>
 
-#include "platform.hpp"
+#include "platform.h"
 
 #ifdef WIN32
 #include <windows.h>

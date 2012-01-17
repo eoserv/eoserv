@@ -4,9 +4,11 @@
  * See LICENSE.txt for more info.
  */
 
-#if !defined(WIN32) && !defined(WIN64)
+#include "../platform.h"
+
+#ifndef WIN32
 #error Services are Windows only
-#endif // !defined(WIN32) && !defined(WIN64)
+#endif // WIN32
 
 void service_init(const char *name);
 bool service_install(const char *name);

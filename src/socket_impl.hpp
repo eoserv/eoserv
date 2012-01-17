@@ -7,7 +7,7 @@
 #ifndef SOCKET_IMPL_HPP_INCLUDED
 #define SOCKET_IMPL_HPP_INCLUDED
 
-#include "platform.hpp"
+#include "platform.h"
 
 #ifdef WIN32
 #include <winsock2.h>

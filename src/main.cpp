@@ -10,8 +10,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "platform.hpp"
-
 #include "character.hpp"
 #include "config.hpp"
 #include "console.hpp"
@@ -22,6 +20,8 @@
 #include "player.hpp"
 #include "socket.hpp"
 #include "world.hpp"
+
+#include "platform.h"
 
 #ifdef WIN32
 #include <windows.h>

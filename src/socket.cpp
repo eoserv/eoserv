@@ -12,7 +12,7 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "platform.hpp"
+#include "platform.h"
 
 #include "socket_impl.hpp"
 

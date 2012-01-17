@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include "platform.hpp"
+#include "platform.h"
 
 namespace Console
 {

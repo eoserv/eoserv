@@ -11,6 +11,8 @@
 
 #include <set>
 
+#include "platform.h"
+
 /**
  * Manages and calls TimerEvent objects
  */
