@@ -32,6 +32,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/character.o \
        $(OBJDIR)/console.o \
        $(OBJDIR)/config.o \
+       $(OBJDIR)/command_source.o \
        $(OBJDIR)/database.o \
        $(OBJDIR)/eoclient.o \
        $(OBJDIR)/eodata.o \
@@ -130,7 +131,6 @@ clean:
 create-build-dirs:
 	-@mkdir $(OBJDIR)
 	-@mkdir $(OBJDIR)/commands
-	-@mkdir $(OBJDIR)/container
 	-@mkdir $(OBJDIR)/extra
 	-@mkdir $(OBJDIR)/handlers
 
