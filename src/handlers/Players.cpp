@@ -10,6 +10,7 @@
 
 #include "character.hpp"
 #include "eoclient.hpp"
+#include "player.hpp"
 #include "world.hpp"
 
 namespace Handlers
