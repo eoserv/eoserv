@@ -73,7 +73,7 @@ void Players_List(EOClient *client, PacketReader &reader)
 		reply.AddChar(0); // ?
 		if (character->bot && !client->player)
 		{
-			reply.AddChar(20);
+			reply.AddChar(ICON_SLN_BOT);
 		}
 		else if (character->admin >= ADMIN_HGM)
 		{
