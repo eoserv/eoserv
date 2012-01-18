@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <ctime>
+#include <functional>
 #include <limits>
 #include <list>
 
@@ -113,14 +114,14 @@ std::array<int, 15> DollUnserialize(std::string serialized)
 	std::array<int, 15> list{{}};
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
-	int i = 0;
+	std::size_t i = 0;
 
 	if (!serialized.empty() && *(serialized.end()-1) != ',')
 	{
 		serialized.push_back(',');
 	}
 
-	while ((p = serialized.find_first_of(',', p+1)) != std::string::npos)
+	while (i < list.size() && (p = serialized.find_first_of(',', p+1)) != std::string::npos)
 	{
 		list[i++] = util::to_int(serialized.substr(lastp+1, p-lastp-1));
 		lastp = p;
@@ -178,6 +179,13 @@ std::list<Character_Spell> SpellUnserialize(std::string serialized)
 	return list;
 }
 
+std::vector<std::string> BotListUnserialize(std::string serialized)
+{
+	std::vector<std::string> bots = util::explode(',', serialized);
+	std::transform(UTIL_CRANGE(bots), bots.begin(), [](std::string s) { return util::lowercase(util::trim(s)); });
+	return bots;
+}
+
 template <typename T> T GetRow(std::unordered_map<std::string, util::variant> &row, const char *col)
 {
 	return row[col];
@@ -185,6 +193,7 @@ template <typename T> T GetRow(std::unordered_map<std::string, util::variant> &r
 
 Character::Character(std::string name, World *world)
 	: muted_until(0)
+	, bot(false)
 	, world(world)
 	, display_str(this->world->config["UseAdjustedStats"] ? adj_str : str)
 	, display_intl(this->world->config["UseAdjustedStats"] ? adj_intl : intl)
@@ -193,6 +202,12 @@ Character::Character(std::string name, World *world)
 	, display_con(this->world->config["UseAdjustedStats"] ? adj_con : con)
 	, display_cha(this->world->config["UseAdjustedStats"] ? adj_cha : cha)
 {
+	{
+		std::vector<std::string> bot_characters = BotListUnserialize(this->world->config["BotCharacters"]);
+		auto bot_it = std::find(UTIL_CRANGE(bot_characters), util::lowercase(name));
+		this->bot = bot_it != bot_characters.end();
+	}
+
 	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `fiance`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`,"
 	"`map`, `x`, `y`, `direction`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
 	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` FROM `characters` "

@@ -42,6 +42,11 @@ void Players_Accept(Character *character, PacketReader &reader)
 // Requested a list of online players
 void Players_List(EOClient *client, PacketReader &reader)
 {
+	if (!client->server()->world->config["SLN"] && (!client->player || (client->player && !client->player->character)))
+	{
+		return;
+	}
+
 	int online = client->server()->world->characters.size();
 
 	UTIL_FOREACH(client->server()->world->characters, character)
@@ -66,7 +71,11 @@ void Players_List(EOClient *client, PacketReader &reader)
 		reply.AddBreakString(character->name);
 		reply.AddBreakString(character->title);
 		reply.AddChar(0); // ?
-		if (character->admin >= ADMIN_HGM)
+		if (character->bot && !client->player)
+		{
+			reply.AddChar(20);
+		}
+		else if (character->admin >= ADMIN_HGM)
 		{
 			if (character->party)
 			{

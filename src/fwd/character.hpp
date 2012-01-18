@@ -77,7 +77,8 @@ enum PaperdollIcon
 	ICON_HGM = 5,
 	ICON_PARTY = 6,
 	ICON_GM_PARTY = 9,
-	ICON_HGM_PARTY = 10
+	ICON_HGM_PARTY = 10,
+	ICON_SLN_BOT = 20
 };
 
 enum ClothesSlot

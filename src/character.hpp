@@ -118,6 +118,7 @@ class Character : public Command_Source
 		int goldbank;
 		int usage;
 		int muted_until;
+		bool bot;
 
 		Arena *next_arena;
 		Arena *arena;
