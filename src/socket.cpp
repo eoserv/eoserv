@@ -551,6 +551,15 @@ void Client::Close(bool force)
 		{
 			this->closed_time = 0;
 		}
+
+		if (!this->server)
+		{
+#ifdef WIN32
+			closesocket(this->impl->sock);
+#else // WIN32
+			close(this->impl->sock);
+#endif // WIN32
+		}
 	}
 }
 
@@ -566,15 +575,7 @@ time_t Client::ConnectTime() const
 
 Client::~Client()
 {
-	if (this->Connected())
-	{
-		this->Close(true);
-#ifdef WIN32
-		closesocket(this->impl->sock);
-#else // WIN32
-		close(this->impl->sock);
-#endif // WIN32
-	}
+	this->Close(true);
 }
 
 struct Server::impl_
