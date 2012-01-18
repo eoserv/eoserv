@@ -1,8 +1,8 @@
 
-CFLAGS += -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX -I"/usr/include/mysql/"
-CXXFLAGS += -std=gnu++0x -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX -I"/usr/include/mysql/"
+CFLAGS += -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX `mysql_config --cflags`
+CXXFLAGS += -std=gnu++0x -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX `mysql_config --cflags`
 LIBS += -lrt
 
-MYSQL_LIB = -lmysqlclient
+MYSQL_LIB = `mysql_config --libs`
 SQLITE_LIB = -lsqlite3
 PTHREAD_LIB = -lpthread

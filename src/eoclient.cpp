@@ -136,7 +136,7 @@ void EOClient::Tick()
 				case EOClient::ReadData:
 					oldlength = this->data.length();
 					this->data += data.substr(0, this->length);
-					std::fill(data.begin(), data.begin() + std::min(data.length(), this->length), '\0');
+					std::fill(data.begin(), data.begin() + std::min<std::size_t>(data.length(), this->length), '\0');
 					data.erase(0, this->length);
 					this->length -= this->data.length() - oldlength;
 
