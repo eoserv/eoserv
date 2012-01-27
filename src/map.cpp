@@ -1999,7 +1999,7 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 
 		victim->hp += hpgain;
 
-		if (this->world->config["LimitDamage"])
+		if (!this->world->config["LimitDamage"])
 			victim->hp = std::min(victim->hp, victim->maxhp);
 
 		PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_OTHER, 18);
