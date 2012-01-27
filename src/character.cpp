@@ -562,7 +562,7 @@ bool Character::AddItem(short item, int amount)
 
 			this->CalculateStats();
 
-			UTIL_FOREACH(this->quests, q) { q.second->GotItems(id, it->amount); }
+			UTIL_FOREACH(this->quests, q) { q.second->GotItems(item, it->amount); }
 
 			return true;
 		}
@@ -576,7 +576,7 @@ bool Character::AddItem(short item, int amount)
 
 	this->CalculateStats();
 
-	UTIL_FOREACH(this->quests, q) { q.second->GotItems(id, amount); }
+	UTIL_FOREACH(this->quests, q) { q.second->GotItems(item, amount); }
 
 	return true;
 }
