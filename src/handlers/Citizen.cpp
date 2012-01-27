@@ -100,8 +100,8 @@ void Citizen_Open(Character *character, PacketReader &reader)
 			PacketBuilder reply(PACKET_CITIZEN, PACKET_OPEN,
 				9 + npc->citizenship->questions[0].length() + npc->citizenship->questions[1].length() + npc->citizenship->questions[2].length());
 
-			reply.AddThree(1); // ?
-			reply.AddChar(0); // ?
+			reply.AddShort(id);
+			reply.AddShort(0); // current home ID
 			reply.AddShort(0); // session
 			reply.AddByte(255);
 			reply.AddBreakString(npc->citizenship->questions[0]);

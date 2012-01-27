@@ -296,7 +296,7 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 		std::fclose(newsfh);
 	}
 
-	reply.ReserveMore(7 + player->character->inventory.size() * 3 + player->character->spells.size() * 4
+	reply.ReserveMore(7 + player->character->inventory.size() * 6 + player->character->spells.size() * 4
 		+ updatecharacters.size() * 60 + updatenpcs.size() * 6 + updateitems.size() * 9);
 
 	// ??
