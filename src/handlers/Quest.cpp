@@ -15,6 +15,8 @@
 #include "../packet.hpp"
 #include "../quest.hpp"
 
+#include "../console.hpp"
+
 namespace Handlers
 {
 
@@ -39,11 +41,11 @@ static void open_quest_dialog(Character* character, NPC* npc, int quest_id, int 
 			dialogs.push_back(dialog_t{quest.first, quest.second, dialog});
 
 			if (quest.first == quest_id)
-				this_dialog = dialogs.size();
+				this_dialog = dialogs.size() - 1;
 		}
 	}
 
-	if (this_dialog && dialogs[this_dialog - 1].quest_id)
+	if (!dialogs.empty())
 	{
 		character->npc = npc;
 		character->npc_type = ENF::Quest;
@@ -51,7 +53,7 @@ static void open_quest_dialog(Character* character, NPC* npc, int quest_id, int 
 		PacketBuilder reply(PACKET_QUEST, PACKET_DIALOG, 10);
 		reply.AddChar(dialogs.size()); // quest count
 		reply.AddShort(vendor_id); // ?
-		reply.AddShort(dialogs[this_dialog - 1].quest_id);
+		reply.AddShort(dialogs[this_dialog].quest_id);
 		reply.AddShort(0); // session
 		reply.AddShort(0); // dialog id
 		reply.AddByte(255);
@@ -71,7 +73,7 @@ static void open_quest_dialog(Character* character, NPC* npc, int quest_id, int 
 			reply.AddBreakString(dialog.quest->GetQuest()->Name());
 		}
 
-		dialogs[this_dialog - 1].dialog->BuildPacket(reply);
+		dialogs[this_dialog].dialog->BuildPacket(reply);
 
 		character->Send(reply);
 	}
@@ -85,7 +87,7 @@ void Quest_Use(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == npc_index && npc->Data()->type == ENF::Quest)
+		if (npc->index == npc_index && npc->Data()->type == ENF::Quest && character->InRange(npc))
 		{
 			short vendor_id = npc->Data()->vendor_id;
 
@@ -118,8 +120,8 @@ void Quest_Accept(Character *character, PacketReader &reader)
 {
 	/*short session = */reader.GetShort();
 	/*short dialog_id = */reader.GetShort();
-	/*short npc_index = */reader.GetShort();
 	short quest_id = reader.GetShort();
+	/*short npc_index = */reader.GetShort();
 	DialogReply type = DialogReply(reader.GetChar());
 
 	char action = 0;
@@ -149,7 +151,7 @@ void Quest_Accept(Character *character, PacketReader &reader)
 			bool result = action ? quest->DialogInput(action) : quest->TalkedNPC(vendor_id);
 			quest = character->GetQuest(quest_id);
 
-			if (result && quest && !quest->Finished())
+			if (result && quest && !quest->Finished() && character->npc)
 			{
 				open_quest_dialog(character, character->npc, quest_id, vendor_id);
 			}

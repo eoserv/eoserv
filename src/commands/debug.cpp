@@ -8,10 +8,12 @@
 
 #include "../util.hpp"
 
+#include "../eoplus.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
 #include "../packet.hpp"
 #include "../player.hpp"
+#include "../quest.hpp"
 #include "../world.hpp"
 
 namespace Commands
@@ -121,11 +123,49 @@ void Learn(const std::vector<std::string>& arguments, Character* from)
 	}
 }
 
+void QuestState(const std::vector<std::string>& arguments, Character* from)
+{
+	World* world = from->SourceWorld();
+	short quest_id = util::to_int(arguments[0]);
+
+	Quest_Context* quest = from->GetQuest(quest_id);
+
+	if (!quest)
+	{
+		auto it = world->quests.find(quest_id);
+
+		if (it != world->quests.end())
+		{
+			// WARNING: holds a non-tracked reference to shared_ptr
+			quest = new Quest_Context(from, it->second.get());
+			from->quests.insert(std::make_pair(it->first, quest));
+			quest->SetState("begin", true);
+		}
+	}
+
+	if (!quest)
+	{
+		from->ServerMsg(world->i18n.Format("quest_not_found"));
+	}
+	else
+	{
+		try
+		{
+			quest->SetState(arguments[1]);
+		}
+		catch (EOPlus::Runtime_Error& e)
+		{
+			from->ServerMsg(world->i18n.Format("quest_state_not_found"));
+		}
+	}
+}
+
 COMMAND_HANDLER_REGISTER()
 	RegisterCharacter({"sitem", {"item"}, {"amount"}, 2}, SpawnItem);
 	RegisterCharacter({"ditem", {"item"}, {"amount", "x", "y"}, 2}, DropItem);
 	RegisterCharacter({"snpc", {"npc"}, {"amount"}, 2}, SpawnNPC);
 	RegisterCharacter({"learn", {"skill"}, {"level"}}, Learn);
+	RegisterCharacter({"qstate", {"quest", "state"}}, QuestState);
 	RegisterAlias("si", "sitem");
 	RegisterAlias("di", "ditem");
 	RegisterAlias("sn", "snpc");

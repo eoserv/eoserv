@@ -242,7 +242,7 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 		int strength = 5;
 
 		if (action.expr.args.size() >= 1)
-			strength = std::max(1, std::min(8, int(action.expr.args[1])));
+			strength = std::max(1, std::min(8, int(action.expr.args[0])));
 
 		this->character->map->Effect(MAP_EFFECT_QUAKE, strength);
 	}
@@ -251,7 +251,7 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 		int strength = 5;
 
 		if (action.expr.args.size() >= 1)
-			strength = std::max(1, std::min(8, int(action.expr.args[1])));
+			strength = std::max(1, std::min(8, int(action.expr.args[0])));
 
 		UTIL_FOREACH(this->character->world->maps, map)
 		{
@@ -434,11 +434,11 @@ bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 	}
 	else if (function_name == "gotitems")
 	{
-		return this->character->HasItem(int(rule.expr.args[0])) >= int(rule.expr.args[1]);
+		return this->character->HasItem(int(rule.expr.args[0])) >= (rule.expr.args.size() >= 2 ? int(rule.expr.args[1]) : 1);
 	}
 	else if (function_name == "lostitems")
 	{
-		return this->character->HasItem(int(rule.expr.args[0])) < int(rule.expr.args[1]);
+		return this->character->HasItem(int(rule.expr.args[0])) < (rule.expr.args.size() >= 2 ? int(rule.expr.args[1]) : 1);
 	}
 
 	return false;
@@ -462,7 +462,10 @@ const Dialog* Quest_Context::GetDialog(short id) const
 
 std::string Quest_Context::StateName() const
 {
-	return this->state_name;
+	if (this->Finished())
+		return "end";
+	else
+		return this->state_name;
 }
 
 std::string Quest_Context::Desc() const
