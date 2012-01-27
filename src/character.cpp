@@ -212,28 +212,19 @@ void QuestUnserialize(std::string serialized, Character* character)
 	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
 	{
 		std::string part = serialized.substr(lastp+1, p-lastp-1);
-		Console::Dbg("part: %s\n", part.c_str());
 		std::size_t pp1 = part.find_first_of(',');
 
 		if (pp1 == std::string::npos)
-		{
-			Console::Dbg("Fail 1");
 			continue;
-		}
 
 		std::size_t pp2 = part.find_first_of(',', pp1 + 1);
 
 		if (pp2 == std::string::npos)
-		{
-			Console::Dbg("Fail 2");
 			continue;
-		}
 
 		short quest_id = util::to_int(part.substr(0, pp1));
 		std::string quest_state = part.substr(pp1 + 1, pp2 - pp1 - 1);
 		std::string quest_progress = part.substr(pp2 + 1);
-
-		Console::Dbg("%i / %s / %s", quest_id, quest_state.c_str(), quest_progress.c_str());
 
 		Quest* quest = character->world->quests[quest_id].get();
 
