@@ -6,13 +6,13 @@
 
 #include "handlers.hpp"
 
-#include "character.hpp"
-#include "eodata.hpp"
-#include "map.hpp"
-#include "party.hpp"
-#include "player.hpp"
-#include "quest.hpp"
-#include "world.hpp"
+#include "../character.hpp"
+#include "../eodata.hpp"
+#include "../map.hpp"
+#include "../party.hpp"
+#include "../player.hpp"
+#include "../quest.hpp"
+#include "../world.hpp"
 
 namespace Handlers
 {

@@ -8,12 +8,12 @@
 
 #include <vector>
 
-#include "console.hpp"
+#include "../console.hpp"
 
-#include "character.hpp"
-#include "eodata.hpp"
-#include "player.hpp"
-#include "world.hpp"
+#include "../character.hpp"
+#include "../eodata.hpp"
+#include "../player.hpp"
+#include "../world.hpp"
 
 namespace Handlers
 {

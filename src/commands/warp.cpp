@@ -8,9 +8,9 @@
 
 #include "../util.hpp"
 
-#include "map.hpp"
-#include "packet.hpp"
-#include "world.hpp"
+#include "../map.hpp"
+#include "../packet.hpp"
+#include "../world.hpp"
 
 namespace Commands
 {

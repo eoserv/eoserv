@@ -6,8 +6,8 @@
 
 #include "handlers.hpp"
 
-#include "character.hpp"
-#include "map.hpp"
+#include "../character.hpp"
+#include "../map.hpp"
 
 namespace Handlers
 {

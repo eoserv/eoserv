@@ -8,11 +8,11 @@
 
 #include "commands.hpp"
 
-#include "config.hpp"
-#include "console.hpp"
-#include "eoclient.hpp"
-#include "player.hpp"
-#include "world.hpp"
+#include "../config.hpp"
+#include "../console.hpp"
+#include "../eoclient.hpp"
+#include "../player.hpp"
+#include "../world.hpp"
 
 namespace Commands
 {

@@ -6,7 +6,7 @@
 
 #include "handlers.hpp"
 
-#include "character.hpp"
+#include "../character.hpp"
 
 namespace Handlers
 {

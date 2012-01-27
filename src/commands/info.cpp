@@ -8,8 +8,8 @@
 
 #include "../util.hpp"
 
-#include "packet.hpp"
-#include "world.hpp"
+#include "../packet.hpp"
+#include "../world.hpp"
 
 namespace Commands
 {

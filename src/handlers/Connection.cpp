@@ -6,7 +6,7 @@
 
 #include "handlers.hpp"
 
-#include "eoclient.hpp"
+#include "../eoclient.hpp"
 
 namespace Handlers
 {

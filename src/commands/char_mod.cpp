@@ -8,12 +8,12 @@
 
 #include <functional>
 
-#include "arena.hpp"
-#include "config.hpp"
-#include "map.hpp"
-#include "packet.hpp"
-#include "player.hpp"
-#include "world.hpp"
+#include "../arena.hpp"
+#include "../config.hpp"
+#include "../map.hpp"
+#include "../packet.hpp"
+#include "../player.hpp"
+#include "../world.hpp"
 
 namespace Commands
 {

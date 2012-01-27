@@ -8,8 +8,8 @@
 
 #include <functional>
 
-#include "character.hpp"
-#include "npc.hpp"
+#include "../character.hpp"
+#include "../npc.hpp"
 
 namespace Handlers
 {

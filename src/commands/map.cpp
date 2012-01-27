@@ -8,10 +8,10 @@
 
 #include "../util.hpp"
 
-#include "arena.hpp"
-#include "config.hpp"
-#include "map.hpp"
-#include "world.hpp"
+#include "../arena.hpp"
+#include "../config.hpp"
+#include "../map.hpp"
+#include "../world.hpp"
 
 namespace Commands
 {

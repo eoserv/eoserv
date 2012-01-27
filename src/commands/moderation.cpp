@@ -10,7 +10,7 @@
 
 #include "../util.hpp"
 
-#include "world.hpp"
+#include "../world.hpp"
 
 namespace Commands
 {

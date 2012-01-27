@@ -10,9 +10,9 @@
 #include "fwd/dialog.hpp"
 #include "fwd/packet.hpp"
 
+#include <deque>
 #include <map>
 #include <string>
-#include <utility>
 
 class Dialog
 {

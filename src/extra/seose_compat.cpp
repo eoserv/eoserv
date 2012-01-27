@@ -1,4 +1,9 @@
 
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include "seose_compat.hpp"
 
 std::string seose_to_base62(std::uint16_t input)

@@ -11,12 +11,12 @@
 #include <list>
 #include <memory>
 
-#include "character.hpp"
-#include "eodata.hpp"
-#include "guild.hpp"
-#include "map.hpp"
-#include "npc.hpp"
-#include "player.hpp"
+#include "../character.hpp"
+#include "../eodata.hpp"
+#include "../guild.hpp"
+#include "../map.hpp"
+#include "../npc.hpp"
+#include "../player.hpp"
 
 namespace Handlers
 {

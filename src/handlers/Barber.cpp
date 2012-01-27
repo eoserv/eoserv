@@ -6,13 +6,13 @@
 
 #include "handlers.hpp"
 
-#include "util.hpp"
+#include "../util.hpp"
 
-#include "character.hpp"
-#include "eodata.hpp"
-#include "map.hpp"
-#include "npc.hpp"
-#include "player.hpp"
+#include "../character.hpp"
+#include "../eodata.hpp"
+#include "../map.hpp"
+#include "../npc.hpp"
+#include "../player.hpp"
 
 namespace Handlers
 {

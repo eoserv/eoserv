@@ -9,13 +9,13 @@
 #include <stdexcept>
 #include <vector>
 
-#include "character.hpp"
-#include "console.hpp"
-#include "eoclient.hpp"
-#include "eodata.hpp"
-#include "map.hpp"
-#include "npc.hpp"
-#include "player.hpp"
+#include "../character.hpp"
+#include "../console.hpp"
+#include "../eoclient.hpp"
+#include "../eodata.hpp"
+#include "../map.hpp"
+#include "../npc.hpp"
+#include "../player.hpp"
 
 namespace Handlers
 {

@@ -6,10 +6,10 @@
 
 #include "handlers.hpp"
 
-#include "character.hpp"
-#include "map.hpp"
-#include "npc.hpp"
-#include "player.hpp"
+#include "../character.hpp"
+#include "../map.hpp"
+#include "../npc.hpp"
+#include "../player.hpp"
 
 namespace Handlers
 {

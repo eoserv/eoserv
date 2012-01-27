@@ -8,11 +8,11 @@
 
 #include "../util.hpp"
 
-#include "map.hpp"
-#include "npc.hpp"
-#include "packet.hpp"
-#include "player.hpp"
-#include "world.hpp"
+#include "../map.hpp"
+#include "../npc.hpp"
+#include "../packet.hpp"
+#include "../player.hpp"
+#include "../world.hpp"
 
 namespace Commands
 {

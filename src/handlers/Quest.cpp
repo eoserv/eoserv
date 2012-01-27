@@ -8,12 +8,12 @@
 
 #include <deque>
 
-#include "character.hpp"
-#include "dialog.hpp"
-#include "eoplus.hpp"
-#include "npc.hpp"
-#include "packet.hpp"
-#include "quest.hpp"
+#include "../character.hpp"
+#include "../dialog.hpp"
+#include "../eoplus.hpp"
+#include "../npc.hpp"
+#include "../packet.hpp"
+#include "../quest.hpp"
 
 namespace Handlers
 {

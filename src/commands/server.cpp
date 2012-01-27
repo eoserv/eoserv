@@ -8,13 +8,13 @@
 
 #include "../util.hpp"
 
-#include "console.hpp"
-#include "eoclient.hpp"
-#include "eoserver.hpp"
-#include "map.hpp"
-#include "player.hpp"
-#include "timer.hpp"
-#include "world.hpp"
+#include "../console.hpp"
+#include "../eoclient.hpp"
+#include "../eoserver.hpp"
+#include "../map.hpp"
+#include "../player.hpp"
+#include "../timer.hpp"
+#include "../world.hpp"
 
 extern bool eoserv_sig_abort;
 

@@ -8,10 +8,10 @@
 
 #include <string>
 
-#include "character.hpp"
-#include "eoclient.hpp"
-#include "player.hpp"
-#include "world.hpp"
+#include "../character.hpp"
+#include "../eoclient.hpp"
+#include "../player.hpp"
+#include "../world.hpp"
 
 namespace Handlers
 {

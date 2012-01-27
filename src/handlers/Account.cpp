@@ -9,15 +9,15 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "console.hpp"
-#include "util.hpp"
+#include "../util.hpp"
 
-#include "eoclient.hpp"
-#include "eoserver.hpp"
-#include "player.hpp"
-#include "world.hpp"
+#include "../console.hpp"
+#include "../eoclient.hpp"
+#include "../eoserver.hpp"
+#include "../player.hpp"
+#include "../world.hpp"
 
-#include "extra/seose_compat.hpp"
+#include "../extra/seose_compat.hpp"
 
 namespace Handlers
 {

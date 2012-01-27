@@ -9,17 +9,17 @@
 #include <csignal>
 #include <ctime>
 
-#include "arena.hpp"
-#include "character.hpp"
-#include "console.hpp"
-#include "eoclient.hpp"
-#include "eodata.hpp"
-#include "map.hpp"
-#include "npc.hpp"
-#include "party.hpp"
-#include "player.hpp"
-#include "world.hpp"
-#include "commands/commands.hpp"
+#include "../arena.hpp"
+#include "../character.hpp"
+#include "../console.hpp"
+#include "../eoclient.hpp"
+#include "../eodata.hpp"
+#include "../map.hpp"
+#include "../npc.hpp"
+#include "../party.hpp"
+#include "../player.hpp"
+#include "../world.hpp"
+#include "../commands/commands.hpp"
 
 extern volatile std::sig_atomic_t eoserv_sig_abort;
 

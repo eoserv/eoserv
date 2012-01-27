@@ -10,7 +10,7 @@
 #include <array>
 #include <stdexcept>
 
-#include "packet.hpp"
+#include "../packet.hpp"
 
 #include "../fwd/character.hpp"
 #include "../fwd/eoclient.hpp"

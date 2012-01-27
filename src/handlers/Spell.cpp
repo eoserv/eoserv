@@ -9,10 +9,10 @@
 #include <algorithm>
 #include <functional>
 
-#include "character.hpp"
-#include "eodata.hpp"
-#include "map.hpp"
-#include "player.hpp"
+#include "../character.hpp"
+#include "../eodata.hpp"
+#include "../map.hpp"
+#include "../player.hpp"
 
 namespace Handlers
 {

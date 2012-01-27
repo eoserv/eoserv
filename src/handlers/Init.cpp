@@ -9,9 +9,9 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "console.hpp"
-#include "eoclient.hpp"
-#include "world.hpp"
+#include "../console.hpp"
+#include "../eoclient.hpp"
+#include "../world.hpp"
 
 static inline unsigned int stupid_hash(unsigned int i)
 {
