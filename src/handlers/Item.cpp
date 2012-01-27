@@ -11,6 +11,7 @@
 #include "map.hpp"
 #include "party.hpp"
 #include "player.hpp"
+#include "quest.hpp"
 #include "world.hpp"
 
 namespace Handlers
@@ -65,6 +66,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				}
 
 				character->Send(reply);
+
+				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 			}
 			break;
 
@@ -124,6 +127,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				}
 
 				character->Send(reply);
+
+				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 			}
 			break;
 
@@ -158,6 +163,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				}
 
 				character->Send(reply);
+
+				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 			}
 			break;
 
@@ -171,6 +178,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddChar(character->maxweight);
 
 				character->Send(reply);
+
+				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 			}
 			break;
 
@@ -187,6 +196,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				character->Effect(item->effect, false);
 
 				character->Send(reply);
+
+				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 			}
 			break;
 
@@ -257,15 +268,14 @@ void Item_Use(Character *character, PacketReader &reader)
 				}
 
 				character->Send(reply);
+
+				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 			}
 			break;
 
 			case EIF::EXPReward:
 			{
 				bool level_up = false;
-
-				if (character->x >= static_cast<int>(character->map->world->config["MaxExp"]))
-					break;
 
 				character->exp += item->expreward;
 
@@ -310,6 +320,8 @@ void Item_Use(Character *character, PacketReader &reader)
 				}
 
 				character->Send(reply);
+
+				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 			}
 			break;
 
@@ -381,6 +393,7 @@ void Item_Drop(Character *character, PacketReader &reader)
 			item->owner = character->player->id;
 			item->unprotecttime = Timer::GetTime() + static_cast<double>(character->world->config["ProtectPlayerDrop"]);
 			character->DelItem(id, amount);
+			UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 
 			PacketBuilder reply(PACKET_ITEM, PACKET_DROP, 15);
 			reply.AddShort(id);

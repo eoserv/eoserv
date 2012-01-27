@@ -126,6 +126,9 @@
 			<Add library="pthreadGC2" />
 			<Add library="winmm" />
 		</Linker>
+		<Unit filename="winres.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
 		<Unit filename="..\src\arena.cpp" />
 		<Unit filename="..\src\arena.hpp" />
 		<Unit filename="..\src\character.cpp" />
@@ -148,10 +151,23 @@
 		<Unit filename="..\src\database.cpp" />
 		<Unit filename="..\src\database.hpp" />
 		<Unit filename="..\src\database_impl.hpp" />
+		<Unit filename="..\src\dialog.cpp" />
+		<Unit filename="..\src\dialog.hpp" />
 		<Unit filename="..\src\eoclient.cpp" />
 		<Unit filename="..\src\eoclient.hpp" />
 		<Unit filename="..\src\eodata.cpp" />
 		<Unit filename="..\src\eodata.hpp" />
+		<Unit filename="..\src\eoplus.cpp" />
+		<Unit filename="..\src\eoplus.hpp" />
+		<Unit filename="..\src\eoplus\context.cpp" />
+		<Unit filename="..\src\eoplus\context.hpp" />
+		<Unit filename="..\src\eoplus\fwd\context.hpp" />
+		<Unit filename="..\src\eoplus\fwd\lex.hpp" />
+		<Unit filename="..\src\eoplus\fwd\parse.hpp" />
+		<Unit filename="..\src\eoplus\lex.cpp" />
+		<Unit filename="..\src\eoplus\lex.hpp" />
+		<Unit filename="..\src\eoplus\parse.cpp" />
+		<Unit filename="..\src\eoplus\parse.hpp" />
 		<Unit filename="..\src\eoserv_config.cpp" />
 		<Unit filename="..\src\eoserv_config.hpp" />
 		<Unit filename="..\src\eoserver.cpp" />
@@ -166,8 +182,10 @@
 		<Unit filename="..\src\fwd\config.hpp" />
 		<Unit filename="..\src\fwd\console.hpp" />
 		<Unit filename="..\src\fwd\database.hpp" />
+		<Unit filename="..\src\fwd\dialog.hpp" />
 		<Unit filename="..\src\fwd\eoclient.hpp" />
 		<Unit filename="..\src\fwd\eodata.hpp" />
+		<Unit filename="..\src\fwd\eoplus.hpp" />
 		<Unit filename="..\src\fwd\eoserver.hpp" />
 		<Unit filename="..\src\fwd\guild.hpp" />
 		<Unit filename="..\src\fwd\i18n.hpp" />
@@ -177,6 +195,7 @@
 		<Unit filename="..\src\fwd\packet.hpp" />
 		<Unit filename="..\src\fwd\party.hpp" />
 		<Unit filename="..\src\fwd\player.hpp" />
+		<Unit filename="..\src\fwd\quest.hpp" />
 		<Unit filename="..\src\fwd\sln.hpp" />
 		<Unit filename="..\src\fwd\socket.hpp" />
 		<Unit filename="..\src\fwd\timer.hpp" />
@@ -210,6 +229,7 @@
 		<Unit filename="..\src\handlers\Paperdoll.cpp" />
 		<Unit filename="..\src\handlers\Party.cpp" />
 		<Unit filename="..\src\handlers\Players.cpp" />
+		<Unit filename="..\src\handlers\Quest.cpp" />
 		<Unit filename="..\src\handlers\Refresh.cpp" />
 		<Unit filename="..\src\handlers\Shop.cpp" />
 		<Unit filename="..\src\handlers\Sit.cpp" />
@@ -240,6 +260,8 @@
 		<Unit filename="..\src\platform.h" />
 		<Unit filename="..\src\player.cpp" />
 		<Unit filename="..\src\player.hpp" />
+		<Unit filename="..\src\quest.cpp" />
+		<Unit filename="..\src\quest.hpp" />
 		<Unit filename="..\src\sha256.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -260,9 +282,6 @@
 		<Unit filename="..\src\version.h" />
 		<Unit filename="..\src\world.cpp" />
 		<Unit filename="..\src\world.hpp" />
-		<Unit filename="winres.rc">
-			<Option compilerVar="WINDRES" />
-		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />

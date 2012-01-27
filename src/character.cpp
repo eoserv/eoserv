@@ -11,6 +11,8 @@
 #include <functional>
 #include <limits>
 #include <list>
+#include <map>
+#include <unordered_map>
 
 #include "util.hpp"
 
@@ -24,6 +26,7 @@
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
+#include "quest.hpp"
 #include "world.hpp"
 
 void character_cast_spell(void *character_void)
@@ -179,6 +182,75 @@ std::list<Character_Spell> SpellUnserialize(std::string serialized)
 	return list;
 }
 
+std::string QuestSerialize(const std::map<int, Quest_Context*> &list)
+{
+	std::string serialized;
+
+	UTIL_CFOREACH(list, quest)
+	{
+		serialized.append(util::to_string(quest.second->GetQuest()->ID()));
+		serialized.append(",");
+		serialized.append(quest.second->StateName());
+		serialized.append(",");
+		serialized.append(quest.second->SerializeProgress());
+		serialized.append(";");
+	}
+
+	return serialized;
+}
+
+void QuestUnserialize(std::string serialized, Character* character)
+{
+	std::size_t p = 0;
+	std::size_t lastp = std::numeric_limits<std::size_t>::max();
+
+	if (!serialized.empty() && *(serialized.end()-1) != ';')
+	{
+		serialized.push_back(';');
+	}
+
+	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
+	{
+		std::string part = serialized.substr(lastp+1, p-lastp-1);
+		Console::Dbg("part: %s\n", part.c_str());
+		std::size_t pp1 = part.find_first_of(',');
+
+		if (pp1 == std::string::npos)
+		{
+			Console::Dbg("Fail 1");
+			continue;
+		}
+
+		std::size_t pp2 = part.find_first_of(',', pp1 + 1);
+
+		if (pp2 == std::string::npos)
+		{
+			Console::Dbg("Fail 2");
+			continue;
+		}
+
+		short quest_id = util::to_int(part.substr(0, pp1));
+		std::string quest_state = part.substr(pp1 + 1, pp2 - pp1 - 1);
+		std::string quest_progress = part.substr(pp2 + 1);
+
+		Console::Dbg("%i / %s / %s", quest_id, quest_state.c_str(), quest_progress.c_str());
+
+		Quest* quest = character->world->quests[quest_id].get();
+
+		if (!quest)
+		{
+			Console::Wrn("Quest not found: %i", quest_id);
+			continue;
+		}
+
+		character->quests[quest_id] = new Quest_Context(character, quest);
+		character->quests[quest_id]->SetState(quest_state, false);
+		character->quests[quest_id]->UnserializeProgress(UTIL_CRANGE(quest_progress));
+
+		lastp = p;
+	}
+}
+
 std::vector<std::string> BotListUnserialize(std::string serialized)
 {
 	std::vector<std::string> bots = util::explode(',', serialized);
@@ -186,7 +258,7 @@ std::vector<std::string> BotListUnserialize(std::string serialized)
 	return bots;
 }
 
-template <typename T> T GetRow(std::unordered_map<std::string, util::variant> &row, const char *col)
+template <typename T> static T GetRow(std::unordered_map<std::string, util::variant> &row, const char *col)
 {
 	return row[col];
 }
@@ -323,6 +395,8 @@ Character::Character(std::string name, World *world)
 
 	this->last_walk = 0.0;
 	this->attacks = 0;
+
+	QuestUnserialize(GetRow<std::string>(row, "quest"), this);
 }
 
 bool Character::ValidName(std::string name)
@@ -497,6 +571,8 @@ bool Character::AddItem(short item, int amount)
 
 			this->CalculateStats();
 
+			UTIL_FOREACH(this->quests, q) { q.second->GotItems(id, it->amount); }
+
 			return true;
 		}
 	}
@@ -509,6 +585,8 @@ bool Character::AddItem(short item, int amount)
 
 	this->CalculateStats();
 
+	UTIL_FOREACH(this->quests, q) { q.second->GotItems(id, amount); }
+
 	return true;
 }
 
@@ -518,6 +596,8 @@ bool Character::DelItem(short item, int amount)
 	{
 		return false;
 	}
+
+	int new_amount = 0;
 
 	UTIL_IFOREACH(this->inventory, it)
 	{
@@ -530,9 +610,13 @@ bool Character::DelItem(short item, int amount)
 			else
 			{
 				it->amount -= amount;
+				new_amount = it->amount;
 			}
 
 			this->CalculateStats();
+
+			UTIL_FOREACH(this->quests, q) { q.second->LostItems(item, new_amount); }
+
 			return true;
 		}
 	}
@@ -547,6 +631,9 @@ std::list<Character_Item>::iterator Character::DelItem(std::list<Character_Item>
 		return ++it;
 	}
 
+	short item = it->id;
+	int new_amount = 0;
+
 	if (it->amount < 0 || it->amount - amount <= 0)
 	{
 		it = this->inventory.erase(it);
@@ -554,10 +641,13 @@ std::list<Character_Item>::iterator Character::DelItem(std::list<Character_Item>
 	else
 	{
 		it->amount -= amount;
+		new_amount = it->amount;
 		++it;
 	}
 
 	this->CalculateStats();
+
+	UTIL_FOREACH(this->quests, q) { q.second->LostItems(item, new_amount); }
 
 	return it;
 }
@@ -1471,6 +1561,27 @@ void Character::Reset()
 	this->CalculateStats();
 }
 
+Quest_Context* Character::GetQuest(short id)
+{
+	auto it = this->quests.find(id);
+
+	if (it == this->quests.end())
+		return 0;
+
+	return it->second;
+}
+
+void Character::ResetQuest(short id)
+{
+	auto it = this->quests.find(id);
+
+	if (it == this->quests.end())
+		return;
+
+	delete it->second;
+	this->quests.erase(it);
+}
+
 void Character::Mute(const Command_Source *by)
 {
 	this->muted_until = time(0) + int(this->world->config["MuteLength"]);
@@ -1581,7 +1692,7 @@ void Character::Save()
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, int(this->sitting),
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
 		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
-		this->guild_rank, "", "", this->name.c_str());
+		this->guild_rank, QuestSerialize(this->quests).c_str(), "", this->name.c_str());
 }
 
 AdminLevel Character::SourceAccess() const

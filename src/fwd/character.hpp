@@ -47,10 +47,10 @@ enum Emote
 	EMOTE_PLAYFUL = 14,
 };
 
-enum QuestAction
+enum QuestPage
 {
-	QUEST_PROGRESS = 1,
-	QUEST_HISTORY = 2
+	QUEST_PAGE_PROGRESS = 1,
+	QUEST_PAGE_HISTORY = 2
 };
 
 enum Gender
@@ -62,8 +62,8 @@ enum Gender
 enum Skin
 {
 	SKIN_WHITE = 0,
-	SKIN_YELLOW = 1,
-	SKIN_TAN = 2,
+	SKIN_TAN = 1,
+	SKIN_PALE = 2,
 	SKIN_ORC = 3,
 	SKIN_SKELETON = 4,
 	SKIN_PANDA = 5,
@@ -110,6 +110,14 @@ enum TrainType
 {
     TRAIN_STAT = 1,
     TRAIN_SKILL = 2
+};
+
+enum BookIcon
+{
+    BOOK_ICON_ITEM = 3,
+    BOOK_ICON_TALK = 5,
+    BOOK_ICON_KILL = 8,
+    BOOK_ICON_STEP = 10,
 };
 
 #endif // FWD_CHARACTER_HPP_INCLUDED

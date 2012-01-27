@@ -9,10 +9,11 @@
 
 #include "fwd/character.hpp"
 
-#include <list>
-#include <string>
 #include <array>
+#include <list>
+#include <map>
 #include <memory>
+#include <string>
 
 #include "fwd/arena.hpp"
 #include "fwd/guild.hpp"
@@ -21,6 +22,7 @@
 #include "fwd/packet.hpp"
 #include "fwd/party.hpp"
 #include "fwd/player.hpp"
+#include "fwd/quest.hpp"
 #include "fwd/world.hpp"
 
 #include "command_source.hpp"
@@ -189,6 +191,7 @@ class Character : public Command_Source
 		std::array<int, 15> paperdoll;
 		std::list<Character_Spell> spells;
 		std::list<NPC *> unregister_npc;
+		std::map<int, Quest_Context*> quests;
 
 		Character(std::string name, World *);
 
@@ -236,6 +239,8 @@ class Character : public Command_Source
 		void Hide();
 		void Unhide();
 		void Reset();
+		Quest_Context* GetQuest(short id);
+		void ResetQuest(short id);
 
 		void Mute(const Command_Source *by);
 		void PlaySound(unsigned char id);

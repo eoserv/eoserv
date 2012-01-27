@@ -22,6 +22,7 @@
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
+#include "quest.hpp"
 #include "world.hpp"
 
 static const char *safe_fail_filename;
@@ -390,7 +391,6 @@ bool Map::Load()
 
 	std::string filename = this->world->config["MapDir"];
 	std::sprintf(namebuf, "%05i", this->id);
-	this->filename = filename;
 	filename.append(namebuf);
 	filename.append(".emf");
 
@@ -732,10 +732,16 @@ void Map::Enter(Character *character, WarpAnimation animation)
 
 		checkcharacter->Send(builder);
 	}
+
+	UTIL_FOREACH(character->quests, q) { q.second->EnterMap(character->mapid); }
+	UTIL_FOREACH(character->quests, q) { q.second->EnterCoord(character->mapid, character->x, character->y); }
 }
 
 void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 {
+	UTIL_FOREACH(character->quests, q) { q.second->LeaveCoord(character->mapid, character->x, character->y); }
+	UTIL_FOREACH(character->quests, q) { q.second->LeaveMap(character->mapid); }
+
 	if (!silent)
 	{
 		PacketBuilder builder(PACKET_AVATAR, PACKET_REMOVE, 3);
@@ -780,6 +786,23 @@ void Map::Msg(Character *from, std::string message, bool echo)
 			continue;
 		}
 
+		character->Send(builder);
+	}
+}
+
+void Map::Msg(NPC *from, std::string message)
+{
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->Data()->name) + "  "));
+
+	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER, 4 + message.length());
+	builder.AddByte(255);
+	builder.AddByte(255);
+	builder.AddShort(from->index);
+	builder.AddChar(message.length());
+	builder.AddString(message);
+
+	UTIL_FOREACH(this->characters, character)
+	{
 		character->Send(builder);
 	}
 }
@@ -859,6 +882,8 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 		return false;
 	}
+
+	UTIL_FOREACH(from->quests, q) { q.second->LeaveCoord(from->mapid, from->x, from->y); }
 
     from->last_walk = Timer::GetTime();
     from->attacks = 0;
@@ -1138,6 +1163,8 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	{
 		npc->RemoveFromView(from);
 	}
+
+	UTIL_FOREACH(from->quests, q) { q.second->EnterCoord(from->mapid, from->x, from->y); }
 
 	return true;
 }
@@ -1560,6 +1587,8 @@ bool Map::AttackPK(Character *from, Direction direction)
 					character->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
 						{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
 					}.data()), 0.0);
+
+					UTIL_FOREACH(from->quests, q) { q.second->KilledPlayer(); }
 				}
 
 				builder.Reset(4);
@@ -2271,7 +2300,6 @@ bool Map::Reload()
 
 	std::string filename = this->world->config["MapDir"];
 	std::sprintf(namebuf, "%05i", this->id);
-	this->filename = filename;
 	filename.append(namebuf);
 	filename.append(".emf");
 

@@ -232,6 +232,8 @@ struct ENF_Data
 	short child;
 	ENF::Type type;
 
+	short vendor_id;
+
 	int hp;
 	unsigned short exp;
 	short mindam;
@@ -241,7 +243,7 @@ struct ENF_Data
 	short evade;
 	short armor;
 
-	ENF_Data() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), hp(0), exp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0) { }
+	ENF_Data() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), vendor_id(0), hp(0), exp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0) { }
 };
 
 /**

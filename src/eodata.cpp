@@ -199,6 +199,7 @@ void ENF::Read(std::string filename)
 		newdata->boss = PacketProcessor::Number(buf[3], buf[4]);
 		newdata->child = PacketProcessor::Number(buf[5], buf[6]);
 		newdata->type = static_cast<ENF::Type>(PacketProcessor::Number(buf[7], buf[8]));
+		newdata->vendor_id = PacketProcessor::Number(buf[9], buf[10]);
 		newdata->hp = PacketProcessor::Number(buf[11], buf[12], buf[13]);
 
 		newdata->mindam = PacketProcessor::Number(buf[16], buf[17]);

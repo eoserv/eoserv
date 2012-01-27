@@ -357,7 +357,7 @@ void sleep(double seconds);
 
 int text_width(std::string string);
 int text_max_word_width(std::string string);
-std::string text_cap(std::string string, int width, std::string elipses = "[...]");
+std::string text_cap(std::string string, int width, std::string elipses = "...");
 std::string text_word_wrap(std::string string, int width);
 
 /**

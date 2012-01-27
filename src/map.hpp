@@ -215,7 +215,6 @@ class Map
 		bool scroll;
 		unsigned char relog_x;
 		unsigned char relog_y;
-		std::string filename;
 		std::list<Character *> characters;
 		std::vector<NPC *> npcs;
 		std::vector<Map_Chest *> chests;
@@ -228,7 +227,7 @@ class Map
 
 		Arena *arena;
 
-		Map(int id, World *server);
+		Map(int id, World *world);
 		void LoadArena();
 
 		int GenerateItemID();
@@ -238,6 +237,7 @@ class Map
 		void Leave(Character *, WarpAnimation animation = WARP_ANIMATION_NONE, bool silent = false);
 
 		void Msg(Character *from, std::string message, bool echo = true);
+		void Msg(NPC *from, std::string message);
 		bool Walk(Character *from, Direction direction, bool admin = false);
 		void Attack(Character *from, Direction direction);
 		bool AttackPK(Character *from, Direction direction);

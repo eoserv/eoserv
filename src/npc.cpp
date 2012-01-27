@@ -23,6 +23,7 @@
 #include "party.hpp"
 #include "player.hpp"
 #include "timer.hpp"
+#include "quest.hpp"
 #include "world.hpp"
 
 static const double speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
@@ -945,6 +946,8 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 			this->map->npcs.end()
 		);
 	}
+
+	UTIL_FOREACH(from->quests, q) { q.second->KilledNPC(this->Data()->id); }
 }
 
 void NPC::Die(bool show)

@@ -11,12 +11,15 @@
 
 #include <algorithm>
 #include <list>
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "config.hpp"
 #include "database.hpp"
 #include "i18n.hpp"
+#include "map.hpp"
 #include "timer.hpp"
 #include "util.hpp"
 
@@ -28,6 +31,7 @@
 #include "fwd/map.hpp"
 #include "fwd/party.hpp"
 #include "fwd/player.hpp"
+#include "fwd/quest.hpp"
 #include "fwd/socket.hpp"
 
 struct Board_Post
@@ -99,6 +103,7 @@ class World
 		std::vector<Party *> parties;
 		std::vector<Map *> maps;
 		std::vector<Home *> homes;
+		std::map<int, std::shared_ptr<Quest>> quests;
 
 		std::array<Board *, 8> boards;
 

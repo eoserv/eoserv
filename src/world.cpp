@@ -28,6 +28,7 @@
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
+#include "quest.hpp"
 #include "commands/commands.hpp"
 
 void world_spawn_npcs(void *world_void)
@@ -295,6 +296,28 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	Console::Out("%i/%i maps loaded.", loaded, this->maps.size());
 	Console::Out("%i NPCs loaded.", npcs);
 
+	short max_quest = 0;
+
+	UTIL_CFOREACH(this->enf->data, npc)
+	{
+		if (npc->type == ENF::Quest)
+			max_quest = std::max(max_quest, npc->vendor_id);
+	}
+
+	for (int i = 1; i < static_cast<int>(max_quest + 1); ++i)
+	{
+		try
+		{
+			std::shared_ptr<Quest> q = std::make_shared<Quest>(i, this);
+			this->quests.insert(std::make_pair(i, std::move(q)));
+		}
+		catch (...)
+		{
+
+		}
+	}
+	Console::Out("%i quests loaded.", this->quests.size());
+
 	this->last_character_id = 0;
 
 	TimeEvent *event = new TimeEvent(world_spawn_npcs, this, 1.0, Timer::FOREVER);
@@ -334,7 +357,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	}
 
 	exp_table[0] = 0;
-	for (std::size_t i = 1; i < sizeof(this->exp_table)/sizeof(int); ++i)
+	for (std::size_t i = 1; i < this->exp_table.size(); ++i)
 	{
 		exp_table[i] = int(util::round(std::pow(double(i), 3.0) * 133.1));
 	}
@@ -871,26 +894,12 @@ Player *World::Login(const std::string& username, util::secure_string&& password
 	if (LoginCheck(username, std::move(password)) == LOGIN_WRONG_USERPASS)
 		return 0;
 
-	try
-	{
-		return new Player(username, this);
-	}
-	catch (std::runtime_error &)
-	{
-		return 0;
-	}
+	return new Player(username, this);
 }
 
 Player *World::Login(std::string username)
 {
-	try
-	{
-		return new Player(username, this);
-	}
-	catch (std::runtime_error &)
-	{
-		return 0;
-	}
+	return new Player(username, this);
 }
 
 LoginReply World::LoginCheck(const std::string& username, util::secure_string&& password)

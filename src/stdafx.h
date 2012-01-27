@@ -19,10 +19,13 @@
 #include <cstdint>
 #include <cstring>
 #include <ctime>
+#include <deque>
 #include <exception>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <list>
+#include <map>
 #include <memory>
 #include <queue>
 #include <set>
