@@ -115,11 +115,10 @@
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-std=gnu++0x" />
-			<Add option="-include stdafx.h" />
+			<Add option="-include ../src/stdafx.h" />
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
 			<Add option="-DEOSERV_MINGW" />
-			<Add directory="..\src\" />
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />

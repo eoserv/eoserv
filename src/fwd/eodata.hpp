@@ -17,7 +17,7 @@ struct ENF_Data;
 struct ESF_Data;
 struct ECF_Data;
 
-enum FileType
+enum FileType : unsigned char
 {
 	FILE_MAP = 1,
 	FILE_ITEM = 2,

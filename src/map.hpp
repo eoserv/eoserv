@@ -268,7 +268,7 @@ class Map
 		std::vector<Character *> CharactersInRange(unsigned char x, unsigned char y, unsigned char range);
 		std::vector<NPC *> NPCsInRange(unsigned char x, unsigned char y, unsigned char range);
 
-		void Effect(int effect, int param);
+		void Effect(MapEffect effect, unsigned char param);
 
 		bool Evacuate();
 

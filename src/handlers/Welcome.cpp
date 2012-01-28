@@ -384,7 +384,7 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 // Client wants a file
 void Welcome_Agree(Player *player, PacketReader &reader)
 {
-	int file = reader.GetChar();
+	FileType file = FileType(reader.GetChar());
 	bool result = false;
 
 	switch (file)

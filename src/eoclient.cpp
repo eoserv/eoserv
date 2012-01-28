@@ -254,10 +254,7 @@ void EOClient::Send(const PacketBuilder &builder)
 {
 	std::string data(builder);
 
-	std::array<unsigned char, 2> id = PacketProcessor::EPID(builder.GetID());
-
-	if (id[1] != PACKET_F_INIT)
-		data = this->processor.Encode(data);
+	data = this->processor.Encode(data);
 
 	if (this->upload_fh)
 	{

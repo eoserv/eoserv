@@ -16,13 +16,14 @@
 
 PacketProcessor::PacketProcessor()
 {
-	this->firstdec = true;
+
 }
 
 std::string PacketProcessor::GetFamilyName(PacketFamily family)
 {
 	switch (family)
 	{
+		case PACKET_INTERNAL: return "INTERNAL";
 		case PACKET_CONNECTION: return "Connection";
 		case PACKET_ACCOUNT: return "Account";
 		case PACKET_CHARACTER: return "Character";
@@ -46,7 +47,8 @@ std::string PacketProcessor::GetFamilyName(PacketFamily family)
 		case PACKET_PARTY: return "Party";
 		case PACKET_REFRESH: return "Refresh";
 		case PACKET_NPC: return "NPC";
-		case PACKET_AUTOREFRESH: return "AutoRefresh";
+		case PACKET_PLAYER_AUTOREFRESH: return "Player_AutoRefresh";
+		case PACKET_NPC_AUTOREFRESH: return "NPC_AutoRefresh";
 		case PACKET_APPEAR: return "Appear";
 		case PACKET_PAPERDOLL: return "Paperdoll";
 		case PACKET_EFFECT: return "Effect";
@@ -62,6 +64,7 @@ std::string PacketProcessor::GetFamilyName(PacketFamily family)
 		case PACKET_SIT: return "Sit";
 		case PACKET_RECOVER: return "Recover";
 		case PACKET_BOARD: return "Board";
+		case PACKET_CAST: return "Cast";
 		case PACKET_ARENA: return "Arena";
 		case PACKET_PRIEST: return "Priest";
 		case PACKET_MARRIAGE: return "Marriage";
@@ -110,6 +113,8 @@ std::string PacketProcessor::GetActionName(PacketAction action)
 		case PACKET_TARGET_OTHER: return "TargetOther";
 		case PACKET_TARGET_GROUP: return "TargetGroup";
 		case PACKET_DIALOG: return "Dialog";
+		case PACKET_INTERNAL_NULL: return "INTERNAL_NULL";
+		case PACKET_INTERNAL_WARP: return "INTERNAL_WARP";
 		case PACKET_PING: return "Ping";
 		case PACKET_PONG: return "Pong";
 		case PACKET_NET3: return "Net3";
@@ -125,11 +130,8 @@ std::string PacketProcessor::Decode(const std::string &str)
 	int i = 0;
 	int ii = 0;
 
-	if (this->firstdec)
-	{
-		this->firstdec = false;
+	if ((unsigned char)str[1] == PACKET_F_INIT)
 		return str;
-	}
 
 	newstr.resize(length);
 
@@ -174,6 +176,9 @@ std::string PacketProcessor::Encode(const std::string &rawstr)
 	int length = str.length();
 	int i = 2;
 	int ii = 2;
+
+	if ((unsigned char)str[3] == PACKET_F_INIT)
+		return str;
 
 	newstr.resize(length);
 
@@ -225,6 +230,8 @@ std::string PacketProcessor::DickWinder(const std::string &str, unsigned char em
 	{
 		return str;
 	}
+
+	newstr.reserve(length);
 
 	for (int i = 0; i < length; ++i)
 	{
@@ -335,14 +342,14 @@ std::array<unsigned char, 4> PacketProcessor::ENumber(unsigned int number, std::
 	return bytes;
 }
 
-unsigned short PacketProcessor::PID(PacketFamily b1, PacketAction b2)
+unsigned short PacketProcessor::PID(PacketFamily family, PacketAction action)
 {
-	return b1 + b2*256;
+	return family | (action << 8);
 }
 
 std::array<unsigned char, 2> PacketProcessor::EPID(unsigned short pid)
 {
-	std::array<unsigned char, 2> b{{static_cast<unsigned char>(pid / 256), static_cast<unsigned char>(pid % 256)}};
+	std::array<unsigned char, 2> b{{static_cast<unsigned char>(pid >> 8), static_cast<unsigned char>(pid & 0xFF)}};
 
 	return b;
 }

@@ -9,7 +9,7 @@
 
 class Party;
 
-enum PartyRequestType
+enum PartyRequestType : unsigned char
 {
 	PARTY_REQUEST_JOIN = 0,
 	PARTY_REQUEST_INVITE = 1,

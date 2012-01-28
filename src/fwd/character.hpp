@@ -12,7 +12,7 @@ class Character;
 struct Character_Item;
 struct Character_Spell;
 
-enum AdminLevel
+enum AdminLevel : unsigned char
 {
 	ADMIN_PLAYER = 0,
 	ADMIN_GUIDE = 1,
@@ -21,7 +21,7 @@ enum AdminLevel
 	ADMIN_HGM = 4
 };
 
-enum Direction
+enum Direction : unsigned char
 {
 	DIRECTION_DOWN = 0,
 	DIRECTION_LEFT = 1,
@@ -29,7 +29,7 @@ enum Direction
 	DIRECTION_RIGHT = 3
 };
 
-enum Emote
+enum Emote : unsigned char
 {
 	EMOTE_HAPPY = 1,
 	EMOTE_DEPRESSED = 2,
@@ -47,19 +47,19 @@ enum Emote
 	EMOTE_PLAYFUL = 14,
 };
 
-enum QuestPage
+enum QuestPage : unsigned char
 {
 	QUEST_PAGE_PROGRESS = 1,
 	QUEST_PAGE_HISTORY = 2
 };
 
-enum Gender
+enum Gender : unsigned char
 {
 	GENDER_FEMALE = 0,
 	GENDER_MALE = 1
 };
 
-enum Skin
+enum Skin : unsigned char
 {
 	SKIN_WHITE = 0,
 	SKIN_TAN = 1,
@@ -70,7 +70,7 @@ enum Skin
 	SKIN_FISH = 6
 };
 
-enum PaperdollIcon
+enum PaperdollIcon : unsigned char
 {
 	ICON_NORMAL = 0,
 	ICON_GM = 4,
@@ -81,38 +81,38 @@ enum PaperdollIcon
 	ICON_SLN_BOT = 20
 };
 
-enum ClothesSlot
+enum AvatarSlot : unsigned char
 {
 	SLOT_CLOTHES = 1,
 	SLOT_HAIR = 2,
 	SLOT_HAIRCOLOR = 3
 };
 
-enum TalkReply
+enum TalkReply : short
 {
 	TALK_NOTFOUND = 1
 };
 
-enum SitState
+enum SitState : unsigned char
 {
 	SIT_STAND = 0,
 	SIT_CHAIR = 1,
 	SIT_FLOOR = 2
 };
 
-enum SitAction
+enum SitAction : unsigned char
 {
 	SIT_ACT_SIT = 1,
 	SIT_ACT_STAND = 2
 };
 
-enum TrainType
+enum TrainType : unsigned char
 {
     TRAIN_STAT = 1,
     TRAIN_SKILL = 2
 };
 
-enum BookIcon
+enum BookIcon : short
 {
     BOOK_ICON_ITEM = 3,
     BOOK_ICON_TALK = 5,

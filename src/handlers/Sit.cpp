@@ -14,7 +14,7 @@ namespace Handlers
 
 void Sit_Request(Character *character, PacketReader &reader)
 {
-	int action = reader.GetChar();
+	SitAction action = SitAction(reader.GetChar());
 
 	if (action == SIT_ACT_SIT && character->sitting == SIT_STAND)
 	{

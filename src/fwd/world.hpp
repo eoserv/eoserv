@@ -13,7 +13,7 @@ struct Board;
 struct Board_Post;
 struct Home;
 
-enum AccountReply
+enum AccountReply : short
 {
 	ACCOUNT_EXISTS = 1,
 	ACCOUNT_NOT_APPROVED = 2,
@@ -23,7 +23,7 @@ enum AccountReply
 	ACCOUNT_CONTINUE = 1000 // TODO: Check this for the real value
 };
 
-enum LoginReply
+enum LoginReply : short
 {
 	LOGIN_WRONG_USER = 1,
 	LOGIN_WRONG_USERPASS = 2,
@@ -32,7 +32,7 @@ enum LoginReply
 	LOGIN_BUSY = 6
 };
 
-enum WarpAnimation
+enum WarpAnimation : unsigned char
 {
 	WARP_ANIMATION_NONE = 0,
 	WARP_ANIMATION_SCROLL = 1,
@@ -40,7 +40,7 @@ enum WarpAnimation
 	WARP_ANIMATION_INVALID = 255,
 };
 
-enum WarpReply
+enum WarpReply : unsigned char
 {
 	WARP_LOCAL = 1,
 	WARP_SWITCH = 2,

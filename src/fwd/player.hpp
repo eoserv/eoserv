@@ -9,7 +9,7 @@
 
 class Player;
 
-enum CharacterReply
+enum CharacterReply : short
 {
 	CHARACTER_EXISTS = 1,
 	CHARACTER_FULL = 2,

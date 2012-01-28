@@ -26,7 +26,7 @@ static void walk_common(Character *character, PacketReader &reader, bool (Charac
 		return;
 	}
 
-	if (direction >= 0 && direction <= 3)
+	if (direction <= 3)
 	{
 		character->npc = 0;
 		character->npc_type = ENF::NPC;

@@ -12,7 +12,7 @@ class Guild_Create;
 class GuildManager;
 class Guild;
 
-enum GuildReply
+enum GuildReply : short
 {
 	GUILD_BUSY = 1,
 	GUILD_NOT_APPROVED = 2,
@@ -40,7 +40,7 @@ enum GuildReply
 	GUILD_RANKING_NOT_MEMBER = 24
 };
 
-enum GuildInfoType
+enum GuildInfoType : short
 {
 	GUILD_INFO_DESCRIPTION = 1,
 	GUILD_INFO_RANKS = 2,

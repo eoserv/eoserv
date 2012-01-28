@@ -29,11 +29,6 @@ class PacketProcessor
 		 */
 		unsigned char emulti_d;
 
-		/**
-		 * Flag marking the first Decode call (which shouldn't be Decoded).
-		 */
-		bool firstdec;
-
 	public:
 		/**
 		 * Highest number EO can represent with 1 byte.

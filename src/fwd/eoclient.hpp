@@ -12,7 +12,7 @@ class ActionQueue;
 
 struct ActionQueue_Action;
 
-enum InitReply
+enum InitReply : unsigned char
 {
 	INIT_OUT_OF_DATE = 1,
 	INIT_OK = 2,
@@ -27,7 +27,7 @@ enum InitReply
 	INIT_FILE_ECF = 11
 };
 
-enum InitBanType
+enum InitBanType : unsigned char
 {
 	INIT_BAN_TEMP = 0,
 	INIT_BAN_PERM = 2

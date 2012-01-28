@@ -2259,7 +2259,7 @@ std::vector<NPC *> Map::NPCsInRange(unsigned char x, unsigned char y, unsigned c
 	return npcs;
 }
 
-void Map::Effect(int effect, int param)
+void Map::Effect(MapEffect effect, unsigned char param)
 {
 	PacketBuilder builder(PACKET_EFFECT, PACKET_USE, 2);
 	builder.AddChar(effect);
