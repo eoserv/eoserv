@@ -19,7 +19,7 @@ const char *service_name;
 
 int service_state = SERVICE_RUNNING;
 
-extern int main(int argc, char *argv[]);
+extern int eoserv_main(int argc, char *argv[]);
 extern volatile bool eoserv_running;
 
 void service_update_status(int state, int winexitcode, int servexitcode, int checkpoint, int waithint)
@@ -90,7 +90,7 @@ void service_main(int argc, char *argv[])
 
 	service_update_status(SERVICE_RUNNING, NO_ERROR, 0, 0, 0);
 
-	main(0, 0);
+	eoserv_main(0, 0);
 }
 
 void service_init(const char *name)

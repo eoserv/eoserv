@@ -99,7 +99,14 @@ static void exception_test() throw()
 	}
 }
 
+int eoserv_main(int argc, char *argv[]);
+
 int main(int argc, char *argv[])
+{
+	eoserv_main(argc, argv);
+}
+
+int eoserv_main(int argc, char *argv[])
 {
 	// Type checks
 	if (std::numeric_limits<unsigned char>::digits < 8){ Console::Err("You cannot run this program (uchar is less than 8 bits)"); std::exit(1); }
