@@ -182,7 +182,7 @@ std::list<Character_Spell> SpellUnserialize(std::string serialized)
 	return list;
 }
 
-std::string QuestSerialize(const std::map<int, Quest_Context*> &list)
+std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>> &list)
 {
 	std::string serialized;
 
@@ -234,9 +234,16 @@ void QuestUnserialize(std::string serialized, Character* character)
 			continue;
 		}
 
-		character->quests[quest_id] = new Quest_Context(character, quest);
-		character->quests[quest_id]->SetState(quest_state, false);
-		character->quests[quest_id]->UnserializeProgress(UTIL_CRANGE(quest_progress));
+		auto result = character->quests.insert(std::make_pair(quest_id, std::make_shared<Quest_Context>(character, quest)));
+
+		if (!result.second)
+		{
+			Console::Wrn("Duplicate quest record: %i", quest_id);
+			continue;
+		}
+
+		result.first->second->SetState(quest_state, false);
+		result.first->second->UnserializeProgress(UTIL_CRANGE(quest_progress));
 
 		lastp = p;
 	}
@@ -1552,7 +1559,7 @@ void Character::Reset()
 	this->CalculateStats();
 }
 
-Quest_Context* Character::GetQuest(short id)
+std::shared_ptr<Quest_Context> Character::GetQuest(short id)
 {
 	auto it = this->quests.find(id);
 
@@ -1564,13 +1571,7 @@ Quest_Context* Character::GetQuest(short id)
 
 void Character::ResetQuest(short id)
 {
-	auto it = this->quests.find(id);
-
-	if (it == this->quests.end())
-		return;
-
-	delete it->second;
-	this->quests.erase(it);
+	this->quests.erase(id);
 }
 
 void Character::Mute(const Command_Source *by)

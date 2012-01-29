@@ -103,7 +103,7 @@ class World
 		std::vector<Party *> parties;
 		std::vector<Map *> maps;
 		std::vector<Home *> homes;
-		std::map<int, std::shared_ptr<Quest>> quests;
+		std::map<short, std::shared_ptr<Quest>> quests;
 
 		std::array<Board *, 8> boards;
 
@@ -139,6 +139,7 @@ class World
 
 		void Rehash();
 		void ReloadPub();
+		void ReloadQuests();
 
 		void Kick(Command_Source *from, Character *victim, bool announce = true);
 		void Jail(Command_Source *from, Character *victim, bool announce = true);

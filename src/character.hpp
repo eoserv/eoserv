@@ -191,7 +191,7 @@ class Character : public Command_Source
 		std::array<int, 15> paperdoll;
 		std::list<Character_Spell> spells;
 		std::list<NPC *> unregister_npc;
-		std::map<int, Quest_Context*> quests;
+		std::map<short, std::shared_ptr<Quest_Context>> quests;
 
 		Character(std::string name, World *);
 
@@ -239,7 +239,7 @@ class Character : public Command_Source
 		void Hide();
 		void Unhide();
 		void Reset();
-		Quest_Context* GetQuest(short id);
+		std::shared_ptr<Quest_Context> GetQuest(short id);
 		void ResetQuest(short id);
 
 		void Mute(const Command_Source *by);

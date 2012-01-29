@@ -8,7 +8,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <deque>
 #include <limits>
+#include <map>
 #include <stdexcept>
 
 #include "console.hpp"
@@ -304,7 +306,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 			max_quest = std::max(max_quest, npc->vendor_id);
 	}
 
-	for (int i = 1; i < static_cast<int>(max_quest + 1); ++i)
+	for (short i = 1; i <= max_quest; ++i)
 	{
 		try
 		{
@@ -751,6 +753,87 @@ void World::ReloadPub()
 	{
 		character->Warp(character->mapid, character->x, character->y);
 	}
+}
+
+void World::ReloadQuests()
+{
+	struct backup_t
+	{
+		short quest_id;
+		std::string quest_state;
+		std::string quest_progress;
+	};
+
+	std::map<std::string, std::deque<backup_t>> backup;
+
+	// Back up character quest states
+	UTIL_CFOREACH(this->characters, c)
+	{
+		auto result = backup.insert(std::pair<std::string, std::deque<backup_t>>(c->name, {}));
+
+		if (!result.second)
+			throw std::runtime_error("Failed to back up quest contexts");
+
+		auto it = result.first;
+
+		UTIL_FOREACH(c->quests, q)
+		{
+			it->second.push_back({q.first, q.second->StateName(), q.second->SerializeProgress()});
+		}
+	}
+
+	// Clear character quest states
+	UTIL_CFOREACH(this->characters, c)
+	{
+		c->quests.clear();
+	}
+
+	// Reload quests
+	UTIL_IFOREACH(this->quests, it)
+	{
+		try
+		{
+			std::shared_ptr<Quest> q = std::make_shared<Quest>(it->first, this);
+			this->quests.erase(it);
+			this->quests.insert(std::make_pair(it->first, std::move(q)));
+		}
+		catch (...)
+		{
+
+		}
+	}
+
+	// Restore character quest states
+	UTIL_CFOREACH(this->characters, c)
+	{
+		c->quests.clear();
+
+		auto it = backup.find(c->name);
+
+		if (it == backup.end())
+			throw std::runtime_error("Failed to restore quest context");
+
+		UTIL_CFOREACH(it->second, q)
+		{
+			Quest* quest = this->quests[q.quest_id].get();
+
+			if (!quest)
+			{
+				Console::Wrn("Quest not found: %i", q.quest_id);
+				continue;
+			}
+
+			auto result = c->quests.insert(std::make_pair(q.quest_id, std::make_shared<Quest_Context>(c, quest)));
+
+			if (!result.second)
+				throw std::runtime_error("Failed to restore quest context");
+
+			result.first->second->SetState(q.quest_state, false);
+			result.first->second->UnserializeProgress(UTIL_CRANGE(q.quest_progress));
+		}
+	}
+
+	Console::Out("%i quests loaded.", this->quests.size());
 }
 
 Character *World::GetCharacter(std::string name)

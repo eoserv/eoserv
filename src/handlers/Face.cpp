@@ -22,7 +22,7 @@ void Face_Player(Character *character, PacketReader &reader)
 		return;
 	}
 
-	if (direction >= 0 && direction <= 3)
+	if (direction <= 3)
 	{
 		character->map->Face(character, direction);
 	}

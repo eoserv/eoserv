@@ -128,7 +128,7 @@ void QuestState(const std::vector<std::string>& arguments, Character* from)
 	World* world = from->SourceWorld();
 	short quest_id = util::to_int(arguments[0]);
 
-	Quest_Context* quest = from->GetQuest(quest_id);
+	std::shared_ptr<Quest_Context> quest = from->GetQuest(quest_id);
 
 	if (!quest)
 	{
@@ -137,7 +137,7 @@ void QuestState(const std::vector<std::string>& arguments, Character* from)
 		if (it != world->quests.end())
 		{
 			// WARNING: holds a non-tracked reference to shared_ptr
-			quest = new Quest_Context(from, it->second.get());
+			quest = std::make_shared<Quest_Context>(from, it->second.get());
 			from->quests.insert(std::make_pair(it->first, quest));
 			quest->SetState("begin", true);
 		}

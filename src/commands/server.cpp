@@ -51,6 +51,14 @@ void ReloadConfig(const std::vector<std::string>& arguments, Command_Source* fro
 	from->SourceWorld()->Rehash();
 }
 
+void ReloadQuest(const std::vector<std::string>& arguments, Command_Source* from)
+{
+	(void)arguments;
+
+	Console::Out("Quests reloaded by %s", from->SourceName().c_str());
+	from->SourceWorld()->ReloadQuests();
+}
+
 void Shutdown(const std::vector<std::string>& arguments, Command_Source* from)
 {
 	(void)arguments;
@@ -73,6 +81,7 @@ COMMAND_HANDLER_REGISTER()
 	RegisterCharacter({"remap", {}, {}, 3}, ReloadMap);
 	Register({"repub", {}, {}, 3}, ReloadPub);
 	Register({"rehash"}, ReloadConfig);
+	Register({"request", {}, {}, 3}, ReloadQuest);
 	Register({"shutdown", {}, {}, 8}, Shutdown);
 	Register({"uptime"}, Uptime);
 COMMAND_HANDLER_REGISTER_END()

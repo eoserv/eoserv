@@ -7,6 +7,7 @@
 #include "handlers.hpp"
 
 #include <deque>
+#include <memory>
 
 #include "../character.hpp"
 #include "../dialog.hpp"
@@ -25,7 +26,7 @@ static void open_quest_dialog(Character* character, NPC* npc, int quest_id, int 
 	struct dialog_t
 	{
 		int quest_id;
-		const Quest_Context* quest;
+		const std::shared_ptr<Quest_Context> quest;
 		const Dialog* dialog;
 	};
 
@@ -132,7 +133,7 @@ void Quest_Accept(Character *character, PacketReader &reader)
 	if (character->npc_type == ENF::Quest)
 	{
 		short vendor_id = character->npc->Data()->vendor_id;
-		Quest_Context* quest = 0;
+		std::shared_ptr<Quest_Context> quest;
 
 		auto it = character->quests.find(quest_id);
 
