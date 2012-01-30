@@ -109,7 +109,7 @@ class World
 
 		std::array<int, 254> exp_table;
 
-		bool admin_count;
+		int admin_count;
 
 		World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 
