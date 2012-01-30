@@ -1127,6 +1127,7 @@ void NPC::FormulaVars(std::unordered_map<std::string, double> &vars, std::string
 	vv(1, "npc") v(hp) vv(data->hp, "maxhp")
 	vd(mindam) vd(maxdam)
 	vd(accuracy) vd(evade) vd(armor)
+	v(x) v(y) v(direction) vv(map->id, "mapid")
 }
 
 #undef vd

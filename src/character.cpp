@@ -730,6 +730,8 @@ bool Character::AddSpell(short spell)
 
 	this->spells.push_back(Character_Spell(spell, 0));
 
+	UTIL_FOREACH(this->quests, q) { q.second->GotSpell(spell, 0); }
+
 	return true;
 }
 
@@ -738,6 +740,9 @@ bool Character::DelSpell(short spell)
 	auto remove_it = std::remove_if(UTIL_RANGE(this->spells), [&](Character_Spell cs) { return cs.id == spell; });
 	bool removed = (remove_it != this->spells.end());
 	this->spells.erase(remove_it, this->spells.end());
+
+	UTIL_FOREACH(this->quests, q) { q.second->LostSpell(spell); }
+
 	return removed;
 }
 
@@ -816,8 +821,10 @@ void Character::SpellAct()
 			break;
 
 		default:
-			break;
+			return;
 	}
+
+	UTIL_FOREACH(this->quests, q) { q.second->UsedSpell(spell_id); }
 }
 
 bool Character::Unequip(short item, unsigned char subloc)
@@ -1394,6 +1401,8 @@ void Character::CalculateStats()
 	{
 		this->party->UpdateHP(this);
 	}
+
+	UTIL_FOREACH(this->quests, q) { q.second->CheckRules(); }
 }
 
 void Character::DropAll(Character *killer)
@@ -1599,7 +1608,10 @@ void Character::FormulaVars(std::unordered_map<std::string, double> &vars, std::
 	vv(adj_str, "str") vv(adj_intl, "int") vv(adj_wis, "wis") vv(adj_agi, "agi") vv(adj_con, "con") vv(adj_cha, "cha")
 	vv(str, "base_str") vv(intl, "base_int") vv(wis, "base_wis") vv(agi, "base_agi") vv(con, "base_con") vv(cha, "base_cha")
 	v(display_str) vv(display_intl, "display_int") v(display_wis) v(display_agi) v(display_con) v(display_cha)
-	v(accuracy) v(evade) v(armor) v(admin)
+	v(accuracy) v(evade) v(armor) v(admin) v(bot) v(usage)
+	vv(clas, "class") v(gender) v(race) v(hairstyle) v(haircolor)
+	v(mapid) v(x) v(y) v(direction) v(sitting) v(hidden) v(whispers) v(goldbank)
+	v(statpoints) v(skillpoints)
 }
 
 #undef vv

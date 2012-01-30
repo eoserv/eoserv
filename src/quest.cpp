@@ -65,7 +65,7 @@ static void validate_state(const EOPlus::State& state)
 		{"inputnpc", 1},
 		{"talkedtonpc", 1},
 
-		{"always", 1},
+		{"always", 0},
 
 		{"entermap", 1},
 		{"entercoord", 3},
@@ -77,7 +77,24 @@ static void validate_state(const EOPlus::State& state)
 
 		{"gotitems", {1, 2}},
 		{"lostitems", {1, 2}},
-		{"useditem", {1, 2}}
+		{"useditem", {1, 2}},
+
+		{"isgender", 1},
+		{"isclass", 1},
+		{"israce", 1},
+		{"iswearing", 1},
+
+		{"gotspell", {1, 2}},
+		{"lostspell", 1},
+		{"usedspell", {1, 2}},
+
+		// Only needed until expression support is added
+		{"statis", 2},
+		{"statnot", 2},
+		{"statgreater", 2},
+		{"statless", 2},
+		{"statbetween", 3},
+		{"statrpn", 1}
 	};
 
 	auto check = [](std::string type, std::string function, std::size_t args, info_t& info)
@@ -414,6 +431,22 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 	return false;
 }
 
+static bool rpn_char_eval(std::stack<util::variant>&& s, Character* character)
+{
+	std::unordered_map<std::string, double> formula_vars;
+	character->FormulaVars(formula_vars);
+	return bool(rpn_eval(s, formula_vars));
+}
+
+static bool rpn_char_eval(std::deque<util::variant>&& dq, Character* character)
+{
+	std::reverse(UTIL_RANGE(dq));
+	std::stack<util::variant> s(std::move(dq));
+	std::unordered_map<std::string, double> formula_vars;
+	character->FormulaVars(formula_vars);
+	return bool(rpn_eval(s, formula_vars));
+}
+
 bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 {
 	std::string function_name = rule.expr.function;
@@ -439,6 +472,55 @@ bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 	else if (function_name == "lostitems")
 	{
 		return this->character->HasItem(int(rule.expr.args[0])) < (rule.expr.args.size() >= 2 ? int(rule.expr.args[1]) : 1);
+	}
+	else if (function_name == "gotspell")
+	{
+		return this->character->HasSpell(int(rule.expr.args[0]))
+		    && (rule.expr.args.size() < 2 || this->character->SpellLevel(int(rule.expr.args[0])) >= int(rule.expr.args[1]));
+	}
+	else if (function_name == "lostspell")
+	{
+		return !this->character->HasItem(int(rule.expr.args[0]));
+	}
+	else if (function_name == "isgender")
+	{
+		return this->character->gender == Gender(int(rule.expr.args[0]));
+	}
+	else if (function_name == "isclass")
+	{
+		return this->character->clas == int(rule.expr.args[0]);
+	}
+	else if (function_name == "israce")
+	{
+		return this->character->race == int(rule.expr.args[0]);
+	}
+	else if (function_name == "iswearing")
+	{
+		return std::find(UTIL_CRANGE(this->character->paperdoll), int(rule.expr.args[0])) != this->character->paperdoll.end();
+	}
+	else if (function_name == "statis")
+	{
+		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "="}, character);
+	}
+	else if (function_name == "statnot")
+	{
+		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "=", 1.0, "-"}, character);
+	}
+	else if (function_name == "statgreater")
+	{
+		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], ">"}, character);
+	}
+	else if (function_name == "statless")
+	{
+		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "<"}, character);
+	}
+	else if (function_name == "statbetween")
+	{
+		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "gte", rule.expr.args[0], rule.expr.args[2], "lte", "&"}, character);
+	}
+	else if (function_name == "statrpn")
+	{
+		return rpn_char_eval(rpn_parse(rule.expr.args[0]), character);
 	}
 
 	return false;
@@ -484,13 +566,13 @@ Quest_Context::ProgressInfo Quest_Context::Progress() const
 
 	if (goal)
 	{
-		if (goal->expr.function == "gotitems")
+		if (goal->expr.function == "gotitems" || goal->expr.function == "gotspell")
 		{
 			icon = BOOK_ICON_ITEM;
 			goal_progress = std::min<int>(goal->expr.args[1], this->character->HasItem(int(goal->expr.args[0])));
-			goal_goal = int(goal->expr.args[1]);
+			goal_goal = goal->expr.args.size() >= 2 ? int(goal->expr.args[1]) : 1;
 		}
-		else if (goal->expr.function == "useditem")
+		else if (goal->expr.function == "useditem" || goal->expr.function == "usedspell")
 		{
 			icon = BOOK_ICON_ITEM;
 			goal_progress_key = goal->expr.function + "/" + std::string(goal->expr.args[0]);
@@ -626,6 +708,28 @@ void Quest_Context::UsedItem(short id)
 
 	if (this->TriggerRule("useditem", [id, amount](const std::deque<util::variant>& args) { return int(args[0]) == id && amount >= int(args[1]); }))
 		this->progress.erase("useditem/" + util::to_string(id));
+}
+
+void Quest_Context::GotSpell(short id, int level)
+{
+	this->TriggerRule("gotspell", [id, level](const std::deque<util::variant>& args) { return int(args[0]) == id && level >= int(args[1]); });
+}
+
+void Quest_Context::LostSpell(short id)
+{
+	this->TriggerRule("lostspell", [id](const std::deque<util::variant>& args) { return int(args[0]) == id; });
+}
+
+void Quest_Context::UsedSpell(short id)
+{
+	bool check = this->QueryRule("usedspell", [id](const std::deque<util::variant>& args) { return int(args[0]) == id; });
+	short amount = 0;
+
+	if (check)
+		amount = ++this->progress["usedspell/" + util::to_string(id)];
+
+	if (this->TriggerRule("usedspell", [id, amount](const std::deque<util::variant>& args) { return int(args[0]) == id && amount >= int(args[1]); }))
+		this->progress.erase("usedspell/" + util::to_string(id));
 }
 
 void Quest_Context::KilledNPC(short id)

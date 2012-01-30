@@ -9,10 +9,12 @@
 #include <functional>
 
 #include "../arena.hpp"
+#include "../character.hpp"
 #include "../config.hpp"
 #include "../map.hpp"
 #include "../packet.hpp"
 #include "../player.hpp"
+#include "../quest.hpp"
 #include "../world.hpp"
 
 namespace Commands
@@ -142,6 +144,11 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 				builder.AddShort(victim->karma);
 				builder.AddChar(level ? victim->level : 0);
 				victim->Send(builder);
+			}
+
+			if (!stats && !skillpoints)
+			{
+				UTIL_FOREACH(victim->quests, q) { q.second->CheckRules(); }
 			}
 		}
 	}

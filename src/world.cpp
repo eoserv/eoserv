@@ -833,6 +833,15 @@ void World::ReloadQuests()
 		}
 	}
 
+	// Check new quest rules
+	UTIL_CFOREACH(this->characters, c)
+	{
+		UTIL_CFOREACH(c->quests, q)
+		{
+			q.second->CheckRules();
+		}
+	}
+
 	Console::Out("%i quests loaded.", this->quests.size());
 }
 
