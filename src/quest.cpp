@@ -23,7 +23,29 @@
 #include "player.hpp"
 #include "world.hpp"
 
-static void validate_state(const EOPlus::State& state)
+struct Validation_Error : public EOPlus::Runtime_Error
+{
+	private:
+		std::string state_;
+
+	public:
+		Validation_Error(const std::string &what_, const std::string& state_)
+			: Runtime_Error(what_)
+			, state_(state_)
+		{ }
+
+		const std::string& state() const
+		{
+			return state_;
+		}
+
+		~Validation_Error() noexcept(true)
+		{
+
+		}
+};
+
+static void validate_state(const EOPlus::Quest& quest, const std::string& name, const EOPlus::State& state)
 {
 	struct info_t
 	{
@@ -97,13 +119,21 @@ static void validate_state(const EOPlus::State& state)
 		{"statrpn", 1}
 	};
 
-	auto check = [](std::string type, std::string function, std::size_t args, info_t& info)
+	auto check = [&](std::string type, std::string function, const std::deque<util::variant>& args, info_t& info)
 	{
-		if (args < std::size_t(info.min_args))
-			throw EOPlus::Runtime_Error(type + " " + function + " requires at least " + util::to_string(info.min_args) + " argument(s)");
+		if (args.size() < std::size_t(info.min_args))
+			throw Validation_Error(type + " " + function + " requires at least " + util::to_string(info.min_args) + " argument(s)", name);
 
-		if (info.max_args != -1 && args > std::size_t(info.max_args))
-			throw EOPlus::Runtime_Error(type + " " + function + " requires at most " + util::to_string(info.max_args) + " argument(s)");
+		if (info.max_args != -1 && args.size() > std::size_t(info.max_args))
+			throw Validation_Error(type + " " + function + " requires at most " + util::to_string(info.max_args) + " argument(s)", name);
+
+		if (function == "setstate")
+		{
+			auto it = quest.states.find(args[0]);
+
+			if (it == quest.states.end())
+				throw Validation_Error("Unknown quest state: " + std::string(args[0]), name);
+		}
 	};
 
 	UTIL_CFOREACH(state.actions, action)
@@ -111,9 +141,9 @@ static void validate_state(const EOPlus::State& state)
 		const auto it = action_argument_info.find(action.expr.function);
 
 		if (it == action_argument_info.end())
-			throw EOPlus::Runtime_Error("Unknown action: " + action.expr.function);
+			throw Validation_Error("Unknown action: " + action.expr.function, name);
 
-		check("Action", action.expr.function, action.expr.args.size(), it->second);
+		check("Action", action.expr.function, action.expr.args, it->second);
 	}
 
 	UTIL_CFOREACH(state.rules, rule)
@@ -123,9 +153,9 @@ static void validate_state(const EOPlus::State& state)
 		const auto it = action_argument_info.find(action.expr.function);
 
 		if (it == action_argument_info.end())
-			throw EOPlus::Runtime_Error("Unknown action: " + action.expr.function);
+			throw Validation_Error("Unknown action: " + action.expr.function, name);
 
-		check("Action", action.expr.function, action.expr.args.size(), it->second);
+		check("Action", action.expr.function, action.expr.args, it->second);
 	}
 
 	UTIL_CFOREACH(state.rules, rule)
@@ -133,9 +163,17 @@ static void validate_state(const EOPlus::State& state)
 		const auto it = rule_argument_info.find(rule.expr.function);
 
 		if (it == rule_argument_info.end())
-			throw EOPlus::Runtime_Error("Unknown rule: " + rule.expr.function);
+			throw Validation_Error("Unknown rule: " + rule.expr.function, name);
 
-		check("Rule", rule.expr.function, rule.expr.args.size(), it->second);
+		check("Rule", rule.expr.function, rule.expr.args, it->second);
+	}
+}
+
+static void validate_quest(const EOPlus::Quest& quest)
+{
+	UTIL_CIFOREACH(quest.states, it)
+	{
+		validate_state(quest, it->first, it->second);
 	}
 }
 
@@ -164,11 +202,18 @@ void Quest::Load()
 	try
 	{
 		this->quest = new EOPlus::Quest(f);
+		validate_quest(*this->quest);
 	}
 	catch (EOPlus::Syntax_Error& e)
 	{
 		Console::Err("Could not load quest: %s", filename.c_str());
 		Console::Err("Syntax Error: %s (Line %i)", e.what(), e.line());
+		throw;
+	}
+	catch (Validation_Error& e)
+	{
+		Console::Err("Could not load quest: %s", filename.c_str());
+		Console::Err("Validation Error: %s (State: %s)", e.what(), e.state().c_str());
 		throw;
 	}
 	catch (...)
@@ -204,8 +249,6 @@ void Quest_Context::BeginState(const std::string& name, const EOPlus::State& sta
 {
 	this->state_desc = state.desc;
 	this->state_name = name;
-
-	validate_state(state);
 
 	this->progress.clear();
 	this->dialogs.clear();
@@ -465,6 +508,16 @@ bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 		    && this->character->x == int(rule.expr.args[1])
 		    && this->character->y == int(rule.expr.args[2]);
 	}
+	else if (function_name == "leavemap")
+	{
+		return this->character->map->id != int(rule.expr.args[0]);
+	}
+	else if (function_name == "leavecoord")
+	{
+		return this->character->map->id != int(rule.expr.args[0])
+		    || this->character->x != int(rule.expr.args[1])
+		    || this->character->y != int(rule.expr.args[2]);
+	}
 	else if (function_name == "gotitems")
 	{
 		return this->character->HasItem(int(rule.expr.args[0])) >= (rule.expr.args.size() >= 2 ? int(rule.expr.args[1]) : 1);
@@ -688,16 +741,6 @@ bool Quest_Context::TalkedNPC(char vendor_id)
 	return this->TriggerRule("talkedtonpc", [vendor_id](const std::deque<util::variant>& args) { return int(args[0]) == vendor_id; });
 }
 
-void Quest_Context::GotItems(short id, int amount)
-{
-	this->TriggerRule("gotitems", [id, amount](const std::deque<util::variant>& args) { return int(args[0]) == id && amount >= int(args[1]); });
-}
-
-void Quest_Context::LostItems(short id, int amount)
-{
-	this->TriggerRule("lostitems", [id, amount](const std::deque<util::variant>& args) { return int(args[0]) == id && amount < int(args[1]); });
-}
-
 void Quest_Context::UsedItem(short id)
 {
 	bool check = this->QueryRule("useditem", [id](const std::deque<util::variant>& args) { return int(args[0]) == id; });
@@ -708,16 +751,6 @@ void Quest_Context::UsedItem(short id)
 
 	if (this->TriggerRule("useditem", [id, amount](const std::deque<util::variant>& args) { return int(args[0]) == id && amount >= int(args[1]); }))
 		this->progress.erase("useditem/" + util::to_string(id));
-}
-
-void Quest_Context::GotSpell(short id, int level)
-{
-	this->TriggerRule("gotspell", [id, level](const std::deque<util::variant>& args) { return int(args[0]) == id && level >= int(args[1]); });
-}
-
-void Quest_Context::LostSpell(short id)
-{
-	this->TriggerRule("lostspell", [id](const std::deque<util::variant>& args) { return int(args[0]) == id; });
 }
 
 void Quest_Context::UsedSpell(short id)
@@ -741,9 +774,7 @@ void Quest_Context::KilledNPC(short id)
 		amount = ++this->progress["killednpcs/" + util::to_string(id)];
 
 	if (this->TriggerRule("killednpcs", [id, amount](const std::deque<util::variant>& args) { return int(args[0]) == id && amount >= int(args[1]); }))
-	{
 		this->progress.erase("killednpcs/" + util::to_string(id));
-	}
 }
 
 void Quest_Context::KilledPlayer()
@@ -756,26 +787,6 @@ void Quest_Context::KilledPlayer()
 
 	if (this->TriggerRule("killedplayers", [amount](const std::deque<util::variant>& args) { return amount >= int(args[0]); }))
 		this->progress.erase("killedplayers");
-}
-
-void Quest_Context::EnterMap(short map)
-{
-	this->TriggerRule("entermap", [map](const std::deque<util::variant>& args) { return int(args[0]) == map; });
-}
-
-void Quest_Context::LeaveMap(short map)
-{
-	this->TriggerRule("leavemap", [map](const std::deque<util::variant>& args) { return int(args[0]) == map; });
-}
-
-void Quest_Context::EnterCoord(short map, unsigned char x, unsigned char y)
-{
-	this->TriggerRule("entercoord", [map, x, y](const std::deque<util::variant>& args) { return int(args[0]) == map && int(args[1]) == x && int(args[2]) == y; });
-}
-
-void Quest_Context::LeaveCoord(short map, unsigned char x, unsigned char y)
-{
-	this->TriggerRule("leavecoord", [map, x, y](const std::deque<util::variant>& args) { return int(args[0]) == map && int(args[1]) == x && int(args[2]) == y; });
 }
 
 Quest_Context::~Quest_Context()

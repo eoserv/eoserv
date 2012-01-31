@@ -77,21 +77,11 @@ class Quest_Context : public EOPlus::Context
 		bool DialogInput(char link_id);
 		bool TalkedNPC(char vendor_id);
 
-		void GotItems(short id, int amount);
-		void LostItems(short id, int amount);
 		void UsedItem(short id);
-
-		void GotSpell(short id, int level);
-		void LostSpell(short id);
 		void UsedSpell(short id);
 
 		void KilledNPC(short id);
 		void KilledPlayer();
-
-		void EnterMap(short map);
-		void LeaveMap(short map);
-		void EnterCoord(short map, unsigned char x, unsigned char y);
-		void LeaveCoord(short map, unsigned char x, unsigned char y);
 
 		~Quest_Context();
 };

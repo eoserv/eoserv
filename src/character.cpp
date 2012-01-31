@@ -569,8 +569,6 @@ bool Character::AddItem(short item, int amount)
 
 			this->CalculateStats();
 
-			UTIL_FOREACH(this->quests, q) { q.second->GotItems(item, it->amount); }
-
 			return true;
 		}
 	}
@@ -583,8 +581,6 @@ bool Character::AddItem(short item, int amount)
 
 	this->CalculateStats();
 
-	UTIL_FOREACH(this->quests, q) { q.second->GotItems(item, amount); }
-
 	return true;
 }
 
@@ -594,8 +590,6 @@ bool Character::DelItem(short item, int amount)
 	{
 		return false;
 	}
-
-	int new_amount = 0;
 
 	UTIL_IFOREACH(this->inventory, it)
 	{
@@ -608,12 +602,9 @@ bool Character::DelItem(short item, int amount)
 			else
 			{
 				it->amount -= amount;
-				new_amount = it->amount;
 			}
 
 			this->CalculateStats();
-
-			UTIL_FOREACH(this->quests, q) { q.second->LostItems(item, new_amount); }
 
 			return true;
 		}
@@ -629,9 +620,6 @@ std::list<Character_Item>::iterator Character::DelItem(std::list<Character_Item>
 		return ++it;
 	}
 
-	short item = it->id;
-	int new_amount = 0;
-
 	if (it->amount < 0 || it->amount - amount <= 0)
 	{
 		it = this->inventory.erase(it);
@@ -639,13 +627,10 @@ std::list<Character_Item>::iterator Character::DelItem(std::list<Character_Item>
 	else
 	{
 		it->amount -= amount;
-		new_amount = it->amount;
 		++it;
 	}
 
 	this->CalculateStats();
-
-	UTIL_FOREACH(this->quests, q) { q.second->LostItems(item, new_amount); }
 
 	return it;
 }
@@ -730,7 +715,7 @@ bool Character::AddSpell(short spell)
 
 	this->spells.push_back(Character_Spell(spell, 0));
 
-	UTIL_FOREACH(this->quests, q) { q.second->GotSpell(spell, 0); }
+	UTIL_FOREACH(this->quests, q) { q.second->CheckRules(); }
 
 	return true;
 }
@@ -741,7 +726,7 @@ bool Character::DelSpell(short spell)
 	bool removed = (remove_it != this->spells.end());
 	this->spells.erase(remove_it, this->spells.end());
 
-	UTIL_FOREACH(this->quests, q) { q.second->LostSpell(spell); }
+	UTIL_FOREACH(this->quests, q) { q.second->CheckRules(); }
 
 	return removed;
 }
@@ -1299,7 +1284,6 @@ unsigned char Character::SpawnY()
 	return this->world->GetHome(this)->y;
 }
 
-// TODO: calculate equipment bonuses, check formulas
 void Character::CalculateStats()
 {
 	ECF_Data *ecf = world->ecf->Get(this->clas);

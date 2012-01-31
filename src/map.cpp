@@ -733,15 +733,11 @@ void Map::Enter(Character *character, WarpAnimation animation)
 		checkcharacter->Send(builder);
 	}
 
-	UTIL_FOREACH(character->quests, q) { q.second->EnterMap(character->mapid); }
-	UTIL_FOREACH(character->quests, q) { q.second->EnterCoord(character->mapid, character->x, character->y); }
+	UTIL_FOREACH(character->quests, q) { q.second->CheckRules(); }
 }
 
 void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 {
-	UTIL_FOREACH(character->quests, q) { q.second->LeaveCoord(character->mapid, character->x, character->y); }
-	UTIL_FOREACH(character->quests, q) { q.second->LeaveMap(character->mapid); }
-
 	if (!silent)
 	{
 		PacketBuilder builder(PACKET_AVATAR, PACKET_REMOVE, 3);
@@ -882,8 +878,6 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 		return false;
 	}
-
-	UTIL_FOREACH(from->quests, q) { q.second->LeaveCoord(from->mapid, from->x, from->y); }
 
     from->last_walk = Timer::GetTime();
     from->attacks = 0;
@@ -1164,7 +1158,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		npc->RemoveFromView(from);
 	}
 
-	UTIL_FOREACH(from->quests, q) { q.second->EnterCoord(from->mapid, from->x, from->y); }
+	UTIL_FOREACH(from->quests, q) { q.second->CheckRules(); }
 
 	return true;
 }

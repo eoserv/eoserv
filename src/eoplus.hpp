@@ -143,7 +143,7 @@ namespace EOPlus
 				, line_(line_)
 			{ }
 
-			int line()
+			int line() const
 			{
 				return line_;
 			}
@@ -161,7 +161,7 @@ namespace EOPlus
 				, col_(col_)
 			{ }
 
-			int col()
+			int col() const
 			{
 				return col_;
 			}
