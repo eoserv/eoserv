@@ -370,6 +370,20 @@ namespace EOPlus
 					has_version = true;
 					info.version = ParseVersion();
 				}
+				else if (std::string(t.data) == "hidden")
+				{
+					if (info.hidden != Info::NotHidden)
+						PARSER_ERROR("Main-block can only contain one hidden attribute.");
+
+					info.hidden = Info::Hidden;
+				}
+				else if (std::string(t.data) == "hidden_end")
+				{
+					if (info.hidden != Info::NotHidden)
+						PARSER_ERROR("Main-block can only contain one hidden attribute.");
+
+					info.hidden = Info::HiddenEnd;
+				}
 				else
 				{
 					break;
@@ -384,7 +398,7 @@ namespace EOPlus
 			}
 		}
 
-		PARSER_ERROR_GOT("Expected main-block entry (questname/version) or closing brace '}'.");
+		PARSER_ERROR_GOT("Expected main-block entry (questname/version/hidden/hidden_end) or closing brace '}'.");
 	}
 
 	std::pair<std::string, State> Parser::ParseStateBlock()

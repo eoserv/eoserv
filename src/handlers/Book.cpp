@@ -7,6 +7,7 @@
 #include "handlers.hpp"
 
 #include "../character.hpp"
+#include "../eoplus.hpp"
 #include "../guild.hpp"
 #include "../quest.hpp"
 
@@ -84,7 +85,7 @@ void Book_Request(Character *character, PacketReader &reader)
 
 	UTIL_CFOREACH(target->quests, quest)
 	{
-		if (quest.second->Finished())
+		if (quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 			reserve += quest.second->GetQuest()->Name().length() + 1;
 	}
 
@@ -92,7 +93,7 @@ void Book_Request(Character *character, PacketReader &reader)
 
 	UTIL_CFOREACH(target->quests, quest)
 	{
-		if (quest.second->Finished())
+		if (quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 			reply.AddBreakString(quest.second->GetQuest()->Name());
 	}
 

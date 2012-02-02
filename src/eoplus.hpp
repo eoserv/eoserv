@@ -100,11 +100,20 @@ namespace EOPlus
 
 	struct Info
 	{
+		enum HiddenType
+		{
+			NotHidden,
+			Hidden,
+			HiddenEnd
+		};
+
 		std::string name;
 		unsigned int version;
+		HiddenType hidden;
 
 		Info()
 			: version(0)
+			, hidden(NotHidden)
 		{ }
 	};
 

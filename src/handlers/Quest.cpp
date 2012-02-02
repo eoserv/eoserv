@@ -176,7 +176,7 @@ void Quest_List(Character *character, PacketReader &reader)
 		case QUEST_PAGE_PROGRESS:
 			UTIL_CFOREACH(character->quests, q)
 			{
-				if (!q.second->Finished())
+				if (!q.second->Finished() && q.second->GetQuest()->GetQuest()->info.hidden != EOPlus::Info::Hidden)
 					reserve += 9 + q.second->GetQuest()->GetQuest()->info.name.length() + q.second->Desc().length();
 			}
 
@@ -184,7 +184,7 @@ void Quest_List(Character *character, PacketReader &reader)
 
 			UTIL_CFOREACH(character->quests, q)
 			{
-				if (q.second->Finished())
+				if (q.second->Finished() || q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::Hidden)
 					continue;
 
 				Quest_Context::ProgressInfo progress = q.second->Progress();
@@ -202,7 +202,7 @@ void Quest_List(Character *character, PacketReader &reader)
 		case QUEST_PAGE_HISTORY:
 			UTIL_CFOREACH(character->quests, q)
 			{
-				if (q.second->Finished())
+				if (q.second->Finished() && q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 					reserve += 1 + q.second->GetQuest()->GetQuest()->info.name.length();
 			}
 
@@ -210,7 +210,7 @@ void Quest_List(Character *character, PacketReader &reader)
 
 			UTIL_CFOREACH(character->quests, q)
 			{
-				if (q.second->Finished())
+				if (q.second->Finished() && q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 					reply.AddBreakString(q.second->GetQuest()->GetQuest()->info.name);
 			}
 
