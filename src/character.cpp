@@ -182,7 +182,7 @@ std::list<Character_Spell> SpellUnserialize(std::string serialized)
 	return list;
 }
 
-std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>> &list)
+std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>>& list, const std::set<Character_QuestState>& list_inactive)
 {
 	std::string serialized;
 
@@ -193,6 +193,16 @@ std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>>
 		serialized.append(quest.second->StateName());
 		serialized.append(",");
 		serialized.append(quest.second->SerializeProgress());
+		serialized.append(";");
+	}
+
+	UTIL_CFOREACH(list_inactive, state)
+	{
+		serialized.append(util::to_string(state.quest_id));
+		serialized.append(",");
+		serialized.append(state.quest_state);
+		serialized.append(",");
+		serialized.append(state.quest_progress);
 		serialized.append(";");
 	}
 
@@ -222,28 +232,34 @@ void QuestUnserialize(std::string serialized, Character* character)
 		if (pp2 == std::string::npos)
 			continue;
 
-		short quest_id = util::to_int(part.substr(0, pp1));
-		std::string quest_state = part.substr(pp1 + 1, pp2 - pp1 - 1);
-		std::string quest_progress = part.substr(pp2 + 1);
+		Character_QuestState state;
+		state.quest_id = util::to_int(part.substr(0, pp1));
+		state.quest_state = part.substr(pp1 + 1, pp2 - pp1 - 1);;
+		state.quest_progress = part.substr(pp2 + 1);
 
-		Quest* quest = character->world->quests[quest_id].get();
+		Quest* quest = character->world->quests[state.quest_id].get();
 
 		if (!quest)
 		{
-			Console::Wrn("Quest not found: %i", quest_id);
+			// Console::Wrn("Quest not found: %i", quest_id);
+			// Store it in a non-activate state so we don't have to deleted the data
+
+			if (!character->quests_inactive.insert(std::move(state)).second)
+				Console::Wrn("Duplicate inactive quest record: %i", state.quest_id);
+
 			continue;
 		}
 
-		auto result = character->quests.insert(std::make_pair(quest_id, std::make_shared<Quest_Context>(character, quest)));
+		auto result = character->quests.insert(std::make_pair(state.quest_id, std::make_shared<Quest_Context>(character, quest)));
 
 		if (!result.second)
 		{
-			Console::Wrn("Duplicate quest record: %i", quest_id);
+			Console::Wrn("Duplicate quest record: %i", state.quest_id);
 			continue;
 		}
 
-		result.first->second->SetState(quest_state, false);
-		result.first->second->UnserializeProgress(UTIL_CRANGE(quest_progress));
+		result.first->second->SetState(state.quest_state, false);
+		result.first->second->UnserializeProgress(UTIL_CRANGE(state.quest_progress));
 
 		lastp = p;
 	}
@@ -1709,7 +1725,7 @@ void Character::Save()
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, int(this->sitting),
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
 		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
-		this->guild_rank, QuestSerialize(this->quests).c_str(), "", this->name.c_str());
+		this->guild_rank, QuestSerialize(this->quests, this->quests_inactive).c_str(), "", this->name.c_str());
 }
 
 AdminLevel Character::SourceAccess() const

@@ -14,6 +14,9 @@
 
 namespace EOPlus
 {
+	static int recursive_depth = 0;
+	static const int max_recursion = 1000;
+
 	Context::Context(const Quest* quest)
 		: quest(quest)
 		, state(0)
@@ -51,12 +54,28 @@ namespace EOPlus
 
 		if (do_actions)
 		{
-			UTIL_CFOREACH(this->state->actions, action)
+			if (++recursive_depth > max_recursion)
 			{
-				if (this->DoAction(action))
-					return;
+				--recursive_depth;
+				throw std::runtime_error("Quest action recursion too deep");
 			}
 
+			try
+			{
+				UTIL_CFOREACH(this->state->actions, action)
+				{
+					if (this->DoAction(action))
+						break;
+				}
+
+			}
+			catch (...)
+			{
+				--recursive_depth;
+				throw;
+			}
+
+			--recursive_depth;
 			this->CheckRules();
 		}
 	}
@@ -120,14 +139,30 @@ namespace EOPlus
 		if (!this->state)
 			throw std::runtime_error("No state selected");
 
-		UTIL_CFOREACH(this->state->rules, rule)
+		if (++recursive_depth > max_recursion)
 		{
-			if (this->CheckRule(rule))
+			--recursive_depth;
+			throw std::runtime_error("Quest action recursion too deep");
+		}
+
+		try
+		{
+			UTIL_CFOREACH(this->state->rules, rule)
 			{
-				if (this->DoAction(rule.action))
-					return;
+				if (this->CheckRule(rule))
+				{
+					if (this->DoAction(rule.action))
+						break;
+				}
 			}
 		}
+		catch (...)
+		{
+			--recursive_depth;
+			throw;
+		}
+
+		--recursive_depth;
 	}
 
 	Context::~Context()

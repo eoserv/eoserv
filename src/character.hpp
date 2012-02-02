@@ -85,6 +85,18 @@ struct Character_Spell
 	Character_Spell(short id, unsigned char level) : id(id), level(level) { }
 };
 
+struct Character_QuestState
+{
+	short quest_id;
+	std::string quest_state;
+	std::string quest_progress;
+
+	bool operator <(const Character_QuestState& rhs) const
+	{
+		return this->quest_id < rhs.quest_id;
+	}
+};
+
 class Character : public Command_Source
 {
 	public:
@@ -192,6 +204,7 @@ class Character : public Command_Source
 		std::list<Character_Spell> spells;
 		std::list<NPC *> unregister_npc;
 		std::map<short, std::shared_ptr<Quest_Context>> quests;
+		std::set<Character_QuestState> quests_inactive;
 		std::string quest_string;
 
 		Character(std::string name, World *);
