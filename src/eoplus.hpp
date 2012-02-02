@@ -110,10 +110,12 @@ namespace EOPlus
 		std::string name;
 		unsigned int version;
 		HiddenType hidden;
+		bool disabled;
 
 		Info()
 			: version(0)
 			, hidden(NotHidden)
+			, disabled(false)
 		{ }
 	};
 

@@ -25,6 +25,9 @@ namespace Handlers
 // Selected a character
 void Welcome_Request(Player *player, PacketReader &reader)
 {
+	if (player->character)
+		throw std::runtime_error("Character already selected");
+
 	unsigned int id = reader.GetInt(); // Character ID
 
 	auto it = std::find_if(UTIL_CRANGE(player->characters), [&](Character *c) -> bool

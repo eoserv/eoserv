@@ -394,7 +394,36 @@ Character::Character(std::string name, World *world)
 	this->last_walk = 0.0;
 	this->attacks = 0;
 
-	QuestUnserialize(GetRow<std::string>(row, "quest"), this);
+	this->quest_string = GetRow<std::string>(row, "quest");
+}
+
+void Character::Login()
+{
+	this->CalculateStats();
+
+	QuestUnserialize(this->quest_string, this);
+	this->quest_string.clear();
+
+	// Start the default 00000.eqf quest
+	if (!this->GetQuest(0))
+	{
+		auto it = this->world->quests.find(0);
+
+		if (it != this->world->quests.end())
+		{
+			// WARNING: holds a non-tracked reference to shared_ptr
+			Quest* quest = it->second.get();
+
+			if (!quest->Disabled())
+			{
+				Quest_Context* context = new Quest_Context(this, quest);
+				this->quests.insert(std::make_pair(it->first, context));
+				context->SetState("begin");
+			}
+		}
+	}
+
+	this->CalculateStats();
 }
 
 bool Character::ValidName(std::string name)

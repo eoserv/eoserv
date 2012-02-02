@@ -384,6 +384,13 @@ namespace EOPlus
 
 					info.hidden = Info::HiddenEnd;
 				}
+				else if (std::string(t.data) == "disabled")
+				{
+					if (info.disabled)
+						PARSER_ERROR("Main-block can only contain one disabled attribute.");
+
+					info.disabled = true;
+				}
 				else
 				{
 					break;
@@ -398,7 +405,7 @@ namespace EOPlus
 			}
 		}
 
-		PARSER_ERROR_GOT("Expected main-block entry (questname/version/hidden/hidden_end) or closing brace '}'.");
+		PARSER_ERROR_GOT("Expected main-block entry (questname/version/hidden/hidden_end/disabled) or closing brace '}'.");
 	}
 
 	std::pair<std::string, State> Parser::ParseStateBlock()

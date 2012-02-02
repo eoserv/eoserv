@@ -306,7 +306,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 			max_quest = std::max(max_quest, npc->vendor_id);
 	}
 
-	for (short i = 1; i <= max_quest; ++i)
+	for (short i = 0; i <= max_quest; ++i)
 	{
 		try
 		{
@@ -494,6 +494,7 @@ void World::Login(Character *character)
 	}
 
 	this->GetMap(character->mapid)->Enter(character);
+	character->Login();
 }
 
 void World::Logout(Character *character)
@@ -794,8 +795,7 @@ void World::ReloadQuests()
 		try
 		{
 			std::shared_ptr<Quest> q = std::make_shared<Quest>(it->first, this);
-			this->quests.erase(it);
-			this->quests.insert(std::make_pair(it->first, std::move(q)));
+			std::swap(it->second, q);
 		}
 		catch (...)
 		{

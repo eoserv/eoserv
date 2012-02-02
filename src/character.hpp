@@ -192,8 +192,11 @@ class Character : public Command_Source
 		std::list<Character_Spell> spells;
 		std::list<NPC *> unregister_npc;
 		std::map<short, std::shared_ptr<Quest_Context>> quests;
+		std::string quest_string;
 
 		Character(std::string name, World *);
+
+		void Login();
 
 		static bool ValidName(std::string name);
 

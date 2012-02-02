@@ -63,6 +63,10 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		{"reset", 0},
 		{"end", 0},
 
+		{"startquest", {1, 2}},
+		{"resetquest", 1},
+		{"setqueststate", 2},
+
 		{"addnpctext", 2},
 		{"addnpcinput", 3},
 
@@ -233,6 +237,11 @@ std::string Quest::Name() const
 	return this->quest->info.name;
 }
 
+bool Quest::Disabled() const
+{
+	return this->quest->info.disabled;
+}
+
 Quest::~Quest()
 {
 	if (this->quest)
@@ -252,6 +261,9 @@ void Quest_Context::BeginState(const std::string& name, const EOPlus::State& sta
 
 	this->progress.clear();
 	this->dialogs.clear();
+
+	if (this->quest->Disabled())
+		return;
 
 	UTIL_CFOREACH(state.actions, action)
 	{
@@ -275,6 +287,9 @@ void Quest_Context::BeginState(const std::string& name, const EOPlus::State& sta
 
 bool Quest_Context::DoAction(const EOPlus::Action& action)
 {
+	if (this->quest->Disabled())
+		return false;
+
 	std::string function_name = action.expr.function;
 
 	if (function_name == "setstate")
@@ -292,6 +307,54 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 	{
 		this->SetState("end");
 		return true;
+	}
+	else if (function_name == "startquest")
+	{
+		short id = int(action.expr.args[0]);
+
+		if (!this->character->GetQuest(id))
+		{
+			auto it = this->character->world->quests.find(id);
+
+			if (it != this->character->world->quests.end())
+			{
+				// WARNING: holds a non-tracked reference to shared_ptr
+				Quest* quest = it->second.get();
+				Quest_Context* context = new Quest_Context(this->character, quest);
+				this->character->quests.insert(std::make_pair(it->first, context));
+				context->SetState(action.expr.args.size() >= 2 ? std::string(action.expr.args[1]) : "begin");
+			}
+		}
+	}
+	else if (function_name == "resetquest")
+	{
+		short this_id = this->quest->ID();
+		short id = int(action.expr.args[0]);
+
+		this->character->ResetQuest(id);
+
+		if (id == this_id)
+		{
+			return true;
+			// *this is not valid after this point
+		}
+	}
+	else if (function_name == "setqueststate")
+	{
+		short this_id = this->quest->ID();
+		short id = int(action.expr.args[0]);
+		std::string state = std::string(action.expr.args[1]);
+
+		// WARNING: holds a non-tracked reference to shared_ptr
+		Quest_Context* quest = this->character->GetQuest(id).get();
+
+		if (quest)
+		{
+			quest->SetState(state);
+
+			if (id == this_id)
+				return true;
+		}
 	}
 	else if (function_name == "showhint")
 	{
@@ -492,6 +555,9 @@ static bool rpn_char_eval(std::deque<util::variant>&& dq, Character* character)
 
 bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 {
+	if (this->quest->Disabled())
+		return false;
+
 	std::string function_name = rule.expr.function;
 
 	if (function_name == "always")
@@ -586,6 +652,9 @@ const Quest* Quest_Context::GetQuest() const
 
 const Dialog* Quest_Context::GetDialog(short id) const
 {
+	if (this->quest->Disabled())
+		return 0;
+
 	auto it = this->dialogs.find(id);
 
 	if (it == this->dialogs.end())
@@ -733,16 +802,25 @@ std::string::const_iterator Quest_Context::UnserializeProgress(std::string::cons
 
 bool Quest_Context::DialogInput(char link_id)
 {
+	if (this->quest->Disabled())
+		return false;
+
 	return this->TriggerRule("inputnpc", [link_id](const std::deque<util::variant>& args) { return int(args[0]) == link_id; });
 }
 
 bool Quest_Context::TalkedNPC(char vendor_id)
 {
+	if (this->quest->Disabled())
+		return false;
+
 	return this->TriggerRule("talkedtonpc", [vendor_id](const std::deque<util::variant>& args) { return int(args[0]) == vendor_id; });
 }
 
 void Quest_Context::UsedItem(short id)
 {
+	if (this->quest->Disabled())
+		return;
+
 	bool check = this->QueryRule("useditem", [id](const std::deque<util::variant>& args) { return int(args[0]) == id; });
 	short amount = 0;
 
@@ -755,6 +833,9 @@ void Quest_Context::UsedItem(short id)
 
 void Quest_Context::UsedSpell(short id)
 {
+	if (this->quest->Disabled())
+		return;
+
 	bool check = this->QueryRule("usedspell", [id](const std::deque<util::variant>& args) { return int(args[0]) == id; });
 	short amount = 0;
 
@@ -767,6 +848,9 @@ void Quest_Context::UsedSpell(short id)
 
 void Quest_Context::KilledNPC(short id)
 {
+	if (this->quest->Disabled())
+		return;
+
 	bool check = this->QueryRule("killednpcs", [id](const std::deque<util::variant>& args) { return int(args[0]) == id; });
 	short amount = 0;
 
@@ -779,6 +863,9 @@ void Quest_Context::KilledNPC(short id)
 
 void Quest_Context::KilledPlayer()
 {
+	if (this->quest->Disabled())
+		return;
+
 	bool check = this->QueryRule("killedplayers");
 	short amount = 0;
 

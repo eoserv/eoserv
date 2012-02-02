@@ -30,8 +30,10 @@ class Quest
 		Quest(short id, World* world);
 
 		const EOPlus::Quest* GetQuest() const { return quest; }
+
 		short ID() const;
 		std::string Name() const;
+		bool Disabled() const;
 
 		~Quest();
 };

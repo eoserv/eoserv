@@ -35,6 +35,9 @@ static void open_quest_dialog(Character* character, NPC* npc, int quest_id, int 
 
 	UTIL_CFOREACH(character->quests, quest)
 	{
+		if (quest.second->GetQuest()->Disabled())
+			continue;
+
 		const Dialog* dialog = quest.second->GetDialog(vendor_id);
 
 		if (dialog)
@@ -92,6 +95,9 @@ void Quest_Use(Character *character, PacketReader &reader)
 		{
 			short vendor_id = npc->Data()->vendor_id;
 
+			if (vendor_id < 1)
+				continue;
+
 			if (quest_id == 0)
 				quest_id = vendor_id;
 
@@ -103,6 +109,10 @@ void Quest_Use(Character *character, PacketReader &reader)
 				{
 					// WARNING: holds a non-tracked reference to shared_ptr
 					Quest* quest = it->second.get();
+
+					if (quest->Disabled())
+						continue;
+
 					Quest_Context* context = new Quest_Context(character, quest);
 					character->quests.insert(std::make_pair(it->first, context));
 					context->SetState("begin");
@@ -147,12 +157,14 @@ void Quest_Accept(Character *character, PacketReader &reader)
 			}
 		}
 
-		if (quest)
+		if (quest && !quest->GetQuest()->Disabled())
 		{
 			bool result = action ? quest->DialogInput(action) : quest->TalkedNPC(vendor_id);
+
+			// Run dialog for next quest state
 			quest = character->GetQuest(quest_id);
 
-			if (result && quest && !quest->Finished() && character->npc)
+			if (result && quest && !quest->GetQuest()->Disabled() && !quest->Finished() && character->npc)
 			{
 				open_quest_dialog(character, character->npc, quest_id, vendor_id);
 			}
@@ -176,7 +188,7 @@ void Quest_List(Character *character, PacketReader &reader)
 		case QUEST_PAGE_PROGRESS:
 			UTIL_CFOREACH(character->quests, q)
 			{
-				if (!q.second->Finished() && q.second->GetQuest()->GetQuest()->info.hidden != EOPlus::Info::Hidden)
+				if (!q.second->Finished() && !q.second->GetQuest()->Disabled() && q.second->GetQuest()->GetQuest()->info.hidden != EOPlus::Info::Hidden)
 					reserve += 9 + q.second->GetQuest()->GetQuest()->info.name.length() + q.second->Desc().length();
 			}
 
@@ -184,7 +196,7 @@ void Quest_List(Character *character, PacketReader &reader)
 
 			UTIL_CFOREACH(character->quests, q)
 			{
-				if (q.second->Finished() || q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::Hidden)
+				if (q.second->Finished() || q.second->GetQuest()->Disabled() || q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::Hidden)
 					continue;
 
 				Quest_Context::ProgressInfo progress = q.second->Progress();
