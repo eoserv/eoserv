@@ -15,6 +15,8 @@
 #include "util.hpp"
 
 PacketProcessor::PacketProcessor()
+	: emulti_e(0)
+	, emulti_d(0)
 {
 
 }
@@ -130,7 +132,7 @@ std::string PacketProcessor::Decode(const std::string &str)
 	int i = 0;
 	int ii = 0;
 
-	if ((unsigned char)str[1] == PACKET_F_INIT)
+	if (emulti_d == 0 || (unsigned char)str[1] == PACKET_F_INIT)
 		return str;
 
 	newstr.resize(length);
@@ -177,7 +179,7 @@ std::string PacketProcessor::Encode(const std::string &rawstr)
 	int i = 2;
 	int ii = 2;
 
-	if ((unsigned char)str[3] == PACKET_F_INIT)
+	if (emulti_e == 0 || (unsigned char)str[3] == PACKET_F_INIT)
 		return str;
 
 	newstr.resize(length);
