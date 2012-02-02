@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "util.hpp"
+#include "util/variant.hpp"
 
 /**
  * Generic Database exception type

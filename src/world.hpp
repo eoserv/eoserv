@@ -21,7 +21,7 @@
 #include "i18n.hpp"
 #include "map.hpp"
 #include "timer.hpp"
-#include "util.hpp"
+#include "util/secure_string.hpp"
 
 #include "fwd/character.hpp"
 #include "fwd/command_source.hpp"

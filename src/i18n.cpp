@@ -6,9 +6,9 @@
 
 #include "i18n.hpp"
 
-#include "config.hpp"
+#include "util.hpp"
 
-#include <stdio.h>
+#include "config.hpp"
 
 I18N::I18N()
 { }

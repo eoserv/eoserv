@@ -9,6 +9,8 @@
 #include <cstdio>
 #include <stdexcept>
 
+#include "util.hpp"
+
 #include "console.hpp"
 
 Config::Config(std::string filename)

@@ -13,6 +13,9 @@
 #include <string>
 #include <vector>
 
+#include "util.hpp"
+#include "util/rpn.hpp"
+
 #include "character.hpp"
 #include "config.hpp"
 #include "console.hpp"

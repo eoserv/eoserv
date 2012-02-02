@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "util.hpp"
+#include "util/secure_string.hpp"
 
 #include "fwd/character.hpp"
 #include "fwd/eoclient.hpp"

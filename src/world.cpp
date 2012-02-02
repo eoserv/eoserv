@@ -836,10 +836,8 @@ void World::ReloadQuests()
 	// Check new quest rules
 	UTIL_CFOREACH(this->characters, c)
 	{
-		UTIL_CFOREACH(c->quests, q)
-		{
-			q.second->CheckRules();
-		}
+		// TODO: If a character is removed by a quest rule...
+		c->CheckQuestRules();
 	}
 
 	Console::Out("%i quests loaded.", this->quests.size());

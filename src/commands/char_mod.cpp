@@ -148,7 +148,7 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 
 			if (!stats && !skillpoints)
 			{
-				UTIL_FOREACH(victim->quests, q) { q.second->CheckRules(); }
+				victim->CheckQuestRules();
 			}
 		}
 	}

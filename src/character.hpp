@@ -250,6 +250,7 @@ class Character : public Command_Source
 		short SpawnMap();
 		unsigned char SpawnX();
 		unsigned char SpawnY();
+		void CheckQuestRules();
 		void CalculateStats();
 		void DropAll(Character *killer);
 		void Hide();

@@ -12,6 +12,7 @@
 #include <iterator>
 
 #include "util.hpp"
+#include "util/rpn.hpp"
 
 #include "character.hpp"
 #include "config.hpp"
@@ -548,9 +549,7 @@ static bool rpn_char_eval(std::deque<util::variant>&& dq, Character* character)
 {
 	std::reverse(UTIL_RANGE(dq));
 	std::stack<util::variant> s(std::move(dq));
-	std::unordered_map<std::string, double> formula_vars;
-	character->FormulaVars(formula_vars);
-	return bool(rpn_eval(s, formula_vars));
+	return rpn_char_eval(std::move(s), character);
 }
 
 bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
@@ -623,7 +622,7 @@ bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 	}
 	else if (function_name == "statnot")
 	{
-		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "=", 1.0, "-"}, character);
+		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "="}, character);
 	}
 	else if (function_name == "statgreater")
 	{
@@ -635,7 +634,7 @@ bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 	}
 	else if (function_name == "statbetween")
 	{
-		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "gte", rule.expr.args[0], rule.expr.args[2], "lte", "&"}, character);
+		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "gte", rule.expr.args[2], rule.expr.args[0], "lte", "&"}, character);
 	}
 	else if (function_name == "statrpn")
 	{

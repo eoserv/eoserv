@@ -278,6 +278,11 @@
 		<Unit filename="..\src\timer.hpp" />
 		<Unit filename="..\src\util.cpp" />
 		<Unit filename="..\src\util.hpp" />
+		<Unit filename="..\src\util\rpn.cpp" />
+		<Unit filename="..\src\util\rpn.hpp" />
+		<Unit filename="..\src\util\secure_string.hpp" />
+		<Unit filename="..\src\util\variant.cpp" />
+		<Unit filename="..\src\util\variant.hpp" />
 		<Unit filename="..\src\version.h" />
 		<Unit filename="..\src\world.cpp" />
 		<Unit filename="..\src\world.hpp" />

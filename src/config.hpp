@@ -13,7 +13,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "util.hpp"
+#include "util/variant.hpp"
 
 /**
  * Reads configuration data from a file.

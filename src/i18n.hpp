@@ -8,10 +8,12 @@
 #define I18N_HPP_INCLUDED
 
 #include <memory>
+#include <utility>
+#include <vector>
 
 #include "fwd/config.hpp"
 
-#include "util.hpp"
+#include "util/variant.hpp"
 
 class I18N
 {

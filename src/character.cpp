@@ -15,6 +15,7 @@
 #include <unordered_map>
 
 #include "util.hpp"
+#include "util/rpn.hpp"
 
 #include "arena.hpp"
 #include "console.hpp"
@@ -760,7 +761,7 @@ bool Character::AddSpell(short spell)
 
 	this->spells.push_back(Character_Spell(spell, 0));
 
-	UTIL_FOREACH(this->quests, q) { q.second->CheckRules(); }
+	this->CheckQuestRules();
 
 	return true;
 }
@@ -771,7 +772,7 @@ bool Character::DelSpell(short spell)
 	bool removed = (remove_it != this->spells.end());
 	this->spells.erase(remove_it, this->spells.end());
 
-	UTIL_FOREACH(this->quests, q) { q.second->CheckRules(); }
+	this->CheckQuestRules();
 
 	return removed;
 }
@@ -1329,6 +1330,17 @@ unsigned char Character::SpawnY()
 	return this->world->GetHome(this)->y;
 }
 
+void Character::CheckQuestRules()
+{
+	restart_loop:
+
+	UTIL_FOREACH(this->quests, q)
+	{
+		if (q.second->CheckRules())
+			goto restart_loop;
+	}
+}
+
 void Character::CalculateStats()
 {
 	ECF_Data *ecf = world->ecf->Get(this->clas);
@@ -1430,8 +1442,6 @@ void Character::CalculateStats()
 	{
 		this->party->UpdateHP(this);
 	}
-
-	UTIL_FOREACH(this->quests, q) { q.second->CheckRules(); }
 }
 
 void Character::DropAll(Character *killer)

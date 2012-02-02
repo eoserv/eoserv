@@ -9,13 +9,13 @@
 
 #include "fwd/context.hpp"
 
-#include "../util.hpp"
-
-#include "../fwd/eoplus.hpp"
-
 #include <deque>
 #include <memory>
 #include <string>
+
+#include "../util/variant.hpp"
+
+#include "../fwd/eoplus.hpp"
 
 namespace EOPlus
 {
@@ -47,7 +47,7 @@ namespace EOPlus
 			bool TriggerRule(std::string rule);
 			bool TriggerRule(std::string rule, std::function<bool(const std::deque<util::variant>&)> arg_check);
 
-			void CheckRules();
+			bool CheckRules();
 
 			virtual ~Context();
 	};

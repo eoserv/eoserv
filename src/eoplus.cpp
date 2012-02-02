@@ -12,6 +12,8 @@
 #include "eoplus/lex.hpp"
 #include "eoplus/parse.hpp"
 
+#include "util.hpp"
+
 namespace EOPlus
 {
 	const OperatorInfo op_info_table[19] = {

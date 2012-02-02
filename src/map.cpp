@@ -12,6 +12,7 @@
 #include "console.hpp"
 #include "timer.hpp"
 #include "util.hpp"
+#include "util/rpn.hpp"
 
 #include "arena.hpp"
 #include "character.hpp"
@@ -733,7 +734,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 		checkcharacter->Send(builder);
 	}
 
-	UTIL_FOREACH(character->quests, q) { q.second->CheckRules(); }
+	character->CheckQuestRules();
 }
 
 void Map::Leave(Character *character, WarpAnimation animation, bool silent)
@@ -1158,7 +1159,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		npc->RemoveFromView(from);
 	}
 
-	UTIL_FOREACH(from->quests, q) { q.second->CheckRules(); }
+	from->CheckQuestRules();
 
 	return true;
 }

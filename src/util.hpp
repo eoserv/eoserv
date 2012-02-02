@@ -11,8 +11,6 @@
 #include <array>
 #include <iterator>
 #include <string>
-#include <stack>
-#include <unordered_map>
 #include <vector>
 
 /**
@@ -42,253 +40,27 @@ template <class T, size_t N> inline const T* cend(T(&a)[N]) { return a + N; }
 #define UTIL_RANGE(c) (util::begin(c)), (util::end(c))
 #define UTIL_CRANGE(c) (util::cbegin(c)), (util::cend(c))
 
-#define UTIL_FOREACH_GENERIC(begin, end, as) \
-	if (int _util_continue_ = 1) \
-		for (auto _util_it_ = begin; _util_it_ != end && _util_continue_--; ++_util_it_) \
-				for (auto as = *_util_it_; !_util_continue_; _util_continue_ = 1)
+template <class IT, class ITE> struct foreach_helper
+{
+	IT it;
+	ITE end;
+	int cont;
 
-#define UTIL_FOREACH(c, as) UTIL_FOREACH_GENERIC(util::begin(c), util::end(c), as)
-#define UTIL_CFOREACH(c, as) UTIL_FOREACH_GENERIC(util::cbegin(c),util::cend(c), as)
+	bool clause() { return cont-- && it != end; }
+	void act()    { if (cont) ++it; }
+};
+
+#define UTIL_FOREACH_GENERIC(begin, end, as) \
+	for (util::foreach_helper<decltype((begin)), decltype((end))> _util_fe_{(begin), (end), 1}; _util_fe_.clause(); _util_fe_.act()) \
+		for (auto as = *_util_fe_.it; !_util_fe_.cont; _util_fe_.cont = 1)
+
+#define UTIL_FOREACH(c, as) UTIL_FOREACH_GENERIC(util::begin((c)), util::end((c)), as)
+#define UTIL_CFOREACH(c, as) UTIL_FOREACH_GENERIC(util::cbegin((c)),util::cend((c)), as)
 #define UTIL_RANGE_FOREACH(begin, end, as) UTIL_FOREACH_GENERIC(begin, end, as)
 
-#define UTIL_IFOREACH(c, as) for (auto as = util::begin(c); as != util::end(c); ++as)
-#define UTIL_CIFOREACH(c, as) for (auto as = util::cbegin(c); as != util::cend(c); ++as)
+#define UTIL_IFOREACH(c, as) for (auto as = util::begin((c)); as != util::end((c)); ++as)
+#define UTIL_CIFOREACH(c, as) for (auto as = util::cbegin((c)); as != util::cend((c)); ++as)
 #define UTIL_RANGE_IFOREACH(begin, end, as) for (auto as = (begin); as != (end); ++as)
-
-/**
- * A type that can store any numeric/string value and convert between them.
- * It takes way too much effort to use, so it's only used by the Config class.
- */
-class variant
-{
-	protected:
-		/**
-		 * Value stored as an integer.
-		 */
-		mutable int val_int;
-
-		/**
-		 * Value stored as a float.
-		 */
-		mutable double val_float;
-
-		/**
-		 * Value stored as a string.
-		 */
-		mutable std::string val_string;
-
-		/**
-		 * Value stored as a bool.
-		 */
-		mutable bool val_bool;
-
-		enum var_type
-		{
-			type_int,
-			type_float,
-			type_string,
-			type_bool
-		};
-
-		mutable bool cache_val[4];
-
-		/**
-		 * Current type the value is stored as.
-		 * Accessing as this type will need no conversion.
-		 */
-		var_type type;
-
-		/**
-		 * Invalidates the cache values and changes the type.
-		 */
-		void SetType(var_type);
-
-		/**
-		 * Helper function that returns the string length of a number in decimal format.
-		 */
-		static int int_length(int);
-
-	public:
-		/**
-		 * Return the value as an integer, casting if neccessary.
-		 */
-		int GetInt() const;
-
-		/**
-		 * Return the value as a float, casting if neccessary.
-		 */
-		double GetFloat() const;
-
-		/**
-		 * Return the value as a string, casting if neccessary.
-		 */
-		std::string GetString() const;
-
-		/**
-		 * Return the value as a bool, casting if neccessary.
-		 */
-		bool GetBool() const;
-
-		/**
-		 * Set the value to an integer.
-		 */
-		variant &SetInt(int);
-
-		/**
-		 * Set the value to a float.
-		 */
-		variant &SetFloat(double);
-
-		/**
-		 * Set the value to a string.
-		 */
-		variant &SetString(const std::string &);
-
-		/**
-		 * Set the value to a bool.
-		 */
-		variant &SetBool(bool);
-
-		/**
-		 * Initialize the variant to an integer with the value 0.
-		 */
-		variant();
-
-		/**
-		 * Initialize the variant to an integer with the specified value.
-		 */
-		variant(int);
-
-		/**
-		 * Initialize the variant to a float with the specified value.
-		 */
-		variant(double);
-
-		/**
-		 * Initialize the variant to a string with the specified value.
-		 */
-		variant(const std::string &);
-
-		/**
-		 * Initialize the variant to a string with the specified value.
-		 */
-		variant(const char *);
-
-		/**
-		 * Initialize the variant to a bool with the specified value.
-		 */
-		variant(bool);
-
-		/**
-		 * Set the value to an integer.
-		 */
-		variant &operator =(int);
-
-		/**
-		 * Set the value to a float.
-		 */
-		variant &operator =(double);
-
-		/**
-		 * Set the value to a string.
-		 */
-		variant &operator =(const std::string &);
-
-		/**
-		 * Set the value to a string.
-		 */
-		variant &operator =(const char *);
-
-		/**
-		 * Set the value to a bool.
-		 */
-		variant &operator =(bool);
-
-		/**
-		 * Return the value as an integer, casting if neccessary.
-		 */
-		operator int() const { return this->GetInt(); }
-
-		/**
-		 * Return the value as a float, casting if neccessary.
-		 */
-		operator double() const { return this->GetFloat(); }
-
-		/**
-		 * Return the value as a string, casting if neccessary.
-		 */
-		operator std::string() const { return this->GetString(); }
-
-		/**
-		 * Return the value as an boolean, casting if neccessary.
-		 */
-		operator bool() const { return this->GetBool(); }
-};
-
-/**
- * A string wrapper which automatically nulls out it's memory buffer when
- * destroyed or overwritten
- */
-struct secure_string
-{
-	private:
-		std::string str_;
-
-	public:
-		secure_string(std::string&& s)
-			: str_(s)
-		{
-			std::fill(UTIL_RANGE(s), '\0');
-			s.erase();
-		}
-
-		secure_string(const secure_string& other)
-		{
-			erase();
-			this->str_ = other.str_;
-		}
-
-		secure_string& operator =(const secure_string& rhs)
-		{
-			erase();
-			this->str_ = rhs.str_;
-			return *this;
-		}
-
-		secure_string& operator =(secure_string&& rhs)
-		{
-			erase();
-			this->str_ = rhs.str_;
-			rhs.erase();
-			return *this;
-		}
-
-		secure_string& operator =(std::string&& rhs)
-		{
-			erase();
-			this->str_ = rhs;
-			std::fill(UTIL_RANGE(rhs), '\0');
-			rhs.erase();
-			return *this;
-		}
-
-		void erase()
-		{
-			std::fill(UTIL_RANGE(this->str_), '\0');
-			this->str_.erase();
-		}
-
-		/// Make sure nothing copies or mutates this string!
-		const std::string& str()
-		{
-			return this->str_;
-		}
-
-		~secure_string()
-		{
-			erase();
-		}
-};
 
 /**
  * Trims whitespace from the left of a string.
@@ -319,19 +91,11 @@ std::vector<std::string> explode(char delimiter, std::string);
 std::vector<std::string> explode(std::string delimiter, std::string);
 
 /**
- * Alternate name for variant.
- */
-typedef variant var;
-
-/**
  * Parse a string time period to a number
  * @param timestr amount of time in a human readable format (eg. 2h30m)
  * @return number of seconds
  */
 double tdparse(std::string timestr);
-
-std::stack<util::variant> rpn_parse(std::string expr);
-double rpn_eval(std::stack<util::variant>, std::unordered_map<std::string, double> vars);
 
 int to_int(const std::string &);
 unsigned int to_uint_raw(const std::string &);
@@ -363,7 +127,7 @@ std::string text_word_wrap(std::string string, int width);
 /**
  * Finds the distance IN TILES between a pair of x,y coordinates
  */
-inline int path_length(int x1, int y1, int x2, int y2)
+static inline int path_length(int x1, int y1, int x2, int y2)
 {
 	int dx = std::abs(x1 - x2);
 	int dy = std::abs(y1 - y2);

@@ -65,9 +65,12 @@ namespace EOPlus
 				UTIL_CFOREACH(this->state->actions, action)
 				{
 					if (this->DoAction(action))
-						break;
+					{
+						// *this may not be valid here
+						--recursive_depth;
+						return;
+					}
 				}
-
 			}
 			catch (...)
 			{
@@ -127,6 +130,7 @@ namespace EOPlus
 			if (check_rule.expr.function == rule && arg_check(check_rule.expr.args))
 			{
 				this->DoAction(check_rule.action);
+				// *this may not be valid here
 				return true;
 			}
 		}
@@ -134,7 +138,7 @@ namespace EOPlus
 		return false;
 	}
 
-	void Context::CheckRules()
+	bool Context::CheckRules()
 	{
 		if (!this->state)
 			throw std::runtime_error("No state selected");
@@ -152,7 +156,11 @@ namespace EOPlus
 				if (this->CheckRule(rule))
 				{
 					if (this->DoAction(rule.action))
-						break;
+					{
+						// *this may not be valid here
+						--recursive_depth;
+						return true;
+					}
 				}
 			}
 		}
@@ -163,6 +171,8 @@ namespace EOPlus
 		}
 
 		--recursive_depth;
+
+		return false;
 	}
 
 	Context::~Context()

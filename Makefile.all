@@ -107,7 +107,9 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/handlers/Trade.o \
        $(OBJDIR)/handlers/Walk.o \
        $(OBJDIR)/handlers/Warp.o \
-       $(OBJDIR)/handlers/Welcome.o
+       $(OBJDIR)/handlers/Welcome.o \
+       $(OBJDIR)/util/rpn.o \
+       $(OBJDIR)/util/variant.o
 
 ifeq ($(MYSQL),1)
 	LIBS += $(MYSQL_LIB)
@@ -141,6 +143,7 @@ create-build-dirs:
 	-@mkdir $(OBJDIR)/eoplus
 	-@mkdir $(OBJDIR)/extra
 	-@mkdir $(OBJDIR)/handlers
+	-@mkdir $(OBJDIR)/util
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) -c $< -o $@ $(CFLAGS)

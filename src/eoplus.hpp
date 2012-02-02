@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "util.hpp"
+#include "util/variant.hpp"
 
 namespace EOPlus
 {
