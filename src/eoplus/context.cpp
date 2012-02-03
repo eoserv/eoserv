@@ -141,7 +141,12 @@ namespace EOPlus
 	bool Context::CheckRules()
 	{
 		if (!this->state)
-			throw std::runtime_error("No state selected");
+		{
+			if (this->finished)
+				return false;
+			else
+				throw std::runtime_error("No state selected");
+		}
 
 		if (++recursive_depth > max_recursion)
 		{
