@@ -146,7 +146,7 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 				victim->Send(builder);
 			}
 
-			if (!stats && !skillpoints)
+			if (!stats && !skillpoints && !appearance)
 			{
 				victim->CheckQuestRules();
 			}

@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <functional>
 #include <fstream>
 #include <iterator>
 
@@ -76,7 +77,7 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		{"quake", {0, 1}},
 		{"quakeworld", {0, 1}},
 
-		{"setmap", 3},
+		{"setmap", 3}, // Alias for SetCoord
 		{"setcoord", 3},
 		{"playsound", 1},
 		{"giveexp", 1},
@@ -85,7 +86,16 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		{"setclass", 1},
 		{"setrace", 1},
 		{"removekarma", 1},
-		{"givekarma", 1}
+		{"givekarma", 1},
+
+		{"settitle", 1},
+		{"setfiance", 1},
+		{"setpartner", 1},
+		{"sethome", 1},
+
+		{"setstat", 2},
+		{"givestat", 2},
+		{"removestat", 2},
 	};
 
 	static std::map<std::string, info_t> rule_argument_info{
@@ -114,6 +124,8 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		{"gotspell", {1, 2}},
 		{"lostspell", 1},
 		{"usedspell", {1, 2}},
+
+		{"citizenof", 1},
 
 		// Only needed until expression support is added
 		{"statis", 2},
@@ -180,6 +192,104 @@ static void validate_quest(const EOPlus::Quest& quest)
 	{
 		validate_state(quest, it->first, it->second);
 	}
+}
+
+static bool modify_stat(std::string name, std::function<int(int)> f, Character* victim)
+{
+	bool appearance = false;
+	bool level = false;
+	bool stats = false;
+	bool karma = false;
+
+	bool statpoints = false;
+	bool skillpoints = false;
+
+		 if (name == "level") (level = true, victim->level) = util::clamp<int>(f(victim->level), 0, victim->world->config["MaxLevel"]);
+	else if (name == "exp")   (level = true, victim->exp)   = util::clamp<int>(f(victim->exp),   0, victim->world->config["MaxEXP"]);
+	else if (name == "str")   (stats = true, victim->str)   = util::clamp<int>(f(victim->str),   0, victim->world->config["MaxStat"]);
+	else if (name == "int")   (stats = true, victim->intl)  = util::clamp<int>(f(victim->intl),  0, victim->world->config["MaxStat"]);
+	else if (name == "wis")   (stats = true, victim->wis)   = util::clamp<int>(f(victim->wis),   0, victim->world->config["MaxStat"]);
+	else if (name == "agi")   (stats = true, victim->agi)   = util::clamp<int>(f(victim->agi),   0, victim->world->config["MaxStat"]);
+	else if (name == "con")   (stats = true, victim->con)   = util::clamp<int>(f(victim->con),   0, victim->world->config["MaxStat"]);
+	else if (name == "cha")   (stats = true, victim->cha)   = util::clamp<int>(f(victim->cha),   0, victim->world->config["MaxStat"]);
+	else if (name == "statpoints")  (statpoints = true,  victim->statpoints)  = util::clamp<int>(f(victim->statpoints),  0, int(victim->world->config["MaxLevel"]) * int(victim->world->config["StatPerLevel"]));
+	else if (name == "skillpoints") (skillpoints = true, victim->skillpoints) = util::clamp<int>(f(victim->skillpoints), 0, int(victim->world->config["MaxLevel"]) * int(victim->world->config["SkillPerLevel"]));
+	else if (name == "admin")
+	{
+		AdminLevel level = util::clamp<AdminLevel>(AdminLevel(f(victim->admin)), ADMIN_PLAYER, ADMIN_HGM);
+
+		if (level == ADMIN_PLAYER && victim->admin != ADMIN_PLAYER)
+			victim->world->DecAdminCount();
+		else if (level != ADMIN_PLAYER && victim->admin == ADMIN_PLAYER)
+			victim->world->IncAdminCount();
+
+		victim->admin = level;
+	}
+	else if (name == "gender")    (appearance = true, victim->gender)    = util::clamp<Gender>(Gender(f(victim->gender)), Gender(0), Gender(1));
+	else if (name == "hairstyle") (appearance = true, victim->hairstyle) = util::clamp<int>(f(victim->hairstyle),         0, victim->world->config["MaxHairStyle"]);
+	else if (name == "haircolor") (appearance = true, victim->haircolor) = util::clamp<int>(f(victim->haircolor),         0, victim->world->config["MaxHairColor"]);
+	else if (name == "race")      (appearance = true, victim->race)      = util::clamp<Skin>(Skin(f(victim->race)),       Skin(0), Skin(int(victim->world->config["MaxSkin"])));
+	else if (name == "guildrank") victim->guild_rank = util::clamp<int>(f(victim->guild_rank), 0, 9);
+	else if (name == "karma") (karma = true, victim->karma) = util::clamp<int>(f(victim->karma), 0, 2000);
+	else if (name == "class") (stats = true, victim->clas)  = util::clamp<int>(f(victim->clas),  0, victim->world->ecf->data.size() - 1);
+	else return false;
+
+	// Easiest way to get the character to update on everyone nearby's screen
+	if (appearance)
+		victim->Warp(victim->map->id, victim->x, victim->y);
+
+	// TODO: Good way of updating skillpoints
+	(void)skillpoints;
+
+	if (stats || statpoints)
+	{
+		victim->CalculateStats();
+
+		PacketBuilder builder(PACKET_RECOVER, PACKET_LIST, 32);
+
+		if (statpoints)
+		{
+			builder.SetID(PACKET_STATSKILL, PACKET_PLAYER);
+			builder.AddShort(victim->statpoints);
+		}
+		else
+		{
+			builder.AddShort(victim->clas);
+		}
+
+		builder.AddShort(victim->display_str);
+		builder.AddShort(victim->display_intl);
+		builder.AddShort(victim->display_wis);
+		builder.AddShort(victim->display_agi);
+		builder.AddShort(victim->display_con);
+		builder.AddShort(victim->display_cha);
+		builder.AddShort(victim->maxhp);
+		builder.AddShort(victim->maxtp);
+		builder.AddShort(victim->maxsp);
+		builder.AddShort(victim->maxweight);
+		builder.AddShort(victim->mindam);
+		builder.AddShort(victim->maxdam);
+		builder.AddShort(victim->accuracy);
+		builder.AddShort(victim->evade);
+		builder.AddShort(victim->armor);
+		victim->Send(builder);
+	}
+
+	if (karma || level)
+	{
+		PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY, 7);
+		builder.AddInt(victim->exp);
+		builder.AddShort(victim->karma);
+		builder.AddChar(level ? victim->level : 0);
+		victim->Send(builder);
+	}
+
+	if (!stats && !skillpoints && !appearance)
+	{
+		victim->CheckQuestRules();
+	}
+
+	return true;
 }
 
 Quest::Quest(short id, World* world)
@@ -534,6 +644,46 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 		builder.AddChar(0);
 		this->character->Send(builder);
 	}
+	else if (function_name == "settitle")
+	{
+		this->character->title = std::string(action.expr.args[0]);
+	}
+	else if (function_name == "setfiance")
+	{
+		this->character->fiance = std::string(action.expr.args[0]);
+	}
+	else if (function_name == "setpartner")
+	{
+		this->character->partner = std::string(action.expr.args[0]);
+	}
+	else if (function_name == "sethome")
+	{
+		this->character->home = std::string(action.expr.args[0]);
+	}
+	else if (function_name == "setstat")
+	{
+		std::string stat = action.expr.args[0];
+		int value = action.expr.args[1];
+
+		if (!modify_stat(stat, [value](int) { return value; }, this->character))
+			throw EOPlus::Runtime_Error("Unknown stat: " + stat);
+	}
+	else if (function_name == "givestat")
+	{
+		std::string stat = action.expr.args[0];
+		int value = action.expr.args[1];
+
+		if (!modify_stat(stat, [value](int x) { return x + value; }, this->character))
+			throw EOPlus::Runtime_Error("Unknown stat: " + stat);
+	}
+	else if (function_name == "removestat")
+	{
+		std::string stat = action.expr.args[0];
+		int value = action.expr.args[1];
+
+		if (!modify_stat(stat, [value](int x) { return x - value; }, this->character))
+			throw EOPlus::Runtime_Error("Unknown stat: " + stat);
+	}
 
 	return false;
 }
@@ -616,6 +766,10 @@ bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 	{
 		return std::find(UTIL_CRANGE(this->character->paperdoll), int(rule.expr.args[0])) != this->character->paperdoll.end();
 	}
+	else if (function_name == "citizenof")
+	{
+		return this->character->home == std::string(rule.expr.args[0]);
+	}
 	else if (function_name == "statis")
 	{
 		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "="}, character);
@@ -697,13 +851,13 @@ Quest_Context::ProgressInfo Quest_Context::Progress() const
 		{
 			icon = BOOK_ICON_ITEM;
 			goal_progress_key = goal->expr.function + "/" + std::string(goal->expr.args[0]);
-			goal_goal = int(goal->expr.args[1]);
+			goal_goal = goal->expr.args.size() >= 2 ? int(goal->expr.args[1]) : 1;
 		}
 		else if (goal->expr.function == "killednpcs")
 		{
 			icon = BOOK_ICON_KILL;
 			goal_progress_key = goal->expr.function + "/" + std::string(goal->expr.args[0]);
-			goal_goal = int(goal->expr.args[1]);
+			goal_goal = goal->expr.args.size() >= 2 ? int(goal->expr.args[1]) : 1;
 		}
 		else if (goal->expr.function == "killedplayers")
 		{

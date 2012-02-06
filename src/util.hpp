@@ -135,6 +135,11 @@ static inline int path_length(int x1, int y1, int x2, int y2)
 	return dx + dy;
 }
 
+template <class T> T clamp(const T& val, const T& min, const T& max)
+{
+	return std::min<T>(std::max<T>(val, min), max);
+}
+
 }
 
 #endif // UTIL_HPP_INCLUDED
