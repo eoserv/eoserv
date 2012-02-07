@@ -566,7 +566,7 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 			{
 				PacketBuilder builder(PACKET_ITEM, PACKET_OBTAIN, 6);
 				builder.AddShort(id);
-				builder.AddThree(this->character->HasItem(id));
+				builder.AddThree(amount);
 				builder.AddChar(this->character->weight);
 				this->character->Send(builder);
 			}
@@ -702,12 +702,12 @@ static bool rpn_char_eval(std::deque<util::variant>&& dq, Character* character)
 	return rpn_char_eval(std::move(s), character);
 }
 
-bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
+bool Quest_Context::CheckRule(const EOPlus::Expression& expr)
 {
 	if (this->quest->Disabled())
 		return false;
 
-	std::string function_name = rule.expr.function;
+	std::string function_name = expr.function;
 
 	if (function_name == "always")
 	{
@@ -715,84 +715,84 @@ bool Quest_Context::CheckRule(const EOPlus::Rule& rule)
 	}
 	else if (function_name == "entermap")
 	{
-		return this->character->map->id == int(rule.expr.args[0]);
+		return this->character->map->id == int(expr.args[0]);
 	}
 	else if (function_name == "entercoord")
 	{
-		return this->character->map->id == int(rule.expr.args[0])
-		    && this->character->x == int(rule.expr.args[1])
-		    && this->character->y == int(rule.expr.args[2]);
+		return this->character->map->id == int(expr.args[0])
+		    && this->character->x == int(expr.args[1])
+		    && this->character->y == int(expr.args[2]);
 	}
 	else if (function_name == "leavemap")
 	{
-		return this->character->map->id != int(rule.expr.args[0]);
+		return this->character->map->id != int(expr.args[0]);
 	}
 	else if (function_name == "leavecoord")
 	{
-		return this->character->map->id != int(rule.expr.args[0])
-		    || this->character->x != int(rule.expr.args[1])
-		    || this->character->y != int(rule.expr.args[2]);
+		return this->character->map->id != int(expr.args[0])
+		    || this->character->x != int(expr.args[1])
+		    || this->character->y != int(expr.args[2]);
 	}
 	else if (function_name == "gotitems")
 	{
-		return this->character->HasItem(int(rule.expr.args[0])) >= (rule.expr.args.size() >= 2 ? int(rule.expr.args[1]) : 1);
+		return this->character->HasItem(int(expr.args[0])) >= (expr.args.size() >= 2 ? int(expr.args[1]) : 1);
 	}
 	else if (function_name == "lostitems")
 	{
-		return this->character->HasItem(int(rule.expr.args[0])) < (rule.expr.args.size() >= 2 ? int(rule.expr.args[1]) : 1);
+		return this->character->HasItem(int(expr.args[0])) < (expr.args.size() >= 2 ? int(expr.args[1]) : 1);
 	}
 	else if (function_name == "gotspell")
 	{
-		return this->character->HasSpell(int(rule.expr.args[0]))
-		    && (rule.expr.args.size() < 2 || this->character->SpellLevel(int(rule.expr.args[0])) >= int(rule.expr.args[1]));
+		return this->character->HasSpell(int(expr.args[0]))
+		    && (expr.args.size() < 2 || this->character->SpellLevel(int(expr.args[0])) >= int(expr.args[1]));
 	}
 	else if (function_name == "lostspell")
 	{
-		return !this->character->HasItem(int(rule.expr.args[0]));
+		return !this->character->HasItem(int(expr.args[0]));
 	}
 	else if (function_name == "isgender")
 	{
-		return this->character->gender == Gender(int(rule.expr.args[0]));
+		return this->character->gender == Gender(int(expr.args[0]));
 	}
 	else if (function_name == "isclass")
 	{
-		return this->character->clas == int(rule.expr.args[0]);
+		return this->character->clas == int(expr.args[0]);
 	}
 	else if (function_name == "israce")
 	{
-		return this->character->race == int(rule.expr.args[0]);
+		return this->character->race == int(expr.args[0]);
 	}
 	else if (function_name == "iswearing")
 	{
-		return std::find(UTIL_CRANGE(this->character->paperdoll), int(rule.expr.args[0])) != this->character->paperdoll.end();
+		return std::find(UTIL_CRANGE(this->character->paperdoll), int(expr.args[0])) != this->character->paperdoll.end();
 	}
 	else if (function_name == "citizenof")
 	{
-		return this->character->home == std::string(rule.expr.args[0]);
+		return this->character->home == std::string(expr.args[0]);
 	}
 	else if (function_name == "statis")
 	{
-		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "="}, character);
+		return rpn_char_eval({expr.args[1], expr.args[0], "="}, character);
 	}
 	else if (function_name == "statnot")
 	{
-		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "="}, character);
+		return rpn_char_eval({expr.args[1], expr.args[0], "="}, character);
 	}
 	else if (function_name == "statgreater")
 	{
-		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], ">"}, character);
+		return rpn_char_eval({expr.args[1], expr.args[0], ">"}, character);
 	}
 	else if (function_name == "statless")
 	{
-		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "<"}, character);
+		return rpn_char_eval({expr.args[1], expr.args[0], "<"}, character);
 	}
 	else if (function_name == "statbetween")
 	{
-		return rpn_char_eval({rule.expr.args[1], rule.expr.args[0], "gte", rule.expr.args[2], rule.expr.args[0], "lte", "&"}, character);
+		return rpn_char_eval({expr.args[1], expr.args[0], "gte", expr.args[2], expr.args[0], "lte", "&"}, character);
 	}
 	else if (function_name == "statrpn")
 	{
-		return rpn_char_eval(rpn_parse(rule.expr.args[0]), character);
+		return rpn_char_eval(rpn_parse(expr.args[0]), character);
 	}
 
 	return false;

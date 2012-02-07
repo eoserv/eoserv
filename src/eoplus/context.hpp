@@ -29,13 +29,15 @@ namespace EOPlus
 		protected:
 			virtual void BeginState(const std::string& name, const State& state) = 0;
 			virtual bool DoAction(const Action& action) = 0;
-			virtual bool CheckRule(const Rule& rule) = 0;
+			virtual bool CheckRule(const Expression& expr) = 0;
 
 		public:
 			Context(const Quest* quest);
 
 			const State* GetState() const;
 			void SetState(const std::string& state, bool do_actions = true);
+
+			void DoActions();
 
 			const Rule* GetGoal() const;
 

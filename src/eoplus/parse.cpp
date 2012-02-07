@@ -284,6 +284,7 @@ namespace EOPlus
 	Action Parser::ParseAction()
 	{
 		Action action;
+		action.cond = Action::None;
 		action.expr = this->ParseExpression();
 		return action;
 	}
@@ -311,6 +312,30 @@ namespace EOPlus
 				else if (std::string(t.data) == "action")
 				{
 					actions.push_back(this->ParseAction());
+				}
+				else if (std::string(t.data) == "if")
+				{
+					Rule rule = this->ParseRule();
+					Action action;
+					action.cond = Action::If;
+					action.cond_expr = rule.expr;
+					action.expr = rule.action.expr;
+					actions.push_back(action);
+				}
+				else if (std::string(t.data) == "elseif" || std::string(t.data) == "elif")
+				{
+					Rule rule = this->ParseRule();
+					Action action;
+					action.cond = Action::ElseIf;
+					action.cond_expr = rule.expr;
+					action.expr = rule.action.expr;
+					actions.push_back(action);
+				}
+				else if (std::string(t.data) == "else")
+				{
+					Action action = this->ParseAction();
+					action.cond = Action::Else;
+					actions.push_back(action);
 				}
 				else
 				{
@@ -340,7 +365,7 @@ namespace EOPlus
 		}
 
 		// PARSER_ERROR_GOT("Expected rule-action-block entry (rule/action) or closing brace '}'.")
-		error_handler("rule/action");
+		error_handler("rule/action/if/elseif/else");
 	}
 
 	Info Parser::ParseMain()

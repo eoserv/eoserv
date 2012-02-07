@@ -89,6 +89,17 @@ namespace EOPlus
 
 	struct Action
 	{
+		enum ConditionalType
+		{
+			None,
+			If,
+			Else,
+			ElseIf
+		};
+
+		ConditionalType cond;
+		Expression cond_expr;
+
 		Expression expr;
 	};
 

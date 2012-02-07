@@ -53,34 +53,68 @@ namespace EOPlus
 		this->BeginState(state, *this->state);
 
 		if (do_actions)
-		{
-			if (++recursive_depth > max_recursion)
-			{
-				--recursive_depth;
-				throw std::runtime_error("Quest action recursion too deep");
-			}
+			this->DoActions();
+	}
 
-			try
+	void Context::DoActions()
+	{
+		if (!this->state)
+		{
+			if (this->finished)
+				return;
+			else
+				throw std::runtime_error("No state selected");
+		}
+
+		if (++recursive_depth > max_recursion)
+		{
+			--recursive_depth;
+			throw std::runtime_error("Quest action recursion too deep");
+		}
+
+		try
+		{
+			auto do_action = [&](const EOPlus::Action& action)
 			{
-				UTIL_CFOREACH(this->state->actions, action)
+				if (this->DoAction(action))
 				{
-					if (this->DoAction(action))
-					{
-						// *this may not be valid here
-						--recursive_depth;
-						return;
-					}
+					// *this may not be valid here
+					--recursive_depth;
+					return;
+				}
+			};
+
+			bool last_cond = false;
+
+			UTIL_CFOREACH(this->state->actions, action)
+			{
+				if (action.cond == EOPlus::Action::ElseIf || action.cond == EOPlus::Action::Else)
+				{
+					if (last_cond)
+						continue;
+				}
+
+				if (action.cond == EOPlus::Action::If || action.cond == EOPlus::Action::ElseIf)
+				{
+					last_cond = this->CheckRule(action.cond_expr);
+
+					if (last_cond)
+						do_action(action);
+				}
+				else
+				{
+					do_action(action);
 				}
 			}
-			catch (...)
-			{
-				--recursive_depth;
-				throw;
-			}
-
-			--recursive_depth;
-			this->CheckRules();
 		}
+		catch (...)
+		{
+			--recursive_depth;
+			throw;
+		}
+
+		--recursive_depth;
+		this->CheckRules();
 	}
 
 	const Rule* Context::GetGoal() const
@@ -158,7 +192,7 @@ namespace EOPlus
 		{
 			UTIL_CFOREACH(this->state->rules, rule)
 			{
-				if (this->CheckRule(rule))
+				if (this->CheckRule(rule.expr))
 				{
 					if (this->DoAction(rule.action))
 					{

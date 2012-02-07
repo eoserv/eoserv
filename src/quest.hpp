@@ -61,7 +61,7 @@ class Quest_Context : public EOPlus::Context
 	protected:
 		void BeginState(const std::string& name, const EOPlus::State& state);
 		bool DoAction(const EOPlus::Action& action);
-		bool CheckRule(const EOPlus::Rule& rule);
+		bool CheckRule(const EOPlus::Expression& expr);
 
 	public:
 		Quest_Context(Character* character, const Quest* quest);
