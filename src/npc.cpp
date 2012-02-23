@@ -526,7 +526,9 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 	}
 
 	this->hp -= amount;
-	this->totaldamage += limitamount;
+	
+	if (this->totaldamage + limitamount > this->totaldamage)
+		this->totaldamage += limitamount;
 
 	NPC_Opponent *opponent(new NPC_Opponent);
 	bool found = false;
@@ -536,7 +538,10 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		if (checkopp->attacker == from)
 		{
 			found = true;
-			checkopp->damage += limitamount;
+
+			if (checkopp->damage + limitamount > checkopp->damage)
+				checkopp->damage += limitamount;
+
 			checkopp->last_hit = Timer::GetTime();
 		}
 	}

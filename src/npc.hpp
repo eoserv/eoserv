@@ -25,7 +25,7 @@
 struct NPC_Opponent
 {
 	Character *attacker;
-	unsigned short damage;
+	int damage;
 	double last_hit;
 };
 
