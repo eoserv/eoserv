@@ -1446,10 +1446,13 @@ void Character::CalculateStats()
 
 void Character::DropAll(Character *killer)
 {
-	for (std::list<Character_Item>::iterator it = this->inventory.begin(); it != this->inventory.end(); ++it)
+	std::list<Character_Item>::iterator it = this->inventory.begin();
+
+	while (it != this->inventory.end())
 	{
 		if (this->world->eif->Get(it->id)->special == EIF::Lore)
 		{
+			++it;
 			continue;
 		}
 
@@ -1479,9 +1482,10 @@ void Character::DropAll(Character *killer)
 			builder.AddChar(this->maxweight);
 			this->player->Send(builder);
 		}
+		
+		it = this->inventory.erase(it);
 	}
 
-	this->inventory.clear();
 	this->CalculateStats();
 
 	int i = 0;
