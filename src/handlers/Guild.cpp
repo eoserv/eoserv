@@ -29,8 +29,7 @@ void Guild_Request(Character *character, PacketReader &reader)
 	std::string tag = reader.GetBreakString();
 	std::string name = reader.GetBreakString();
 
-	if (tag.length() > 3
-	 || name.length() > std::size_t(int(character->world->config["GuildMaxNameLength"])))
+	if (tag.length() > 3 || name.length() > std::size_t(int(character->world->config["GuildMaxNameLength"])))
 	{
 		return;
 	}
@@ -184,11 +183,13 @@ void Guild_Agree(Character *character, PacketReader &reader)
 				{
 					if (character->guild_rank <= static_cast<int>(character->world->config["GuildEditRank"]))
 					{
+						decltype(character->guild->ranks) new_ranks(character->guild->ranks);
+
 						for (std::size_t i = 0; i < character->guild->ranks.size(); ++i)
 						{
-							std::string rank = reader.GetEndString();
+							new_ranks[i] = reader.GetBreakString();
 
-							if (rank.length() > std::size_t(int(character->world->config["GuildMaxRankLength"])))
+							if (new_ranks[i].length() > std::size_t(int(character->world->config["GuildMaxRankLength"])))
 							{
 								return;
 							}
@@ -196,8 +197,10 @@ void Guild_Agree(Character *character, PacketReader &reader)
 
 						for (std::size_t i = 0; i < character->guild->ranks.size(); ++i)
 						{
-							character->guild->ranks[i] = reader.GetBreakString();
+							character->guild->ranks[i] = new_ranks[i];
 						}
+						
+						character->guild->needs_save = true;
 
 						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
 						reply.AddShort(GUILD_RANKS_UPDATED);
@@ -267,8 +270,7 @@ void Guild_Player(Character *character, PacketReader &reader)
 	std::string tag = util::uppercase(reader.GetBreakString());
 	std::string recruiter_name = util::lowercase(reader.GetBreakString());
 
-	if (tag.length() > 3
-	 || recruiter_name.length() > 12)
+	if (tag.length() > 3 || recruiter_name.length() > 12)
 	{
 		return;
 	}
@@ -693,8 +695,7 @@ void Guild_Rank(Character *character, PacketReader &reader)
 	int rank = reader.GetChar();
 	std::string name = util::lowercase(reader.GetEndString());
 
-	if (rank < 0 || rank > 10
-	 || name.length() > 12)
+	if (rank < 0 || rank > 10 || name.length() > 12)
 	{
 		return;
 	}
@@ -729,19 +730,19 @@ void Guild_Rank(Character *character, PacketReader &reader)
 
 					if (rank <= target->rank)
 					{
-						has_perm = has_perm || (character->guild_rank <= static_cast<int>(character->world->config["GuildPromoteRank"]));
+						has_perm = has_perm || (character->guild_rank <= int(character->world->config["GuildPromoteRank"]));
 					}
-
-					if (rank >= target->rank)
+					else if (rank >= target->rank)
 					{
-						has_perm = has_perm || (character->guild_rank <= static_cast<int>(character->world->config["GuildDemoteRank"]));
+						has_perm = has_perm || (character->guild_rank <= int(character->world->config["GuildDemoteRank"]));
 					}
 
 					if (has_perm)
 					{
-						if (character->guild_rank == 0 || character->guild_rank < target->rank)
+						if (character->guild_rank == 0 || character->guild_rank < target->rank )
 						{
-							if (rank > character->guild_rank)
+							if (rank > character->guild_rank
+							 || (character->guild_rank <= int(character->world->config["GuildPromoteSameRank"]) && character->guild_rank <= rank))
 							{
 								character->guild->SetMemberRank(target->name, rank);
 								PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
