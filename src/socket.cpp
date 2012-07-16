@@ -105,7 +105,7 @@ IPAddress::IPAddress(unsigned char o1, unsigned char o2, unsigned char o3, unsig
 IPAddress IPAddress::Lookup(std::string host)
 {
 	addrinfo hints;
-	addrinfo *ai;
+	addrinfo *ai = 0;
 	IPAddress ipaddr;
 
 	std::memset(&hints, 0, sizeof(hints));
@@ -122,7 +122,8 @@ IPAddress IPAddress::Lookup(std::string host)
 		ipaddr.address = ntohl(reinterpret_cast<sockaddr_in *>(ai->ai_addr)->sin_addr.s_addr);
 	}
 
-	freeaddrinfo(ai);
+	if (ai)
+		freeaddrinfo(ai);
 
 	return ipaddr;
 }
