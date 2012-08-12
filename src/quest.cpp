@@ -431,8 +431,8 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 			{
 				// WARNING: holds a non-tracked reference to shared_ptr
 				Quest* quest = it->second.get();
-				Quest_Context* context = new Quest_Context(this->character, quest);
-				this->character->quests.insert(std::make_pair(it->first, context));
+				auto context = std::make_shared<Quest_Context>(this->character, quest);
+				this->character->quests.insert({it->first, context});
 				context->SetState(action.expr.args.size() >= 2 ? std::string(action.expr.args[1]) : "begin");
 			}
 		}

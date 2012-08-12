@@ -433,8 +433,8 @@ void Character::Login()
 
 			if (!quest->Disabled())
 			{
-				Quest_Context* context = new Quest_Context(this, quest);
-				this->quests.insert(std::make_pair(it->first, context));
+				auto context = std::make_shared<Quest_Context>(this, quest);
+				this->quests.insert({it->first, context});
 				context->SetState("begin");
 			}
 		}
@@ -1482,7 +1482,7 @@ void Character::DropAll(Character *killer)
 			builder.AddChar(this->maxweight);
 			this->player->Send(builder);
 		}
-		
+
 		it = this->inventory.erase(it);
 	}
 

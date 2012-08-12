@@ -73,7 +73,7 @@ void ResetTextColor(Stream stream)
 	if (Styled[stream]) SetTextColor(stream, color, bold); \
 	va_list args; \
 	va_start(args, f); \
-	std::vfprintf((stream == STREAM_OUT) ? stdout : stderr, (std::string("["prefix"] ") + f + "\n").c_str(), args); \
+	std::vfprintf((stream == STREAM_OUT) ? stdout : stderr, (std::string("[" prefix "] ") + f + "\n").c_str(), args); \
 	va_end(args); \
 	if (Styled[stream]) ResetTextColor(stream);
 

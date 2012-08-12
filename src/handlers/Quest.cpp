@@ -113,8 +113,8 @@ void Quest_Use(Character *character, PacketReader &reader)
 					if (quest->Disabled())
 						continue;
 
-					Quest_Context* context = new Quest_Context(character, quest);
-					character->quests.insert(std::make_pair(it->first, context));
+					auto context = std::make_shared<Quest_Context>(character, quest);
+					character->quests.insert({it->first, context});
 					context->SetState("begin");
 				}
 			}
