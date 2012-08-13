@@ -21,7 +21,7 @@ static void safe_fail(int line)
 }
 
 #define SAFE_SEEK(fh, offset, from) if (std::fseek(fh, offset, from) != 0) { std::fclose(fh); safe_fail(__LINE__); }
-#define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<int>(count)) { std::fclose(fh); safe_fail(__LINE__); }
+#define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<std::size_t>(count)) { std::fclose(fh); safe_fail(__LINE__); }
 
 void EIF::Read(std::string filename)
 {

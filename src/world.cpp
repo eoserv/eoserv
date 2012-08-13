@@ -770,7 +770,7 @@ void World::ReloadQuests()
 	// Back up character quest states
 	UTIL_CFOREACH(this->characters, c)
 	{
-		auto result = backup.insert(std::pair<std::string, std::deque<backup_t>>(c->name, {}));
+		auto result = backup.insert(std::pair<std::string, std::deque<backup_t>>(c->name, std::deque<backup_t>()));
 
 		if (!result.second)
 			throw std::runtime_error("Failed to back up quest contexts");

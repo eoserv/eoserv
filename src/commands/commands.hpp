@@ -7,6 +7,7 @@
 #ifndef COMMANDS_HPP_INCLUDED
 #define COMMANDS_HPP_INCLUDED
 
+#include <initializer_list>
 #include <map>
 #include <set>
 #include <string>
@@ -33,6 +34,16 @@ namespace { struct COMMAND_HANDLER_PASTE_AUX(command_handler_register_helper_, _
 namespace Commands
 {
 
+template <class T> struct empty_vector_init
+{
+	std::vector<T> v;
+	empty_vector_init() { }
+	empty_vector_init(std::initializer_list<T> args) : v(args) { }
+	empty_vector_init(empty_vector_init&&) = default;
+	empty_vector_init& operator=(empty_vector_init&&) = default;
+	operator std::vector<T>&&() { return std::move(v); }
+};
+
 struct command_info
 {
 	std::string name;
@@ -41,7 +52,7 @@ struct command_info
 	std::size_t partial_min_chars;
 	bool require_character;
 
-	command_info(std::string name, std::vector<std::string> arguments = std::vector<std::string>(), std::vector<std::string> optional_arguments = std::vector<std::string>(), std::size_t partial_min_chars = 0)
+	command_info(std::string name, empty_vector_init<std::string> arguments = {}, empty_vector_init<std::string> optional_arguments = {}, std::size_t partial_min_chars = 0)
 		: name(name)
 		, arguments(arguments)
 		, optional_arguments(optional_arguments)

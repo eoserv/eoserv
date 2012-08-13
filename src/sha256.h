@@ -24,31 +24,29 @@
 #ifndef SHA256_H_INCLUDED
 #define SHA256_H_INCLUDED
 
-#include <limits.h>
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
-#if UINT_MAX >= 0xFFFFFFFF
-#define u32 unsigned int
-#define u32_max 0xFFFFFFFFU
-#else
-#define u32 unsigned long
-#define u32_max 0xFFFFFFFFLU
-#endif
-#define u16 unsigned short
-#define u8 unsigned char
+#include <stddef.h>
+#include <stdint.h>
 
-#define u16_max 0xFFFFU
-#define u8_max 0xFFU
+#define SHA256_BLOCK_SIZE 64
+#define SHA256_HASH_SIZE 8
 
 typedef struct sha256_context
 {
-	u32 h[8];
-	u8 buf[64];
-	u32 length[2];
+	uint32_t h[SHA256_HASH_SIZE];
+	char buf[SHA256_BLOCK_SIZE];
+	uint64_t length;
 } sha256_context;
 
 void sha256_start(sha256_context *ctx);
-void sha256_update(sha256_context *ctx, const u8 *input, unsigned long length);
-void sha256_finish(sha256_context *ctx, u8 digest[32]);
+void sha256_update(sha256_context *ctx, const char *input, uint64_t length);
+void sha256_finish(sha256_context *ctx, char digest[SHA256_HASH_SIZE * 4]);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* SHA256_H_INCLUDED */
-

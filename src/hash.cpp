@@ -14,11 +14,11 @@ extern "C"
 std::string sha256(const std::string& str)
 {
 	sha256_context ctx;
-	unsigned char digest[32];
+	char digest[32];
 	char cdigest[64];
 
 	sha256_start(&ctx);
-	sha256_update(&ctx, reinterpret_cast<const u8 *>(str.c_str()), str.length());
+	sha256_update(&ctx, str.c_str(), str.length());
 	sha256_finish(&ctx, digest);
 
 	for (int i = 0; i < 32; ++i)

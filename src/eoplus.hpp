@@ -183,6 +183,11 @@ namespace EOPlus
 				, col_(col_)
 			{ }
 
+			int line() const
+			{
+				return line_;
+			}
+
 			int col() const
 			{
 				return col_;
@@ -198,6 +203,11 @@ namespace EOPlus
 			Parser_Error(const std::string &what_, int line_)
 				: Syntax_Error(what_, line_)
 			{ }
+
+			int line() const
+			{
+				return line_;
+			}
 	};
 
 	struct Runtime_Error : public std::runtime_error

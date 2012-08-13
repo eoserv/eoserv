@@ -30,8 +30,8 @@ class Socket_Exception : public std::exception
 		const char *err;
 	public:
 		Socket_Exception(const char *e) : err(e) {};
-		const char *error() { return err; };
-		virtual const char *what() { return "Socket_Exception"; }
+		const char *error()  const noexcept { return err; };
+		virtual const char *what() const noexcept { return "Socket_Exception"; }
 };
 
 /**
@@ -41,7 +41,7 @@ class Socket_InitFailed : public Socket_Exception
 {
 	public:
 		Socket_InitFailed(const char *e) : Socket_Exception(e) {}
-		const char *what() { return "Socket_InitFailed"; }
+		const char *what() const noexcept { return "Socket_InitFailed"; }
 };
 
 /**
@@ -51,7 +51,7 @@ class Socket_BindFailed : public Socket_Exception
 {
 	public:
 		Socket_BindFailed(const char *e) : Socket_Exception(e) {}
-		const char *what() { return "Socket_BindFailed"; }
+		const char *what() const noexcept { return "Socket_BindFailed"; }
 };
 
 /**
@@ -61,7 +61,7 @@ class Socket_ListenFailed : public Socket_Exception
 {
 	public:
 		Socket_ListenFailed(const char *e) : Socket_Exception(e) {}
-		const char *what() { return "Socket_ListenFailed"; }
+		const char *what() const noexcept { return "Socket_ListenFailed"; }
 };
 
 /**
@@ -71,7 +71,7 @@ class Socket_SelectFailed : public Socket_Exception
 {
 	public:
 		Socket_SelectFailed(const char *e) : Socket_Exception(e) {}
-		const char *what() { return "Socket_SelectFailed"; }
+		const char *what() const noexcept { return "Socket_SelectFailed"; }
 };
 
 /**
