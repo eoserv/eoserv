@@ -66,21 +66,24 @@ void EOClient::Tick()
 
 		if (upload_available != 0)
 		{
-			std::string buf;
-			buf.resize(upload_available);
-			upload_available = std::fread(&buf[0], 1, upload_available, this->upload_fh);
-			buf.resize(upload_available);
+			upload_available = std::fread(&this->send_buffer[this->send_buffer_ppos + 1], 1, upload_available, this->upload_fh);
 
 			// Dynamically rewrite the bytes of the map to enable PK
 			if (this->upload_type == FILE_MAP && this->server()->world->config["GlobalPK"] && !this->server()->world->PKExcept(player->character->mapid))
 			{
-				if (this->upload_pos <= 0x03 && this->upload_pos + upload_available > 0x03) buf[0x03 - this->upload_pos] = 0xFF;
-				if (this->upload_pos <= 0x03 && this->upload_pos + upload_available > 0x04) buf[0x04 - this->upload_pos] = 0x01;
-				if (this->upload_pos <= 0x1F && this->upload_pos + upload_available > 0x1F) buf[0x1F - this->upload_pos] = 0x04;
+				if (this->upload_pos <= 0x03 && this->upload_pos + upload_available > 0x03)
+					this->send_buffer[this->send_buffer_ppos + 0x03 - this->upload_pos] = 0xFF;
+
+				if (this->upload_pos <= 0x03 && this->upload_pos + upload_available > 0x04)
+					this->send_buffer[this->send_buffer_ppos + 0x04 - this->upload_pos] = 0x01;
+
+				if (this->upload_pos <= 0x1F && this->upload_pos + upload_available > 0x1F)
+					this->send_buffer[this->send_buffer_ppos + 0x1F - this->upload_pos] = 0x04;
 			}
 
-			Client::Send(buf);
 			this->upload_pos += upload_available;
+			this->send_buffer_ppos += upload_available;
+			this->send_buffer_used += upload_available;
 		}
 		else if (this->upload_pos == this->upload_size && this->SendBufferRemaining() == this->send_buffer.length())
 		{
@@ -226,7 +229,13 @@ bool EOClient::Upload(FileType type, const std::string &filename, InitReply init
 
 	std::fseek(this->upload_fh, 0, SEEK_SET);
 
-	this->send_buffer2.resize(this->send_buffer.size());
+	std::size_t temp_buffer_size = this->send_buffer.size();
+
+	// Allocate a power-of-two buffer size large enough to hold the file
+	while (temp_buffer_size < this->upload_size + 6)
+		temp_buffer_size *= 2;
+
+	this->send_buffer2.resize(temp_buffer_size);
 	this->send_buffer2_gpos = 0;
 	this->send_buffer2_ppos = 0;
 	this->send_buffer2_used = 0;
@@ -252,33 +261,7 @@ bool EOClient::Upload(FileType type, const std::string &filename, InitReply init
 
 void EOClient::Send(const PacketBuilder &builder)
 {
-	std::string data(builder);
-
-	data = this->processor.Encode(data);
-
-	if (this->upload_fh)
-	{
-		// Stick any incoming data in to our temporary buffer
-		if (data.length() > this->send_buffer2.length() - this->send_buffer_used)
-		{
-			this->Close(true);
-			return;
-		}
-
-		const std::size_t mask = this->send_buffer2.length() - 1;
-
-		for (std::size_t i = 0; i < data.length(); ++i)
-		{
-			this->send_buffer2_ppos = (this->send_buffer2_ppos + 1) & mask;
-			this->send_buffer2[this->send_buffer2_ppos] = data[i];
-		}
-
-		this->send_buffer2_used += data.length();
-	}
-	else
-	{
-		Client::Send(data);
-	}
+	Client::Send(this->processor.Encode(builder));
 }
 
 EOClient::~EOClient()
