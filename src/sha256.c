@@ -75,7 +75,9 @@ static inline uint32_t rr32(uint32_t x, int y)
 
 void sha256_start(sha256_context *ctx)
 {
-	for (size_t i = 0; i < HASH_SIZE; ++i)
+	size_t i;
+
+	for (i = 0; i < HASH_SIZE; ++i)
 	{
 		ctx->h[i] = h[i];
 	}
@@ -190,7 +192,9 @@ void sha256_finish(sha256_context *ctx, char digest[HASH_SIZE * 4])
 
 	if (digest)
 	{
-		for (size_t i = 0; i < 8; ++i)
+		size_t i;
+
+		for (i = 0; i < 8; ++i)
 		{
 			unpack_u32((char *)(digest + i * 4), ctx->h[i]);
 		}

@@ -815,13 +815,16 @@ void World::ReloadQuests()
 
 		UTIL_CFOREACH(it->second, q)
 		{
-			Quest* quest = this->quests[q.quest_id].get();
+			auto quest_it = this->quests.find(q.quest_id);
 
-			if (!quest)
+			if (quest_it == this->quests.end())
 			{
 				Console::Wrn("Quest not found: %i", q.quest_id);
 				continue;
 			}
+
+			// WARNING: holds a non-tracked reference to shared_ptr
+			Quest* quest = quest_it->second.get();
 
 			auto result = c->quests.insert(std::make_pair(q.quest_id, std::make_shared<Quest_Context>(c, quest)));
 

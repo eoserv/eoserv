@@ -238,18 +238,21 @@ void QuestUnserialize(std::string serialized, Character* character)
 		state.quest_state = part.substr(pp1 + 1, pp2 - pp1 - 1);;
 		state.quest_progress = part.substr(pp2 + 1);
 
-		Quest* quest = character->world->quests[state.quest_id].get();
+		auto quest_it = character->world->quests.find(state.quest_id);
 
-		if (!quest)
+		if (quest_it == character->world->quests.end())
 		{
 			// Console::Wrn("Quest not found: %i", quest_id);
-			// Store it in a non-activate state so we don't have to deleted the data
 
+			// Store it in a non-activate state so we don't have to deleted the data
 			if (!character->quests_inactive.insert(std::move(state)).second)
 				Console::Wrn("Duplicate inactive quest record: %i", state.quest_id);
 
 			continue;
 		}
+
+		// WARNING: holds a non-tracked reference to shared_ptr
+		Quest* quest = quest_it->second.get();
 
 		auto result = character->quests.insert(std::make_pair(state.quest_id, std::make_shared<Quest_Context>(character, quest)));
 
