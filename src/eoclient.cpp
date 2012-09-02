@@ -72,13 +72,13 @@ void EOClient::Tick()
 			if (this->upload_type == FILE_MAP && this->server()->world->config["GlobalPK"] && !this->server()->world->PKExcept(player->character->mapid))
 			{
 				if (this->upload_pos <= 0x03 && this->upload_pos + upload_available > 0x03)
-					this->send_buffer[this->send_buffer_ppos + 0x03 - this->upload_pos] = 0xFF;
+					this->send_buffer[this->send_buffer_ppos + 1 + 0x03 - this->upload_pos] = 0xFF;
 
 				if (this->upload_pos <= 0x03 && this->upload_pos + upload_available > 0x04)
-					this->send_buffer[this->send_buffer_ppos + 0x04 - this->upload_pos] = 0x01;
+					this->send_buffer[this->send_buffer_ppos + 1 + 0x04 - this->upload_pos] = 0x01;
 
 				if (this->upload_pos <= 0x1F && this->upload_pos + upload_available > 0x1F)
-					this->send_buffer[this->send_buffer_ppos + 0x1F - this->upload_pos] = 0x04;
+					this->send_buffer[this->send_buffer_ppos + 1 + 0x1F - this->upload_pos] = 0x04;
 			}
 
 			this->upload_pos += upload_available;
