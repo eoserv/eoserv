@@ -29,7 +29,16 @@
 #include "quest.hpp"
 #include "world.hpp"
 
-static const double speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
+static double speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
+
+void NPC::SetSpeedTable(std::array<double, 7> speeds)
+{
+	for (std::size_t i = 0; i < 7; ++i)
+	{
+		if (speeds[i] != 0.0)
+			speed_table[i] = speeds[i];
+	}
+}
 
 NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index, bool temporary)
 {
@@ -526,7 +535,7 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 	}
 
 	this->hp -= amount;
-	
+
 	if (this->totaldamage + limitamount > this->totaldamage)
 		this->totaldamage += limitamount;
 

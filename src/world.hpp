@@ -74,6 +74,8 @@ class World
 	protected:
 		int last_character_id;
 
+		void UpdateConfig();
+
 	public:
 		Timer timer;
 

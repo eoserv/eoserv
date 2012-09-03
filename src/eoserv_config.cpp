@@ -197,6 +197,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "BaseMaxDamage"      , 1);
 	eoserv_config_default(config, "BaseDamageAtZero"   , true);
 	eoserv_config_default(config, "SilentMute"         , true);
+	eoserv_config_default(config, "NPCMovementRate"    , "0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0");
 	eoserv_config_default(config, "DoorTimer"          , 3.0);
 	eoserv_config_default(config, "ChatMaxWidth"       , 1500);
 	eoserv_config_default(config, "AccountMinLength"   , 4);
@@ -218,6 +219,9 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "BaseBankSize"       , 25);
 	eoserv_config_default(config, "BankSizeStep"       , 5);
 	eoserv_config_default(config, "MaxBankUpgrades"    , 7);
+	eoserv_config_default(config, "PacketRateFace"     , 0.09);
+	eoserv_config_default(config, "PacketRateWalk"     , 0.46);
+	eoserv_config_default(config, "PacketRateAttack"   , 0.58);
 	eoserv_config_default(config, "MaxTile"            , 8);
 	eoserv_config_default(config, "MaxMap"             , 400);
 	eoserv_config_default(config, "MaxTrade"           , 2000000000);

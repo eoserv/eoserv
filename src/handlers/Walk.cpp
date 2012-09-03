@@ -66,7 +66,7 @@ static void walk_common(Character *character, PacketReader &reader, bool (Charac
 // Player walking (admin)
 void Walk_Admin(Character *character, PacketReader &reader)
 {
-	if (character->admin < ADMIN_GUARDIAN)
+	if (character->admin < int(character->world->admin_config["nowall"]))
 		return;
 
 	walk_common(character, reader, &Character::AdminWalk);

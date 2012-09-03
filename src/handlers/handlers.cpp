@@ -126,6 +126,14 @@ void packet_handler_register::Handle(PacketFamily family, PacketAction action, E
 	}
 }
 
+void packet_handler_register::SetDelay(PacketFamily family, PacketAction action, double delay)
+{
+	if (handlers[(unsigned char)family][(unsigned char)action])
+	{
+		handlers[(unsigned char)family][(unsigned char)action].delay = delay;
+	}
+}
+
 packet_handler_register *packet_handler_register_instance;
 
 void packet_handler_register_init::init() const

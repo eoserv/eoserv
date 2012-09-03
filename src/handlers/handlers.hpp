@@ -99,6 +99,8 @@ class packet_handler_register
 		static bool StateCheck(EOClient *client, unsigned short allow_states);
 
 		void Handle(PacketFamily family, PacketAction action, EOClient *client, PacketReader &reader, bool from_queue = false) const;
+
+		void SetDelay(PacketFamily family, PacketAction action, double delay);
 };
 
 extern packet_handler_register *packet_handler_register_instance;
@@ -148,6 +150,11 @@ template <PacketFamily family> class packet_handler_register_helper
 inline void Handle(PacketFamily family, PacketAction action, EOClient *client, PacketReader &reader, bool from_queue = false)
 {
 	packet_handler_register_instance->Handle(family, action, client, reader, from_queue);
+}
+
+inline void SetDelay(PacketFamily family, PacketAction action, double delay)
+{
+	packet_handler_register_instance->SetDelay(family, action, delay);
 }
 
 }

@@ -126,6 +126,8 @@ class NPC
 		Map *map;
 		unsigned char index;
 
+		static void SetSpeedTable(std::array<double, 7> speeds);
+
 		NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index, bool temporary = false);
 		void LoadShopDrop();
 

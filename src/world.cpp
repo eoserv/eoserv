@@ -32,6 +32,7 @@
 #include "player.hpp"
 #include "quest.hpp"
 #include "commands/commands.hpp"
+#include "handlers/handlers.hpp"
 
 void world_spawn_npcs(void *world_void)
 {
@@ -237,6 +238,32 @@ void world_timed_save(void *world_void)
 	world->guildmanager->SaveAll();
 }
 
+void World::UpdateConfig()
+{
+	double rate_face = this->config["PacketRateFace"];
+	double rate_walk = this->config["PacketRateWalk"];
+	double rate_attack = this->config["PacketRateAttack"];
+
+	Handlers::SetDelay(PACKET_FACE, PACKET_PLAYER, rate_face);
+
+	Handlers::SetDelay(PACKET_WALK, PACKET_ADMIN, rate_walk);
+	Handlers::SetDelay(PACKET_WALK, PACKET_PLAYER, rate_walk);
+	Handlers::SetDelay(PACKET_WALK, PACKET_SPEC, rate_walk);
+
+	Handlers::SetDelay(PACKET_ATTACK, PACKET_USE, rate_attack);
+
+	std::array<double, 7> npc_speed_table;
+
+	std::vector<std::string> rate_list = util::explode(',', this->config["NPCMovementRate"]);
+
+	for (std::size_t i = 0; i < std::min<std::size_t>(7, rate_list.size()); ++i)
+	{
+		npc_speed_table[i] = util::tdparse(rate_list[i]);
+	}
+
+	NPC::SetSpeedTable(npc_speed_table);
+}
+
 World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
 	: i18n(eoserv_config.find("ServerLanguage")->second)
 	, admin_count(0)
@@ -371,6 +398,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 	this->guildmanager = new GuildManager(this);
 
+	this->UpdateConfig();
 	this->LoadHome();
 }
 
@@ -687,6 +715,7 @@ void World::Rehash()
 		Console::Err(e.what());
 	}
 
+	this->UpdateConfig();
 	this->LoadHome();
 
 	UTIL_FOREACH(this->maps, map)
