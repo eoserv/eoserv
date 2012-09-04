@@ -52,7 +52,8 @@ struct command_info
 	std::size_t partial_min_chars;
 	bool require_character;
 
-	command_info(std::string name, empty_vector_init<std::string> arguments = {}, empty_vector_init<std::string> optional_arguments = {}, std::size_t partial_min_chars = 0)
+	command_info(std::string name, empty_vector_init<std::string> arguments = empty_vector_init<std::string>(),
+	             empty_vector_init<std::string> optional_arguments = empty_vector_init<std::string>(), std::size_t partial_min_chars = 0)
 		: name(name)
 		, arguments(arguments)
 		, optional_arguments(optional_arguments)
