@@ -397,31 +397,15 @@ void NPC::Act()
 	unsigned char attacker_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 	unsigned short attacker_damage = 0;
 
-	UTIL_FOREACH(this->damagelist, opponent)
+	if (this->Data()->type == ENF::Passive || this->Data()->type == ENF::Aggressive)
 	{
-		if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
-		{
-			continue;
-		}
-
-		int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
-
-		if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
-		{
-			attacker = opponent->attacker;
-			attacker_damage = opponent->damage;
-			attacker_distance = distance;
-		}
-	}
-
-	if (this->parent)
-	{
-		UTIL_FOREACH(this->parent->damagelist, opponent)
+		UTIL_FOREACH(this->damagelist, opponent)
 		{
 			if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
 			{
 				continue;
 			}
+
 			int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
 
 			if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
@@ -429,6 +413,25 @@ void NPC::Act()
 				attacker = opponent->attacker;
 				attacker_damage = opponent->damage;
 				attacker_distance = distance;
+			}
+		}
+
+		if (this->parent)
+		{
+			UTIL_FOREACH(this->parent->damagelist, opponent)
+			{
+				if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
+				{
+					continue;
+				}
+				int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
+
+				if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
+				{
+					attacker = opponent->attacker;
+					attacker_damage = opponent->damage;
+					attacker_distance = distance;
+				}
 			}
 		}
 	}
@@ -541,7 +544,15 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		amount = limitamount;
 	}
 
-	this->hp -= amount;
+	if (this->Data()->type == ENF::Passive || this->Data()->type == ENF::Aggressive)
+	{
+		this->hp -= amount;
+	}
+	else
+	{
+		this->hp = 0;
+		amount = 0;
+	}
 
 	if (this->totaldamage + limitamount > this->totaldamage)
 		this->totaldamage += limitamount;
