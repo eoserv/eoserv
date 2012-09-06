@@ -197,6 +197,8 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "BaseMaxDamage"      , 1);
 	eoserv_config_default(config, "BaseDamageAtZero"   , true);
 	eoserv_config_default(config, "SilentMute"         , true);
+	eoserv_config_default(config, "CitizenSubscribeAnytime", false);
+	eoserv_config_default(config, "CitizenUnsubscribeAnywhere", false);
 	eoserv_config_default(config, "NPCMovementRate"    , "0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0");
 	eoserv_config_default(config, "DoorTimer"          , 3.0);
 	eoserv_config_default(config, "ChatMaxWidth"       , 1500);

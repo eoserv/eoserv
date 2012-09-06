@@ -37,13 +37,7 @@ void Citizen_Reply(Character *character, PacketReader &reader)
 	answers[1] = reader.GetBreakString();
 	answers[2] = reader.GetEndString();
 
-	Home* home = character->world->GetHome(character);
-	int innkeeper_vend = 0;
-
-	if (home)
-		innkeeper_vend = home->innkeeper_vend;
-
-	if (character->npc_type == ENF::Inn && innkeeper_vend != 0)
+	if (character->npc_type == ENF::Inn && (character->home.size() == 0 || character->world->config["CitizenSubscribeAnytime"]))
 	{
 		int questions_wrong = 0;
 
@@ -77,7 +71,7 @@ void Citizen_Remove(Character *character, PacketReader &reader)
 	{
 		PacketBuilder reply(PACKET_CITIZEN, PACKET_REMOVE, 1);
 
-		if (character->home == character->npc->citizenship->home)
+		if (character->home == character->npc->citizenship->home || character->world->config["CitizenUnsubscribeAnywhere"])
 		{
 			character->home = "";
 			reply.AddChar(UNSUBSCRIBE_UNSUBSCRIBED);
@@ -112,8 +106,13 @@ void Citizen_Open(Character *character, PacketReader &reader)
 			if (home)
 				innkeeper_vend = home->innkeeper_vend;
 
-			reply.AddThree(id);
-			reply.AddChar(innkeeper_vend);
+			reply.AddThree(npc->Data()->vendor_id);
+
+			if (character->world->config["CitizenSubscribeAnytime"] && innkeeper_vend != npc->Data()->vendor_id)
+				reply.AddChar(0);
+			else
+				reply.AddChar(innkeeper_vend);
+
 			reply.AddShort(0); // session (should match global warp ID)
 			reply.AddByte(255);
 			reply.AddBreakString(npc->citizenship->questions[0]);
