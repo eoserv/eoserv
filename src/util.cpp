@@ -272,16 +272,26 @@ std::string ucfirst(std::string subject)
 	return subject;
 }
 
-static void rand_init()
+struct rand_init
 {
-	static bool init = false;
-
-	if (!init)
+	rand_init()
 	{
-		init = true;
+		static bool initialized;
+
+		if (!initialized)
+		{
+			initialized = true;
+			init();
+		}
+	}
+
+	void init() const
+	{
 		std::srand(std::time(0));
 	}
-}
+};
+
+rand_init rand_init_instance;
 
 static unsigned long long_rand()
 {
@@ -298,14 +308,12 @@ static unsigned long long_rand()
 
 int rand(int min, int max)
 {
-	rand_init();
-	return static_cast<int>(double(long_rand()) / 4294967295.0 * double(max - min + 1) + double(min));
+	return int(double(long_rand()) / 4294967296.0 * double(max - min + 1) + double(min));
 }
 
 double rand(double min, double max)
 {
-	rand_init();
-	return double(long_rand()) / 4294967295.0 * (max - min) + min;
+	return double(long_rand()) / 4294967296.0 * (max - min) + min;
 }
 
 double round(double subject)
