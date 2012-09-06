@@ -176,7 +176,7 @@ void Arena::Attack(Character *from, Direction direction)
 				character->Send(builder);
 			}
 
-			if (from->arena->occupants == 1)
+			if (from->arena->occupants == 2)
 			{
 				actions.push_back({from, this->map->id, this->map->relog_x, this->map->relog_y});
 
