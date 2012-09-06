@@ -66,7 +66,7 @@ void Ban(const std::vector<std::string>& arguments, Command_Source* from, bool a
 void Jail(const std::vector<std::string>& arguments, Command_Source* from, bool announce = true)
 {
 	Character* victim = from->SourceWorld()->GetCharacter(arguments[0]);
-	do_punishment(from, victim, std::mem_fn(&World::Kick), announce);
+	do_punishment(from, victim, std::mem_fn(&World::Jail), announce);
 }
 
 void Mute(const std::vector<std::string>& arguments, Command_Source* from, bool announce = true)
@@ -81,9 +81,9 @@ COMMAND_HANDLER_REGISTER()
 	Register({"skick", {"victim"}, {}, 2}, std::bind(Kick, _1, _2, false));
 	Register({"ban", {"victim"}, {"duration"}}, std::bind(Ban, _1, _2, true));
 	Register({"sban", {"victim"}, {"duration"}, 2}, std::bind(Ban, _1, _2, false));
-	Register({"jail", {"victim"}, {}}, std::bind(Jail, _1, _2, false));
+	Register({"jail", {"victim"}, {}}, std::bind(Jail, _1, _2, true));
 	Register({"sjail", {"victim"}, {}, 2}, std::bind(Jail, _1, _2, false));
-	Register({"mute", {"victim"}, {}}, std::bind(Mute, _1, _2, false));
+	Register({"mute", {"victim"}, {}}, std::bind(Mute, _1, _2, true));
 	Register({"smute", {"victim"}, {}, 2}, std::bind(Mute, _1, _2, false));
 
 	RegisterAlias("k", "kick");
