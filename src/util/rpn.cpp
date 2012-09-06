@@ -7,6 +7,7 @@
 #include "rpn.hpp"
 
 #include <cstddef>
+#include <stdexcept>
 
 #include "../util.hpp"
 

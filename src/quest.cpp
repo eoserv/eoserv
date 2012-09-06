@@ -41,7 +41,7 @@ struct Validation_Error : public EOPlus::Runtime_Error
 			return state_;
 		}
 
-		~Validation_Error() noexcept(true)
+		~Validation_Error() noexcept
 		{
 
 		}

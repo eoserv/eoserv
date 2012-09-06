@@ -41,7 +41,7 @@ template <class T> struct empty_vector_init
 	empty_vector_init(std::initializer_list<T> args) : v(args) { }
 	empty_vector_init(empty_vector_init&&) = default;
 	empty_vector_init& operator=(empty_vector_init&&) = default;
-	operator std::vector<T>&&() { return std::move(v); }
+	explicit operator std::vector<T>&&() { return std::move(v); }
 };
 
 struct command_info

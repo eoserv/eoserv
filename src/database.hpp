@@ -13,6 +13,7 @@
 #endif // DATABASE_SQLITE
 #endif // DATABASE_MYSQL
 
+#include <algorithm>
 #include <exception>
 #include <functional>
 #include <memory>
@@ -21,6 +22,8 @@
 #include <vector>
 
 #include "util/variant.hpp"
+
+#include "platform.h"
 
 /**
  * Generic Database exception type

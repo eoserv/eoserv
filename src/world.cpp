@@ -808,7 +808,8 @@ void World::ReloadQuests()
 
 		UTIL_FOREACH(c->quests, q)
 		{
-			it->second.push_back({q.first, q.second->StateName(), q.second->SerializeProgress()});
+			backup_t b{q.first, q.second->StateName(), q.second->SerializeProgress()};
+			it->second.push_back(b);
 		}
 	}
 

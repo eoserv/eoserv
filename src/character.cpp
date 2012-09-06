@@ -1619,7 +1619,7 @@ std::shared_ptr<Quest_Context> Character::GetQuest(short id)
 	auto it = this->quests.find(id);
 
 	if (it == this->quests.end())
-		return 0;
+		return std::shared_ptr<Quest_Context>();
 
 	return it->second;
 }
