@@ -61,8 +61,9 @@ struct Home
 	unsigned char x;
 	unsigned char y;
 	int level;
+	int innkeeper_vend;
 
-	Home() : map(1), x(0), y(0), level(-1) { }
+	Home() : map(1), x(0), y(0), level(-1), innkeeper_vend(0) { }
 };
 
 /**

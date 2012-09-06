@@ -243,6 +243,13 @@ void NPC::LoadShopDrop()
 		{
 			this->citizenship = new NPC_Citizenship;
 			this->citizenship->home = parts[0];
+			Home* home = this->map->world->GetHome(this->citizenship->home);
+
+			if (home)
+				home->innkeeper_vend = this->Data()->vendor_id;
+			else
+				Console::Wrn("innkeeper set on non-existent home");
+
 			goto restart_loop;
 		}
 		else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "question")

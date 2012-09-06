@@ -37,7 +37,13 @@ void Citizen_Reply(Character *character, PacketReader &reader)
 	answers[1] = reader.GetBreakString();
 	answers[2] = reader.GetEndString();
 
-	if (character->npc_type == ENF::Inn)
+	Home* home = character->world->GetHome(character);
+	int innkeeper_vend = 0;
+
+	if (home)
+		innkeeper_vend = home->innkeeper_vend;
+
+	if (character->npc_type == ENF::Inn && innkeeper_vend != 0)
 	{
 		int questions_wrong = 0;
 
@@ -100,10 +106,14 @@ void Citizen_Open(Character *character, PacketReader &reader)
 			PacketBuilder reply(PACKET_CITIZEN, PACKET_OPEN,
 				9 + npc->citizenship->questions[0].length() + npc->citizenship->questions[1].length() + npc->citizenship->questions[2].length());
 
+			Home* home = character->world->GetHome(character);
+			int innkeeper_vend = 0;
+
+			if (home)
+				innkeeper_vend = home->innkeeper_vend;
+
 			reply.AddThree(id);
-			// This should be the id of the town you're a citizen of, but EOSERV
-			// allows homes without linked innkeepers.
-			reply.AddChar(character->world->GetHome(character) ? 0 : 1);
+			reply.AddChar(innkeeper_vend);
 			reply.AddShort(0); // session (should match global warp ID)
 			reply.AddByte(255);
 			reply.AddBreakString(npc->citizenship->questions[0]);
