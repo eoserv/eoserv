@@ -1416,7 +1416,7 @@ void Map::Attack(Character *from, Direction direction)
 
 		UTIL_FOREACH(this->npcs, npc)
 		{
-			if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive || from->admin > static_cast<int>(this->world->admin_config["killnpcs"]))
+			if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive || from->admin >= static_cast<int>(this->world->admin_config["killnpc"]))
 			 && npc->alive && npc->x == target_x && npc->y == target_y)
 			{
 				int amount = util::rand(from->mindam, from->maxdam);
