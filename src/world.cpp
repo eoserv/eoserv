@@ -236,6 +236,12 @@ void world_timed_save(void *world_void)
 	}
 
 	world->guildmanager->SaveAll();
+
+	if (world->config["TimedSave"])
+	{
+		world->db.Commit();
+		world->db.BeginTransaction();
+	}
 }
 
 void World::UpdateConfig()
@@ -381,6 +387,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 	if (this->config["TimedSave"])
 	{
+		this->db.BeginTransaction();
 		event = new TimeEvent(world_timed_save, this, static_cast<double>(this->config["TimedSave"]), Timer::FOREVER);
 		this->timer.Register(event);
 	}
@@ -1241,4 +1248,9 @@ World::~World()
 	}
 
 	delete this->guildmanager;
+
+	if (this->config["TimedSave"])
+	{
+		this->db.Commit();
+	}
 }
