@@ -100,9 +100,11 @@ void Citizen_Open(Character *character, PacketReader &reader)
 			PacketBuilder reply(PACKET_CITIZEN, PACKET_OPEN,
 				9 + npc->citizenship->questions[0].length() + npc->citizenship->questions[1].length() + npc->citizenship->questions[2].length());
 
-			reply.AddShort(id);
-			reply.AddShort(0); // current home ID
-			reply.AddShort(0); // session
+			reply.AddThree(id);
+			// This should be the id of the town you're a citizen of, but EOSERV
+			// allows homes without linked innkeepers.
+			reply.AddChar(character->world->GetHome(character) ? 0 : 1);
+			reply.AddShort(0); // session (should match global warp ID)
 			reply.AddByte(255);
 			reply.AddBreakString(npc->citizenship->questions[0]);
 			reply.AddBreakString(npc->citizenship->questions[1]);
