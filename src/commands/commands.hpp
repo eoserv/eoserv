@@ -39,8 +39,8 @@ template <class T> struct empty_vector_init
 	std::vector<T> v;
 	empty_vector_init() { }
 	empty_vector_init(std::initializer_list<T> args) : v(args) { }
-	empty_vector_init(empty_vector_init&&) = default;
-	empty_vector_init& operator=(empty_vector_init&&) = default;
+	empty_vector_init(empty_vector_init&& other) { v = std::move(other.v); }
+	empty_vector_init& operator=(empty_vector_init&& other) { v = std::move(other.v); }
 	explicit operator std::vector<T>&&() { return std::move(v); }
 };
 
