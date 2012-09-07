@@ -111,7 +111,7 @@ void Item_Use(Character *character, PacketReader &reader)
 				PacketBuilder builder(PACKET_RECOVER, PACKET_AGREE, 7);
 				builder.AddShort(character->player->id);
 				builder.AddInt(hpgain);
-				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+				builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
 
 				UTIL_FOREACH(character->map->characters, updatecharacter)
 				{

@@ -1538,7 +1538,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				from_builder.AddShort(character->player->id);
 				from_builder.AddThree(amount);
 				from_builder.AddChar(from->direction);
-				from_builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+				from_builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
 				from_builder.AddChar(character->hp == 0);
 
 				PacketBuilder builder(PACKET_AVATAR, PACKET_REPLY, 10);
@@ -1546,7 +1546,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 				builder.AddShort(character->player->id);
 				builder.AddThree(amount);
 				builder.AddChar(from->direction);
-				builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+				builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
 				builder.AddChar(character->hp == 0);
 
 				from->Send(from_builder);
@@ -1828,7 +1828,7 @@ void Map::SpellSelf(Character *from, unsigned short spell_id)
 	builder.AddShort(from->player->id);
 	builder.AddShort(spell_id);
 	builder.AddInt(spell->hp);
-	builder.AddChar(int(double(from->hp) / double(from->maxhp) * 100.0));
+	builder.AddChar(util::clamp<int>(double(from->hp) / double(from->maxhp) * 100.0, 0, 100));
 
 	UTIL_FOREACH(this->characters, character)
 	{
@@ -1934,7 +1934,7 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 		builder.AddShort(victim->player->id);
 		builder.AddThree(amount);
 		builder.AddChar(from->direction);
-		builder.AddChar(int(double(victim->hp) / double(victim->maxhp) * 100.0));
+		builder.AddChar(util::clamp<int>(double(victim->hp) / double(victim->maxhp) * 100.0, 0, 100));
 		builder.AddChar(victim->hp == 0);
 		builder.AddShort(spell_id);
 
@@ -2003,7 +2003,7 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 		builder.AddChar(from->direction);
 		builder.AddShort(spell_id);
 		builder.AddInt(spell->hp);
-		builder.AddChar(int(double(victim->hp) / double(victim->maxhp) * 100.0));
+		builder.AddChar(util::clamp<int>(double(victim->hp) / double(victim->maxhp) * 100.0, 0, 100));
 
 		UTIL_FOREACH(this->characters, character)
 		{
@@ -2081,7 +2081,7 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 		builder.AddByte(255);
 
 		builder.AddShort(member->player->id);
-		builder.AddChar(int(double(member->hp) / double(member->maxhp) * 100.0));
+		builder.AddChar(util::clamp<int>(double(member->hp) / double(member->maxhp) * 100.0, 0, 100));
 		builder.AddShort(member->hp);
 
 		UTIL_FOREACH(this->characters, character)

@@ -1411,6 +1411,18 @@ void Character::CalculateStats()
 	this->maxsp += rpn_eval(rpn_parse(this->world->formulas_config["sp"]), formula_vars);
 	this->maxweight = rpn_eval(rpn_parse(this->world->formulas_config["weight"]), formula_vars);
 
+	if (this->hp > this->maxhp || this->tp > this->maxtp)
+	{
+		this->hp = std::min(this->hp, this->maxhp);
+		this->tp = std::min(this->tp, this->maxtp);
+
+		PacketBuilder builder(PACKET_RECOVER, PACKET_PLAYER, 6);
+		builder.AddShort(this->hp);
+		builder.AddShort(this->tp);
+		builder.AddShort(0); // ?
+		this->Send(builder);
+	}
+
 	if (this->maxweight < 70 || this->maxweight > 250)
 	{
 		this->maxweight = 250;

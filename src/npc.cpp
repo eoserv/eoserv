@@ -593,7 +593,7 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		builder.AddChar(from->direction);
 		builder.AddShort(this->index);
 		builder.AddThree(amount);
-		builder.AddShort(int(double(this->hp) / double(this->Data()->hp) * 100.0));
+		builder.AddShort(util::clamp<int>(double(this->hp) / double(this->Data()->hp) * 100.0, 0, 100));
 
 		if (spell_id != -1)
 			builder.AddShort(from->tp);
@@ -1095,7 +1095,7 @@ void NPC::Attack(Character *target)
 	builder.AddChar(this->direction);
 	builder.AddShort(target->player->id);
 	builder.AddThree(amount);
-	builder.AddThree(int(double(target->hp) / double(target->maxhp) * 100.0));
+	builder.AddThree(util::clamp<int>(double(target->hp) / double(target->maxhp) * 100.0, 0, 100));
 	builder.AddByte(255);
 	builder.AddByte(255);
 

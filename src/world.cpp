@@ -81,7 +81,7 @@ void world_recover(void *world_void)
 	{
 		bool updated = false;
 
-		if (character->hp < character->maxhp)
+		if (character->hp != character->maxhp)
 		{
 			if (character->sitting != SIT_STAND) character->hp += character->maxhp * double(world->config["SitHPRecoverRate"]);
 			else                                 character->hp += character->maxhp * double(world->config["HPRecoverRate"]);
@@ -95,7 +95,7 @@ void world_recover(void *world_void)
 			}
 		}
 
-		if (character->tp < character->maxtp)
+		if (character->tp != character->maxtp)
 		{
 			if (character->sitting != SIT_STAND) character->tp += character->maxtp * double(world->config["SitTPRecoverRate"]);
 			else                                 character->tp += character->maxtp * double(world->config["TPRecoverRate"]);

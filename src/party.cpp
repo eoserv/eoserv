@@ -63,7 +63,7 @@ void Party::Join(Character *character)
 	builder.AddShort(character->player->id);
 	builder.AddChar(character == this->leader);
 	builder.AddChar(character->level);
-	builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+	builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
 	builder.AddString(character->name);
 
 	UTIL_FOREACH(this->members, checkcharacter)
@@ -124,7 +124,7 @@ void Party::RefreshMembers(Character *character)
 		builder.AddShort(member->player->id);
 		builder.AddChar(member == this->leader);
 		builder.AddChar(member->level);
-		builder.AddChar(int(double(member->hp) / double(member->maxhp) * 100.0));
+		builder.AddChar(util::clamp<int>(double(member->hp) / double(member->maxhp) * 100.0, 0, 100));
 		builder.AddBreakString(member->name);
 	}
 
@@ -135,7 +135,7 @@ void Party::UpdateHP(Character *character)
 {
 	PacketBuilder builder(PACKET_PARTY, PACKET_AGREE, 3);
 	builder.AddShort(character->player->id);
-	builder.AddChar(int(double(character->hp) / double(character->maxhp) * 100.0));
+	builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
 
 	UTIL_FOREACH(this->members, member)
 	{
