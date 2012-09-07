@@ -28,6 +28,10 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
 	}
+	else if (victim->admin >= from->SourceAccess() && victim != from->SourceCharacter())
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
+	}
 	else
 	{
 		std::string title_string = "";
@@ -49,7 +53,7 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 		bool statpoints = false;
 		bool skillpoints = false;
 
-		     if (set == "level") (level = true, victim->level) = std::min(std::max(util::to_int(arguments[1]), 0), int(from->SourceWorld()->config["MaxLevel"]));
+			 if (set == "level") (level = true, victim->level) = std::min(std::max(util::to_int(arguments[1]), 0), int(from->SourceWorld()->config["MaxLevel"]));
 		else if (set == "exp") (level = true, victim->exp) = std::min(std::max(util::to_int(arguments[1]), 0), int(from->SourceWorld()->config["MaxEXP"]));
 		else if (set == "str") (stats = true, victim->str) = std::min(std::max(util::to_int(arguments[1]), 0), int(from->SourceWorld()->config["MaxStat"]));
 		else if (set == "int") (stats = true, victim->intl) = std::min(std::max(util::to_int(arguments[1]), 0), int(from->SourceWorld()->config["MaxStat"]));
@@ -61,10 +65,10 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 		else if (set == "skillpoints") (skillpoints = true, victim->skillpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(from->SourceWorld()->config["MaxLevel"]) * int(from->SourceWorld()->config["SkillPerLevel"]));
 		else if (set == "admin")
 		{
-			if (victim->admin < from->SourceAccess() || from->SourceAccess() == ADMIN_HGM)
-			{
-				AdminLevel level = std::min(std::max(AdminLevel(util::to_int(arguments[1])), ADMIN_PLAYER), ADMIN_HGM);
+			AdminLevel level = std::min(std::max(AdminLevel(util::to_int(arguments[1])), ADMIN_PLAYER), ADMIN_HGM);
 
+			if (level < from->SourceAccess() && victim != from->SourceCharacter())
+			{
 				if (level == ADMIN_PLAYER && victim->admin != ADMIN_PLAYER)
 					victim->world->DecAdminCount();
 				else if (level != ADMIN_PLAYER && victim->admin == ADMIN_PLAYER)
