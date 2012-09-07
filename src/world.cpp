@@ -528,7 +528,29 @@ void World::Login(Character *character)
 		character->y = this->GetMap(character->mapid)->relog_y;
 	}
 
-	this->GetMap(character->mapid)->Enter(character);
+	Map* map = this->GetMap(character->mapid);
+
+	if (character->sitting == SIT_CHAIR)
+	{
+		Map_Tile::TileSpec spec = map->GetSpec(character->x, character->y);
+
+		if (spec == Map_Tile::ChairDown && character->direction != DIRECTION_DOWN)
+			character->direction = DIRECTION_DOWN;
+		else if (spec == Map_Tile::ChairUp && character->direction != DIRECTION_UP)
+			character->direction = DIRECTION_UP;
+		else if (spec == Map_Tile::ChairLeft && character->direction != DIRECTION_LEFT)
+			character->direction = DIRECTION_LEFT;
+		else if (spec == Map_Tile::ChairRight && character->direction != DIRECTION_RIGHT)
+			character->direction = DIRECTION_RIGHT;
+		else if (spec == Map_Tile::ChairDownRight && character->direction != DIRECTION_DOWN && character->direction != DIRECTION_RIGHT)
+			character->direction = DIRECTION_DOWN;
+		else if (spec == Map_Tile::ChairUpLeft && character->direction != DIRECTION_UP && character->direction != DIRECTION_LEFT)
+			character->direction = DIRECTION_UP;
+		else if (spec != Map_Tile::ChairAll)
+			character->sitting = SIT_STAND;
+	}
+
+	map->Enter(character);
 	character->Login();
 }
 
