@@ -36,7 +36,7 @@ void Inventory(const std::vector<std::string>& arguments, Character* from)
 				case ADMIN_GM: reply.AddString(from->world->i18n.Format("game_master_title", name)); break;
 				case ADMIN_GUARDIAN: reply.AddString(from->world->i18n.Format("guardian_title", name)); break;
 				case ADMIN_GUIDE: reply.AddString(from->world->i18n.Format("light_guide_title", name)); break;
-				default: ;
+				default: reply.AddString(name); break;
 			}
 
 			reply.AddString(" ");
