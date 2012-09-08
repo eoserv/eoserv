@@ -37,8 +37,8 @@ void EIF::Read(std::string filename)
 	}
 
 	SAFE_SEEK(fh, 3, SEEK_SET);
-	SAFE_READ(this->rid, sizeof(char), 4, fh);
-	SAFE_READ(this->len, sizeof(char), 2, fh);
+	SAFE_READ(this->rid.data(), sizeof(char), 4, fh);
+	SAFE_READ(this->len.data(), sizeof(char), 2, fh);
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	SAFE_SEEK(fh, 1, SEEK_CUR);
 
@@ -168,8 +168,8 @@ void ENF::Read(std::string filename)
 	}
 
 	SAFE_SEEK(fh, 3, SEEK_SET);
-	SAFE_READ(this->rid, sizeof(char), 4, fh);
-	SAFE_READ(this->len, sizeof(char), 2, fh);
+	SAFE_READ(this->rid.data(), sizeof(char), 4, fh);
+	SAFE_READ(this->len.data(), sizeof(char), 2, fh);
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	SAFE_SEEK(fh, 1, SEEK_CUR);
 
@@ -255,8 +255,8 @@ void ESF::Read(std::string filename)
 	}
 
 	SAFE_SEEK(fh, 3, SEEK_SET);
-	SAFE_READ(this->rid, sizeof(char), 4, fh);
-	SAFE_READ(this->len, sizeof(char), 2, fh);
+	SAFE_READ(this->rid.data(), sizeof(char), 4, fh);
+	SAFE_READ(this->len.data(), sizeof(char), 2, fh);
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	SAFE_SEEK(fh, 1, SEEK_CUR);
 
@@ -358,8 +358,8 @@ void ECF::Read(std::string filename)
 	}
 
 	SAFE_SEEK(fh, 3, SEEK_SET);
-	SAFE_READ(this->rid, sizeof(char), 4, fh);
-	SAFE_READ(this->len, sizeof(char), 2, fh);
+	SAFE_READ(this->rid.data(), sizeof(char), 4, fh);
+	SAFE_READ(this->len.data(), sizeof(char), 2, fh);
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	SAFE_SEEK(fh, 1, SEEK_CUR);
 

@@ -9,6 +9,7 @@
 
 #include "fwd/eodata.hpp"
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -96,8 +97,8 @@ class EIF
 		}
 
 		static const int DATA_SIZE = 58;
-		unsigned char rid[4];
-		unsigned char len[2];
+		std::array<unsigned char, 4> rid;
+		std::array<unsigned char, 2> len;
 		std::vector<EIF_Data *> data;
 		EIF(std::string filename) { Read(filename); }
 		void Read(std::string filename);
@@ -210,8 +211,8 @@ class ENF
 		};
 
 		static const int DATA_SIZE = 39;
-		unsigned char rid[4];
-		unsigned char len[2];
+		std::array<unsigned char, 4> rid;
+		std::array<unsigned char, 2> len;
 		std::vector<ENF_Data *> data;
 		ENF(std::string filename) { Read(filename); }
 		void Read(std::string filename);
@@ -275,8 +276,8 @@ class ESF
 		};
 
 		static const int DATA_SIZE = 51;
-		unsigned char rid[4];
-		unsigned char len[2];
+		std::array<unsigned char, 4> rid;
+		std::array<unsigned char, 2> len;
 		std::vector<ESF_Data *> data;
 		ESF(std::string filename) { Read(filename); }
 		void Read(std::string filename);
@@ -321,8 +322,8 @@ class ECF
 {
 	public:
 		static const int DATA_SIZE = 14;
-		unsigned char rid[4];
-		unsigned char len[2];
+		std::array<unsigned char, 4> rid;
+		std::array<unsigned char, 2> len;
 		std::vector<ECF_Data *> data;
 		ECF(std::string filename) { Read(filename); }
 		void Read(std::string filename);
