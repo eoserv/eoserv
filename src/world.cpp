@@ -760,57 +760,23 @@ void World::Rehash()
 
 void World::ReloadPub()
 {
+	auto eif_id = this->eif->rid;
+	auto enf_id = this->enf->rid;
+	auto esf_id = this->esf->rid;
+	auto ecf_id = this->ecf->rid;
+
 	this->eif->Read(this->config["EIF"]);
 	this->enf->Read(this->config["ENF"]);
 	this->esf->Read(this->config["ESF"]);
 	this->ecf->Read(this->config["ECF"]);
 
-	std::string filename;
-	std::FILE *fh;
-	InitReply replycode;
-
-	for (int i = 0; i < 4; ++i)
+	if (eif_id != this->eif->rid || enf_id != this->enf->rid
+	 || esf_id != this->esf->rid || ecf_id != this->ecf->rid)
 	{
-		std::string content;
-
-		switch (i)
-		{
-			case 0: filename = static_cast<std::string>(this->config["EIF"]); replycode = INIT_FILE_EIF; break;
-			case 1: filename = static_cast<std::string>(this->config["ENF"]); replycode = INIT_FILE_ENF; break;
-			case 2: filename = static_cast<std::string>(this->config["ESF"]); replycode = INIT_FILE_ESF; break;
-			case 3: filename = static_cast<std::string>(this->config["ECF"]); replycode = INIT_FILE_ECF; break;
-		}
-
-		fh = std::fopen(filename.c_str(), "rb");
-
-		if (!fh)
-		{
-			Console::Err("Could not load file: %s", filename.c_str());
-			std::exit(1);
-		}
-
-		do {
-			char buf[4096];
-			int len = std::fread(buf, sizeof(char), 4096, fh);
-			content.append(buf, len);
-		} while (!std::feof(fh));
-
-		std::fclose(fh);
-
-		PacketBuilder builder(PACKET_F_INIT, PACKET_A_INIT, 2 + content.length());
-		builder.AddChar(replycode);
-		builder.AddChar(1); // fileid
-		builder.AddString(content);
-
 		UTIL_FOREACH(this->characters, character)
 		{
-			character->Send(builder);
+			character->ServerMsg("The server has been reloaded, please log out and in again.");
 		}
-	}
-
-	UTIL_FOREACH(this->characters, character)
-	{
-		character->Warp(character->mapid, character->x, character->y);
 	}
 }
 
