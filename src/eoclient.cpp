@@ -261,7 +261,31 @@ bool EOClient::Upload(FileType type, const std::string &filename, InitReply init
 
 void EOClient::Send(const PacketBuilder &builder)
 {
-	Client::Send(this->processor.Encode(builder));
+	std::string data= this->processor.Encode(builder);
+
+	if (this->upload_fh)
+	{
+		// Stick any incoming data in to our temporary buffer
+		if (data.length() > this->send_buffer2.length() - this->send_buffer2_used)
+		{
+			this->Close(true);
+			return;
+		}
+
+		const std::size_t mask = this->send_buffer2.length() - 1;
+
+		for (std::size_t i = 0; i < data.length(); ++i)
+		{
+			this->send_buffer2_ppos = (this->send_buffer2_ppos + 1) & mask;
+			this->send_buffer2[this->send_buffer2_ppos] = data[i];
+		}
+
+		this->send_buffer2_used += data.length();
+	}
+	else
+	{
+		Client::Send(this->processor.Encode(builder));
+	}
 }
 
 EOClient::~EOClient()
