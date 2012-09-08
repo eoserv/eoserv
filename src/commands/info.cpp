@@ -8,7 +8,10 @@
 
 #include "../util.hpp"
 
+#include "../eoplus.hpp"
 #include "../packet.hpp"
+#include "../player.hpp"
+#include "../quest.hpp"
 #include "../world.hpp"
 
 namespace Commands
@@ -65,6 +68,163 @@ void Inventory(const std::vector<std::string>& arguments, Character* from)
 		{
 			from->ServerMsg(from->world->i18n.Format("command_access_denied"));
 		}
+	}
+}
+
+void Paperdoll(const std::vector<std::string>& arguments, Character* from)
+{
+	Character *victim = from->world->GetCharacter(arguments[0]);
+
+	if (!victim)
+	{
+		from->ServerMsg(from->world->i18n.Format("character_not_found"));
+	}
+	else
+	{
+		std::string home_str = victim->world->GetHome(victim)->name;
+		std::string guild_str = victim->guild ? victim->guild->name : "";
+		std::string rank_str = victim->guild ? victim->guild->GetRank(victim->guild_rank) : "";
+
+		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REPLY,
+			12 + victim->name.length() + home_str.length() + victim->partner.length() + victim->title.length()
+			+ guild_str.length() + rank_str.length() + victim->paperdoll.size() * 2);
+
+		reply.AddBreakString(victim->name);
+		reply.AddBreakString(home_str);
+		reply.AddBreakString(victim->partner);
+		reply.AddBreakString(victim->title);
+		reply.AddBreakString(guild_str);
+		reply.AddBreakString(rank_str);
+		reply.AddShort(victim->player->id);
+		reply.AddChar(victim->clas);
+		reply.AddChar(victim->gender);
+		reply.AddChar(0);
+
+		UTIL_FOREACH(victim->paperdoll, item)
+		{
+			reply.AddShort(item);
+		}
+
+		if (victim->admin >= ADMIN_HGM)
+		{
+			if (victim->party)
+			{
+				reply.AddChar(ICON_HGM_PARTY);
+			}
+			else
+			{
+				reply.AddChar(ICON_HGM);
+			}
+		}
+		else if (victim->admin >= ADMIN_GUIDE)
+		{
+			if (victim->party)
+			{
+				reply.AddChar(ICON_GM_PARTY);
+			}
+			else
+			{
+				reply.AddChar(ICON_GM);
+			}
+		}
+		else
+		{
+			if (victim->party)
+			{
+				reply.AddChar(ICON_PARTY);
+			}
+			else
+			{
+				reply.AddChar(ICON_NORMAL);
+			}
+		}
+
+		from->Send(reply);
+	}
+}
+
+void Book(const std::vector<std::string>& arguments, Character* from)
+{
+	Character *victim = from->world->GetCharacter(arguments[0]);
+
+	if (!victim)
+	{
+		from->ServerMsg(from->world->i18n.Format("character_not_found"));
+	}
+	else
+	{
+		std::string home_str = victim->world->GetHome(victim)->name;
+		std::string guild_str = victim->guild ? victim->guild->name : "";
+		std::string rank_str = victim->guild ? victim->guild->GetRank(victim->guild_rank) : "";
+
+		PacketBuilder reply(PACKET_BOOK, PACKET_REPLY,
+			13 + victim->name.length() + home_str.length() + victim->partner.length() + victim->title.length()
+			+ guild_str.length() + rank_str.length());
+
+		reply.AddBreakString(victim->name);
+		reply.AddBreakString(home_str);
+		reply.AddBreakString(victim->partner);
+		reply.AddBreakString(victim->title);
+		reply.AddBreakString(guild_str);
+		reply.AddBreakString(rank_str);
+		reply.AddShort(victim->player->id);
+		reply.AddChar(victim->clas);
+		reply.AddChar(victim->gender);
+		reply.AddChar(0);
+
+		if (victim->admin >= ADMIN_HGM)
+		{
+			if (victim->party)
+			{
+				reply.AddChar(ICON_HGM_PARTY);
+			}
+			else
+			{
+				reply.AddChar(ICON_HGM);
+			}
+		}
+		else if (victim->admin >= ADMIN_GUIDE)
+		{
+			if (victim->party)
+			{
+				reply.AddChar(ICON_GM_PARTY);
+			}
+			else
+			{
+				reply.AddChar(ICON_GM);
+			}
+		}
+		else
+		{
+			if (victim->party)
+			{
+				reply.AddChar(ICON_PARTY);
+			}
+			else
+			{
+				reply.AddChar(ICON_NORMAL);
+			}
+		}
+
+		reply.AddByte(255);
+
+		std::size_t reserve = 0;
+
+		UTIL_CFOREACH(victim->quests, quest)
+		{
+			if (quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
+				reserve += quest.second->GetQuest()->Name().length() + 1;
+		}
+
+		reply.ReserveMore(reserve);
+
+		UTIL_CFOREACH(victim->quests, quest)
+		{
+			if (quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
+				reply.AddBreakString(quest.second->GetQuest()->Name());
+		}
+
+		from->Send(reply);
 	}
 }
 
@@ -137,8 +297,13 @@ void Info(const std::vector<std::string>& arguments, Character* from)
 }
 
 COMMAND_HANDLER_REGISTER()
-	RegisterCharacter({"inventory", {}, {}, 3}, Inventory);
-	RegisterCharacter({"info", {}, {}, 2}, Info);
+	RegisterCharacter({"inventory", {"victim"}, {}, 3}, Inventory);
+	RegisterCharacter({"paperdoll", {"victim"}, {}}, Paperdoll);
+	RegisterCharacter({"book", {"victim"}, {}, 2}, Book);
+	RegisterCharacter({"info", {"victim"}, {}}, Info);
+
+	RegisterAlias("p", "paperdoll");
+	RegisterAlias("i", "info");
 COMMAND_HANDLER_REGISTER_END()
 
 }
