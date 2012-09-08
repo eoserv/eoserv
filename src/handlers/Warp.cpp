@@ -146,7 +146,7 @@ void Warp_Take(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_WARP)
 	Register(PACKET_ACCEPT, Warp_Accept, Playing);
-	Register(PACKET_TAKE, Warp_Take, Playing);
+	Register(PACKET_TAKE, Warp_Take, Playing, 0.15);
 PACKET_HANDLER_REGISTER_END()
 
 }
