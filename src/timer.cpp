@@ -100,11 +100,14 @@ void Timer::Tick()
 	if (this->changed)
 	{
 		this->execlist = this->timers;
+		this->changed = false;
 	}
 
-	std::set<TimeEvent *> container = this->execlist;
 	UTIL_FOREACH(this->execlist, timer)
 	{
+		if (this->timers.find(timer) == this->timers.end())
+			continue;
+
 		if (timer->lasttime + timer->speed < currenttime)
 		{
 			timer->callback(timer->param);
@@ -133,6 +136,7 @@ void Timer::Register(TimeEvent *timer)
 	}
 
 	timer->lasttime = Timer::GetTime();
+	timer->manager = this;
 	this->timers.insert(timer);
 }
 
@@ -146,6 +150,7 @@ Timer::~Timer()
 {
 	UTIL_FOREACH(this->timers, timer)
 	{
+		timer->manager = 0;
 		delete timer;
 	}
 #ifdef WIN32
