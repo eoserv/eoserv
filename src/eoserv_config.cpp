@@ -236,6 +236,8 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "spell"         , 1);
 	eoserv_config_default(config, "class"         , 1);
 	eoserv_config_default(config, "info"          , 1);
+	eoserv_config_default(config, "paperdoll"     , 1);
+	eoserv_config_default(config, "book"          , 1);
 	eoserv_config_default(config, "inventory"     , 1);
 	eoserv_config_default(config, "uptime"        , 1);
 	eoserv_config_default(config, "kick"          , 1);
