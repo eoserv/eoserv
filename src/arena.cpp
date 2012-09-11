@@ -160,35 +160,42 @@ void Arena::Attack(Character *from, Direction direction)
 			++from->arena_kills;
 			actions.push_back({character, this->map->id, this->map->relog_x, this->map->relog_y});
 
-			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC, 9 + from->name.length() + character->name.length());
+			// TODO: The numbers here seem to be variable-sized
+
+			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC, 12 + from->name.length() + character->name.length());
 			builder.AddShort(0); // ?
 			builder.AddByte(255);
 			builder.AddChar(0); // ?
 			builder.AddByte(255);
-			builder.AddShort(from->arena_kills);
-			builder.AddChar(0); // ?
+			builder.AddInt(from->arena_kills);
 			builder.AddByte(255);
 			builder.AddBreakString(from->name);
 			builder.AddBreakString(character->name);
-
-			UTIL_FOREACH(this->map->characters, character)
-			{
-				character->Send(builder);
-			}
 
 			if (from->arena->occupants == 2)
 			{
 				actions.push_back({from, this->map->id, this->map->relog_x, this->map->relog_y});
 
-				builder.Reset(from->name.length());
-				builder.SetID(PACKET_ARENA, PACKET_ACCEPT);
+				PacketBuilder builder(PACKET_ARENA, PACKET_ACCEPT, 8 + from->name.length() * 2 + character->name.length());
 				builder.AddBreakString(from->name);
+				builder.AddInt(from->arena_kills);
+				builder.AddByte(255);
+				builder.AddBreakString(from->name);
+				builder.AddBreakString(character->name);
 
 				UTIL_FOREACH(this->map->characters, character)
 				{
 					character->Send(builder);
 				}
 			}
+			else
+			{
+				UTIL_FOREACH(this->map->characters, character)
+				{
+					character->Send(builder);
+				}
+			}
+
 			break;
 		}
 	}

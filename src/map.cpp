@@ -334,9 +334,10 @@ void Map::LoadArena()
 		else
 		{
 			this->arena = new Arena(this, static_cast<int>(world->arenas_config[util::to_string(id) + ".time"]), static_cast<int>(world->arenas_config[util::to_string(id) + ".block"]));
+			this->arena->occupants = update_characters.size();
 
 			int i = 1;
-			Arena_Spawn *s;
+			Arena_Spawn *s = 0;
 			UTIL_FOREACH(spawns, spawn)
 			{
 				util::trim(spawn);
@@ -359,9 +360,15 @@ void Map::LoadArena()
 					case 0:
 						s->dy = util::to_int(spawn);
 						this->arena->spawns.push_back(s);
+						s = 0;
 						break;
-
 				}
+			}
+
+			if (s)
+			{
+				Console::Wrn("Invalid arena spawn string");
+				delete s;
 			}
 		}
 	}
