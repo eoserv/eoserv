@@ -784,11 +784,7 @@ void Character::CancelSpell()
 {
 	this->spell_target = TargetInvalid;
 
-	if (this->spell_event)
-	{
-		this->world->timer.Unregister(this->spell_event);
-		this->spell_event = 0;
-	}
+	delete this->spell_event;
 
 	if (this->spell_ready)
 	{

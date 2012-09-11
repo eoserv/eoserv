@@ -33,7 +33,7 @@ void Spell_Request(Character *character, PacketReader &reader)
 			return;
 
 		character->spell_id = spell_id;
-		character->spell_event = new TimeEvent(character_cast_spell, character, 1.0 * spell->cast_time, 1);
+		character->spell_event = new TimeEvent(character_cast_spell, character, 0.5 * spell->cast_time, 1);
 		character->world->timer.Register(character->spell_event);
 
 		PacketBuilder builder(PACKET_SPELL, PACKET_REQUEST, 4);
