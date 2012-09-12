@@ -43,7 +43,8 @@ void Players_Accept(Character *character, PacketReader &reader)
 // Requested a list of online players
 void Players_List(EOClient *client, PacketReader &reader)
 {
-	if (!client->server()->world->config["SLN"] && (!client->player || (client->player && !client->player->character)))
+	if (!client->server()->world->config["SLN"] && !client->server()->world->config["AllowStats"]
+	 && (!client->player || (client->player && !client->player->character)))
 	{
 		return;
 	}

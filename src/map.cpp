@@ -861,9 +861,13 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 			break;
 	}
 
-	if (!admin && !this->Walkable(target_x, target_y))
+	if (!admin)
 	{
-		return false;
+		if (!this->Walkable(target_x, target_y))
+			return false;
+
+		if (this->Occupied(target_x, target_y, PlayerOnly) && (from->last_walk + double(this->world->config["GhostTimer"]) > Timer::GetTime()))
+			return false;
 	}
 
 	Map_Warp *warp = this->GetWarp(target_x, target_y);
@@ -2212,7 +2216,13 @@ bool Map::InBounds(unsigned char x, unsigned char y)
 
 bool Map::Walkable(unsigned char x, unsigned char y, bool npc)
 {
-	return (InBounds(x, y) && this->tiles[y].at(x)->Walkable(npc));
+	if (!InBounds(x, y) || !this->tiles[y].at(x)->Walkable(npc))
+		return false;
+
+	if (this->world->config["GhostArena"] && this->tiles[y].at(x)->tilespec == Map_Tile::Arena && this->Occupied(x, y, PlayerAndNPC))
+		return false;
+
+	return true;
 }
 
 Map_Tile::TileSpec Map::GetSpec(unsigned char x, unsigned char y)
