@@ -110,7 +110,6 @@ void Timer::Tick()
 
 		if (timer->lasttime + timer->speed < currenttime)
 		{
-			timer->callback(timer->param);
 			timer->lasttime += timer->speed;
 
 			if (timer->lifetime != Timer::FOREVER)
@@ -122,6 +121,8 @@ void Timer::Tick()
 					this->Unregister(timer);
 				}
 			}
+
+			timer->callback(timer->param);
 		}
 	}
 }
@@ -144,6 +145,7 @@ void Timer::Unregister(TimeEvent *timer)
 {
 	this->changed = true;
 	this->timers.erase(timer);
+	timer->manager = 0;
 }
 
 Timer::~Timer()
