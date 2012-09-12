@@ -116,6 +116,9 @@ class World
 
 		World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 
+		void BeginDB();
+		void CommitDB();
+
 		void UpdateAdminCount(int admin_count);
 		void IncAdminCount() { UpdateAdminCount(this->admin_count + 1); }
 		void DecAdminCount() { UpdateAdminCount(this->admin_count - 1); }

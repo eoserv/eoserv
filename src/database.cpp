@@ -82,8 +82,12 @@ Database::Bulk_Query_Context::Bulk_Query_Context(Database& db)
 	: db(db)
 	, pending(false)
 {
-	db.BeginTransaction();
-	pending = true;
+	pending = db.BeginTransaction();
+}
+
+bool Database::Bulk_Query_Context::Pending() const
+{
+	return pending;
 }
 
 void Database::Bulk_Query_Context::RawQuery(const std::string& query)
@@ -117,6 +121,7 @@ Database::Database()
 	: impl(new impl_)
 	, connected(false)
 	, engine(Engine(0))
+	, in_transaction(false)
 { }
 
 Database::Database(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db, bool connectnow)
@@ -470,8 +475,16 @@ void Database::ExecuteFile(std::string filename)
 	this->ExecuteQueries(UTIL_RANGE(queries));
 }
 
-void Database::BeginTransaction()
+bool Database::Pending() const
 {
+	return in_transaction;
+}
+
+bool Database::BeginTransaction()
+{
+	if (in_transaction)
+		return false;
+
 	switch (this->engine)
 	{
 #ifdef DATABASE_MYSQL
@@ -486,16 +499,28 @@ void Database::BeginTransaction()
 			break;
 #endif // DATABASE_SQLITE
 	}
+
+	this->in_transaction = true;
+
+	return true;
 }
 
 void Database::Commit()
 {
+	if (!in_transaction)
+		throw Database_Exception("No transaction to commit");
+
 	this->RawQuery("COMMIT");
+	in_transaction = false;
 }
 
 void Database::Rollback()
 {
+	if (!in_transaction)
+		throw Database_Exception("No transaction to rollback");
+
 	this->RawQuery("ROLLBACK");
+	in_transaction = false;
 }
 
 Database::~Database()

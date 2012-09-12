@@ -325,6 +325,8 @@ int eoserv_main(int argc, char *argv[])
 
 		while (!tables_exist)
 		{
+			bool try_install = false;
+
 			try
 			{
 				Database_Result acc_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `accounts`");
@@ -343,15 +345,30 @@ int eoserv_main(int argc, char *argv[])
 			}
 			catch (Database_Exception &e)
 			{
-				if (!tried_install)
-				{
-					tried_install = true;
-					Console::Wrn("A required table is missing. Attempting to execute install.sql");
-					server.world->db.ExecuteFile(config["InstallSQL"]);
-				}
-				else
+				if (tried_install)
 				{
 					Console::Err("Could not find or install tables.");
+					Console::Err(e.error());
+					std::exit(1);
+				}
+
+				try_install = true;
+			}
+
+			if (try_install)
+			{
+				tried_install = true;
+				Console::Wrn("A required table is missing. Attempting to execute install.sql");
+
+				try
+				{
+					server.world->CommitDB();
+					server.world->db.ExecuteFile(config["InstallSQL"]);
+					server.world->BeginDB();
+				}
+				catch (Database_Exception& e)
+				{
+					Console::Err("Could not install tables.");
 					Console::Err(e.error());
 					std::exit(1);
 				}

@@ -237,11 +237,8 @@ void world_timed_save(void *world_void)
 
 	world->guildmanager->SaveAll();
 
-	if (world->config["TimedSave"])
-	{
-		world->db.Commit();
-		world->db.BeginTransaction();
-	}
+	world->CommitDB();
+	world->BeginDB();
 }
 
 void World::UpdateConfig()
@@ -268,6 +265,9 @@ void World::UpdateConfig()
 	}
 
 	NPC::SetSpeedTable(npc_speed_table);
+
+	if (this->db.Pending() && !this->config["TimedSave"])
+		this->CommitDB();
 }
 
 World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
@@ -296,6 +296,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 		engine = Database::MySQL;
 	}
 	this->db.Connect(engine, dbinfo[1], util::to_int(dbinfo[5]), dbinfo[2], dbinfo[3], dbinfo[4]);
+	this->BeginDB();
 
 	try
 	{
@@ -387,7 +388,6 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 	if (this->config["TimedSave"])
 	{
-		this->db.BeginTransaction();
 		event = new TimeEvent(world_timed_save, this, static_cast<double>(this->config["TimedSave"]), Timer::FOREVER);
 		this->timer.Register(event);
 	}
@@ -407,6 +407,18 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 	this->UpdateConfig();
 	this->LoadHome();
+}
+
+void World::BeginDB()
+{
+	if (this->config["TimedSave"])
+		this->db.BeginTransaction();
+}
+
+void World::CommitDB()
+{
+	if (this->db.Pending())
+		this->db.Commit();
 }
 
 void World::UpdateAdminCount(int admin_count)

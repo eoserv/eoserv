@@ -17,6 +17,7 @@
 #include <exception>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -116,6 +117,8 @@ class Database
 		std::string host, user, pass, db;
 		unsigned int port;
 
+		bool in_transaction;
+
 	public:
 		struct Bulk_Query_Context
 		{
@@ -124,6 +127,7 @@ class Database
 
 			Bulk_Query_Context(Database&);
 			Bulk_Query_Context(const Bulk_Query_Context&) = delete;
+			bool Pending() const;
 			void RawQuery(const std::string& query);
 			void Commit();
 			void Rollback();
@@ -185,6 +189,9 @@ class Database
 
 			Bulk_Query_Context qc(*this);
 
+			if (!qc.Pending())
+				throw Database_Exception("Cannot execute bulk query with transaction in progress");
+
 			std::for_each(begin, end, std::bind(&Bulk_Query_Context::RawQuery, &qc, _1));
 
 			qc.Commit();
@@ -198,7 +205,8 @@ class Database
 		 */
 		void ExecuteFile(std::string filename);
 
-		void BeginTransaction();
+		bool Pending() const;
+		bool BeginTransaction();
 		void Commit();
 		void Rollback();
 
