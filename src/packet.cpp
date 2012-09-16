@@ -132,7 +132,7 @@ std::string PacketProcessor::Decode(const std::string &str)
 	int i = 0;
 	int ii = 0;
 
-	if (emulti_d == 0 || (unsigned char)str[1] == PACKET_F_INIT)
+	if (emulti_d == 0 || ((unsigned char)str[0] == PACKET_A_INIT && (unsigned char)str[1] == PACKET_F_INIT))
 		return str;
 
 	newstr.resize(length);
@@ -179,7 +179,7 @@ std::string PacketProcessor::Encode(const std::string &rawstr)
 	int i = 2;
 	int ii = 2;
 
-	if (emulti_e == 0 || (unsigned char)str[3] == PACKET_F_INIT)
+	if (emulti_e == 0 || ((unsigned char)str[2] == PACKET_A_INIT && (unsigned char)str[3] == PACKET_F_INIT))
 		return str;
 
 	newstr.resize(length);
