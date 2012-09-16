@@ -127,13 +127,13 @@ std::string PacketProcessor::GetActionName(PacketAction action)
 
 std::string PacketProcessor::Decode(const std::string &str)
 {
+	if (emulti_d == 0 || ((unsigned char)str[0] == PACKET_A_INIT && (unsigned char)str[1] == PACKET_F_INIT))
+		return str;
+
 	std::string newstr;
 	int length = str.length();
 	int i = 0;
 	int ii = 0;
-
-	if (emulti_d == 0 || ((unsigned char)str[0] == PACKET_A_INIT && (unsigned char)str[1] == PACKET_F_INIT))
-		return str;
 
 	newstr.resize(length);
 
@@ -173,14 +173,14 @@ std::string PacketProcessor::Decode(const std::string &str)
 
 std::string PacketProcessor::Encode(const std::string &rawstr)
 {
+	if (emulti_e == 0 || ((unsigned char)rawstr[2] == PACKET_A_INIT && (unsigned char)rawstr[3] == PACKET_F_INIT))
+		return rawstr;
+
 	std::string str = this->DickWinderE(rawstr);
 	std::string newstr;
 	int length = str.length();
 	int i = 2;
 	int ii = 2;
-
-	if (emulti_e == 0 || ((unsigned char)str[2] == PACKET_A_INIT && (unsigned char)str[3] == PACKET_F_INIT))
-		return str;
 
 	newstr.resize(length);
 
