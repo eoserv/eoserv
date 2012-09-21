@@ -1451,6 +1451,8 @@ void Character::CalculateStats()
 	if (this->maxdam == 0 || !this->world->config["BaseDamageAtZero"])
 		this->maxdam += int(this->world->config["BaseMaxDamage"]);
 
+	this->CheckQuestRules();
+
 	if (this->party)
 	{
 		this->party->UpdateHP(this);
