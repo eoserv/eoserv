@@ -1863,6 +1863,8 @@ void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 
 	if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive) && npc->alive)
 	{
+		from->tp -= spell->tp;
+
 		int amount = util::rand(from->mindam, from->maxdam);
 		double rand = util::rand(0.0, 1.0);
 
