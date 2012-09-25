@@ -251,7 +251,7 @@ class Character : public Command_Source
 		unsigned char SpawnX();
 		unsigned char SpawnY();
 		void CheckQuestRules();
-		void CalculateStats();
+		void CalculateStats(bool trigger_quests = true);
 		void DropAll(Character *killer);
 		void Hide();
 		void Unhide();

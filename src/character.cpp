@@ -22,6 +22,7 @@
 #include "database.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
+#include "eoplus.hpp"
 #include "map.hpp"
 #include "npc.hpp"
 #include "packet.hpp"
@@ -200,6 +201,14 @@ std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>>
 
 	UTIL_CFOREACH(list_inactive, state)
 	{
+		if (list.find(state.quest_id) != list.end())
+		{
+#ifdef DEBUG
+			Console::Dbg("Discarding inactive quest save as the quest was restarted: %i", state.quest_id);
+#endif // DEBUG
+			continue;
+		}
+
 		serialized.append(util::to_string(state.quest_id));
 		serialized.append(",");
 		serialized.append(state.quest_state);
@@ -216,6 +225,8 @@ void QuestUnserialize(std::string serialized, Character* character)
 	std::size_t p = 0;
 	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 
+	bool conversion_warned = false;
+
 	if (!serialized.empty() && *(serialized.end()-1) != ';')
 	{
 		serialized.push_back(';');
@@ -226,47 +237,102 @@ void QuestUnserialize(std::string serialized, Character* character)
 		std::string part = serialized.substr(lastp+1, p-lastp-1);
 		std::size_t pp1 = part.find_first_of(',');
 
+		lastp = p;
+
 		if (pp1 == std::string::npos)
 			continue;
 
 		std::size_t pp2 = part.find_first_of(',', pp1 + 1);
 
-		if (pp2 == std::string::npos)
-			continue;
-
 		Character_QuestState state;
 		state.quest_id = util::to_int(part.substr(0, pp1));
-		state.quest_state = part.substr(pp1 + 1, pp2 - pp1 - 1);;
-		state.quest_progress = part.substr(pp2 + 1);
+
+		bool conversion_needed = false;
+
+		if (pp2 != std::string::npos)
+		{
+			state.quest_state = part.substr(pp1 + 1, pp2 - pp1 - 1);
+			state.quest_progress = part.substr(pp2 + 1);
+
+			if (!state.quest_progress.empty() && state.quest_progress[0] != '{')
+			{
+				conversion_needed = true;
+
+				// We could peek at the quest state for a possible matching rule here,
+				// but it would greatly complicate the unserialization code.
+				Console::Wrn("State progress counter reset for quest: %i", state.quest_id);
+				state.quest_progress = "{}";
+			}
+			else if (state.quest_progress.empty())
+			{
+				conversion_needed = true;
+			}
+		}
+		else
+		{
+			pp2 = part.find_first_of(';', pp1 + 1);
+
+			if (pp2 == std::string::npos)
+				pp2 = part.length() + 1;
+
+			state.quest_state = part.substr(pp1 + 1, pp2 - pp1 - 1);
+			state.quest_progress = "{}";
+
+			conversion_needed = true;
+		}
+
+		if (conversion_needed)
+		{
+			if (!conversion_warned)
+			{
+				Console::Wrn("Converting quests from old format...");
+				conversion_warned = true;
+			}
+
+			// Vodka leaves the quest state set to the end of the quest, which
+			// means everyone will get re-rewarded for all quests they've completed...
+		}
 
 		auto quest_it = character->world->quests.find(state.quest_id);
 
 		if (quest_it == character->world->quests.end())
 		{
-			// Console::Wrn("Quest not found: %i", quest_id);
+			Console::Wrn("Quest not found: %i. Marking as inactive.", state.quest_id);
 
-			// Store it in a non-activate state so we don't have to deleted the data
+			// Store it in a non-activate state so we don't have to delete the data
 			if (!character->quests_inactive.insert(std::move(state)).second)
-				Console::Wrn("Duplicate inactive quest record: %i", state.quest_id);
+				Console::Wrn("Duplicate inactive quest record dropped for quest: %i", state.quest_id);
 
 			continue;
 		}
 
 		// WARNING: holds a non-tracked reference to shared_ptr
 		Quest* quest = quest_it->second.get();
+		auto quest_context(std::make_shared<Quest_Context>(character, quest));
 
-		auto result = character->quests.insert(std::make_pair(state.quest_id, std::make_shared<Quest_Context>(character, quest)));
-
-		if (!result.second)
+		try
 		{
-			Console::Wrn("Duplicate quest record: %i", state.quest_id);
+			quest_context->SetState(state.quest_state, false);
+			quest_context->UnserializeProgress(UTIL_CRANGE(state.quest_progress));
+		}
+		catch (EOPlus::Runtime_Error& ex)
+		{
+			Console::Wrn(ex.what());
+			Console::Wrn("Could not resume quest: %i. Marking as inactive.", state.quest_id);
+
+			if (!character->quests_inactive.insert(std::move(state)).second)
+				Console::Wrn("Duplicate inactive quest record dropped for quest: %i", state.quest_id);
+
 			continue;
 		}
 
-		result.first->second->SetState(state.quest_state, false);
-		result.first->second->UnserializeProgress(UTIL_CRANGE(state.quest_progress));
+		auto result = character->quests.insert(std::make_pair(state.quest_id, std::move(quest_context)));
 
-		lastp = p;
+		if (!result.second)
+		{
+			Console::Wrn("Duplicate quest record dropped for quest: %i", state.quest_id);
+			continue;
+		}
 	}
 }
 
@@ -420,7 +486,7 @@ Character::Character(std::string name, World *world)
 
 void Character::Login()
 {
-	this->CalculateStats();
+	this->CalculateStats(false);
 
 	QuestUnserialize(this->quest_string, this);
 	this->quest_string.clear();
@@ -1342,7 +1408,7 @@ void Character::CheckQuestRules()
 	}
 }
 
-void Character::CalculateStats()
+void Character::CalculateStats(bool trigger_quests)
 {
 	ECF_Data *ecf = world->ecf->Get(this->clas);
 
@@ -1451,7 +1517,8 @@ void Character::CalculateStats()
 	if (this->maxdam == 0 || !this->world->config["BaseDamageAtZero"])
 		this->maxdam += int(this->world->config["BaseMaxDamage"]);
 
-	this->CheckQuestRules();
+	if (trigger_quests)
+		this->CheckQuestRules();
 
 	if (this->party)
 	{
