@@ -70,12 +70,14 @@ void ResetTextColor(Stream stream)
 #endif // WIN32
 
 #define CONSOLE_GENERIC_OUT(prefix, stream, color, bold) \
+do { \
 	if (Styled[stream]) SetTextColor(stream, color, bold); \
 	va_list args; \
 	va_start(args, f); \
 	std::vfprintf((stream == STREAM_OUT) ? stdout : stderr, (std::string("[" prefix "] ") + f + "\n").c_str(), args); \
 	va_end(args); \
-	if (Styled[stream]) ResetTextColor(stream);
+	if (Styled[stream]) ResetTextColor(stream); \
+} while (false)
 
 void Out(std::string f, ...)
 {
@@ -84,11 +86,16 @@ void Out(std::string f, ...)
 
 void Wrn(std::string f, ...)
 {
-	CONSOLE_GENERIC_OUT("WRN", STREAM_ERR, COLOR_YELLOW, true);
+	CONSOLE_GENERIC_OUT("WRN", STREAM_OUT, COLOR_YELLOW, true);
 }
 
 void Err(std::string f, ...)
 {
+	if (!Styled[STREAM_ERR])
+	{
+		CONSOLE_GENERIC_OUT("ERR", STREAM_OUT, COLOR_RED, true);
+	}
+
 	CONSOLE_GENERIC_OUT("ERR", STREAM_ERR, COLOR_RED, true);
 }
 
