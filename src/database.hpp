@@ -40,15 +40,6 @@ class Database_Exception : public std::exception
 };
 
 /**
- * Exception thrown when an invalid Database Engine was specified
- */
-class Database_InvalidEngine : public Database_Exception
-{
-	public: Database_InvalidEngine(const char *e) : Database_Exception(e) {}
-	const char *what() const noexcept { return "Database_InvalidEngine"; }
-};
-
-/**
  * Exception thrown when opening a Database failed
  */
 class Database_OpenFailed : public Database_Exception
@@ -142,14 +133,12 @@ class Database
 		/**
 		 * Opens a connection to a database if connectnow is true
 		 * @param connectnow Whether to connect now or on a query request
-		 * @throw Database_InvalidEngine
 		 * @throw Database_OpenFailed
 		 */
 		Database(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db, bool connectnow = true);
 
 		/**
 		 * Opens a connection to a database
-		 * @throw Database_InvalidEngine
 		 * @throw Database_OpenFailed
 		 */
 		void Connect(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db);

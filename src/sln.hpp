@@ -17,14 +17,15 @@
 class SLN
 {
 	private:
-		EOServer *server;
+		EOServer* server;
 
 		void RequestTick();
-		static void *RequestThread(void *void_sln);
-		static void TimedRequest(void *void_sln);
+		static void* RequestThread(void* void_request);
+		static void TimedRequest(void* void_sln);
+		static void TimedCleanup(void* void_request);
 
 	public:
-		SLN(EOServer *server);
+		SLN(EOServer* server);
 		void Request();
 };
 

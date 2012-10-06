@@ -163,22 +163,60 @@ void Database::Connect(Database::Engine type, std::string host, unsigned short p
 			{
 				throw Database_OpenFailed(mysql_error(this->impl->mysql_handle));
 			}
+
+// Linux uses the ABI version number as part of the shared library name
+#ifdef WIN32
+			if (mysql_get_client_version() != MYSQL_VERSION_ID)
+			{
+				unsigned int client_version = mysql_get_client_version();
+
+				Console::Err("libMySQL client version mismatch! Please recompile EOSERV with the correct MySQL client library.");
+				Console::Err("  Expected version: %i.%i.%i", (MYSQL_VERSION_ID) / 10000, ((MYSQL_VERSION_ID) / 100) % 100, (MYSQL_VERSION_ID) % 100);
+				Console::Err("  Library version:  %i.%i.%i", (client_version) / 10000, ((client_version) / 100) % 100, (client_version) % 100);
+				Console::Err("Make sure EOSERV is using the correct version of libmysql.dll");
+				throw Database_OpenFailed("libMySQL client version mismatch");
+			}
+#endif
+
 			if (mysql_real_connect(this->impl->mysql_handle, host.c_str(), user.c_str(), pass.c_str(), 0, this->port, 0, 0) != this->impl->mysql_handle)
 			{
 				throw Database_OpenFailed(mysql_error(this->impl->mysql_handle));
 			}
-			if (mysql_select_db(this->impl->mysql_handle, db.c_str()) != 0)
+
+// This check isn't really neccessary for EOSERV
+#if 0
+			if ((mysql_get_server_version(this->impl->mysql_handle) / 100) != (MYSQL_VERSION_ID) / 100)
 			{
-				throw Database_OpenFailed(mysql_error(this->impl->mysql_handle));
+				Console::Wrn("MySQL server version mismatch.");
+				Console::Wrn("  Server version: %s", mysql_get_server_info(this->impl->mysql_handle));
+				Console::Wrn("  Client version: %s", mysql_get_client_info());
 			}
+#endif
 
 			this->connected = true;
+
+			if (mysql_select_db(this->impl->mysql_handle, db.c_str()) != 0)
+			{
+				this->Close();
+				throw Database_OpenFailed(mysql_error(this->impl->mysql_handle));
+			}
 
 			break;
 #endif // DATABASE_MYSQL
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
+			if (sqlite3_libversion_number() != SQLITE_VERSION_NUMBER)
+			{
+				Console::Err("SQLite library version mismatch! Please recompile EOSERV with the correct SQLite library.");
+				Console::Err("  Expected version: %s", SQLITE_VERSION);
+				Console::Err("  Library version:  %s", sqlite3_libversion());
+#ifdef WIN32
+				Console::Err("Make sure EOSERV is using the correct version of sqlite3.dll");
+#endif // WIN32
+				throw Database_OpenFailed("SQLite library version mismatch");
+			}
+
 			if (sqlite3_open(host.c_str(), &this->impl->sqlite_handle) != SQLITE_OK)
 			{
 				throw Database_OpenFailed(sqlite3_errmsg(this->impl->sqlite_handle));
@@ -271,6 +309,14 @@ Database_Result Database::RawQuery(const char* query)
 			}
 
 			fields = mysql_fetch_fields(mresult);
+
+			for (int i = 0; i < num_fields; ++i)
+			{
+				if (!fields[i].name)
+				{
+					throw Database_QueryFailed("libMySQL critical failure!");
+				}
+			}
 
 			result.resize(mysql_num_rows(mresult));
 			int i = 0;

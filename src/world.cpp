@@ -287,14 +287,29 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	this->admin_config = admin_config;
 
 	Database::Engine engine;
+
+	std::string dbdesc;
+
 	if (dbinfo[0].compare("sqlite") == 0)
 	{
 		engine = Database::SQLite;
+		dbdesc = std::string("SQLite: ")
+		       + dbinfo[1];
 	}
 	else
 	{
 		engine = Database::MySQL;
+		dbdesc = std::string("MySQL: ")
+		       + dbinfo[2] + "@"
+		       + dbinfo[1];
+
+		if (dbinfo[5] != "0" && dbinfo[5] != "3306")
+			dbdesc += ":" + dbinfo[5];
+
+		dbdesc += "/" + dbinfo[4];
 	}
+
+	Console::Out("Connecting to database (%s)...", dbdesc.c_str());
 	this->db.Connect(engine, dbinfo[1], util::to_int(dbinfo[5]), dbinfo[2], dbinfo[3], dbinfo[4]);
 	this->BeginDB();
 

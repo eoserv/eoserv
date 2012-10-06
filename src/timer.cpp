@@ -17,12 +17,78 @@
 #include <sys/types.h>
 #endif // WIN32
 
+#include <pthread.h>
+
 static int rres = 0;
-static double gettime_offset = 0.0;
-static double gettime_last = 0.0;
-static bool gettime_init = false;
+
+Clock::Clock()
+	: offset(0.0)
+	, last(GetTimeDelta())
+{ }
+
+unsigned int Clock::GetTimeDelta()
+{
+#ifdef WIN32
+#ifdef TIMER_GETTICKCOUNT
+	unsigned int ticks = GetTickCount();
+#else // TIMER_GETTICKCOUNT
+	unsigned int ticks = timeGetTime();
+#endif // TIMER_GETTICKCOUNT
+#else // WIN32
+#ifdef CLOCK_MONOTONIC
+	struct timespec gettime;
+	clock_gettime(CLOCK_MONOTONIC, &gettime);
+	std::time_t sec = gettime.tv_sec;
+	long msec = gettime.tv_nsec / 1000000;
+#else // CLOCK_MONOTONIC
+	struct timeval gettime;
+	gettimeofday(&gettime, 0);
+	std::time_t sec = gettime.tv_sec;
+	long msec = gettime.tv_usec / 1000;
+#endif // CLOCK_MONOTONIC
+	unsigned int ticks = static_cast<unsigned int>(sec * 1000 + msec);
+#endif // WIN32
+
+	unsigned int delta = ticks - last;
+	last = ticks;
+	return delta;
+}
+
+double Clock::GetTime()
+{
+	double relms = double(this->GetTimeDelta()) / 1000.0;
+	offset += relms;
+	return offset;
+}
+
+struct Timer::impl_t
+{
+	pthread_mutex_t* m;
+
+	impl_t()
+	{
+		if (pthread_mutex_init(m, 0) != 0)
+			throw std::runtime_error("Timer mutex init failed");
+	}
+
+	void lock()
+	{
+		pthread_mutex_lock(m);
+	}
+
+	void unlock()
+	{
+		pthread_mutex_unlock(m);
+	}
+
+	~impl_t()
+	{
+		pthread_mutex_destroy(m);
+	}
+};
 
 Timer::Timer()
+	: impl(new impl_t)
 {
 	int res;
 #ifdef WIN32
@@ -61,42 +127,16 @@ Timer::Timer()
 
 double Timer::GetTime()
 {
-#ifdef WIN32
-#ifdef TIMER_GETTICKCOUNT
-	unsigned int ticks = GetTickCount();
-#else // TIMER_GETTICKCOUNT
-	unsigned int ticks = timeGetTime();
-#endif // TIMER_GETTICKCOUNT
-	double ms = double(ticks) / 1000.0;
-#else // WIN32
-#ifdef CLOCK_MONOTONIC
-	struct timespec gettime;
-	clock_gettime(CLOCK_MONOTONIC, &gettime);
-	double ms = double(gettime.tv_sec) + double(gettime.tv_nsec) / 1000000000.0;
-#else // CLOCK_MONOTONIC
-	struct timeval gettime;
-	gettimeofday(&gettime, 0);
-	double ms = double(gettime.tv_sec) + double(gettime.tv_usec) / 1000000.0;
-#endif // CLOCK_MONOTONIC
-#endif // WIN32
-	if (!gettime_init)
-	{
-		gettime_last = ms;
-		gettime_init = true;
-	}
+	static Clock clock;
 
-	double relms = ms - gettime_last;
-	gettime_last = ms;
-
-	gettime_offset += relms;
-
-	return gettime_offset;
+	return clock.GetTime();
 }
 
 void Timer::Tick()
 {
 	double currenttime = Timer::GetTime();
 
+	impl->lock();
 	if (this->changed)
 	{
 		this->execlist = this->timers;
@@ -110,6 +150,7 @@ void Timer::Tick()
 
 		if (timer->lasttime + timer->speed < currenttime)
 		{
+			impl->unlock();
 			timer->lasttime += timer->speed;
 
 			if (timer->lifetime != Timer::FOREVER)
@@ -123,14 +164,19 @@ void Timer::Tick()
 			}
 
 			timer->callback(timer->param);
+
+			if (timer->manager == 0)
+				delete timer;
+
+			impl->lock();
 		}
 	}
+
+	impl->unlock();
 }
 
 void Timer::Register(TimeEvent *timer)
 {
-	this->changed = true;
-
 	if (timer->lifetime == 0)
 	{
 		return;
@@ -138,23 +184,33 @@ void Timer::Register(TimeEvent *timer)
 
 	timer->lasttime = Timer::GetTime();
 	timer->manager = this;
+
+	impl->lock();
+	this->changed = true;
 	this->timers.insert(timer);
+	impl->unlock();
 }
 
 void Timer::Unregister(TimeEvent *timer)
 {
+	impl->lock();
 	this->changed = true;
 	this->timers.erase(timer);
+	impl->unlock();
 	timer->manager = 0;
 }
 
 Timer::~Timer()
 {
+	impl->lock();
 	UTIL_FOREACH(this->timers, timer)
 	{
 		timer->manager = 0;
 		delete timer;
 	}
+	this->timers.clear();
+	impl->unlock();
+
 #ifdef WIN32
 	if (rres != 0)
 	{

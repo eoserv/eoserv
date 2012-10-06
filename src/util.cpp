@@ -301,7 +301,7 @@ static unsigned long long_rand()
 #if RAND_MAX < 4294967295
 	return (std::rand() & 0xFFFF) << 16 | (std::rand() & 0xFFFF);
 #else
-	return std::rand();
+	return std::rand() & 0xFFFFFFFFU;
 #endif
 #endif
 }

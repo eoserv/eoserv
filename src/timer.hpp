@@ -9,15 +9,32 @@
 
 #include "fwd/timer.hpp"
 
+#include <memory>
 #include <set>
 
 #include "platform.h"
+
+class Clock
+{
+	private:
+		double offset;
+		unsigned int last;
+		unsigned int GetTimeDelta();
+
+	public:
+		Clock();
+		double GetTime();
+};
 
 /**
  * Manages and calls TimerEvent objects
  */
 class Timer
 {
+	private:
+		struct impl_t;
+		std::unique_ptr<impl_t> impl;
+
 	protected:
 		/**
 		 * List of TimeEvent objects a Timer controls

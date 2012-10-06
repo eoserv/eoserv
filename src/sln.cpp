@@ -6,6 +6,10 @@
 
 #include "sln.hpp"
 
+#include <cmath>
+#include <stdexcept>
+#include <string>
+
 #include <pthread.h>
 
 #include "console.hpp"
@@ -17,80 +21,110 @@
 
 #include "version.h"
 
-// TODO: Make this safe (race conditions)
+struct SLN_Request
+{
+	SLN* sln;
+	std::string url;
+	std::string bind;
+	std::string host;
+	int period;
 
-SLN::SLN(EOServer *server)
+	HTTP* http;
+	bool timeout;
+
+	SLN_Request()
+		: sln(0)
+		, period(600)
+		, http(0)
+		, timeout(false)
+	{ }
+
+	~SLN_Request()
+	{
+		delete this->http;
+	}
+};
+
+SLN::SLN(EOServer* server)
 {
 	this->server = server;
-
 	this->Request();
 }
 
 void SLN::Request()
 {
+	SLN_Request* request = new SLN_Request;
+
+	request->sln = this;
+
+	request->url += std::string(this->server->world->config["SLNURL"]);
+	request->url += "check?software=EOSERV&v=" EOSERV_VERSION_STRING;
+	request->url += std::string("&retry=") + HTTP::URLEncode(util::to_string(int(this->server->world->config["SLNPeriod"])));
+
+	if (std::string(this->server->world->config["SLNHost"]).length() > 0)
+	{
+		request->url += std::string("&host=") + HTTP::URLEncode(this->server->world->config["SLNHost"]);
+	}
+
+	request->url += std::string("&port=") + HTTP::URLEncode(this->server->world->config["Port"]);
+	request->url += std::string("&name=") + HTTP::URLEncode(this->server->world->config["ServerName"]);
+
+	if (std::string(this->server->world->config["SLNSite"]).length() > 0)
+	{
+		request->url += std::string("&url=") + HTTP::URLEncode(this->server->world->config["SLNSite"]);
+	}
+
+	if (std::string(this->server->world->config["SLNZone"]).length() > 0)
+	{
+		request->url += std::string("&zone=") + HTTP::URLEncode(this->server->world->config["SLNZone"]);
+	}
+
+	if (this->server->world->config["GlobalPK"])
+	{
+		request->url += std::string("&pk=") + HTTP::URLEncode(this->server->world->config["GlobalPK"]);
+	}
+
+	if (this->server->world->config["Deadly"])
+	{
+		request->url += std::string("&deadly=") + HTTP::URLEncode(this->server->world->config["Deadly"]);
+	}
+
+	request->bind = std::string(this->server->world->config["SLNBind"]);
+	request->host = std::string(this->server->world->config["Host"]);
+	request->period = int(this->server->world->config["SLNPeriod"]);
+
 	static pthread_t thread;
 
-	if (pthread_create(&thread, 0, SLN::RequestThread, this) != 0)
+	if (pthread_create(&thread, 0, SLN::RequestThread, request) != 0)
 	{
-		throw std::exception();
+		throw std::runtime_error("Failed to create SLN request thread");
 	}
 
 	pthread_detach(thread);
 }
 
-void *SLN::RequestThread(void *void_sln)
+void* SLN::RequestThread(void* void_request)
 {
-	SLN *sln(static_cast<SLN *>(void_sln));
+	SLN_Request* request(static_cast<SLN_Request*>(void_request));
 
 	try
 	{
-		HTTP *http;
-
-		std::string url = sln->server->world->config["SLNURL"];
-		url += "check?software=EOSERV&v=" EOSERV_VERSION_STRING;
-		url += std::string("&retry=") + HTTP::URLEncode(util::to_string(static_cast<int>(sln->server->world->config["SLNPeriod"])));
-
-		if (static_cast<std::string>(sln->server->world->config["SLNHost"]).length() > 0)
-		{
-			url += std::string("&host=") + HTTP::URLEncode(sln->server->world->config["SLNHost"]);
-		}
-
-		url += std::string("&port=") + HTTP::URLEncode(sln->server->world->config["Port"]);
-		url += std::string("&name=") + HTTP::URLEncode(sln->server->world->config["ServerName"]);
-
-		if (static_cast<std::string>(sln->server->world->config["SLNSite"]).length() > 0)
-		{
-			url += std::string("&url=") + HTTP::URLEncode(sln->server->world->config["SLNSite"]);
-		}
-
-		if (static_cast<std::string>(sln->server->world->config["SLNZone"]).length() > 0)
-		{
-			url += std::string("&zone=") + HTTP::URLEncode(sln->server->world->config["SLNZone"]);
-		}
-
-		if (sln->server->world->config["GlobalPK"])
-		{
-			url += std::string("&pk=") + HTTP::URLEncode(sln->server->world->config["GlobalPK"]);
-		}
-
-		if (sln->server->world->config["Deadly"])
-		{
-			url += std::string("&deadly=") + HTTP::URLEncode(sln->server->world->config["Deadly"]);
-		}
+		Clock clock;
+		double start_time = clock.GetTime();
 
 		try
 		{
-			if (static_cast<std::string>(sln->server->world->config["SLNBind"]) == "0")
+			if (request->bind == "0")
 			{
-				http = HTTP::RequestURL(url);
+				request->http = HTTP::RequestURL(request->url);
 			}
-			else if (static_cast<std::string>(sln->server->world->config["SLNBind"]) == "1")
+			else if (request->bind == "1")
 			{
-				http = HTTP::RequestURL(url, IPAddress(static_cast<std::string>(sln->server->world->config["Host"])));
+				request->http = HTTP::RequestURL(request->url, IPAddress(request->host));
 			}
 			else
 			{
-				http = HTTP::RequestURL(url, IPAddress(static_cast<std::string>(sln->server->world->config["SLNBind"])));
+				request->http = HTTP::RequestURL(request->url, IPAddress(request->bind));
 			}
 		}
 		catch (Socket_Exception &e)
@@ -104,12 +138,51 @@ void *SLN::RequestThread(void *void_sln)
 			goto end;
 		}
 
-		while (!http->Done())
+		double start_adjust_time = clock.GetTime();
+
+		while (!request->http->Done())
 		{
-			http->Tick(0.01);
+			request->http->Tick(0.1);
+
+			if (start_time + 30.0 < clock.GetTime())
+			{
+				request->timeout = true;
+				break;
+			}
 		}
 
-		std::vector<std::string> lines = util::explode("\r\n", http->Response());
+		request->period -= std::floor(clock.GetTime() - start_adjust_time);
+
+		if (request->period < 45 || request->timeout)
+			request->period = 45;
+	}
+	catch (...)
+	{
+		Console::Wrn("There was an unknown SLN error");
+	}
+
+end:
+	TimeEvent* event = new TimeEvent(SLN::TimedCleanup, request, 0.0, 1);
+	request->sln->server->world->timer.Register(event);
+
+	return 0;
+}
+
+void SLN::TimedCleanup(void* void_request)
+{
+	SLN_Request* request(static_cast<SLN_Request*>(void_request));
+
+	if (request->timeout)
+	{
+		Console::Wrn("SLN check-in failed: HTTP request timed out.");
+	}
+	else if ((request->http->StatusCode() / 100) != 2)
+	{
+		Console::Wrn("SLN check-in failed: negative HTTP response.");
+	}
+	else
+	{
+		std::vector<std::string> lines = util::explode("\r\n", request->http->Response());
 		UTIL_FOREACH(lines, line)
 		{
 			if (line.length() == 0)
@@ -128,6 +201,12 @@ void *SLN::RequestThread(void *void_sln)
 			switch (maincode)
 			{
 				case 1: // Informational
+					switch (code)
+					{
+						case 104:
+							request->period = util::to_int(parts.at(2));
+							break;
+					}
 					break;
 
 				case 2: // Success
@@ -142,17 +221,20 @@ void *SLN::RequestThread(void *void_sln)
 
 							if (parts.at(2) == "retry")
 							{
-								sln->server->world->config["SLNPeriod"] = util::to_int(parts.at(3));
+								int old_period = int(request->sln->server->world->config["SLNPeriod"]);
+								int new_period = util::to_int(parts.at(3));
+								request->sln->server->world->config["SLNPeriod"] = new_period;
+								request->period += new_period - old_period;
 								resolved = true;
 							}
 							else if (parts.at(2) == "name")
 							{
-								sln->server->world->config["ServerName"] = parts.at(3);
+								request->sln->server->world->config["ServerName"] = parts.at(3);
 								resolved = true;
 							}
 							else if (parts.at(2) == "url")
 							{
-								sln->server->world->config["SLNSite"] = parts.at(3);
+								request->sln->server->world->config["SLNSite"] = parts.at(3);
 								resolved = true;
 							}
 							break;
@@ -171,10 +253,10 @@ void *SLN::RequestThread(void *void_sln)
 					}
 
 					Console::Wrn(errmsg);
-					sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
+					request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 					if (resolved)
 					{
-						sln->server->world->AdminMsg(0, "EOSERV has automatically resolved this message and the next check-in should succeed.", ADMIN_HGM);
+						request->sln->server->world->AdminMsg(0, "EOSERV has automatically resolved this message and the next check-in should succeed.", ADMIN_HGM);
 					}
 					break;
 
@@ -191,7 +273,7 @@ void *SLN::RequestThread(void *void_sln)
 
 							if (parts.at(2) == "url")
 							{
-								sln->server->world->config["SLNSite"] = "";
+								request->sln->server->world->config["SLNSite"] = "";
 								resolved = true;
 							}
 							break;
@@ -214,10 +296,10 @@ void *SLN::RequestThread(void *void_sln)
 					}
 
 					Console::Wrn(errmsg);
-					sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
+					request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 					if (resolved)
 					{
-						sln->server->world->AdminMsg(0, "EOSERV has automatically resolved this message and the next check-in should succeed.", ADMIN_HGM);
+						request->sln->server->world->AdminMsg(0, "EOSERV has automatically resolved this message and the next check-in should succeed.", ADMIN_HGM);
 					}
 					break;
 
@@ -237,28 +319,24 @@ void *SLN::RequestThread(void *void_sln)
 					}
 
 					Console::Wrn(errmsg);
-					sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
+					request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 					break;
 			}
 		}
-
-		delete http;
-	}
-	catch (...)
-	{
-		Console::Wrn("There was an unknown SLN error");
 	}
 
-end:
-	TimeEvent *event = new TimeEvent(SLN::TimedRequest, sln, static_cast<int>(sln->server->world->config["SLNPeriod"]), 1);
-	sln->server->world->timer.Register(event);
+	if (request->period > 900)
+		request->period = 900;
 
-	return 0;
+	TimeEvent* event = new TimeEvent(SLN::TimedRequest, request->sln, request->period, 1);
+	request->sln->server->world->timer.Register(event);
+
+	delete request;
 }
 
-void SLN::TimedRequest(void *void_sln)
+void SLN::TimedRequest(void* void_sln)
 {
-	SLN *sln(static_cast<SLN *>(void_sln));
+	SLN* sln(static_cast<SLN*>(void_sln));
 
 	sln->Request();
 }
