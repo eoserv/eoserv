@@ -10,6 +10,9 @@
 
 #include "platform.h"
 
+#include <ctime>
+#include <stdexcept>
+
 #ifdef WIN32
 #include <windows.h>
 #else // WIN32
@@ -63,27 +66,28 @@ double Clock::GetTime()
 
 struct Timer::impl_t
 {
-	pthread_mutex_t* m;
+	pthread_mutex_t m;
 
 	impl_t()
+		: m(PTHREAD_MUTEX_INITIALIZER)
 	{
-		if (pthread_mutex_init(m, 0) != 0)
+		if (pthread_mutex_init(&m, 0) != 0)
 			throw std::runtime_error("Timer mutex init failed");
 	}
 
 	void lock()
 	{
-		pthread_mutex_lock(m);
+		pthread_mutex_lock(&m);
 	}
 
 	void unlock()
 	{
-		pthread_mutex_unlock(m);
+		pthread_mutex_unlock(&m);
 	}
 
 	~impl_t()
 	{
-		pthread_mutex_destroy(m);
+		pthread_mutex_destroy(&m);
 	}
 };
 
