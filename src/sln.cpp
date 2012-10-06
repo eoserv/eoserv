@@ -182,146 +182,153 @@ void SLN::TimedCleanup(void* void_request)
 	}
 	else
 	{
-		std::vector<std::string> lines = util::explode("\r\n", request->http->Response());
-		UTIL_FOREACH(lines, line)
+		try
 		{
-			if (line.length() == 0)
+			std::vector<std::string> lines = util::explode("\r\n", request->http->Response());
+			UTIL_FOREACH(lines, line)
 			{
-				continue;
+				if (line.length() == 0)
+				{
+					continue;
+				}
+
+				std::vector<std::string> parts = util::explode('\t', line);
+
+				int code = util::to_int(parts.at(0));
+				int maincode = code / 100;
+
+				std::string errmsg = std::string("(") + parts.at(0) + ") ";
+				bool resolved = false;
+
+				switch (maincode)
+				{
+					case 1: // Informational
+						switch (code)
+						{
+							case 104:
+								request->period = util::to_int(parts.at(2));
+								break;
+						}
+						break;
+
+					case 2: // Success
+						break;
+
+					case 3: // Warning
+						errmsg += "SLN Update Warning: ";
+						switch (code)
+						{
+							case 300:
+								errmsg += parts.at(4);
+
+								if (parts.at(2) == "retry")
+								{
+									int old_period = int(request->sln->server->world->config["SLNPeriod"]);
+									int new_period = util::to_int(parts.at(3));
+									request->sln->server->world->config["SLNPeriod"] = new_period;
+									request->period += new_period - old_period;
+									resolved = true;
+								}
+								else if (parts.at(2) == "name")
+								{
+									request->sln->server->world->config["ServerName"] = parts.at(3);
+									resolved = true;
+								}
+								else if (parts.at(2) == "url")
+								{
+									request->sln->server->world->config["SLNSite"] = parts.at(3);
+									resolved = true;
+								}
+								break;
+
+							case 301:
+								errmsg += parts.at(2);
+								break;
+
+							case 302:
+								errmsg += parts.at(2);
+								break;
+
+							default:
+								errmsg += "Unknown error code";
+								break;
+						}
+
+						Console::Wrn(errmsg);
+						request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
+						if (resolved)
+						{
+							request->sln->server->world->AdminMsg(0, "EOSERV has automatically resolved this message and the next check-in should succeed.", ADMIN_HGM);
+						}
+						break;
+
+					case 4: // Client Error
+						errmsg += "SLN Update Client Error: ";
+						switch (code)
+						{
+							case 400:
+								errmsg += parts.at(3);
+								break;
+
+							case 401:
+								errmsg += parts.at(3);
+
+								if (parts.at(2) == "url")
+								{
+									request->sln->server->world->config["SLNSite"] = "";
+									resolved = true;
+								}
+								break;
+
+							case 402:
+								errmsg += parts.at(2);
+								break;
+
+							case 403:
+								errmsg += parts.at(2);
+								break;
+
+							case 404:
+								errmsg += parts.at(2);
+								break;
+
+							default:
+								errmsg += "Unknown error code";
+								break;
+						}
+
+						Console::Wrn(errmsg);
+						request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
+						if (resolved)
+						{
+							request->sln->server->world->AdminMsg(0, "EOSERV has automatically resolved this message and the next check-in should succeed.", ADMIN_HGM);
+						}
+						break;
+
+					case 5: // Server Error
+						errmsg += "SLN Update Server Error: ";
+
+						switch (code)
+						{
+							case 500:
+								errmsg += parts.at(2);
+								break;
+
+							default:
+								errmsg += "Unknown error code";
+								break;
+
+						}
+
+						Console::Wrn(errmsg);
+						request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
+						break;
+				}
 			}
-
-			std::vector<std::string> parts = util::explode('\t', line);
-
-			int code = util::to_int(parts.at(0));
-			int maincode = code / 100;
-
-			std::string errmsg = std::string("(") + parts.at(0) + ") ";
-			bool resolved = false;
-
-			switch (maincode)
-			{
-				case 1: // Informational
-					switch (code)
-					{
-						case 104:
-							request->period = util::to_int(parts.at(2));
-							break;
-					}
-					break;
-
-				case 2: // Success
-					break;
-
-				case 3: // Warning
-					errmsg += "SLN Update Warning: ";
-					switch (code)
-					{
-						case 300:
-							errmsg += parts.at(4);
-
-							if (parts.at(2) == "retry")
-							{
-								int old_period = int(request->sln->server->world->config["SLNPeriod"]);
-								int new_period = util::to_int(parts.at(3));
-								request->sln->server->world->config["SLNPeriod"] = new_period;
-								request->period += new_period - old_period;
-								resolved = true;
-							}
-							else if (parts.at(2) == "name")
-							{
-								request->sln->server->world->config["ServerName"] = parts.at(3);
-								resolved = true;
-							}
-							else if (parts.at(2) == "url")
-							{
-								request->sln->server->world->config["SLNSite"] = parts.at(3);
-								resolved = true;
-							}
-							break;
-
-						case 301:
-							errmsg += parts.at(2);
-							break;
-
-						case 302:
-							errmsg += parts.at(2);
-							break;
-
-						default:
-							errmsg += "Unknown error code";
-							break;
-					}
-
-					Console::Wrn(errmsg);
-					request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
-					if (resolved)
-					{
-						request->sln->server->world->AdminMsg(0, "EOSERV has automatically resolved this message and the next check-in should succeed.", ADMIN_HGM);
-					}
-					break;
-
-				case 4: // Client Error
-					errmsg += "SLN Update Client Error: ";
-					switch (code)
-					{
-						case 400:
-							errmsg += parts.at(3);
-							break;
-
-						case 401:
-							errmsg += parts.at(3);
-
-							if (parts.at(2) == "url")
-							{
-								request->sln->server->world->config["SLNSite"] = "";
-								resolved = true;
-							}
-							break;
-
-						case 402:
-							errmsg += parts.at(2);
-							break;
-
-						case 403:
-							errmsg += parts.at(2);
-							break;
-
-						case 404:
-							errmsg += parts.at(2);
-							break;
-
-						default:
-							errmsg += "Unknown error code";
-							break;
-					}
-
-					Console::Wrn(errmsg);
-					request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
-					if (resolved)
-					{
-						request->sln->server->world->AdminMsg(0, "EOSERV has automatically resolved this message and the next check-in should succeed.", ADMIN_HGM);
-					}
-					break;
-
-				case 5: // Server Error
-					errmsg += "SLN Update Server Error: ";
-
-					switch (code)
-					{
-						case 500:
-							errmsg += parts.at(2);
-							break;
-
-						default:
-							errmsg += "Unknown error code";
-							break;
-
-					}
-
-					Console::Wrn(errmsg);
-					request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
-					break;
-			}
+		}
+		catch (...)
+		{
+			Console::Wrn("There was an error parsing the SLN reply");
 		}
 	}
 
