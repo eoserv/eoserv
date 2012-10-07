@@ -1906,7 +1906,7 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 	if (!spell || (spell->type != ESF::Heal && spell->type != ESF::Damage))
 		return;
 
-	if (spell->type == ESF::Damage && from->map->pk)
+	if (spell->type == ESF::Damage && (from->map->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id))))
 	{
 		from->tp -= spell->tp;
 

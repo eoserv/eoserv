@@ -304,10 +304,10 @@ void ESF::Read(std::string filename)
 		newdata->target_restrict = static_cast<ESF::TargetRestrict>(PacketProcessor::Number(buf[17]));
 		newdata->target = static_cast<ESF::Target>(PacketProcessor::Number(buf[18]));
 
-		newdata->mindam = static_cast<ESF::Target>(PacketProcessor::Number(buf[23], buf[24]));
-		newdata->maxdam = static_cast<ESF::Target>(PacketProcessor::Number(buf[25], buf[26]));
-		newdata->accuracy = static_cast<ESF::Target>(PacketProcessor::Number(buf[27], buf[28]));
-		newdata->hp = static_cast<ESF::Target>(PacketProcessor::Number(buf[34], buf[35]));
+		newdata->mindam = PacketProcessor::Number(buf[23], buf[24]);
+		newdata->maxdam = PacketProcessor::Number(buf[25], buf[26]);
+		newdata->accuracy = PacketProcessor::Number(buf[27], buf[28]);
+		newdata->hp = PacketProcessor::Number(buf[34], buf[35]);
 
 		this->data[i] = newdata;
 

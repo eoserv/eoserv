@@ -881,7 +881,7 @@ void Character::SpellAct()
 	switch (spell_target)
 	{
 		case TargetSelf:
-			if (spell->target_restrict == ESF::Opponent || spell->target != ESF::Self)
+			if (spell->target_restrict != ESF::Friendly || spell->target != ESF::Self)
 				return;
 
 			this->map->SpellSelf(this, spell_id);
@@ -900,10 +900,13 @@ void Character::SpellAct()
 			break;
 
 		case TargetPlayer:
-			if ((spell->target_restrict == ESF::Opponent && !this->map->pk) || spell->target != ESF::Normal)
+			if (spell->target_restrict == ESF::NPCOnly || spell->target != ESF::Normal)
 				return;
 
 			victim = this->map->GetCharacterPID(spell_target_id);
+
+			if (spell->target_restrict != ESF::Friendly && victim == this)
+				return;
 
 			if (victim)
 				this->map->SpellAttackPK(this, victim, spell_id);
@@ -911,7 +914,7 @@ void Character::SpellAct()
 			break;
 
 		case TargetGroup:
-			if (spell->target_restrict == ESF::Opponent || spell->target != ESF::Group)
+			if (spell->target_restrict != ESF::Friendly || spell->target != ESF::Group)
 				return;
 
 			this->map->SpellGroup(this, spell_id);

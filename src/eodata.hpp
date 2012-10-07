@@ -262,7 +262,7 @@ class ESF
 
 		enum TargetRestrict
 		{
-			Any,
+			NPCOnly,
 			Friendly,
 			Opponent
 		};
@@ -312,7 +312,7 @@ struct ESF_Data
 	short hp;
 
 	ESF_Data() : id(0), icon(0), graphic(0), tp(0), sp(0), cast_time(0), type(ESF::Damage),
-	target_restrict(ESF::Any), target(ESF::Normal), mindam(0), maxdam(0), accuracy(0), hp(0) { }
+	target_restrict(ESF::NPCOnly), target(ESF::Normal), mindam(0), maxdam(0), accuracy(0), hp(0) { }
 };
 
 /**
