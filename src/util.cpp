@@ -81,7 +81,7 @@ std::string trim(const std::string &str)
 	return str.substr(si, ei);
 }
 
-std::vector<std::string> explode(char delimiter, std::string str)
+std::vector<std::string> explode(char delimiter, const std::string& str)
 {
 	std::size_t lastpos = 0;
 	std::size_t pos = 0;
@@ -98,7 +98,7 @@ std::vector<std::string> explode(char delimiter, std::string str)
 	return pieces;
 }
 
-std::vector<std::string> explode(std::string delimiter, std::string str)
+std::vector<std::string> explode(const std::string& delimiter, const std::string& str)
 {
 	std::size_t lastpos = 0;
 	std::size_t pos = 0;
@@ -125,7 +125,7 @@ std::vector<std::string> explode(std::string delimiter, std::string str)
 	return pieces;
 }
 
-double tdparse(std::string timestr)
+double tdparse(const std::string& timestr)
 {
 	static char period_names[] = {'s', 'm',  '%',   'k',    'h',    'd'    };
 	static double period_mul[] = {1.0, 60.0, 100.0, 1000.0, 3600.0, 86400.0};
@@ -250,26 +250,34 @@ std::string to_string(double subject)
 	return static_cast<std::string>(util::variant(subject));
 }
 
-std::string lowercase(std::string subject)
+std::string lowercase(const std::string& subject)
 {
-	std::transform(subject.begin(), subject.end(), subject.begin(), static_cast<int(*)(int)>(std::tolower));
-	return subject;
+	std::string result;
+	result.resize(subject.length());
+
+	std::transform(subject.begin(), subject.end(), result.begin(), static_cast<int(*)(int)>(std::tolower));
+
+	return result;
 }
 
-std::string uppercase(std::string subject)
+std::string uppercase(const std::string& subject)
 {
-	std::transform(subject.begin(), subject.end(), subject.begin(), static_cast<int(*)(int)>(std::toupper));
-	return subject;
+	std::string result;
+	result.resize(subject.length());
+
+	std::transform(subject.begin(), subject.end(), result.begin(), static_cast<int(*)(int)>(std::toupper));
+
+	return result;
 }
 
-std::string ucfirst(std::string subject)
+std::string ucfirst(const std::string& subject)
 {
-	if (subject[0] > 'a' && subject[0] < 'z')
-	{
-		subject[0] += 'A' - 'a';
-	}
+	std::string result(subject);
 
-	return subject;
+	if (!result.empty() && result[0] >= 'a' && result[0] <= 'z')
+		result[0] += ('A' - 'a');
+
+	return result;
 }
 
 struct rand_init
@@ -390,7 +398,7 @@ static int sizes[256] = {
 	 6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  5,  6,  5,
 };
 
-int text_width(std::string string)
+int text_width(const std::string& string)
 {
 	int length = 0;
 
@@ -402,7 +410,7 @@ int text_width(std::string string)
 	return length;
 }
 
-int text_max_word_width(std::string string)
+int text_max_word_width(const std::string& string)
 {
 	int max_length = 0;
 	int length = 0;
@@ -411,8 +419,8 @@ int text_max_word_width(std::string string)
 	{
 		if (string[i] == ' ')
 		{
-			length = 0;
 			max_length = std::max(max_length, length);
+			length = 0;
 		}
 		else
 		{
@@ -423,7 +431,7 @@ int text_max_word_width(std::string string)
 	return std::max(max_length, length);
 }
 
-std::string text_cap(std::string string, int width, std::string elipses)
+std::string text_cap(const std::string& string, int width, const std::string& elipses)
 {
 	int length = 0;
 
@@ -448,29 +456,30 @@ std::string text_cap(std::string string, int width, std::string elipses)
 	return string;
 }
 
-std::string text_word_wrap(std::string string, int width)
+std::string text_word_wrap(const std::string& string, int width)
 {
 	int length = 0;
+	std::string result(string);
 
-	for (std::size_t i = 0; i < string.length(); ++i)
+	for (std::size_t i = 0; i < result.length(); ++i)
 	{
-		if (string[i] == ' ')
+		if (result[i] == ' ')
 		{
 			length = 0;
 		}
 		else
 		{
-			length += sizes[string[i] & 0xFF];
+			length += sizes[result[i] & 0xFF];
 
 			if (length > width)
 			{
-				string.insert(i - 1, " ");
+				result.insert(i - 1, " ");
 				length = 0;
 			}
 		}
 	}
 
-	return string;
+	return result;
 }
 
 }
