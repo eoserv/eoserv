@@ -7,6 +7,7 @@
 #include "map.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <set>
 
 #include "console.hpp"
@@ -45,48 +46,28 @@ void map_spawn_chests(void *map_void)
 	{
 		bool needs_update = false;
 
-		for (int slot = 1; slot <= chest->slots; ++slot)
+		std::vector<std::list<std::reference_wrapper<const Map_Chest_Spawn>>> spawns;
+		spawns.resize(chest->slots);
+
+		UTIL_CFOREACH(chest->spawns, spawn)
 		{
-			std::list<Map_Chest_Spawn *> spawns;
-
-			UTIL_FOREACH(chest->spawns, spawn)
+			if (spawn.last_taken + spawn.time*60.0 < current_time)
 			{
-				if (spawn->last_taken + spawn->time*60.0 < current_time)
-				{
-					bool slot_used = false;
-
-					UTIL_FOREACH(chest->items, item)
-					{
-						if (item->slot == spawn->slot)
-						{
-							slot_used = true;
-						}
-					}
-
-					if (!slot_used)
-					{
-						spawns.push_back(spawn);
-					}
-				}
+				spawns[spawn.slot - 1].emplace_back(spawn);
 			}
+		}
 
-			if (!spawns.empty())
+		UTIL_CFOREACH(spawns, slot_spawns)
+		{
+			if (!slot_spawns.empty())
 			{
-				std::list<Map_Chest_Spawn *>::iterator it = spawns.begin();
-				int r = util::rand(0, spawns.size()-1);
+				const Map_Chest_Spawn& spawn = *std::next(slot_spawns.cbegin(), util::rand(0, slot_spawns.size() - 1));
 
-				for (int i = 0; i < r; ++i)
-				{
-					++it;
-				}
-
-				Map_Chest_Spawn *spawn(*it);
-
-				chest->AddItem(spawn->item->id, spawn->item->amount, spawn->slot);
+				chest->AddItem(spawn.item.id, spawn.item.amount, spawn.slot);
 				needs_update = true;
 
 #ifdef DEBUG
-				Console::Dbg("Spawning chest item %i (x%i) on map %i", spawn->item->id, spawn->item->amount, map->id);
+				Console::Dbg("Spawning chest item %i (x%i) on map %i", spawn.item.id, spawn.item.amount, map->id);
 #endif // DEBUG
 			}
 		}
@@ -153,20 +134,20 @@ void map_evacuate(void *map_evacuate_void)
 	}
 }
 
-int Map_Chest::HasItem(short item)
+int Map_Chest::HasItem(short item_id) const
 {
-	UTIL_IFOREACH(this->items, it)
+	UTIL_FOREACH(this->items, item)
 	{
-		if ((*it)->id == item)
+		if (item.id == item_id)
 		{
-			return (*it)->amount;
+			return item.amount;
 		}
 	}
 
 	return 0;
 }
 
-int Map_Chest::AddItem(short item, int amount, int slot)
+int Map_Chest::AddItem(short item_id, int amount, int slot)
 {
 	if (amount <= 0)
 	{
@@ -175,16 +156,16 @@ int Map_Chest::AddItem(short item, int amount, int slot)
 
 	if (slot == 0)
 	{
-		UTIL_FOREACH(this->items, it)
+		UTIL_FOREACH(this->items, item)
 		{
-			if (it->id == item)
+			if (item.id == item_id)
 			{
-				if (it->amount + amount < 0 || it->amount + amount > this->maxchest)
+				if (item.amount + amount < 0 || item.amount + amount > this->maxchest)
 				{
 					return 0;
 				}
 
-				it->amount += amount;
+				item.amount += amount;
 				return amount;
 			}
 		}
@@ -199,9 +180,9 @@ int Map_Chest::AddItem(short item, int amount, int slot)
 	{
 		int user_items = 0;
 
-		UTIL_FOREACH(this->items, item)
+		UTIL_CFOREACH(this->items, item)
 		{
-			if (item->slot == 0)
+			if (item.slot == 0)
 			{
 				++user_items;
 			}
@@ -213,10 +194,10 @@ int Map_Chest::AddItem(short item, int amount, int slot)
 		}
 	}
 
-	Map_Chest_Item *chestitem(new Map_Chest_Item);
-	chestitem->id = item;
-	chestitem->amount = amount;
-	chestitem->slot = slot;
+	Map_Chest_Item chestitem;
+	chestitem.id = item_id;
+	chestitem.amount = amount;
+	chestitem.slot = slot;
 
 	if (slot == 0)
 	{
@@ -230,23 +211,23 @@ int Map_Chest::AddItem(short item, int amount, int slot)
 	return amount;
 }
 
-int Map_Chest::DelItem(short item)
+int Map_Chest::DelItem(short item_id)
 {
 	UTIL_IFOREACH(this->items, it)
 	{
-		if ((*it)->id == item)
+		if (it->id == item_id)
 		{
-			int amount = (*it)->amount;
+			int amount = it->amount;
 
-			if ((*it)->slot)
+			if (it->slot)
 			{
 				double current_time = Timer::GetTime();
 
 				UTIL_FOREACH(this->spawns, spawn)
 				{
-					if (spawn->slot == (*it)->slot)
+					if (spawn.slot == it->slot)
 					{
-						spawn->last_taken = current_time;
+						spawn.last_taken = current_time;
 					}
 				}
 			}
@@ -259,14 +240,14 @@ int Map_Chest::DelItem(short item)
 	return 0;
 }
 
-void Map_Chest::Update(Map *map, Character *exclude)
+void Map_Chest::Update(Map *map, Character *exclude) const
 {
 	PacketBuilder builder(PACKET_CHEST, PACKET_AGREE, this->items.size() * 5);
 
-	UTIL_FOREACH(this->items, item)
+	UTIL_CFOREACH(this->items, item)
 	{
-		builder.AddShort(item->id);
-		builder.AddThree(item->amount);
+		builder.AddShort(item.id);
+		builder.AddThree(item.amount);
 	}
 
 	UTIL_FOREACH(map->characters, character)
@@ -416,8 +397,8 @@ bool Map::Load()
 	SAFE_READ(this->rid, sizeof(char), 4, fh);
 
 	char buf[12];
-	int outersize;
-	int innersize;
+	unsigned char outersize;
+	unsigned char innersize;
 
 	SAFE_SEEK(fh, 0x1F, SEEK_SET);
 	SAFE_READ(buf, sizeof(char), 1, fh);
@@ -428,15 +409,7 @@ bool Map::Load()
 	this->width = PacketProcessor::Number(buf[0]) + 1;
 	this->height = PacketProcessor::Number(buf[1]) + 1;
 
-	this->tiles.resize(height);
-	for (int i = 0; i < height; ++i)
-	{
-		this->tiles[i].resize(width);
-		for (int ii = 0; ii < width; ++ii)
-		{
-			this->tiles[i].at(ii) = new Map_Tile;
-		}
-	}
+	this->tiles.resize(this->height * this->width);
 
 	SAFE_SEEK(fh, 0x2A, SEEK_SET);
 	SAFE_READ(buf, sizeof(char), 3, fh);
@@ -468,39 +441,34 @@ bool Map::Load()
 
 	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
-	for (int i = 0; i < outersize; ++i)
+	for (int i = 0; i < std::min(outersize, this->height); ++i)
 	{
 		SAFE_READ(buf, sizeof(char), 2, fh);
 		unsigned char yloc = PacketProcessor::Number(buf[0]);
 		innersize = PacketProcessor::Number(buf[1]);
-		for (int ii = 0; ii < innersize; ++ii)
+		for (int ii = 0; ii < std::min(innersize, this->width); ++ii)
 		{
-			Map_Tile *newtile(new Map_Tile);
 			SAFE_READ(buf, sizeof(char), 2, fh);
 			unsigned char xloc = PacketProcessor::Number(buf[0]);
 			unsigned char spec = PacketProcessor::Number(buf[1]);
-			newtile->tilespec = static_cast<Map_Tile::TileSpec>(spec);
+
+			if (!this->InBounds(xloc, yloc))
+			{
+				Console::Wrn("Tile spec on map %i is outside of map bounds (%ix%i)", this->id, xloc, yloc);
+				continue;
+			}
+
+			this->GetTile(xloc, yloc).tilespec = static_cast<Map_Tile::TileSpec>(spec);
 
 			if (spec == Map_Tile::Chest)
 			{
-				Map_Chest *chest = new Map_Chest;
-				chest->maxchest = static_cast<int>(this->world->config["MaxChest"]);
-				chest->chestslots = static_cast<int>(this->world->config["ChestSlots"]);
-				chest->x = xloc;
-				chest->y = yloc;
-				chest->slots = 0;
-				this->chests.push_back(chest);
-			}
-
-			try
-			{
-				this->tiles.at(yloc).at(xloc) = newtile;
-			}
-			catch (...)
-			{
-				std::fclose(fh);
-				safe_fail(__LINE__);
-				return false;
+				Map_Chest chest;
+				chest.maxchest = static_cast<int>(this->world->config["MaxChest"]);
+				chest.chestslots = static_cast<int>(this->world->config["ChestSlots"]);
+				chest.x = xloc;
+				chest.y = yloc;
+				chest.slots = 0;
+				this->chests.push_back(std::make_shared<Map_Chest>(chest));
 			}
 		}
 	}
@@ -514,18 +482,24 @@ bool Map::Load()
 		innersize = PacketProcessor::Number(buf[1]);
 		for (int ii = 0; ii < innersize; ++ii)
 		{
-			Map_Warp *newwarp(new Map_Warp);
+			Map_Warp newwarp;
 			SAFE_READ(buf, sizeof(char), 8, fh);
 			unsigned char xloc = PacketProcessor::Number(buf[0]);
-			newwarp->map = PacketProcessor::Number(buf[1], buf[2]);
-			newwarp->x = PacketProcessor::Number(buf[3]);
-			newwarp->y = PacketProcessor::Number(buf[4]);
-			newwarp->levelreq = PacketProcessor::Number(buf[5]);
-			newwarp->spec = static_cast<Map_Warp::WarpSpec>(PacketProcessor::Number(buf[6], buf[7]));
+			newwarp.map = PacketProcessor::Number(buf[1], buf[2]);
+			newwarp.x = PacketProcessor::Number(buf[3]);
+			newwarp.y = PacketProcessor::Number(buf[4]);
+			newwarp.levelreq = PacketProcessor::Number(buf[5]);
+			newwarp.spec = static_cast<Map_Warp::WarpSpec>(PacketProcessor::Number(buf[6], buf[7]));
+
+			if (!this->InBounds(xloc, yloc))
+			{
+				Console::Wrn("Warp on map %i is outside of map bounds (%ix%i)", this->id, xloc, yloc);
+				continue;
+			}
 
 			try
 			{
-				this->tiles.at(yloc).at(xloc)->warp = newwarp;
+				this->GetTile(xloc, yloc).warp = newwarp;
 			}
 			catch (...)
 			{
@@ -550,16 +524,16 @@ bool Map::Load()
 		short spawntime = PacketProcessor::Number(buf[5], buf[6]);
 		unsigned char amount = PacketProcessor::Number(buf[7]);
 
-		if (npc_id != this->world->enf->Get(npc_id)->id)
+		if (!this->world->enf->Get(npc_id))
 		{
 			Console::Wrn("An NPC spawn on map %i uses a non-existent NPC (#%i at %ix%i)", this->id, npc_id, x, y);
 		}
 
 		for (int ii = 0; ii < amount; ++ii)
 		{
-			if (x > this->width || y > this->height)
+			if (!this->InBounds(x, y))
 			{
-				Console::Wrn("An NPC spawn on map %i is outside of map bounds (%s at %ix%i)", this->id, this->world->enf->Get(npc_id)->name.c_str(), x, y);
+				Console::Wrn("An NPC spawn on map %i is outside of map bounds (%s at %ix%i)", this->id, this->world->enf->Get(npc_id).name.c_str(), x, y);
 				continue;
 			}
 
@@ -589,7 +563,7 @@ bool Map::Load()
 		short time = PacketProcessor::Number(buf[7], buf[8]);
 		int amount = PacketProcessor::Number(buf[9], buf[10], buf[11]);
 
-		if (itemid != this->world->eif->Get(itemid)->id)
+		if (itemid != this->world->eif->Get(itemid).id)
 		{
 			Console::Wrn("A chest spawn on map %i uses a non-existent item (#%i at %ix%i)", this->id, itemid, x, y);
 		}
@@ -598,23 +572,20 @@ bool Map::Load()
 		{
 			if (chest->x == x && chest->y == y)
 			{
-				Map_Chest_Item *item(new Map_Chest_Item);
-				Map_Chest_Spawn *spawn(new Map_Chest_Spawn);
+				Map_Chest_Spawn spawn;
 
-				item->id = itemid;
-				item->amount = amount;
-
-				spawn->slot = slot+1;
-				spawn->time = time;
-				spawn->last_taken = Timer::GetTime();
-				spawn->item = item;
+				spawn.slot = slot+1;
+				spawn.time = time;
+				spawn.last_taken = Timer::GetTime();
+				spawn.item.id = itemid;
+				spawn.item.amount = amount;
 
 				chest->spawns.push_back(spawn);
 				chest->slots = std::max(chest->slots, slot+1);
 				goto skip_warning;
 			}
 		}
-		Console::Wrn("A chest spawn on map %i points to a non-chest (%s x%i at %ix%i)", this->id, this->world->eif->Get(itemid)->name.c_str(), amount, x, y);
+		Console::Wrn("A chest spawn on map %i points to a non-chest (%s x%i at %ix%i)", this->id, this->world->eif->Get(itemid).name.c_str(), amount, x, y);
 		skip_warning:
 		;
 	}
@@ -649,7 +620,7 @@ void Map::Unload()
 	this->npcs.clear();
 }
 
-int Map::GenerateItemID()
+int Map::GenerateItemID() const
 {
 	int lowest_free_id = 1;
 	restart_loop:
@@ -664,7 +635,7 @@ int Map::GenerateItemID()
 	return lowest_free_id;
 }
 
-unsigned char Map::GenerateNPCIndex()
+unsigned char Map::GenerateNPCIndex() const
 {
 	unsigned char lowest_free_id = 1;
 	restart_loop:
@@ -708,22 +679,22 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	builder.AddShort(character->maxtp);
 	builder.AddShort(character->tp);
 	// equipment
-	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
-	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 	builder.AddShort(0); // ??
-	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-	EIF_Data* wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
+	const EIF_Data& wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-	if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-		builder.AddShort(wep->dual_wield_dollgraphic);
+	if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+		builder.AddShort(wep.dual_wield_dollgraphic);
 	else
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
-	builder.AddShort(wep->dollgraphic);
+	builder.AddShort(wep.dollgraphic);
 
 	builder.AddChar(character->sitting);
 	builder.AddChar(character->hidden);
@@ -796,7 +767,7 @@ void Map::Msg(Character *from, std::string message, bool echo)
 
 void Map::Msg(NPC *from, std::string message)
 {
-	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->Data()->name) + "  "));
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->Data().name) + "  "));
 
 	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER, 4 + message.length());
 	builder.AddByte(255);
@@ -861,6 +832,9 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 			break;
 	}
 
+	if (!this->InBounds(target_x, target_y))
+		return false;
+
 	if (!admin)
 	{
 		if (!this->Walkable(target_x, target_y))
@@ -870,13 +844,13 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 			return false;
 	}
 
-	Map_Warp *warp = this->GetWarp(target_x, target_y);
+	const Map_Warp& warp = this->GetWarp(target_x, target_y);
 
 	if (!admin && warp)
 	{
-		if (from->level >= warp->levelreq && (warp->spec == Map_Warp::NoDoor || warp->open))
+		if (from->level >= warp.levelreq && (warp.spec == Map_Warp::NoDoor || warp.open))
 		{
-			Map* map = this->world->GetMap(warp->map);
+			Map* map = this->world->GetMap(warp.map);
 			if (from->admin < ADMIN_GUIDE && map->evacuate_lock && map->id != from->map->id)
 			{
 				from->StatusMsg(this->world->i18n.Format("map_evacuate_block"));
@@ -884,7 +858,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 			}
 			else
 			{
-				from->Warp(warp->map, warp->x, warp->y);
+				from->Warp(warp.map, warp.x, warp.y);
 			}
 		}
 
@@ -912,7 +886,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	std::vector<Character *> oldchars;
 	std::vector<NPC *> newnpcs;
 	std::vector<NPC *> oldnpcs;
-	std::vector<Map_Item *> newitems;
+	std::vector<std::shared_ptr<Map_Item>> newitems;
 
 	switch (direction)
 	{
@@ -1055,15 +1029,15 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.AddShort(from->maxtp);
 	builder.AddShort(from->tp);
 	// equipment
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Boots])->dollgraphic);
+	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Boots]).dollgraphic);
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
 	builder.AddShort(0); // ??
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Armor])->dollgraphic);
+	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Armor]).dollgraphic);
 	builder.AddShort(0); // ??
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Hat])->dollgraphic);
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Shield])->dollgraphic);
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Weapon])->dollgraphic);
+	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Hat]).dollgraphic);
+	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Shield]).dollgraphic);
+	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Weapon]).dollgraphic);
 	builder.AddChar(from->sitting);
 	builder.AddChar(from->hidden);
 	builder.AddByte(255);
@@ -1091,22 +1065,22 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		rbuilder.AddShort(character->maxtp);
 		rbuilder.AddShort(character->tp);
 		// equipment
-		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 		rbuilder.AddShort(0); // ??
 		rbuilder.AddShort(0); // ??
 		rbuilder.AddShort(0); // ??
-		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 		rbuilder.AddShort(0); // ??
-		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-		EIF_Data* wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
+		const EIF_Data& wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-			rbuilder.AddShort(wep->dual_wield_dollgraphic);
+		if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+			rbuilder.AddShort(wep.dual_wield_dollgraphic);
 		else
-			rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+			rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
-		rbuilder.AddShort(wep->dollgraphic);
+		rbuilder.AddShort(wep.dollgraphic);
 
 		rbuilder.AddChar(character->sitting);
 		rbuilder.AddChar(character->hidden);
@@ -1399,7 +1373,7 @@ void Map::Attack(Character *from, Direction direction)
 
 	int range = 1;
 
-	if (this->world->eif->Get(from->paperdoll[Character::Weapon])->subtype == EIF::Ranged)
+	if (this->world->eif->Get(from->paperdoll[Character::Weapon]).subtype == EIF::Ranged)
 	{
 		range = static_cast<int>(this->world->config["RangedDistance"]);
 	}
@@ -1427,7 +1401,7 @@ void Map::Attack(Character *from, Direction direction)
 
 		UTIL_FOREACH(this->npcs, npc)
 		{
-			if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive || from->admin >= static_cast<int>(this->world->admin_config["killnpc"]))
+			if ((npc->Data().type == ENF::Passive || npc->Data().type == ENF::Aggressive || from->admin >= static_cast<int>(this->world->admin_config["killnpc"]))
 			 && npc->alive && npc->x == target_x && npc->y == target_y)
 			{
 				int amount = util::rand(from->mindam, from->maxdam);
@@ -1482,7 +1456,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 	int range = 1;
 
-	if (this->world->eif->Get(from->paperdoll[Character::Weapon])->subtype == EIF::Ranged)
+	if (this->world->eif->Get(from->paperdoll[Character::Weapon]).subtype == EIF::Ranged)
 	{
 		range = static_cast<int>(this->world->config["RangedDistance"]);
 	}
@@ -1701,9 +1675,9 @@ void Map::Emote(Character *from, enum Emote emote, bool echo)
 	}
 }
 
-bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
+bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target) const
 {
-	if (x >= this->width || y >= this->height)
+	if (!InBounds(x, y))
 	{
 		return false;
 	}
@@ -1740,21 +1714,21 @@ Map::~Map()
 
 bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 {
-	if (from && !from->InRange(x, y))
+	if (!this->InBounds(x, y) || (from && !from->InRange(x, y)))
 	{
 		return false;
 	}
 
-	if (Map_Warp *warp = this->GetWarp(x, y))
+	if (Map_Warp& warp = this->GetWarp(x, y))
 	{
-		if (warp->spec == Map_Warp::NoDoor || warp->open)
+		if (warp.spec == Map_Warp::NoDoor || warp.open)
 		{
 			return false;
 		}
 
-		if (from && warp->spec > Map_Warp::Door)
+		if (from && warp.spec > Map_Warp::Door)
 		{
-			if (!from->HasItem(this->world->eif->GetKey(warp->spec - static_cast<int>(Map_Warp::Door) + 1)))
+			if (!from->HasItem(this->world->eif->GetKey(warp.spec - static_cast<int>(Map_Warp::Door) + 1)))
 			{
 				return false;
 			}
@@ -1772,7 +1746,7 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 			}
 		}
 
-		warp->open = true;
+		warp.open = true;
 
 		map_close_door_struct *close = new map_close_door_struct;
 		close->map = this;
@@ -1790,40 +1764,30 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 
 void Map::CloseDoor(unsigned char x, unsigned char y)
 {
-	if (Map_Warp *warp = this->GetWarp(x, y))
+	if (!this->InBounds(x, y))
+		return;
+
+	if (Map_Warp& warp = this->GetWarp(x, y))
 	{
-		if (warp->spec == Map_Warp::NoDoor || !warp->open)
+		if (warp.spec == Map_Warp::NoDoor || !warp.open)
 		{
 			return;
 		}
 
-		warp->open = false;
+		warp.open = false;
 	}
-}
-
-ESF_Data *map_spell_common(Character *from, unsigned short spell_id)
-{
-	ESF_Data *spell = from->world->esf->Get(spell_id);
-
-	if (spell->id == 0)
-		return 0;
-
-	if (from->tp < spell->tp)
-		return 0;
-
-	return spell;
 }
 
 void Map::SpellSelf(Character *from, unsigned short spell_id)
 {
-	ESF_Data *spell = map_spell_common(from, spell_id);
+	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
-	if (!spell || spell->type != ESF::Heal)
+	if (!spell || spell.type != ESF::Heal || from->tp < spell.tp)
 		return;
 
-	from->tp -= spell->tp;
+	from->tp -= spell.tp;
 
-	int hpgain = spell->hp;
+	int hpgain = spell.hp;
 
 	if (this->world->config["LimitDamage"])
 		hpgain = std::min(hpgain, from->maxhp - from->hp);
@@ -1838,7 +1802,7 @@ void Map::SpellSelf(Character *from, unsigned short spell_id)
 	PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_SELF, 15);
 	builder.AddShort(from->player->id);
 	builder.AddShort(spell_id);
-	builder.AddInt(spell->hp);
+	builder.AddInt(spell.hp);
 	builder.AddChar(util::clamp<int>(double(from->hp) / double(from->maxhp) * 100.0, 0, 100));
 
 	UTIL_FOREACH(this->characters, character)
@@ -1856,14 +1820,14 @@ void Map::SpellSelf(Character *from, unsigned short spell_id)
 
 void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 {
-	ESF_Data *spell = map_spell_common(from, spell_id);
+	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
-	if (!spell || spell->type != ESF::Damage)
+	if (!spell || spell.type != ESF::Damage || from->tp < spell.tp)
 		return;
 
-	if ((npc->Data()->type == ENF::Passive || npc->Data()->type == ENF::Aggressive) && npc->alive)
+	if ((npc->Data().type == ENF::Passive || npc->Data().type == ENF::Aggressive) && npc->alive)
 	{
-		from->tp -= spell->tp;
+		from->tp -= spell.tp;
 
 		int amount = util::rand(from->mindam, from->maxdam);
 		double rand = util::rand(0.0, 1.0);
@@ -1901,14 +1865,14 @@ void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 
 void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell_id)
 {
-	ESF_Data *spell = map_spell_common(from, spell_id);
+	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
-	if (!spell || (spell->type != ESF::Heal && spell->type != ESF::Damage))
+	if (!spell || (spell.type != ESF::Heal && spell.type != ESF::Damage) || from->tp < spell.tp)
 		return;
 
-	if (spell->type == ESF::Damage && (from->map->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id))))
+	if (spell.type == ESF::Damage && (from->map->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id))))
 	{
-		from->tp -= spell->tp;
+		from->tp -= spell.tp;
 
 		int amount = util::rand(from->mindam, from->maxdam);
 		double rand = util::rand(0.0, 1.0);
@@ -1994,11 +1958,11 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 			victim->party->UpdateHP(victim);
 		}
 	}
-	else if (spell->type == ESF::Heal)
+	else if (spell.type == ESF::Heal)
 	{
-		from->tp -= spell->tp;
+		from->tp -= spell.tp;
 
-		int hpgain = spell->hp;
+		int hpgain = spell.hp;
 
 		if (this->world->config["LimitDamage"])
 			hpgain = std::min(hpgain, victim->maxhp - victim->hp);
@@ -2015,7 +1979,7 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 		builder.AddShort(from->player->id);
 		builder.AddChar(from->direction);
 		builder.AddShort(spell_id);
-		builder.AddInt(spell->hp);
+		builder.AddInt(spell.hp);
 		builder.AddChar(util::clamp<int>(double(victim->hp) / double(victim->maxhp) * 100.0, 0, 100));
 
 		UTIL_FOREACH(this->characters, character)
@@ -2042,14 +2006,14 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 
 void Map::SpellGroup(Character *from, unsigned short spell_id)
 {
-	ESF_Data *spell = map_spell_common(from, spell_id);
+	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
-	if (!spell || spell->type != ESF::Heal || !from->party)
+	if (!spell || spell.type != ESF::Heal || !from->party || from->tp < spell.tp)
 		return;
 
-	from->tp -= spell->tp;
+	from->tp -= spell.tp;
 
-	int hpgain = spell->hp;
+	int hpgain = spell.hp;
 
 	if (this->world->config["LimitDamage"])
 		hpgain = std::min(hpgain, from->maxhp - from->hp);
@@ -2067,14 +2031,14 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 	builder.AddShort(spell_id);
 	builder.AddShort(from->player->id);
 	builder.AddShort(from->tp);
-	builder.AddShort(spell->hp);
+	builder.AddShort(spell.hp);
 
 	UTIL_FOREACH(from->party->members, member)
 	{
 		if (member->map != from->map)
 			continue;
 
-		int hpgain = spell->hp;
+		int hpgain = spell.hp;
 
 		if (this->world->config["LimitDamage"])
 			hpgain = std::min(hpgain, member->maxhp - member->hp);
@@ -2110,16 +2074,9 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 	}
 }
 
-Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from)
+std::shared_ptr<Map_Item> Map::AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from)
 {
-	Map_Item *newitem(new Map_Item(GenerateItemID(), id, amount, x, y, 0, 0));
-
-	PacketBuilder builder(PACKET_ITEM, PACKET_ADD, 9);
-	builder.AddShort(id);
-	builder.AddShort(newitem->uid);
-	builder.AddThree(amount);
-	builder.AddChar(x);
-	builder.AddChar(y);
+	std::shared_ptr<Map_Item> newitem(std::make_shared<Map_Item>(0, id, amount, x, y, 0, 0));
 
 	if (from || (from && from->admin <= ADMIN_GM))
 	{
@@ -2137,24 +2094,34 @@ Map_Item *Map::AddItem(short id, int amount, unsigned char x, unsigned char y, C
 
 		if (ontile >= static_cast<int>(this->world->config["MaxTile"]) || onmap >= static_cast<int>(this->world->config["MaxMap"]))
 		{
-			return 0;
+			return newitem;
 		}
 	}
 
+	newitem->uid = GenerateItemID();
+
+	PacketBuilder builder(PACKET_ITEM, PACKET_ADD, 9);
+	builder.AddShort(id);
+	builder.AddShort(newitem->uid);
+	builder.AddThree(amount);
+	builder.AddChar(x);
+	builder.AddChar(y);
+
 	UTIL_FOREACH(this->characters, character)
 	{
-		if ((from && character == from) || !character->InRange(newitem))
+		if ((from && character == from) || !character->InRange(*newitem))
 		{
 			continue;
 		}
+
 		character->Send(builder);
 	}
 
 	this->items.push_back(newitem);
-	return this->items.back();
+	return newitem;
 }
 
-Map_Item *Map::GetItem(short uid)
+std::shared_ptr<Map_Item> Map::GetItem(short uid)
 {
 	UTIL_FOREACH(this->items, item)
 	{
@@ -2164,7 +2131,20 @@ Map_Item *Map::GetItem(short uid)
 		}
 	}
 
-	return 0;
+	return std::shared_ptr<Map_Item>();
+}
+
+std::shared_ptr<const Map_Item> Map::GetItem(short uid) const
+{
+	UTIL_CFOREACH(this->items, item)
+	{
+		if (item->uid == uid)
+		{
+			return item;
+		}
+	}
+
+	return std::shared_ptr<Map_Item>();
 }
 
 void Map::DelItem(short uid, Character *from)
@@ -2177,7 +2157,7 @@ void Map::DelItem(short uid, Character *from)
 			builder.AddShort(uid);
 			UTIL_FOREACH(this->characters, character)
 			{
-				if ((from && character == from) || !character->InRange(*it))
+				if ((from && character == from) || !character->InRange(**it))
 				{
 					continue;
 				}
@@ -2189,62 +2169,54 @@ void Map::DelItem(short uid, Character *from)
 	}
 }
 
-void Map::DelItem(Map_Item *item, Character *from)
-{
-	UTIL_IFOREACH(this->items, it)
-	{
-		if (item == *it)
-		{
-			PacketBuilder builder(PACKET_ITEM, PACKET_REMOVE, 2);
-			builder.AddShort((*it)->uid);
-			UTIL_FOREACH(this->characters, character)
-			{
-				if ((from && character == from) || !character->InRange(*it))
-				{
-					continue;
-				}
-				character->Send(builder);
-			}
-			this->items.erase(it);
-			break;
-		}
-	}
-}
-
-bool Map::InBounds(unsigned char x, unsigned char y)
+bool Map::InBounds(unsigned char x, unsigned char y) const
 {
 	return !(x >= this->width || y >= this->height);
 }
 
-bool Map::Walkable(unsigned char x, unsigned char y, bool npc)
+bool Map::Walkable(unsigned char x, unsigned char y, bool npc) const
 {
-	if (!InBounds(x, y) || !this->tiles[y].at(x)->Walkable(npc))
+	if (!InBounds(x, y) || !this->GetTile(x, y).Walkable(npc))
 		return false;
 
-	if (this->world->config["GhostArena"] && this->tiles[y].at(x)->tilespec == Map_Tile::Arena && this->Occupied(x, y, PlayerAndNPC))
+	if (this->world->config["GhostArena"] && this->GetTile(x, y).tilespec == Map_Tile::Arena && this->Occupied(x, y, PlayerAndNPC))
 		return false;
 
 	return true;
 }
 
-Map_Tile::TileSpec Map::GetSpec(unsigned char x, unsigned char y)
+Map_Tile& Map::GetTile(unsigned char x, unsigned char y)
 {
-	if (x >= this->width || y >= this->height)
-	{
-		return Map_Tile::None;
-	}
+	if (!InBounds(x, y))
+		throw std::out_of_range("Map tile out of range");
 
-	return this->tiles[y].at(x)->tilespec;
+	return this->tiles[y * this->width + x];
 }
 
-Map_Warp *Map::GetWarp(unsigned char x, unsigned char y)
+const Map_Tile& Map::GetTile(unsigned char x, unsigned char y) const
 {
-	if (x >= this->width || y >= this->height)
-	{
-		return 0;
-	}
+	if (!InBounds(x, y))
+		throw std::out_of_range("Map tile out of range");
 
-	return this->tiles[y].at(x)->warp;
+	return this->tiles[y * this->width + x];
+}
+
+Map_Tile::TileSpec Map::GetSpec(unsigned char x, unsigned char y) const
+{
+	if (!InBounds(x, y))
+		return Map_Tile::None;
+
+	return this->GetTile(x, y).tilespec;
+}
+
+Map_Warp& Map::GetWarp(unsigned char x, unsigned char y)
+{
+	return this->GetTile(x, y).warp;
+}
+
+const Map_Warp& Map::GetWarp(unsigned char x, unsigned char y) const
+{
+	return this->GetTile(x, y).warp;
 }
 
 std::vector<Character *> Map::CharactersInRange(unsigned char x, unsigned char y, unsigned char range)

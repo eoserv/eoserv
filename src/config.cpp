@@ -13,12 +13,7 @@
 
 #include "console.hpp"
 
-Config::Config(std::string filename)
-{
-	this->Read(filename);
-}
-
-void Config::Read(std::string filename)
+void Config::Read(const std::string& filename)
 {
 	std::FILE *fh;
 	char buf[Config::MaxLineLength];

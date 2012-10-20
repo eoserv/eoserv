@@ -92,7 +92,7 @@ void Citizen_Open(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == id && npc->Data()->type == ENF::Inn && npc->citizenship)
+		if (npc->index == id && npc->Data().type == ENF::Inn && npc->citizenship)
 		{
 			character->npc = npc;
 			character->npc_type = ENF::Inn;
@@ -106,9 +106,9 @@ void Citizen_Open(Character *character, PacketReader &reader)
 			if (home)
 				innkeeper_vend = home->innkeeper_vend;
 
-			reply.AddThree(npc->Data()->vendor_id);
+			reply.AddThree(npc->Data().vendor_id);
 
-			if (character->world->config["CitizenSubscribeAnytime"] && innkeeper_vend != npc->Data()->vendor_id)
+			if (character->world->config["CitizenSubscribeAnytime"] && innkeeper_vend != npc->Data().vendor_id)
 				reply.AddChar(0);
 			else
 				reply.AddChar(innkeeper_vend);

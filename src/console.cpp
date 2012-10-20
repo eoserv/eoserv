@@ -79,17 +79,17 @@ do { \
 	if (Styled[stream]) ResetTextColor(stream); \
 } while (false)
 
-void Out(std::string f, ...)
+void Out(const char* f, ...)
 {
 	CONSOLE_GENERIC_OUT("   ", STREAM_OUT, COLOR_GREY, true);
 }
 
-void Wrn(std::string f, ...)
+void Wrn(const char* f, ...)
 {
 	CONSOLE_GENERIC_OUT("WRN", STREAM_OUT, COLOR_YELLOW, true);
 }
 
-void Err(std::string f, ...)
+void Err(const char* f, ...)
 {
 	if (!Styled[STREAM_ERR])
 	{
@@ -99,7 +99,7 @@ void Err(std::string f, ...)
 	CONSOLE_GENERIC_OUT("ERR", STREAM_ERR, COLOR_RED, true);
 }
 
-void Dbg(std::string f, ...)
+void Dbg(const char* f, ...)
 {
 	CONSOLE_GENERIC_OUT("DBG", STREAM_OUT, COLOR_GREY, false);
 }

@@ -26,26 +26,26 @@ void Item_Use(Character *character, PacketReader &reader)
 
 	if (character->HasItem(id))
 	{
-		EIF_Data *item = character->world->eif->Get(id);
+		const EIF_Data& item = character->world->eif->Get(id);
 		PacketBuilder reply(PACKET_ITEM, PACKET_REPLY, 3);
-		reply.AddChar(item->type);
+		reply.AddChar(item.type);
 		reply.AddShort(id);
 
-		switch (item->type)
+		switch (item.type)
 		{
 			case EIF::Teleport:
 			{
 				if (!character->map->scroll)
 					break;
 
-				if (item->scrollmap == 0)
+				if (item.scrollmap == 0)
 				{
 					if (character->mapid == character->SpawnMap() && character->x == character->SpawnX() && character->y == character->SpawnY())
 						break;
 				}
 				else
 				{
-					if (character->mapid == item->scrollmap && character->x == item->scrollx && character->y == item->scrolly)
+					if (character->mapid == item.scrollmap && character->x == item.scrollx && character->y == item.scrolly)
 						break;
 				}
 
@@ -56,13 +56,13 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
 
-				if (item->scrollmap == 0)
+				if (item.scrollmap == 0)
 				{
 					character->Warp(character->SpawnMap(), character->SpawnX(), character->SpawnY(), WARP_ANIMATION_SCROLL);
 				}
 				else
 				{
-					character->Warp(item->scrollmap, item->scrollx, item->scrolly, WARP_ANIMATION_SCROLL);
+					character->Warp(item.scrollmap, item.scrollx, item.scrolly, WARP_ANIMATION_SCROLL);
 				}
 
 				character->Send(reply);
@@ -73,8 +73,8 @@ void Item_Use(Character *character, PacketReader &reader)
 
 			case EIF::Heal:
 			{
-				int hpgain = item->hp;
-				int tpgain = item->tp;
+				int hpgain = item.hp;
+				int tpgain = item.tp;
 
 				if (character->world->config["LimitDamage"])
 				{
@@ -134,10 +134,10 @@ void Item_Use(Character *character, PacketReader &reader)
 
 			case EIF::HairDye:
 			{
-				if (character->haircolor == item->haircolor)
+				if (character->haircolor == item.haircolor)
 					break;
 
-				character->haircolor = item->haircolor;
+				character->haircolor = item.haircolor;
 
 				character->DelItem(id, 1);
 
@@ -146,13 +146,13 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
 
-				reply.AddChar(item->haircolor);
+				reply.AddChar(item.haircolor);
 
 				PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 5);
 				builder.AddShort(character->player->id);
 				builder.AddChar(SLOT_HAIRCOLOR);
 				builder.AddChar(0); // subloc
-				builder.AddChar(item->haircolor);
+				builder.AddChar(item.haircolor);
 
 				UTIL_FOREACH(character->map->characters, updatecharacter)
 				{
@@ -191,9 +191,9 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddInt(character->HasItem(id));
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
-				reply.AddShort(item->effect);
+				reply.AddShort(item.effect);
 
-				character->Effect(item->effect, false);
+				character->Effect(item.effect, false);
 
 				character->Send(reply);
 
@@ -207,7 +207,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				for (std::size_t i = 0; i < character->paperdoll.size(); ++i)
 				{
-					if (character->world->eif->Get(character->paperdoll[i])->special == EIF::Cursed)
+					if (character->world->eif->Get(character->paperdoll[i]).special == EIF::Cursed)
 					{
 						character->paperdoll[i] = 0;
 						found = true;
@@ -246,18 +246,18 @@ void Item_Use(Character *character, PacketReader &reader)
 				builder.AddShort(character->player->id);
 				builder.AddChar(SLOT_CLOTHES);
 				builder.AddChar(0);
-				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
-				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
-				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
+				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
+				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-				EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+				const EIF_Data& wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-				builder.AddShort(wep->dollgraphic);
+				builder.AddShort(wep.dollgraphic);
 
-				if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-					builder.AddShort(wep->dual_wield_dollgraphic);
+				if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+					builder.AddShort(wep.dual_wield_dollgraphic);
 				else
-					builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+					builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
 				UTIL_FOREACH(character->map->characters, updatecharacter)
 				{
@@ -277,7 +277,7 @@ void Item_Use(Character *character, PacketReader &reader)
 			{
 				bool level_up = false;
 
-				character->exp += item->expreward;
+				character->exp += item.expreward;
 
 				character->exp = std::min(character->exp, static_cast<int>(character->map->world->config["MaxExp"]));
 
@@ -339,7 +339,7 @@ void Item_Drop(Character *character, PacketReader &reader)
 	int id = reader.GetShort();
 	int amount;
 
-	if (character->world->eif->Get(id)->special == EIF::Lore)
+	if (character->world->eif->Get(id).special == EIF::Lore)
 	{
 		return;
 	}
@@ -387,7 +387,8 @@ void Item_Drop(Character *character, PacketReader &reader)
 
 	if (character->HasItem(id) >= amount && character->mapid != static_cast<int>(character->world->config["JailMap"]))
 	{
-		Map_Item *item = character->map->AddItem(id, amount, x, y, character);
+		std::shared_ptr<Map_Item> item = character->map->AddItem(id, amount, x, y, character);
+
 		if (item)
 		{
 			item->owner = character->player->id;
@@ -436,7 +437,8 @@ void Item_Get(Character *character, PacketReader &reader)
 {
 	int uid = reader.GetShort();
 
-	Map_Item *item = character->map->GetItem(uid);
+	std::shared_ptr<Map_Item> item = character->map->GetItem(uid);
+
 	if (item)
 	{
 		int distance = util::path_length(item->x, item->y, character->x, character->y);
@@ -466,7 +468,7 @@ void Item_Get(Character *character, PacketReader &reader)
 		reply.AddChar(character->maxweight);
 		character->Send(reply);
 
-		character->map->DelItem(item, character);
+		character->map->DelItem(item->uid, character);
 
 		if (item_after.amount > 0)
 			character->map->AddItem(item_after.id, item_after.amount, item_after.x, item_after.y);

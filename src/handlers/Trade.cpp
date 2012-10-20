@@ -209,7 +209,7 @@ void Trade_Add(Character *character, PacketReader &reader)
 	int itemid = reader.GetShort();
 	int amount = reader.GetInt();
 
-	if (character->world->eif->Get(itemid)->special == EIF::Lore)
+	if (character->world->eif->Get(itemid).special == EIF::Lore)
 	{
 		return;
 	}

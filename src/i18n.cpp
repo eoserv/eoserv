@@ -13,16 +13,16 @@
 I18N::I18N()
 { }
 
-I18N::I18N(std::string lang_file)
+I18N::I18N(const std::string& lang_file)
 	: lang_config(new Config(lang_file))
 { }
 
-void I18N::SetLangFile(std::string lang_file)
+void I18N::SetLangFile(const std::string& lang_file)
 {
 	lang_config->Read(lang_file);
 }
 
-std::string I18N::FormatV(std::string id, std::vector<util::variant> &&v)
+std::string I18N::FormatV(const std::string& id, std::vector<util::variant> &&v) const
 {
 	auto it = lang_config->find(id);
 

@@ -43,13 +43,13 @@ class Config : public std::unordered_map<std::string, util::variant>
 		 * Reads all configuration data from the file to memory.
 		 * @param filename File to read from.
 		 */
-		Config(std::string filename);
+		Config(const std::string& filename) { Read(filename); }
 
 		/**
 		 * Reads all configuration data from the file to memory.
 		 * @param filename File to read from.
 		 */
-		void Read(std::string filename);
+		void Read(const std::string& filename);
 };
 
 #endif // CONFIG_HPP_INCLUDED

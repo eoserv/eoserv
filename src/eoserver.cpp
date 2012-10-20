@@ -62,12 +62,15 @@ void server_pump_queue(void *server_void)
 
 		if (size != 0 && client->queue.next <= now)
 		{
-			ActionQueue_Action *action = client->queue.queue.front();
+			std::unique_ptr<ActionQueue_Action> action = std::move(client->queue.queue.front());
 			client->queue.queue.pop();
 
+#ifndef DEBUG
 			try
 			{
+#endif // DEBUG
 				Handlers::Handle(action->reader.Family(), action->reader.Action(), client, action->reader, !action->auto_queue);
+#ifndef DEBUG
 			}
 			catch (Socket_Exception& e)
 			{
@@ -104,10 +107,9 @@ void server_pump_queue(void *server_void)
 				Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(client->GetRemoteAddr()).c_str());
 				client->Close();
 			}
+#endif // DEBUG
 
 			client->queue.next = now + action->time;
-
-			delete action;
 		}
 	}
 }

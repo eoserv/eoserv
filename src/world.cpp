@@ -45,7 +45,7 @@ void world_spawn_npcs(void *world_void)
 		UTIL_FOREACH(map->npcs, npc)
 		{
 			if ((!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time)
-			 && (!npc->Data()->child || (npc->parent && npc->parent->alive && world->config["RespawnBossChildren"])))
+			 && (!npc->Data().child || (npc->parent && npc->parent->alive && world->config["RespawnBossChildren"])))
 			{
 #ifdef DEBUG
 				Console::Dbg("Spawning NPC %i on map %i", npc->id, map->id);
@@ -123,11 +123,11 @@ void world_npc_recover(void *world_void)
 	{
 		UTIL_FOREACH(map->npcs, npc)
 		{
-			if (npc->alive && npc->hp < npc->Data()->hp)
+			if (npc->alive && npc->hp < npc->Data().hp)
 			{
-				npc->hp += npc->Data()->hp * double(world->config["NPCRecoverRate"]);
+				npc->hp += npc->Data().hp * double(world->config["NPCRecoverRate"]);
 
-				npc->hp = std::min(npc->hp, npc->Data()->hp);
+				npc->hp = std::min(npc->hp, npc->Data().hp);
 			}
 		}
 	}
@@ -156,7 +156,6 @@ void world_warp_suck(void *world_void)
 
 	double now = Timer::GetTime();
 	double delay = world->config["WarpSuck"];
-	Map_Warp *warp = 0;
 
 	UTIL_FOREACH(world->maps, map)
 	{
@@ -165,32 +164,26 @@ void world_warp_suck(void *world_void)
 			if (character->last_walk + delay >= now)
 				continue;
 
+			auto check_warp = [&](bool test, unsigned char x, unsigned char y)
+			{
+				if (!test || !map->InBounds(x, y))
+					return;
+
+				const Map_Warp& warp = map->GetWarp(x, y);
+
+				if (!warp || warp.levelreq > character->level || (warp.spec != Map_Warp::Door && warp.spec != Map_Warp::NoDoor))
+					return;
+
+				actions.push_back({character, warp.map, warp.x, warp.y});
+			};
+
 			character->last_walk = now;
 
-#define CHECK_WARP(test, x, y) (test && (warp = map->GetWarp(x, y)) && warp->levelreq <= character->level \
-	&& (warp->spec == Map_Warp::Door|| warp->spec == Map_Warp::NoDoor))
-
-			if (CHECK_WARP(true, character->x, character->y))
-			{
-				actions.push_back({character, warp->map, warp->x, warp->y});
-			}
-			else if (CHECK_WARP(character->x > 0, character->x - 1, character->y))
-			{
-				actions.push_back({character, warp->map, warp->x, warp->y});
-			}
-			else if (CHECK_WARP(character->x < map->width, character->x + 1, character->y))
-			{
-				actions.push_back({character, warp->map, warp->x, warp->y});
-			}
-			else if (CHECK_WARP(character->y > 0, character->x, character->y - 1))
-			{
-				actions.push_back({character, warp->map, warp->x, warp->y});
-			}
-			else if (CHECK_WARP(character->y, character->x, character->y + 1))
-			{
-				actions.push_back({character, warp->map, warp->x, warp->y});
-			}
-#undef CHECK_WARP
+			check_warp(true,                       character->x,     character->y);
+			check_warp(character->x > 0,           character->x - 1, character->y);
+			check_warp(character->x < map->width,  character->x + 1, character->y);
+			check_warp(character->y > 0,           character->x,     character->y - 1);
+			check_warp(character->y < map->height, character->x,     character->y + 1);
 		}
 	}
 
@@ -351,8 +344,8 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 	UTIL_CFOREACH(this->enf->data, npc)
 	{
-		if (npc->type == ENF::Quest)
-			max_quest = std::max(max_quest, npc->vendor_id);
+		if (npc.type == ENF::Quest)
+			max_quest = std::max(max_quest, npc.vendor_id);
 	}
 
 	for (short i = 0; i <= max_quest; ++i)

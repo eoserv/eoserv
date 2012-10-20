@@ -246,7 +246,7 @@ void NPC::LoadShopDrop()
 			Home* home = this->map->world->GetHome(this->citizenship->home);
 
 			if (home)
-				home->innkeeper_vend = this->Data()->vendor_id;
+				home->innkeeper_vend = this->Data().vendor_id;
 			else
 				Console::Wrn("innkeeper set on non-existent home");
 
@@ -277,18 +277,18 @@ void NPC::LoadShopDrop()
 	}
 }
 
-ENF_Data *NPC::Data()
+const ENF_Data& NPC::Data() const
 {
 	return this->map->world->enf->Get(id);
 }
 
 void NPC::Spawn(NPC *parent)
 {
-	if (this->Data()->boss && !parent)
+	if (this->Data().boss && !parent)
 	{
 		UTIL_FOREACH(this->map->npcs, npc)
 		{
-			if (npc->Data()->child)
+			if (npc->Data().child)
 			{
 				npc->Spawn(this);
 			}
@@ -326,7 +326,7 @@ void NPC::Spawn(NPC *parent)
 
 		if (!found)
 		{
-			Console::Wrn("An NPC on map %i at %i,%i is being placed by linear scan of spawn area (%s)", this->map->id, this->spawn_x, this->spawn_y, this->map->world->enf->Get(this->id)->name.c_str());
+			Console::Wrn("An NPC on map %i at %i,%i is being placed by linear scan of spawn area (%s)", this->map->id, this->spawn_x, this->spawn_y, this->map->world->enf->Get(this->id).name.c_str());
 			for (this->x = this->spawn_x-2; this->x <= spawn_x+2; ++this->x)
 			{
 				for (this->y = this->spawn_y-2; this->y <= this->spawn_y+2; ++this->y)
@@ -349,7 +349,7 @@ void NPC::Spawn(NPC *parent)
 	}
 
 	this->alive = true;
-	this->hp = this->Data()->hp;
+	this->hp = this->Data().hp;
 	this->last_act = Timer::GetTime();
 	this->act_speed = speed_table[this->spawn_type];
 
@@ -374,11 +374,11 @@ void NPC::Spawn(NPC *parent)
 void NPC::Act()
 {
 	// Needed for the server startup spawn to work properly
-	if (this->Data()->child && !this->parent)
+	if (this->Data().child && !this->parent)
 	{
 		UTIL_FOREACH(this->map->npcs, npc)
 		{
-			if (npc->Data()->boss)
+			if (npc->Data().boss)
 			{
 				this->parent = npc;
 				break;
@@ -397,7 +397,7 @@ void NPC::Act()
 	unsigned char attacker_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 	unsigned short attacker_damage = 0;
 
-	if (this->Data()->type == ENF::Passive || this->Data()->type == ENF::Aggressive)
+	if (this->Data().type == ENF::Passive || this->Data().type == ENF::Aggressive)
 	{
 		UTIL_FOREACH(this->damagelist, opponent)
 		{
@@ -436,7 +436,7 @@ void NPC::Act()
 		}
 	}
 
-	if (this->Data()->type == ENF::Aggressive && !attacker)
+	if (this->Data().type == ENF::Aggressive && !attacker)
 	{
 		Character *closest = 0;
 		unsigned char closest_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
@@ -544,7 +544,7 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		amount = limitamount;
 	}
 
-	if (this->Data()->type == ENF::Passive || this->Data()->type == ENF::Aggressive)
+	if (this->Data().type == ENF::Passive || this->Data().type == ENF::Aggressive)
 	{
 		this->hp -= amount;
 	}
@@ -593,7 +593,7 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		builder.AddChar(from->direction);
 		builder.AddShort(this->index);
 		builder.AddThree(amount);
-		builder.AddShort(util::clamp<int>(double(this->hp) / double(this->Data()->hp) * 100.0, 0, 100));
+		builder.AddShort(util::clamp<int>(double(this->hp) / double(this->Data().hp) * 100.0, 0, 100));
 
 		if (spell_id != -1)
 			builder.AddShort(from->tp);
@@ -699,7 +699,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 		dropuid = this->map->GenerateItemID();
 		dropid = drop->id;
 		dropamount = util::rand(drop->min, drop->max);
-		Map_Item *newitem(new Map_Item(dropuid, dropid, dropamount, this->x, this->y, from->player->id, Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])));
+		std::shared_ptr<Map_Item> newitem(std::make_shared<Map_Item>(dropuid, dropid, dropamount, this->x, this->y, from->player->id, Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])));
 		this->map->items.push_back(newitem);
 
 		// Selects a random number between 0 and maxhp, and decides the winner based on that
@@ -715,7 +715,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 			case 2:
 			{
-				int rewarded_hp = util::rand(0, this->Data()->hp);
+				int rewarded_hp = util::rand(0, this->Data().hp);
 				int count_hp = 0;
 				UTIL_FOREACH(this->damagelist, opponent)
 				{
@@ -764,7 +764,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 			PacketBuilder builder(spell_id == -1 ? PACKET_NPC : PACKET_CAST, PACKET_SPEC, 26);
 
-			if (this->Data()->exp != 0)
+			if (this->Data().exp != 0)
 			{
 				if (findopp != this->damagelist.end())
 				{
@@ -774,7 +774,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 						case 0:
 							if (character == from)
 							{
-								reward = int(std::ceil(double(this->Data()->exp) * exprate));
+								reward = int(std::ceil(double(this->Data().exp) * exprate));
 
 								if (reward > 0)
 								{
@@ -800,7 +800,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 						case 1:
 							if (character == most_damage)
 							{
-								reward = int(std::ceil(double(this->Data()->exp) * exprate));
+								reward = int(std::ceil(double(this->Data().exp) * exprate));
 
 								if (reward > 0)
 								{
@@ -824,7 +824,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 							break;
 
 						case 2:
-							reward = int(std::ceil(double(this->Data()->exp) * exprate * (double((*findopp)->damage) / double(this->totaldamage))));
+							reward = int(std::ceil(double(this->Data().exp) * exprate * (double((*findopp)->damage) / double(this->totaldamage))));
 
 							if (reward > 0)
 							{
@@ -848,7 +848,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 							break;
 
 						case 3:
-							reward = int(std::ceil(double(this->Data()->exp) * exprate * (double(this->damagelist.size()) / 1.0)));
+							reward = int(std::ceil(double(this->Data().exp) * exprate * (double(this->damagelist.size()) / 1.0)));
 
 							if (reward > 0)
 							{
@@ -944,16 +944,16 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 	short childid = -1;
 
-	if (this->Data()->boss)
+	if (this->Data().boss)
 	{
 		UTIL_FOREACH(this->map->npcs, npc)
 		{
-			if (npc->Data()->child && !npc->Data()->boss)
+			if (npc->Data().child && !npc->Data().boss)
 			{
-				if (childid == -1 || childid == npc->Data()->id)
+				if (childid == -1 || childid == npc->Data().id)
 				{
 					npc->Die(false);
-					childid = npc->Data()->id;
+					childid = npc->Data().id;
 				}
 				else
 				{
@@ -982,7 +982,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 		);
 	}
 
-	UTIL_FOREACH(from->quests, q) { q.second->KilledNPC(this->Data()->id); }
+	UTIL_FOREACH(from->quests, q) { q.second->KilledNPC(this->Data().id); }
 }
 
 void NPC::Die(bool show)
@@ -1026,7 +1026,7 @@ void NPC::Die(bool show)
 
 void NPC::Attack(Character *target)
 {
-	int amount = util::rand(this->Data()->mindam, this->Data()->maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
+	int amount = util::rand(this->Data().mindam, this->Data().maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
 	double rand = util::rand(0.0, 1.0);
 	// Checks if target is facing you
 	bool critical = std::abs(int(target->direction) - this->direction) != 2 || rand < static_cast<double>(this->map->world->config["CriticalRate"]);
@@ -1154,12 +1154,12 @@ void NPC::Attack(Character *target)
 
 #define v(x) vars[prefix + #x] = x;
 #define vv(x, n) vars[prefix + n] = x;
-#define vd(x) vars[prefix + #x] = data->x;
+#define vd(x) vars[prefix + #x] = data.x;
 
 void NPC::FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix)
 {
-	ENF_Data *data = this->Data();
-	vv(1, "npc") v(hp) vv(data->hp, "maxhp")
+	const ENF_Data& data = this->Data();
+	vv(1, "npc") v(hp) vv(data.hp, "maxhp")
 	vd(mindam) vd(maxdam)
 	vd(accuracy) vd(evade) vd(armor)
 	v(x) v(y) v(direction) vv(map->id, "mapid")

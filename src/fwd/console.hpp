@@ -12,10 +12,10 @@
 namespace Console
 {
 
-void Out(std::string f, ...);
-void Wrn(std::string f, ...);
-void Err(std::string f, ...);
-void Dbg(std::string f, ...);
+void Out(const char* f, ...);
+void Wrn(const char* f, ...);
+void Err(const char* f, ...);
+void Dbg(const char* f, ...);
 
 };
 

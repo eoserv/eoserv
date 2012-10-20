@@ -41,9 +41,9 @@ void character_cast_spell(void *character_void)
 	delete character->spell_event;
 	character->spell_event = 0;
 
-	ESF_Data *spell = character->world->esf->Get(character->spell_id);
+	const ESF_Data& spell = character->world->esf->Get(character->spell_id);
 
-	if (spell->id == 0)
+	if (spell.id == 0)
 		return;
 
 	if (character->spell_target != Character::TargetInvalid)
@@ -52,38 +52,30 @@ void character_cast_spell(void *character_void)
 		character->spell_ready = true;
 }
 
-// TODO: Clean up these functions
 std::string ItemSerialize(const std::list<Character_Item> &list)
 {
 	std::string serialized;
 
-	UTIL_CFOREACH(list, item)
+	UTIL_CIFOREACH(list, item)
 	{
-		serialized.append(util::to_string(item.id));
+		serialized.append(util::to_string(item->id));
 		serialized.append(",");
-		serialized.append(util::to_string(item.amount));
+		serialized.append(util::to_string(item->amount));
 		serialized.append(";");
 	}
 
 	return serialized;
 }
 
-std::list<Character_Item> ItemUnserialize(std::string serialized)
+std::list<Character_Item> ItemUnserialize(const std::string& serialized)
 {
 	std::list<Character_Item> list;
-	std::size_t p = 0;
-	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 
-	if (!serialized.empty() && *(serialized.end()-1) != ';')
-	{
-		serialized.push_back(';');
-	}
+	std::vector<std::string> parts = util::explode(';', serialized);
 
-	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
+	UTIL_FOREACH(parts, part)
 	{
-		std::string part = serialized.substr(lastp+1, p-lastp-1);
-		std::size_t pp = 0;
-		pp = part.find_first_of(',', 0);
+		std::size_t pp = part.find_first_of(',', 0);
 
 		if (pp == std::string::npos)
 		{
@@ -92,11 +84,9 @@ std::list<Character_Item> ItemUnserialize(std::string serialized)
 
 		Character_Item newitem;
 		newitem.id = util::to_int(part.substr(0, pp));
-		newitem.amount = util::to_int(part.substr(pp+1));
+		newitem.amount = util::to_int(part.substr(pp + 1));
 
-		list.push_back(newitem);
-
-		lastp = p;
+		list.emplace_back(std::move(newitem));
 	}
 
 	return list;
@@ -115,22 +105,19 @@ std::string DollSerialize(const std::array<int, 15> &list)
 	return serialized;
 }
 
-std::array<int, 15> DollUnserialize(std::string serialized)
+std::array<int, 15> DollUnserialize(const std::string& serialized)
 {
 	std::array<int, 15> list{{}};
-	std::size_t p = 0;
-	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 	std::size_t i = 0;
 
-	if (!serialized.empty() && *(serialized.end()-1) != ',')
-	{
-		serialized.push_back(',');
-	}
+	std::vector<std::string> parts = util::explode(',', serialized);
 
-	while (i < list.size() && (p = serialized.find_first_of(',', p+1)) != std::string::npos)
+	UTIL_FOREACH(parts, part)
 	{
-		list[i++] = util::to_int(serialized.substr(lastp+1, p-lastp-1));
-		lastp = p;
+		list[i++] = util::to_int(part);
+
+		if (i == list.size())
+			break;
 	}
 
 	return list;
@@ -151,35 +138,25 @@ std::string SpellSerialize(const std::list<Character_Spell> &list)
 	return serialized;
 }
 
-std::list<Character_Spell> SpellUnserialize(std::string serialized)
+std::list<Character_Spell> SpellUnserialize(const std::string& serialized)
 {
 	std::list<Character_Spell> list;
-	std::size_t p = 0;
-	std::size_t lastp = std::numeric_limits<std::size_t>::max();
 
-	if (!serialized.empty() && *(serialized.end()-1) != ';')
-	{
-		serialized.push_back(';');
-	}
+	std::vector<std::string> parts = util::explode(';', serialized);
 
-	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
+	UTIL_FOREACH(parts, part)
 	{
-		std::string part = serialized.substr(lastp+1, p-lastp-1);
 		std::size_t pp = 0;
 		pp = part.find_first_of(',', 0);
 
 		if (pp == std::string::npos)
-		{
 			continue;
-		}
 
 		Character_Spell newspell;
 		newspell.id = util::to_int(part.substr(0, pp));
 		newspell.level = util::to_int(part.substr(pp+1));
 
-		list.push_back(newspell);
-
-		lastp = p;
+		list.emplace_back(std::move(newspell));
 	}
 
 	return list;
@@ -222,22 +199,13 @@ std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>>
 
 void QuestUnserialize(std::string serialized, Character* character)
 {
-	std::size_t p = 0;
-	std::size_t lastp = std::numeric_limits<std::size_t>::max();
-
 	bool conversion_warned = false;
 
-	if (!serialized.empty() && *(serialized.end()-1) != ';')
-	{
-		serialized.push_back(';');
-	}
+	std::vector<std::string> parts = util::explode(';', serialized);
 
-	while ((p = serialized.find_first_of(';', p+1)) != std::string::npos)
+	UTIL_FOREACH(parts, part)
 	{
-		std::string part = serialized.substr(lastp+1, p-lastp-1);
 		std::size_t pp1 = part.find_first_of(',');
-
-		lastp = p;
 
 		if (pp1 == std::string::npos)
 			continue;
@@ -290,7 +258,7 @@ void QuestUnserialize(std::string serialized, Character* character)
 			}
 
 			// Vodka leaves the quest state set to the end of the quest, which
-			// means everyone will get re-rewarded for all quests they've completed...
+			// means everyone will get stuck in an unfinished state
 		}
 
 		auto quest_it = character->world->quests.find(state.quest_id);
@@ -757,14 +725,14 @@ int Character::CanHoldItem(short itemid, int max_amount)
 
 	if (int(this->world->config["EnforceWeight"]) >= 2)
 	{
-		EIF_Data *item = this->world->eif->Get(itemid);
+		const EIF_Data &item = this->world->eif->Get(itemid);
 
 		if (this->weight > this->maxweight)
 			amount = 0;
-		else if (!item || item->weight == 0)
+		else if (!item || item.weight == 0)
 			amount = max_amount;
 		else
-			amount = std::min((this->maxweight - this->weight) / item->weight, max_amount);
+			amount = std::min((this->maxweight - this->weight) / item.weight, max_amount);
 	}
 
 	return std::min<int>(amount, this->world->config["MaxItem"]);
@@ -864,9 +832,9 @@ void Character::CancelSpell()
 
 void Character::SpellAct()
 {
-	ESF_Data *spell = world->esf->Get(this->spell_id);
+	const ESF_Data &spell = world->esf->Get(this->spell_id);
 
-	if (spell->id == 0 || spell->type == ESF::Bard)
+	if (spell.id == 0 || spell.type == ESF::Bard)
 	{
 		this->CancelSpell();
 		return;
@@ -883,7 +851,7 @@ void Character::SpellAct()
 	switch (spell_target)
 	{
 		case TargetSelf:
-			if (spell->target_restrict != ESF::Friendly || spell->target != ESF::Self)
+			if (spell.target_restrict != ESF::Friendly || spell.target != ESF::Self)
 				return;
 
 			this->map->SpellSelf(this, spell_id);
@@ -891,7 +859,7 @@ void Character::SpellAct()
 			break;
 
 		case TargetNPC:
-			if (spell->target_restrict == ESF::Friendly || spell->target != ESF::Normal)
+			if (spell.target_restrict == ESF::Friendly || spell.target != ESF::Normal)
 				return;
 
 			npc_victim = this->map->GetNPCIndex(spell_target_id);
@@ -902,12 +870,12 @@ void Character::SpellAct()
 			break;
 
 		case TargetPlayer:
-			if (spell->target_restrict == ESF::NPCOnly || spell->target != ESF::Normal)
+			if (spell.target_restrict == ESF::NPCOnly || spell.target != ESF::Normal)
 				return;
 
 			victim = this->map->GetCharacterPID(spell_target_id);
 
-			if (spell->target_restrict != ESF::Friendly && victim == this)
+			if (spell.target_restrict != ESF::Friendly && victim == this)
 				return;
 
 			if (victim)
@@ -916,7 +884,7 @@ void Character::SpellAct()
 			break;
 
 		case TargetGroup:
-			if (spell->target_restrict != ESF::Friendly || spell->target != ESF::Group)
+			if (spell.target_restrict != ESF::Friendly || spell.target != ESF::Group)
 				return;
 
 			this->map->SpellGroup(this, spell_id);
@@ -1004,21 +972,21 @@ bool Character::Equip(short item, unsigned char subloc)
 		return false;
 	}
 
-	EIF_Data *eif = this->world->eif->Get(item);
-	ECF_Data *ecf = this->world->ecf->Get(this->clas);
+	const EIF_Data &eif = this->world->eif->Get(item);
+	const ECF_Data &ecf = this->world->ecf->Get(this->clas);
 
-	if (eif->type == EIF::Armor && eif->gender != this->gender)
+	if (eif.type == EIF::Armor && eif.gender != this->gender)
 	{
 		return false;
 	}
 
-	if (eif->type == EIF::Weapon && eif->subtype == EIF::TwoHanded)
+	if (eif.type == EIF::Weapon && eif.subtype == EIF::TwoHanded)
 	{
 		if (this->paperdoll[Shield])
 		{
-			EIF_Data *shield_eif = this->world->eif->Get(this->paperdoll[Shield]);
+			const EIF_Data& shield_eif = this->world->eif->Get(this->paperdoll[Shield]);
 
-			if (eif->dual_wield_dollgraphic || (shield_eif->subtype != EIF::Arrows && shield_eif->subtype != EIF::Wings))
+			if (eif.dual_wield_dollgraphic || (shield_eif.subtype != EIF::Arrows && shield_eif.subtype != EIF::Wings))
 			{
 				this->StatusMsg(this->world->i18n.Format("two_handed_fail_1"));
 				return false;
@@ -1026,14 +994,14 @@ bool Character::Equip(short item, unsigned char subloc)
 		}
 	}
 
-	if (eif->type == EIF::Shield)
+	if (eif.type == EIF::Shield)
 	{
 		if (this->paperdoll[Weapon])
 		{
-			EIF_Data *weapon_eif = this->world->eif->Get(this->paperdoll[Weapon]);
+			const EIF_Data weapon_eif = this->world->eif->Get(this->paperdoll[Weapon]);
 
-			if (weapon_eif->subtype == EIF::TwoHanded
-			 && (weapon_eif->dual_wield_dollgraphic || (eif->subtype != EIF::Arrows && eif->subtype != EIF::Wings)))
+			if (weapon_eif.subtype == EIF::TwoHanded
+			 && (weapon_eif.dual_wield_dollgraphic || (eif.subtype != EIF::Arrows && eif.subtype != EIF::Wings)))
 			{
 				this->StatusMsg(this->world->i18n.Format("two_handed_fail_2"));
 				return false;
@@ -1041,15 +1009,15 @@ bool Character::Equip(short item, unsigned char subloc)
 		}
 	}
 
-	if (this->level < eif->levelreq || (this->clas != eif->classreq && ecf->base != eif->classreq)
-	 || this->display_str < eif->strreq || this->display_intl < eif->intreq
-	 || this->display_wis < eif->wisreq || this->display_agi < eif->agireq
-	 || this->display_con < eif->conreq || this->display_cha < eif->chareq)
+	if (this->level < eif.levelreq || (this->clas != eif.classreq && ecf.base != eif.classreq)
+	 || this->display_str < eif.strreq || this->display_intl < eif.intreq
+	 || this->display_wis < eif.wisreq || this->display_agi < eif.agireq
+	 || this->display_con < eif.conreq || this->display_cha < eif.chareq)
 	{
 		return false;
 	}
 
-	switch (eif->type)
+	switch (eif.type)
 	{
 		case EIF::Weapon: return character_equip_oneslot(this, item, subloc, Weapon);
 		case EIF::Shield: return character_equip_oneslot(this, item, subloc, Shield);
@@ -1067,12 +1035,12 @@ bool Character::Equip(short item, unsigned char subloc)
 	}
 }
 
-bool Character::InRange(unsigned char x, unsigned char y)
+bool Character::InRange(unsigned char x, unsigned char y) const
 {
-	return util::path_length(this->x, this->y, x, y) <= static_cast<int>(this->world->config["SeeDistance"]);
+	return util::path_length(this->x, this->y, x, y) <= static_cast<int>(this->world->config.at("SeeDistance"));
 }
 
-bool Character::InRange(Character *other)
+bool Character::InRange(const Character *other) const
 {
 	if (this->nowhere || other->nowhere)
 	{
@@ -1082,7 +1050,7 @@ bool Character::InRange(Character *other)
 	return this->InRange(other->x, other->y);
 }
 
-bool Character::InRange(NPC *other)
+bool Character::InRange(const NPC *other) const
 {
 	if (this->nowhere)
 	{
@@ -1092,14 +1060,14 @@ bool Character::InRange(NPC *other)
 	return this->InRange(other->x, other->y);
 }
 
-bool Character::InRange(Map_Item *other)
+bool Character::InRange(const Map_Item &other) const
 {
 	if (this->nowhere)
 	{
 		return false;
 	}
 
-	return this->InRange(other->x, other->y);
+	return this->InRange(other.x, other.y);
 }
 
 void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation)
@@ -1207,7 +1175,7 @@ void Character::Refresh()
 {
 	std::vector<Character *> updatecharacters;
 	std::vector<NPC *> updatenpcs;
-	std::vector<Map_Item *> updateitems;
+	std::vector<std::shared_ptr<Map_Item>> updateitems;
 
 	UTIL_FOREACH(this->map->characters, character)
 	{
@@ -1227,7 +1195,7 @@ void Character::Refresh()
 
 	UTIL_FOREACH(this->map->items, item)
 	{
-		if (this->InRange(item))
+		if (this->InRange(*item))
 		{
 			updateitems.push_back(item);
 		}
@@ -1257,22 +1225,22 @@ void Character::Refresh()
 		builder.AddShort(character->maxtp);
 		builder.AddShort(character->tp);
 		// equipment
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 		builder.AddShort(0); // ??
 		builder.AddShort(0); // ??
 		builder.AddShort(0); // ??
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 		builder.AddShort(0); // ??
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-		EIF_Data* wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
+		const EIF_Data& wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-			builder.AddShort(wep->dual_wield_dollgraphic);
+		if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+			builder.AddShort(wep.dual_wield_dollgraphic);
 		else
-			builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+			builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
-		builder.AddShort(wep->dollgraphic);
+		builder.AddShort(wep.dollgraphic);
 
 		builder.AddChar(character->sitting);
 		builder.AddChar(character->hidden);
@@ -1282,7 +1250,7 @@ void Character::Refresh()
 	UTIL_FOREACH(updatenpcs, npc)
 	{
 		builder.AddChar(npc->index);
-		builder.AddShort(npc->Data()->id);
+		builder.AddShort(npc->Data().id);
 		builder.AddChar(npc->x);
 		builder.AddChar(npc->y);
 		builder.AddChar(npc->direction);
@@ -1418,14 +1386,14 @@ void Character::CheckQuestRules()
 
 void Character::CalculateStats(bool trigger_quests)
 {
-	ECF_Data *ecf = world->ecf->Get(this->clas);
+	const ECF_Data& ecf = world->ecf->Get(this->clas);
 
-	this->adj_str = this->str + ecf->str;
-	this->adj_intl = this->intl + ecf->intl;
-	this->adj_wis = this->wis + ecf->wis;
-	this->adj_agi = this->agi + ecf->agi;
-	this->adj_con = this->con + ecf->con;
-	this->adj_cha = this->cha + ecf->cha;
+	this->adj_str = this->str + ecf.str;
+	this->adj_intl = this->intl + ecf.intl;
+	this->adj_wis = this->wis + ecf.wis;
+	this->adj_agi = this->agi + ecf.agi;
+	this->adj_con = this->con + ecf.con;
+	this->adj_cha = this->cha + ecf.cha;
 
 	this->maxweight = 70;
 	this->weight = 0;
@@ -1440,7 +1408,7 @@ void Character::CalculateStats(bool trigger_quests)
 
 	UTIL_FOREACH(this->inventory, item)
 	{
-		this->weight += this->world->eif->Get(item.id)->weight * item.amount;
+		this->weight += this->world->eif->Get(item.id).weight * item.amount;
 
 		if (this->weight >= 250)
 		{
@@ -1452,21 +1420,21 @@ void Character::CalculateStats(bool trigger_quests)
 	{
 		if (i)
 		{
-			EIF_Data *item = this->world->eif->Get(i);
-			this->weight += item->weight;
-			this->maxhp += item->hp;
-			this->maxtp += item->tp;
-			this->mindam += item->mindam;
-			this->maxdam += item->maxdam;
-			this->accuracy += item->accuracy;
-			this->evade += item->evade;
-			this->armor += item->armor;
-			this->adj_str += item->str;
-			this->adj_intl += item->intl;
-			this->adj_wis += item->wis;
-			this->adj_agi += item->agi;
-			this->adj_con += item->con;
-			this->adj_cha += item->cha;
+			const EIF_Data& item = this->world->eif->Get(i);
+			this->weight += item.weight;
+			this->maxhp += item.hp;
+			this->maxtp += item.tp;
+			this->mindam += item.mindam;
+			this->maxdam += item.maxdam;
+			this->accuracy += item.accuracy;
+			this->evade += item.evade;
+			this->armor += item.armor;
+			this->adj_str += item.str;
+			this->adj_intl += item.intl;
+			this->adj_wis += item.wis;
+			this->adj_agi += item.agi;
+			this->adj_con += item.con;
+			this->adj_cha += item.cha;
 		}
 	}
 
@@ -1502,13 +1470,13 @@ void Character::CalculateStats(bool trigger_quests)
 
 	if (this->world->config["UseClassFormulas"])
 	{
-		auto dam = rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".damage"]), formula_vars);
+		auto dam = rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf.type) + ".damage"]), formula_vars);
 
 		this->mindam += dam;
 		this->maxdam += dam;
-		this->armor += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".defence"]), formula_vars);
-		this->accuracy += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".accuracy"]), formula_vars);
-		this->evade += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf->type) + ".evade"]), formula_vars);
+		this->armor += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf.type) + ".defence"]), formula_vars);
+		this->accuracy += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf.type) + ".accuracy"]), formula_vars);
+		this->evade += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf.type) + ".evade"]), formula_vars);
 	}
 	else
 	{
@@ -1540,13 +1508,13 @@ void Character::DropAll(Character *killer)
 
 	while (it != this->inventory.end())
 	{
-		if (this->world->eif->Get(it->id)->special == EIF::Lore)
+		if (this->world->eif->Get(it->id).special == EIF::Lore)
 		{
 			++it;
 			continue;
 		}
 
-		Map_Item *map_item = this->player->character->map->AddItem(it->id, it->amount, this->x, this->y, 0);
+		std::shared_ptr<Map_Item> map_item = this->player->character->map->AddItem(it->id, it->amount, this->x, this->y, 0);
 
 		if (map_item)
 		{
@@ -1581,13 +1549,13 @@ void Character::DropAll(Character *killer)
 	int i = 0;
 	UTIL_FOREACH(this->paperdoll, id)
 	{
-		if (id == 0 || this->world->eif->Get(id)->special == EIF::Lore || this->world->eif->Get(id)->special == EIF::Cursed)
+		if (id == 0 || this->world->eif->Get(id).special == EIF::Lore || this->world->eif->Get(id).special == EIF::Cursed)
 		{
 			++i;
 			continue;
 		}
 
-		Map_Item *map_item = this->player->character->map->AddItem(id, 1, this->x, this->y, 0);
+		std::shared_ptr<Map_Item> map_item = this->player->character->map->AddItem(id, 1, this->x, this->y, 0);
 
 		if (map_item)
 		{
@@ -1615,11 +1583,11 @@ void Character::DropAll(Character *killer)
 				builder.AddShort(this->player->id);
 				builder.AddChar(SLOT_CLOTHES);
 				builder.AddChar(0); // ?
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Boots])->dollgraphic);
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Armor])->dollgraphic);
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Hat])->dollgraphic);
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Weapon])->dollgraphic);
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Shield])->dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Boots]).dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Armor]).dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Hat]).dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Weapon]).dollgraphic);
+				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Shield]).dollgraphic);
 				builder.AddShort(id);
 				builder.AddChar(subloc);
 				builder.AddShort(this->maxhp);

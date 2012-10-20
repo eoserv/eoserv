@@ -183,11 +183,11 @@ void Strip(const std::vector<std::string>& arguments, Command_Source* from)
 						builder.AddShort(victim->player->id);
 						builder.AddChar(SLOT_CLOTHES);
 						builder.AddChar(0); // ?
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Boots])->dollgraphic);
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Armor])->dollgraphic);
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Hat])->dollgraphic);
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Weapon])->dollgraphic);
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Shield])->dollgraphic);
+						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Boots]).dollgraphic);
+						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Armor]).dollgraphic);
+						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Hat]).dollgraphic);
+						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Weapon]).dollgraphic);
+						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Shield]).dollgraphic);
 						builder.AddShort(itemid);
 						builder.AddChar(subloc);
 						builder.AddShort(victim->maxhp);

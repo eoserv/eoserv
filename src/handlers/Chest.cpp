@@ -24,7 +24,7 @@ void Chest_Add(Character *character, PacketReader &reader)
 	int id = reader.GetShort();
 	int amount = reader.GetThree();
 
-	if (character->world->eif->Get(id)->special == EIF::Lore)
+	if (character->world->eif->Get(id).special == EIF::Lore)
 	{
 		return;
 	}
@@ -50,7 +50,7 @@ void Chest_Add(Character *character, PacketReader &reader)
 						reply.AddChar(character->weight);
 						reply.AddChar(character->maxweight);
 
-						UTIL_FOREACH(chest->items, item)
+						UTIL_CIFOREACH(chest->items, item)
 						{
 							if (item->id != 0)
 							{
@@ -102,7 +102,7 @@ void Chest_Take(Character *character, PacketReader &reader)
 							chest->AddItem(id, amount - taken);
 						}
 
-						UTIL_FOREACH(chest->items, item)
+						UTIL_CIFOREACH(chest->items, item)
 						{
 							if (item->id != 0)
 							{
@@ -136,13 +136,13 @@ void Chest_Open(Character *character, PacketReader &reader)
 			reply.AddChar(x);
 			reply.AddChar(y);
 
-			UTIL_FOREACH(character->map->chests, chest)
+			UTIL_CFOREACH(character->map->chests, chest)
 			{
 				if (chest->x == x && chest->y == y)
 				{
 					reply.ReserveMore(chest->items.size() * 5);
 
-					UTIL_FOREACH(chest->items, item)
+					UTIL_CIFOREACH(chest->items, item)
 					{
 						if (item->id != 0)
 						{

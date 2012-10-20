@@ -22,16 +22,15 @@
 #include "socket.hpp"
 #include "world.hpp"
 
-void ActionQueue::AddAction(PacketReader reader, double time, bool auto_queue)
+void ActionQueue::AddAction(const PacketReader& reader, double time, bool auto_queue)
 {
-	this->queue.push(new ActionQueue_Action(reader, time, auto_queue));
+	this->queue.emplace(new ActionQueue_Action(reader, time, auto_queue));
 }
 
 ActionQueue::~ActionQueue()
 {
 	while (!this->queue.empty())
 	{
-		delete this->queue.front();
 		this->queue.pop();
 	}
 }

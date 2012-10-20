@@ -14,6 +14,88 @@
 #include <vector>
 
 /**
+ * One item record in an EIF object
+ */
+template <class EIF> struct EIF_Data_Base
+{
+	int id;
+	std::string name;
+	short graphic;
+	typename EIF::Type type;
+	typename EIF::SubType subtype;
+
+	typename EIF::Special special;
+	short hp;
+	short tp;
+	short mindam;
+	short maxdam;
+	short accuracy;
+	short evade;
+	short armor;
+
+	unsigned char str;
+	unsigned char intl;
+	unsigned char wis;
+	unsigned char agi;
+	unsigned char con;
+	unsigned char cha;
+
+	unsigned char light;
+	unsigned char dark;
+	unsigned char earth;
+	unsigned char air;
+	unsigned char water;
+	unsigned char fire;
+
+	union
+	{
+		int scrollmap;
+		int dollgraphic;
+		int expreward;
+		int haircolor;
+		int effect;
+		int key;
+	};
+
+	union
+	{
+		unsigned char gender;
+		unsigned char scrollx;
+	};
+
+	union
+	{
+		unsigned char scrolly;
+		unsigned char dual_wield_dollgraphic;
+	};
+
+	short levelreq;
+	short classreq;
+
+	short strreq;
+	short intreq;
+	short wisreq;
+	short agireq;
+	short conreq;
+	short chareq;
+
+	unsigned char weight;
+
+	typename EIF::Size size;
+
+	EIF_Data_Base() : id(0), graphic(0), type(EIF::Static), subtype(EIF::None), special(EIF::Normal),
+	hp(0), tp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0), str(0), intl(0), wis(0),
+	agi(0), con(0), cha(0), light(0), dark(0), earth(0), air(0), water(0), fire(0), scrollmap(0),
+	gender(0), scrolly(0), levelreq(0), classreq(0), strreq(0), intreq(0), wisreq(0), agireq(0),
+	conreq(0), chareq(0), weight(0), size(EIF::Size1x1) { }
+
+	explicit operator bool() const
+	{
+		return id != 0;
+	}
+};
+
+/**
  * Loads and stores information on all items from an EIF file
  */
 class EIF
@@ -99,89 +181,49 @@ class EIF
 		static const int DATA_SIZE = 58;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
-		std::vector<EIF_Data *> data;
-		EIF(std::string filename) { Read(filename); }
-		void Read(std::string filename);
+		std::vector<EIF_Data> data;
 
-		EIF_Data *Get(unsigned int id);
-		unsigned int GetKey(int keynum);
+		EIF(const std::string& filename) { Read(filename.c_str()); }
+
+		void Read(const std::string& filename);
+
+		EIF_Data& Get(unsigned int id);
+		const EIF_Data& Get(unsigned int id) const;
+
+		unsigned int GetKey(int keynum) const;
 };
 
 /**
- * One item record in an EIF object
+ * One NPC record in an ENF object
  */
-struct EIF_Data
+template <class ENF> struct ENF_Data_Base
 {
 	int id;
 	std::string name;
-	short graphic;
-	EIF::Type type;
-	EIF::SubType subtype;
+	int graphic;
 
-	EIF::Special special;
-	short hp;
-	short tp;
+	short boss;
+	short child;
+	typename ENF::Type type;
+
+	short vendor_id;
+
+	int hp;
+	unsigned short exp;
 	short mindam;
 	short maxdam;
+
 	short accuracy;
 	short evade;
 	short armor;
 
-	unsigned char str;
-	unsigned char intl;
-	unsigned char wis;
-	unsigned char agi;
-	unsigned char con;
-	unsigned char cha;
+	ENF_Data_Base() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), vendor_id(0),
+	hp(0), exp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0) { }
 
-	unsigned char light;
-	unsigned char dark;
-	unsigned char earth;
-	unsigned char air;
-	unsigned char water;
-	unsigned char fire;
-
-	union
+	explicit operator bool() const
 	{
-		int scrollmap;
-		int dollgraphic;
-		int expreward;
-		int haircolor;
-		int effect;
-		int key;
-	};
-
-	union
-	{
-		unsigned char gender;
-		unsigned char scrollx;
-	};
-
-	union
-	{
-		unsigned char scrolly;
-		unsigned char dual_wield_dollgraphic;
-	};
-
-	short levelreq;
-	short classreq;
-
-	short strreq;
-	short intreq;
-	short wisreq;
-	short agireq;
-	short conreq;
-	short chareq;
-
-	unsigned char weight;
-
-	EIF::Size size;
-
-	EIF_Data() : id(0), graphic(0), type(EIF::Static), subtype(EIF::None), special(EIF::Normal),
-	hp(0), tp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0), str(0), intl(0), wis(0),
-	agi(0), con(0), cha(0), light(0), dark(0), earth(0), air(0), water(0), fire(0), scrollmap(0),
-	gender(0), scrolly(0), levelreq(0), classreq(0), strreq(0), intreq(0), wisreq(0), agireq(0),
-	conreq(0), chareq(0), weight(0), size(EIF::Size1x1) { }
+		return id != 0;
+	}
 };
 
 /**
@@ -213,38 +255,49 @@ class ENF
 		static const int DATA_SIZE = 39;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
-		std::vector<ENF_Data *> data;
-		ENF(std::string filename) { Read(filename); }
-		void Read(std::string filename);
+		std::vector<ENF_Data> data;
 
-		ENF_Data *Get(unsigned int id);
+		ENF(const std::string& filename) { Read(filename.c_str()); }
+
+		void Read(const std::string& filename);
+
+		ENF_Data& Get(unsigned int id);
+		const ENF_Data& Get(unsigned int id) const;
 };
 
 /**
- * One NPC record in an ENF object
+ * One spell record in an ESF object
  */
-struct ENF_Data
+template <class ESF> struct ESF_Data_Base
 {
 	int id;
 	std::string name;
-	int graphic;
+	std::string shout;
 
-	short boss;
-	short child;
-	ENF::Type type;
+	short icon;
+	short graphic;
 
-	short vendor_id;
+	short tp;
+	short sp;
 
-	int hp;
-	unsigned short exp;
+	unsigned char cast_time;
+
+	typename ESF::Type type;
+	typename ESF::TargetRestrict target_restrict;
+	typename ESF::Target target;
+
 	short mindam;
 	short maxdam;
-
 	short accuracy;
-	short evade;
-	short armor;
+	short hp;
 
-	ENF_Data() : id(0), graphic(0), boss(0), child(0), type(ENF::NPC), vendor_id(0), hp(0), exp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0) { }
+	ESF_Data_Base() : id(0), icon(0), graphic(0), tp(0), sp(0), cast_time(0), type(ESF::Damage),
+	target_restrict(ESF::NPCOnly), target(ESF::Normal), mindam(0), maxdam(0), accuracy(0), hp(0) { }
+
+	explicit operator bool() const
+	{
+		return id != 0;
+	}
 };
 
 /**
@@ -278,63 +331,20 @@ class ESF
 		static const int DATA_SIZE = 51;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
-		std::vector<ESF_Data *> data;
-		ESF(std::string filename) { Read(filename); }
-		void Read(std::string filename);
+		std::vector<ESF_Data> data;
 
-		ESF_Data *Get(unsigned int id);
-};
+		ESF(const std::string& filename) { Read(filename.c_str()); }
 
-/**
- * One spell record in an ESF object
- */
-struct ESF_Data
-{
-	int id;
-	std::string name;
-	std::string shout;
+		void Read(const std::string& filename);
 
-	short icon;
-	short graphic;
-
-	short tp;
-	short sp;
-
-	unsigned char cast_time;
-
-	ESF::Type type;
-	ESF::TargetRestrict target_restrict;
-	ESF::Target target;
-
-	short mindam;
-	short maxdam;
-	short accuracy;
-	short hp;
-
-	ESF_Data() : id(0), icon(0), graphic(0), tp(0), sp(0), cast_time(0), type(ESF::Damage),
-	target_restrict(ESF::NPCOnly), target(ESF::Normal), mindam(0), maxdam(0), accuracy(0), hp(0) { }
-};
-
-/**
- * Loads and stores information on all classes from an ECF file
- */
-class ECF
-{
-	public:
-		static const int DATA_SIZE = 14;
-		std::array<unsigned char, 4> rid;
-		std::array<unsigned char, 2> len;
-		std::vector<ECF_Data *> data;
-		ECF(std::string filename) { Read(filename); }
-		void Read(std::string filename);
-
-		ECF_Data *Get(unsigned int id);
+		ESF_Data& Get(unsigned int id);
+		const ESF_Data& Get(unsigned int id) const;
 };
 
 /**
  * One class record in an ECF object
  */
-struct ECF_Data
+template <class ECF> struct ECF_Data_Base
 {
 	int id;
 	std::string name;
@@ -349,7 +359,31 @@ struct ECF_Data
 	short con;
 	short cha;
 
-	ECF_Data() : id(0), base(4), type(4), str(0), intl(0), wis(0), agi(0), con(0), cha(0) { }
+	ECF_Data_Base() : id(0), base(4), type(4), str(0), intl(0), wis(0), agi(0), con(0), cha(0) { }
+
+	explicit operator bool() const
+	{
+		return id != 0;
+	}
+};
+
+/**
+ * Loads and stores information on all classes from an ECF file
+ */
+class ECF
+{
+	public:
+		static const int DATA_SIZE = 14;
+		std::array<unsigned char, 4> rid;
+		std::array<unsigned char, 2> len;
+		std::vector<ECF_Data> data;
+
+		ECF(const std::string& filename) { Read(filename.c_str()); }
+
+		void Read(const std::string& filename);
+
+		ECF_Data& Get(unsigned int id);
+		const ECF_Data& Get(unsigned int id) const;
 };
 
 #endif // EODATA_HPP_INCLUDED

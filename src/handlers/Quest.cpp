@@ -91,9 +91,9 @@ void Quest_Use(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == npc_index && npc->Data()->type == ENF::Quest && character->InRange(npc))
+		if (npc->index == npc_index && npc->Data().type == ENF::Quest && character->InRange(npc))
 		{
-			short vendor_id = npc->Data()->vendor_id;
+			short vendor_id = npc->Data().vendor_id;
 
 			if (vendor_id < 1)
 				continue;
@@ -142,7 +142,7 @@ void Quest_Accept(Character *character, PacketReader &reader)
 
 	if (character->npc_type == ENF::Quest)
 	{
-		short vendor_id = character->npc->Data()->vendor_id;
+		short vendor_id = character->npc->Data().vendor_id;
 		std::shared_ptr<Quest_Context> quest;
 
 		auto it = character->quests.find(quest_id);

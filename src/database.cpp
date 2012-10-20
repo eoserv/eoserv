@@ -124,24 +124,26 @@ Database::Database()
 	, in_transaction(false)
 { }
 
-Database::Database(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db, bool connectnow)
+Database::Database(Database::Engine type, const std::string& host, unsigned short port, const std::string& user, const std::string& pass, const std::string& db, bool connectnow)
 {
 	this->connected = false;
-
-	this->engine = type;
-	this->host = host;
-	this->user = user;
-	this->pass = pass;
-	this->port = port;
-	this->db = db;
 
 	if (connectnow)
 	{
 		this->Connect(type, host, port, user, pass, db);
 	}
+	else
+	{
+		this->engine = type;
+		this->host = host;
+		this->user = user;
+		this->pass = pass;
+		this->port = port;
+		this->db = db;
+	}
 }
 
-void Database::Connect(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db)
+void Database::Connect(Database::Engine type, const std::string& host, unsigned short port, const std::string& user, const std::string& pass, const std::string& db)
 {
 	this->engine = type;
 	this->host = host;
@@ -390,6 +392,7 @@ Database_Result Database::Query(const char *format, ...)
 	int tempi;
 	char *tempc;
 	char *escret;
+	unsigned long esclen;
 
 	for (const char *p = format; *p != '\0'; ++p)
 	{
@@ -412,8 +415,8 @@ Database_Result Database::Query(const char *format, ...)
 				case MySQL:
 					tempi = strlen(tempc);
 					escret = new char[tempi*2+1];
-					mysql_real_escape_string(this->impl->mysql_handle, escret, tempc, tempi);
-					finalquery += escret;
+					esclen = mysql_real_escape_string(this->impl->mysql_handle, escret, tempc, tempi);
+					finalquery += std::string(escret, esclen);
 					delete[] escret;
 					break;
 #endif // DATABASE_MYSQL
@@ -438,17 +441,19 @@ Database_Result Database::Query(const char *format, ...)
 	return this->RawQuery(finalquery.c_str());
 }
 
-std::string Database::Escape(std::string raw)
+std::string Database::Escape(const std::string& raw)
 {
 	char *escret;
+	unsigned long esclen;
+	std::string result;
 
 	switch (this->engine)
 	{
 #ifdef DATABASE_MYSQL
 		case MySQL:
 			escret = new char[raw.length()*2+1];
-			mysql_real_escape_string(this->impl->mysql_handle, escret, raw.c_str(), raw.length());
-			raw = escret;
+			esclen = mysql_real_escape_string(this->impl->mysql_handle, escret, raw.c_str(), raw.length());
+			result.assign(escret, esclen);
 			delete[] escret;
 			break;
 #endif // DATABASE_MYSQL
@@ -456,13 +461,13 @@ std::string Database::Escape(std::string raw)
 #ifdef DATABASE_SQLITE
 		case SQLite:
 			escret = sqlite3_mprintf("%q", raw.c_str());
-			raw = escret;
+			result = escret;
 			sqlite3_free(escret);
 			break;
 #endif // DATABASE_SQLITE
 	}
 
-	for (std::string::iterator it = raw.begin(); it != raw.end(); ++it)
+	for (std::string::iterator it = result.begin(); it != result.end(); ++it)
 	{
 		if (*it == '@' || *it == '#' || *it == '$')
 		{
@@ -470,10 +475,10 @@ std::string Database::Escape(std::string raw)
 		}
 	}
 
-	return raw;
+	return result;
 }
 
-void Database::ExecuteFile(std::string filename)
+void Database::ExecuteFile(const std::string& filename)
 {
 	std::list<std::string> queries;
 	std::string query;

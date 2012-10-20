@@ -11,7 +11,7 @@ class PacketProcessor;
 class PacketReader;
 class PacketBuilder;
 
-enum PacketFamily
+enum PacketFamily : unsigned char
 {
 	PACKET_INTERNAL = 0,
 	PACKET_CONNECTION = 1,
@@ -65,7 +65,7 @@ enum PacketFamily
 	PACKET_F_INIT = 255
 };
 
-enum PacketAction
+enum PacketAction : unsigned char
 {
 	PACKET_REQUEST = 1,
 	PACKET_ACCEPT = 2,

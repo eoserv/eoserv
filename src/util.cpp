@@ -89,11 +89,11 @@ std::vector<std::string> explode(char delimiter, const std::string& str)
 
 	for (pos = str.find_first_of(delimiter); pos != std::string::npos; )
 	{
-		pieces.push_back(str.substr(lastpos, pos - lastpos));
+		pieces.emplace_back(str.substr(lastpos, pos - lastpos));
 		lastpos = pos+1;
 		pos = str.find_first_of(delimiter, pos+1);
 	}
-	pieces.push_back(str.substr(lastpos));
+	pieces.emplace_back(str.substr(lastpos));
 
 	return pieces;
 }
@@ -104,23 +104,13 @@ std::vector<std::string> explode(const std::string& delimiter, const std::string
 	std::size_t pos = 0;
 	std::vector<std::string> pieces;
 
-	if (delimiter.length() == 0)
-	{
-		return pieces;
-	}
-
-	if (delimiter.length() == 1)
-	{
-		return explode(delimiter[0], str);
-	}
-
 	for (pos = str.find(delimiter); pos != std::string::npos; )
 	{
-		pieces.push_back(str.substr(lastpos, pos - lastpos));
+		pieces.emplace_back(str.substr(lastpos, pos - lastpos));
 		lastpos = pos + delimiter.length();
 		pos = str.find(delimiter, pos + delimiter.length());
 	}
-	pieces.push_back(str.substr(lastpos));
+	pieces.emplace_back(str.substr(lastpos));
 
 	return pieces;
 }

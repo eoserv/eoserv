@@ -34,10 +34,10 @@ World* System_Command_Source::SourceWorld()
 
 void System_Command_Source::ServerMsg(std::string msg)
 {
-	Console::Out(msg);
+	Console::Out("%s", msg.c_str());
 }
 
 void System_Command_Source::StatusMsg(std::string msg)
 {
-	Console::Out(msg);
+	Console::Out("%s", msg.c_str());
 }

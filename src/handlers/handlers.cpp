@@ -56,14 +56,14 @@ bool packet_handler_register::StateCheck(EOClient *client, unsigned short allow_
 void packet_handler_register::Register(PacketFamily family, PacketAction action, packet_handler handler)
 {
 	if ((handler.allow_states & Uninitialized) && handler.fn_type != packet_handler::ClientFn)
-		Console::Wrn("Uninitialized state handler accepting non-client type: " + PacketProcessor::GetFamilyName(family) + "_" + PacketProcessor::GetActionName(action));
+		Console::Wrn("Uninitialized state handler accepting non-client type: %s_%s", PacketProcessor::GetFamilyName(family).c_str(), PacketProcessor::GetActionName(action).c_str());
 	else if ((handler.allow_states & Menu) && handler.fn_type != packet_handler::ClientFn)
-		Console::Wrn("Menu state handler accepting non-client type: " + PacketProcessor::GetFamilyName(family) + "_" + PacketProcessor::GetActionName(action));
+		Console::Wrn("Menu state handler accepting non-client type: %s_%s", PacketProcessor::GetFamilyName(family).c_str(), PacketProcessor::GetActionName(action).c_str());
 	else if ((handler.allow_states & Character_Menu) && handler.fn_type == packet_handler::CharacterFn)
-		Console::Wrn("Character_Menu state handler accepting character type: " + PacketProcessor::GetFamilyName(family) + "_" + PacketProcessor::GetActionName(action));
+		Console::Wrn("Character_Menu state handler accepting character type: %s_%s", PacketProcessor::GetFamilyName(family).c_str(), PacketProcessor::GetActionName(action).c_str());
 
 	if (handlers[(unsigned char)family][(unsigned char)action])
-		Console::Wrn("Overriding previously registered handler: " + PacketProcessor::GetFamilyName(family) + "_" + PacketProcessor::GetActionName(action));
+		Console::Wrn("Overriding previously registered handler: %s_%s", PacketProcessor::GetFamilyName(family).c_str(), PacketProcessor::GetActionName(action).c_str());
 
 	handlers[(unsigned char)family][(unsigned char)action] = handler;
 }
@@ -79,7 +79,7 @@ void packet_handler_register::Handle(PacketFamily family, PacketAction action, E
 	else
 	{
 #ifdef DEBUG
-		Console::Dbg("Unhandled packet: " + PacketProcessor::GetFamilyName(family) + "_" + PacketProcessor::GetActionName(action) + " (not registered)");
+		Console::Dbg("Unhandled packet: %s_%s (not registered)", PacketProcessor::GetFamilyName(family).c_str(), PacketProcessor::GetActionName(action).c_str());
 #endif // DEBUG
 		return;
 	}
@@ -87,7 +87,7 @@ void packet_handler_register::Handle(PacketFamily family, PacketAction action, E
 	if (!StateCheck(client, handler.allow_states))
 	{
 #ifdef DEBUG
-		Console::Dbg("Unhandled packet: " + PacketProcessor::GetFamilyName(family) + "_" + PacketProcessor::GetActionName(action) + " (wrong client state)");
+		Console::Dbg("Unhandled packet: %s_%s (wrong client state)", PacketProcessor::GetFamilyName(family).c_str(), PacketProcessor::GetActionName(action).c_str());
 #endif // DEBUG
 		return;
 	}

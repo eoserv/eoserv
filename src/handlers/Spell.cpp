@@ -27,13 +27,13 @@ void Spell_Request(Character *character, PacketReader &reader)
 
 	if (character->HasSpell(spell_id))
 	{
-		ESF_Data *spell = character->world->esf->Get(spell_id);
+		const ESF_Data& spell = character->world->esf->Get(spell_id);
 
-		if (spell->id == 0)
+		if (spell.id == 0)
 			return;
 
 		character->spell_id = spell_id;
-		character->spell_event = new TimeEvent(character_cast_spell, character, 0.5 * spell->cast_time, 1);
+		character->spell_event = new TimeEvent(character_cast_spell, character, 0.5 * spell.cast_time, 1);
 		character->world->timer.Register(character->spell_event);
 
 		PacketBuilder builder(PACKET_SPELL, PACKET_REQUEST, 4);

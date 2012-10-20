@@ -57,7 +57,12 @@ struct Map_Warp
 	WarpSpec spec;
 	bool open;
 
-	Map_Warp() : spec(Map_Warp::NoDoor), open(false) {}
+	Map_Warp() : map(0), x(0), y(0), levelreq(0), spec(Map_Warp::NoDoor), open(false) {}
+
+	explicit operator bool() const
+	{
+		return map != 0;
+	}
 };
 
 /**
@@ -109,11 +114,11 @@ struct Map_Tile
 
 	TileSpec tilespec;
 
-	Map_Warp *warp;
+	Map_Warp warp;
 
-	Map_Tile() : tilespec(Map_Tile::None), warp(0) { }
+	Map_Tile() : tilespec(Map_Tile::None) { }
 
-	bool Walkable(bool npc = false)
+	bool Walkable(bool npc = false) const
 	{
 		if (this->warp && npc)
 		{
@@ -167,7 +172,7 @@ struct Map_Chest_Item
 struct Map_Chest_Spawn
 {
 	int spawnid;
-	Map_Chest_Item *item;
+	Map_Chest_Item item;
 	int slot;
 	short time;
 	double last_taken;
@@ -181,18 +186,18 @@ struct Map_Chest
 	unsigned char x;
 	unsigned char y;
 
-	std::list<Map_Chest_Item *> items;
-	std::list<Map_Chest_Spawn *> spawns;
+	std::list<Map_Chest_Item> items;
+	std::list<Map_Chest_Spawn> spawns;
 	int slots;
 
 	int maxchest;
 	int chestslots;
 
-	int HasItem(short item);
+	int HasItem(short item) const;
 	int AddItem(short item, int amount, int slot = 0);
 	int DelItem(short item);
 
-	void Update(Map *map, Character *exclude = 0);
+	void Update(Map *map, Character *exclude = 0) const;
 };
 
 /**
@@ -217,9 +222,9 @@ class Map
 		unsigned char relog_y;
 		std::list<Character *> characters;
 		std::vector<NPC *> npcs;
-		std::vector<Map_Chest *> chests;
-		std::list<Map_Item *> items;
-		std::vector<std::vector<Map_Tile *>> tiles;
+		std::vector<std::shared_ptr<Map_Chest>> chests;
+		std::list<std::shared_ptr<Map_Item>> items;
+		std::vector<Map_Tile> tiles;
 		bool exists;
 		double jukebox_protect;
 		std::string jukebox_player;
@@ -230,8 +235,8 @@ class Map
 		Map(int id, World *world);
 		void LoadArena();
 
-		int GenerateItemID();
-		unsigned char GenerateNPCIndex();
+		int GenerateItemID() const;
+		unsigned char GenerateNPCIndex() const;
 
 		void Enter(Character *, WarpAnimation animation = WARP_ANIMATION_NONE);
 		void Leave(Character *, WarpAnimation animation = WARP_ANIMATION_NONE, bool silent = false);
@@ -255,15 +260,21 @@ class Map
 
 		bool Walk(NPC *from, Direction direction);
 
-		Map_Item *AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from = 0);
-		Map_Item *GetItem(short uid);
-		void DelItem(short uid, Character *from = 0);
-		void DelItem(Map_Item *item, Character *from = 0);
+		std::shared_ptr<Map_Item> AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from = 0);
 
-		bool InBounds(unsigned char x, unsigned char y);
-		bool Walkable(unsigned char x, unsigned char y, bool npc = false);
-		Map_Tile::TileSpec GetSpec(unsigned char x, unsigned char y);
-		Map_Warp *GetWarp(unsigned char x, unsigned char y);
+		std::shared_ptr<Map_Item> GetItem(short uid);
+		std::shared_ptr<const Map_Item> GetItem(short uid) const;
+
+		void DelItem(short uid, Character *from = 0);
+		std::list<Map_Item>::iterator DelItem(std::list<Map_Item>::iterator it, Character *from = 0);
+
+		bool InBounds(unsigned char x, unsigned char y) const;
+		bool Walkable(unsigned char x, unsigned char y, bool npc = false) const;
+		Map_Tile& GetTile(unsigned char x, unsigned char y);
+		const Map_Tile& GetTile(unsigned char x, unsigned char y) const;
+		Map_Tile::TileSpec GetSpec(unsigned char x, unsigned char y) const;
+		Map_Warp& GetWarp(unsigned char x, unsigned char y);
+		const Map_Warp& GetWarp(unsigned char x, unsigned char y) const;
 
 		std::vector<Character *> CharactersInRange(unsigned char x, unsigned char y, unsigned char range);
 		std::vector<NPC *> NPCsInRange(unsigned char x, unsigned char y, unsigned char range);
@@ -285,7 +296,7 @@ class Map
 			NPCOnly,
 			PlayerAndNPC
 		};
-		bool Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target);
+		bool Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target) const;
 
 		~Map();
 };

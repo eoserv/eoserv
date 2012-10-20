@@ -135,13 +135,13 @@ class Database
 		 * @param connectnow Whether to connect now or on a query request
 		 * @throw Database_OpenFailed
 		 */
-		Database(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db, bool connectnow = true);
+		Database(Database::Engine type, const std::string& host, unsigned short port, const std::string& user, const std::string& pass, const std::string& db, bool connectnow = true);
 
 		/**
 		 * Opens a connection to a database
 		 * @throw Database_OpenFailed
 		 */
-		void Connect(Database::Engine type, std::string host, unsigned short port, std::string user, std::string pass, std::string db);
+		void Connect(Database::Engine type, const std::string& host, unsigned short port, const std::string& user, const std::string& pass, const std::string& db);
 
 		/**
 		 * Disconnects from the database
@@ -165,7 +165,7 @@ class Database
 		/**
 		 * Escapes a piece of text (including Query replacement tokens)
 		 */
-		std::string Escape(std::string);
+		std::string Escape(const std::string&);
 
 		/**
 		 * Executes a set of queries, rolling back the result of any previous queries if one fails.
@@ -192,7 +192,7 @@ class Database
 		 * @throw Database_QueryFailed
 		 * @throw Database_OpenFailed
 		 */
-		void ExecuteFile(std::string filename);
+		void ExecuteFile(const std::string& filename);
 
 		bool Pending() const;
 		bool BeginTransaction();

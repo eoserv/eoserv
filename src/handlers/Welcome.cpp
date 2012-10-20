@@ -228,7 +228,7 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 
 	std::vector<Character *> updatecharacters;
 	std::vector<NPC *> updatenpcs;
-	std::vector<Map_Item *> updateitems;
+	std::vector<std::shared_ptr<Map_Item>> updateitems;
 
 	UTIL_FOREACH(player->character->map->characters, character)
 	{
@@ -248,7 +248,7 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 
 	UTIL_FOREACH(player->character->map->items, item)
 	{
-		if (player->character->InRange(item))
+		if (player->character->InRange(*item))
 		{
 			updateitems.push_back(item);
 		}
@@ -340,22 +340,22 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 		reply.AddShort(character->maxtp);
 		reply.AddShort(character->tp);
 		// equipment
-		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 		reply.AddShort(0); // ??
 		reply.AddShort(0); // ??
 		reply.AddShort(0); // ??
-		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 		reply.AddShort(0); // ??
-		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-		EIF_Data* wep = player->world->eif->Get(character->paperdoll[Character::Weapon]);
+		const EIF_Data& wep = player->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-			reply.AddShort(wep->dual_wield_dollgraphic);
+		if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+			reply.AddShort(wep.dual_wield_dollgraphic);
 		else
-			reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+			reply.AddShort(player->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
-		reply.AddShort(wep->dollgraphic);
+		reply.AddShort(wep.dollgraphic);
 
 		reply.AddChar(character->sitting);
 		reply.AddChar(character->hidden);
@@ -366,7 +366,7 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 		if (npc->alive)
 		{
 			reply.AddChar(npc->index);
-			reply.AddShort(npc->Data()->id);
+			reply.AddShort(npc->Data().id);
 			reply.AddChar(npc->x);
 			reply.AddChar(npc->y);
 			reply.AddChar(npc->direction);

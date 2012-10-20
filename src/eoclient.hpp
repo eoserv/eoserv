@@ -44,10 +44,10 @@ struct ActionQueue_Action
 class ActionQueue
 {
 	public:
-		std::queue<ActionQueue_Action *> queue;
+		std::queue<std::unique_ptr<ActionQueue_Action>> queue;
 
 		double next;
-		void AddAction(PacketReader reader, double time, bool auto_queue = false);
+		void AddAction(const PacketReader& reader, double time, bool auto_queue = false);
 
 		ActionQueue() : next(0) {};
 

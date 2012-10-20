@@ -199,7 +199,7 @@ void Guild_Agree(Character *character, PacketReader &reader)
 						{
 							character->guild->ranks[i] = new_ranks[i];
 						}
-						
+
 						character->guild->needs_save = true;
 
 						PacketBuilder reply(PACKET_GUILD, PACKET_REPLY, 2);
@@ -454,7 +454,7 @@ void Guild_Open(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == id && npc->Data()->type == ENF::Guild)
+		if (npc->index == id && npc->Data().type == ENF::Guild)
 		{
 			character->npc = npc;
 			character->npc_type = ENF::Guild;

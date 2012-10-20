@@ -254,7 +254,7 @@ void SLN::TimedCleanup(void* void_request)
 								break;
 						}
 
-						Console::Wrn(errmsg);
+						Console::Wrn("%s", errmsg.c_str());
 						request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 						if (resolved)
 						{
@@ -297,7 +297,7 @@ void SLN::TimedCleanup(void* void_request)
 								break;
 						}
 
-						Console::Wrn(errmsg);
+						Console::Wrn("%s", errmsg.c_str());
 						request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 						if (resolved)
 						{
@@ -320,7 +320,7 @@ void SLN::TimedCleanup(void* void_request)
 
 						}
 
-						Console::Wrn(errmsg);
+						Console::Wrn("%s", errmsg.c_str());
 						request->sln->server->world->AdminMsg(0, errmsg, ADMIN_HGM);
 						break;
 				}

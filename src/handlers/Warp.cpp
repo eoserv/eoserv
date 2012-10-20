@@ -40,7 +40,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 
 	std::vector<Character *> updatecharacters;
 	std::vector<NPC *> updatenpcs;
-	std::vector<Map_Item *> updateitems;
+	std::vector<std::shared_ptr<Map_Item>> updateitems;
 
 	UTIL_FOREACH(character->map->characters, character)
 	{
@@ -60,7 +60,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->items, item)
 	{
-		if (character->InRange(item))
+		if (character->InRange(*item))
 		{
 			updateitems.push_back(item);
 		}
@@ -94,22 +94,22 @@ void Warp_Accept(Character *character, PacketReader &reader)
 		reply.AddShort(character->maxtp);
 		reply.AddShort(character->tp);
 		// equipment
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 		reply.AddShort(0); // ??
 		reply.AddShort(0); // ??
 		reply.AddShort(0); // ??
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 		reply.AddShort(0); // ??
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-		EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+		const EIF_Data& wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-			reply.AddShort(wep->dual_wield_dollgraphic);
+		if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+			reply.AddShort(wep.dual_wield_dollgraphic);
 		else
-			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
-		reply.AddShort(wep->dollgraphic);
+		reply.AddShort(wep.dollgraphic);
 
 		reply.AddChar(character->sitting);
 		reply.AddChar(character->hidden);
@@ -118,7 +118,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 	UTIL_FOREACH(updatenpcs, npc)
 	{
 		reply.AddChar(npc->index);
-		reply.AddShort(npc->Data()->id);
+		reply.AddShort(npc->Data().id);
 		reply.AddChar(npc->x);
 		reply.AddChar(npc->y);
 		reply.AddChar(npc->direction);

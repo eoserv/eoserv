@@ -93,7 +93,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	int itemid = reader.GetShort();
 	int subloc = reader.GetChar(); // Used for double slot items (rings etc)
 
-	if (character->world->eif->Get(itemid)->special == EIF::Cursed)
+	if (character->world->eif->Get(itemid).special == EIF::Cursed)
 	{
 		return;
 	}
@@ -104,18 +104,18 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 		reply.AddShort(character->player->id);
 		reply.AddChar(SLOT_CLOTHES);
 		reply.AddChar(0); // ?
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-		EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+		const EIF_Data& wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-		reply.AddShort(wep->dollgraphic);
+		reply.AddShort(wep.dollgraphic);
 
-		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-			reply.AddShort(wep->dual_wield_dollgraphic);
+		if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+			reply.AddShort(wep.dual_wield_dollgraphic);
 		else
-			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
 		reply.AddShort(itemid);
 		reply.AddChar(subloc);
@@ -140,18 +140,18 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	builder.AddShort(character->player->id);
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(subloc);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
+	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
+	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-	EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+	const EIF_Data& wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-	builder.AddShort(wep->dollgraphic);
+	builder.AddShort(wep.dollgraphic);
 
-	if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-		builder.AddShort(wep->dual_wield_dollgraphic);
+	if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+		builder.AddShort(wep.dual_wield_dollgraphic);
 	else
-		builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+		builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
 	UTIL_FOREACH(character->map->characters, updatecharacter)
 	{
@@ -178,18 +178,18 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 		reply.AddShort(character->player->id);
 		reply.AddChar(SLOT_CLOTHES);
 		reply.AddChar(0); // ?
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
-		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
+		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-		EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+		const EIF_Data& wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-		reply.AddShort(wep->dollgraphic);
+		reply.AddShort(wep.dollgraphic);
 
-		if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-			reply.AddShort(wep->dual_wield_dollgraphic);
+		if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+			reply.AddShort(wep.dual_wield_dollgraphic);
 		else
-			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+			reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
 		reply.AddShort(itemid);
 		reply.AddThree(character->HasItem(itemid));
@@ -216,18 +216,18 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 	builder.AddShort(character->player->id);
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(subloc);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots])->dollgraphic);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor])->dollgraphic);
-	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat])->dollgraphic);
+	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
+	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
+	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
 
-	EIF_Data* wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
+	const EIF_Data& wep = character->world->eif->Get(character->paperdoll[Character::Weapon]);
 
-	builder.AddShort(wep->dollgraphic);
+	builder.AddShort(wep.dollgraphic);
 
-	if (wep->subtype == EIF::TwoHanded && wep->dual_wield_dollgraphic)
-		builder.AddShort(wep->dual_wield_dollgraphic);
+	if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+		builder.AddShort(wep.dual_wield_dollgraphic);
 	else
-		builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield])->dollgraphic);
+		builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
 
 	UTIL_FOREACH(character->map->characters, updatecharacter)
 	{

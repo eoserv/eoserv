@@ -22,13 +22,13 @@ class I18N
 
 	public:
 		I18N();
-		I18N(std::string lang_file);
+		I18N(const std::string& lang_file);
 
-		void SetLangFile(std::string lang_file);
+		void SetLangFile(const std::string& lang_file);
 
-		std::string FormatV(std::string id, std::vector<util::variant> &&v);
+		std::string FormatV(const std::string& id, std::vector<util::variant> &&v) const;
 
-		template <class... Args> std::string Format(std::string id, Args&&... args)
+		template <class... Args> std::string Format(const std::string& id, Args&&... args) const
 		{
 			std::vector<util::variant> v{args...};
 			return FormatV(id, std::move(v));
