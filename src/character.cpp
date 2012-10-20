@@ -803,6 +803,7 @@ bool Character::AddTradeItem(short item, int amount)
 	newitem.amount = amount;
 
 	this->trade_inventory.push_back(newitem);
+	this->CheckQuestRules();
 
 	return true;
 }
@@ -814,6 +815,7 @@ bool Character::DelTradeItem(short item)
 		if (it->id == item)
 		{
 			this->trade_inventory.erase(it);
+			this->CheckQuestRules();
 			return true;
 		}
 	}
@@ -1172,6 +1174,9 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 		this->trade_partner->trading = false;
 		this->trade_partner->trade_inventory.clear();
 		this->trade_agree = false;
+
+		this->CheckQuestRules();
+		this->trade_partner->CheckQuestRules();
 
 		this->trade_partner->trade_partner = 0;
 		this->trade_partner = 0;
@@ -1774,6 +1779,9 @@ void Character::Logout()
 		this->trade_partner->trading = false;
 		this->trade_partner->trade_inventory.clear();
 		this->trade_agree = false;
+
+		this->CheckQuestRules();
+		this->trade_partner->CheckQuestRules();
 
 		this->trade_partner->trade_partner = 0;
 		this->trade_partner = 0;

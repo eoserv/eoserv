@@ -47,6 +47,9 @@ static void walk_common(Character *character, PacketReader &reader, bool (Charac
 			character->trade_partner->trade_inventory.clear();
 			character->trade_agree = false;
 
+			character->CheckQuestRules();
+			character->trade_partner->CheckQuestRules();
+
 			character->trade_partner->trade_partner = 0;
 			character->trade_partner = 0;
 		}

@@ -170,6 +170,9 @@ void Trade_Agree(Character *character, PacketReader &reader)
 			character->trade_partner->trade_inventory.clear();
 			character->trade_agree = false;
 
+			character->CheckQuestRules();
+			character->trade_partner->CheckQuestRules();
+
 			character->trade_partner->trade_partner = 0;
 			character->trade_partner = 0;
 		}
@@ -274,6 +277,9 @@ void Trade_Close(Character *character, PacketReader &reader)
 	character->trade_partner->trading = false;
 	character->trade_partner->trade_inventory.clear();
 	character->trade_agree = false;
+
+	character->CheckQuestRules();
+	character->trade_partner->CheckQuestRules();
 
 	character->trade_partner->trade_partner = 0;
 	character->trade_partner = 0;
