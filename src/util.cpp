@@ -364,7 +364,7 @@ void sleep(double seconds)
 #else // WIN32
 	unsigned long sec = seconds;
 	unsigned long nsec = (seconds - double(sec)) * 1000000000.0;
-	timespec ts = {sec, nsec};
+	timespec ts = {time_t(sec), long(nsec)};
 	nanosleep(&ts, 0);
 #endif // WIN32
 }

@@ -10,6 +10,7 @@
 #include "fwd/map.hpp"
 
 #include <list>
+#include <memory>
 #include <string>
 #include <vector>
 
