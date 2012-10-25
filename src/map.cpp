@@ -441,12 +441,12 @@ bool Map::Load()
 
 	SAFE_READ(buf, sizeof(char), 1, fh);
 	outersize = PacketProcessor::Number(buf[0]);
-	for (int i = 0; i < std::min(outersize, this->height); ++i)
+	for (int i = 0; i < outersize; ++i)
 	{
 		SAFE_READ(buf, sizeof(char), 2, fh);
 		unsigned char yloc = PacketProcessor::Number(buf[0]);
 		innersize = PacketProcessor::Number(buf[1]);
-		for (int ii = 0; ii < std::min(innersize, this->width); ++ii)
+		for (int ii = 0; ii < innersize; ++ii)
 		{
 			SAFE_READ(buf, sizeof(char), 2, fh);
 			unsigned char xloc = PacketProcessor::Number(buf[0]);
