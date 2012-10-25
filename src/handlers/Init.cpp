@@ -104,8 +104,10 @@ void Init_Init(EOClient *client, PacketReader &reader)
 	{
 		maxversion = 28;
 	}
+	
+	bool accepted_version = client->version >= minversion && (maxversion < 0 || client->version <= maxversion);
 
-	if (client->server()->world->config["CheckVersion"] && (client->version < minversion || client->version > maxversion))
+	if (client->server()->world->config["CheckVersion"] && !accepted_version)
 	{
 		reply.AddByte(INIT_OUT_OF_DATE);
 		reply.AddChar(0);
