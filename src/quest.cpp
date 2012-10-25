@@ -146,10 +146,11 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 
 		if (function == "setstate")
 		{
-			auto it = quest.states.find(args[0]);
+			std::string state = util::lowercase(args[0]);
+			auto it = quest.states.find(state);
 
 			if (it == quest.states.end())
-				throw Validation_Error("Unknown quest state: " + std::string(args[0]), name);
+				throw Validation_Error("Unknown quest state: " + state, name);
 		}
 	};
 
@@ -405,7 +406,8 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 
 	if (function_name == "setstate")
 	{
-		this->SetState(action.expr.args[0]);
+		std::string state = util::lowercase(action.expr.args[0]);
+		this->SetState(state);
 		return true;
 	}
 	else if (function_name == "reset")
