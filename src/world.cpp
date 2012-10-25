@@ -320,6 +320,9 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 		Console::Wrn(e.what());
 	}
 
+	this->UpdateConfig();
+	this->LoadHome();
+
 	this->eif = new EIF(this->config["EIF"]);
 	this->enf = new ENF(this->config["ENF"]);
 	this->esf = new ESF(this->config["ESF"]);
@@ -412,9 +415,6 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	}
 
 	this->guildmanager = new GuildManager(this);
-
-	this->UpdateConfig();
-	this->LoadHome();
 }
 
 void World::BeginDB()

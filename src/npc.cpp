@@ -248,7 +248,7 @@ void NPC::LoadShopDrop()
 			if (home)
 				home->innkeeper_vend = this->Data().vendor_id;
 			else
-				Console::Wrn("innkeeper set on non-existent home");
+				Console::Wrn("NPC #%i's innkeeper set on non-existent home: %s", id, this->citizenship->home.c_str());
 
 			goto restart_loop;
 		}
@@ -258,7 +258,7 @@ void NPC::LoadShopDrop()
 
 			if (index < 0 || index >= 3)
 			{
-				Console::Wrn("Exactly 3 questions must be specified");
+				Console::Wrn("Exactly 3 questions must be specified for %s innkeeper NPC #%i", std::string(hc.second).c_str(), id);
 			}
 
 			this->citizenship->questions[index] = static_cast<std::string>(hc.second);
@@ -269,7 +269,7 @@ void NPC::LoadShopDrop()
 
 			if (index < 0 || index >= 3)
 			{
-				Console::Wrn("Exactly 3 answers must be specified");
+				Console::Wrn("Exactly 3 answers must be specified for %s innkeeper NPC #%i", std::string(hc.second).c_str(), id);
 			}
 
 			this->citizenship->answers[index] = static_cast<std::string>(hc.second);
