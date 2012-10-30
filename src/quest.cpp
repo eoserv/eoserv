@@ -750,7 +750,7 @@ bool Quest_Context::CheckRule(const EOPlus::Expression& expr)
 	}
 	else if (function_name == "lostspell")
 	{
-		return !this->character->HasItem(int(expr.args[0]));
+		return !this->character->HasSpell(int(expr.args[0]));
 	}
 	else if (function_name == "isgender")
 	{
