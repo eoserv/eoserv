@@ -87,7 +87,7 @@ static double rpn_eval_eq(std::vector<double> args)    { return args[0] >= args[
 static double rpn_eval_gte(std::vector<double> args)   { return args[0] >= args[1] - rpn_cmp_epsilon; }
 static double rpn_eval_gt(std::vector<double> args)    { return args[0] > args[1] + rpn_cmp_epsilon; }
 
-static double rpn_eval_iif(std::vector<double> args)   { return std::floor(args[0] + 0.5) ? args[2] : args[1]; }
+static double rpn_eval_iif(std::vector<double> args)   { return std::floor(args[0] + 0.5) ? args[1] : args[2]; }
 
 double rpn_eval(std::stack<util::variant> stack, std::unordered_map<std::string, double> vars)
 {
