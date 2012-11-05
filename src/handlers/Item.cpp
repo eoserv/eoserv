@@ -394,7 +394,6 @@ void Item_Drop(Character *character, PacketReader &reader)
 			item->owner = character->player->id;
 			item->unprotecttime = Timer::GetTime() + static_cast<double>(character->world->config["ProtectPlayerDrop"]);
 			character->DelItem(id, amount);
-			UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
 
 			PacketBuilder reply(PACKET_ITEM, PACKET_DROP, 15);
 			reply.AddShort(id);
