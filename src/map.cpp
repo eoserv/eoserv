@@ -617,8 +617,6 @@ void Map::Unload()
 {
 	this->exists = false;
 
-	this->chests.clear();
-
 	UTIL_FOREACH(this->npcs, npc)
 	{
 		UTIL_FOREACH(npc->damagelist, opponent)
@@ -628,9 +626,14 @@ void Map::Unload()
 				opponent->attacker->unregister_npc.end()
 			);
 		}
+
+		delete npc;
 	}
 
 	this->npcs.clear();
+
+	this->chests.clear();
+	this->tiles.clear();
 }
 
 int Map::GenerateItemID() const
