@@ -52,7 +52,7 @@ template <class IT, class ITE> struct foreach_helper
 
 #define UTIL_FOREACH_GENERIC(begin, end, as) \
 	for (util::foreach_helper<decltype((begin)), decltype((end))> _util_fe_{(begin), (end), 1}; _util_fe_.clause(); _util_fe_.act()) \
-		for (auto as = *_util_fe_.it; !_util_fe_.cont; _util_fe_.cont = 1)
+		for (auto& as = *_util_fe_.it; !_util_fe_.cont; _util_fe_.cont = 1)
 
 #define UTIL_FOREACH(c, as) UTIL_FOREACH_GENERIC(util::begin((c)), util::end((c)), as)
 #define UTIL_CFOREACH(c, as) UTIL_FOREACH_GENERIC(util::cbegin((c)),util::cend((c)), as)

@@ -46,14 +46,27 @@ void map_spawn_chests(void *map_void)
 	{
 		bool needs_update = false;
 
-		std::vector<std::list<std::reference_wrapper<const Map_Chest_Spawn>>> spawns;
+		std::vector<std::list<Map_Chest_Spawn>> spawns;
 		spawns.resize(chest->slots);
 
 		UTIL_CFOREACH(chest->spawns, spawn)
 		{
 			if (spawn.last_taken + spawn.time*60.0 < current_time)
 			{
-				spawns[spawn.slot - 1].emplace_back(spawn);
+				bool slot_used = false;
+
+				UTIL_CFOREACH(chest->items, item)
+				{
+					if (item.slot == spawn.slot)
+					{
+						slot_used = true;
+					}
+				}
+
+				if (!slot_used)
+				{
+					spawns[spawn.slot - 1].emplace_back(spawn);
+				}
 			}
 		}
 
