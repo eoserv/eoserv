@@ -715,7 +715,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 			case 2:
 			{
-				int rewarded_hp = util::rand(0, this->Data().hp);
+				int rewarded_hp = util::rand(0, this->totaldamage - 1);
 				int count_hp = 0;
 				UTIL_FOREACH(this->damagelist, opponent)
 				{
@@ -735,7 +735,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 			case 3:
 			{
-				int rand = util::rand(0, this->damagelist.size());
+				int rand = util::rand(0, this->damagelist.size() - 1);
 				int i = 0;
 				UTIL_FOREACH(this->damagelist, opponent)
 				{
