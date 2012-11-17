@@ -668,7 +668,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 	NPC_Drop *drop = 0;
 	UTIL_FOREACH(this->drops, checkdrop)
 	{
-		if ((double(util::rand(0,10000)) / 100.0) < checkdrop->chance * droprate)
+		if (util::rand(0.0, 100.0) <= checkdrop->chance * droprate)
 		{
 			drops.push_back(checkdrop);
 		}
@@ -694,6 +694,8 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 	int dropuid = 0;
 	int dropid = 0;
 	int dropamount = 0;
+	Character* drop_winner = 0;
+
 	if (drop)
 	{
 		dropuid = this->map->GenerateItemID();
@@ -706,11 +708,11 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 		switch (sharemode)
 		{
 			case 0:
-				this->map->items.back()->owner = from->player->id;
+				drop_winner = from;
 				break;
 
 			case 1:
-				this->map->items.back()->owner = most_damage->player->id;
+				drop_winner = most_damage;
 				break;
 
 			case 2:
@@ -723,7 +725,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 					{
 						if (rewarded_hp >= count_hp && rewarded_hp < opponent->damage)
 						{
-							this->map->items.back()->owner = opponent->attacker->player->id;
+							drop_winner = opponent->attacker;
 							break;
 						}
 
@@ -743,7 +745,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 					{
 						if (rand == i++)
 						{
-							this->map->items.back()->owner = opponent->attacker->player->id;
+							drop_winner = opponent->attacker;
 							break;
 						}
 					}
@@ -752,6 +754,9 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 				break;
 		}
 	}
+
+	if (drop_winner)
+		this->map->items.back()->owner = drop_winner->player->id;
 
 	UTIL_FOREACH(this->map->characters, character)
 	{
@@ -893,8 +898,8 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 			if (spell_id != -1)
 				builder.AddShort(spell_id);
 
-			builder.AddShort(from->player->id);
-			builder.AddChar(from->direction);
+			builder.AddShort(drop_winner ? drop_winner->player->id : from->player->id);
+			builder.AddChar(drop_winner ? drop_winner->direction : from->direction);
 			builder.AddShort(this->index);
 			builder.AddShort(dropuid);
 			builder.AddShort(dropid);
