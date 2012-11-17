@@ -248,16 +248,35 @@ void World::UpdateConfig()
 
 	Handlers::SetDelay(PACKET_ATTACK, PACKET_USE, rate_attack);
 
+
 	std::array<double, 7> npc_speed_table;
 
 	std::vector<std::string> rate_list = util::explode(',', this->config["NPCMovementRate"]);
 
 	for (std::size_t i = 0; i < std::min<std::size_t>(7, rate_list.size()); ++i)
 	{
-		npc_speed_table[i] = util::tdparse(rate_list[i]);
+		if (i < rate_list.size())
+			npc_speed_table[i] = util::tdparse(rate_list[i]);
+		else
+			npc_speed_table[i] = 1.0;
 	}
 
 	NPC::SetSpeedTable(npc_speed_table);
+
+
+	this->i18n.SetLangFile(this->config["ServerLanguage"]);
+
+
+	this->instrument_ids.clear();
+
+	std::vector<std::string> instrument_list = util::explode(',', this->config["InstrumentItems"]);
+	this->instrument_ids.reserve(instrument_list.size());
+
+	for (std::size_t i = 0; i < instrument_list.size(); ++i)
+	{
+		this->instrument_ids.push_back(int(util::tdparse(instrument_list[i])));
+	}
+
 
 	if (this->db.Pending() && !this->config["TimedSave"])
 		this->CommitDB();
@@ -1238,6 +1257,11 @@ bool World::PKExcept(int mapid)
 	std::list<int> except_list = PKExceptUnserialize(this->config["PKExcept"]);
 
 	return std::find(except_list.begin(), except_list.end(), mapid) != except_list.end();
+}
+
+bool World::IsInstrument(int graphic_id)
+{
+	return std::find(UTIL_RANGE(this->instrument_ids), graphic_id) != this->instrument_ids.end();
 }
 
 World::~World()

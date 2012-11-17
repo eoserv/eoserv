@@ -585,6 +585,26 @@ void Character::Effect(int effect, bool echo)
 	}
 }
 
+void Character::PlayBard(unsigned char instrument, unsigned char note, bool echo )
+{
+	PacketBuilder builder(PACKET_JUKEBOX, PACKET_MSG, 5);
+
+	builder.AddShort(this->player->id);
+	builder.AddChar(this->direction);
+	builder.AddChar(instrument);
+	builder.AddChar(note);
+
+	UTIL_FOREACH(this->map->characters, character)
+	{
+		if (!echo && (character == this || !this->InRange(character)))
+		{
+			continue;
+		}
+
+		character->Send(builder);
+	}
+}
+
 int Character::HasItem(short item)
 {
 	UTIL_IFOREACH(this->inventory, it)
@@ -1000,7 +1020,7 @@ bool Character::Equip(short item, unsigned char subloc)
 	{
 		if (this->paperdoll[Weapon])
 		{
-			const EIF_Data weapon_eif = this->world->eif->Get(this->paperdoll[Weapon]);
+			const EIF_Data& weapon_eif = this->world->eif->Get(this->paperdoll[Weapon]);
 
 			if (weapon_eif.subtype == EIF::TwoHanded
 			 && (weapon_eif.dual_wield_dollgraphic || (eif.subtype != EIF::Arrows && eif.subtype != EIF::Wings)))

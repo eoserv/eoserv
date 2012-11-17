@@ -1362,7 +1362,10 @@ void Map::Attack(Character *from, Direction direction)
 		from->arena->Attack(from, direction);
 	}
 
-	if (this->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id)))
+	int wep_graphic = this->world->eif->Get(from->paperdoll[Character::Weapon]).dollgraphic;
+	bool is_instrument = (wep_graphic != 0 && this->world->IsInstrument(wep_graphic));
+
+	if (!is_instrument && (this->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id))))
 	{
 		if (this->AttackPK(from, direction))
 		{
@@ -1383,6 +1386,9 @@ void Map::Attack(Character *from, Direction direction)
 
 		character->Send(builder);
 	}
+
+	if (is_instrument)
+		return;
 
 	int target_x = from->x;
 	int target_y = from->y;

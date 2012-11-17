@@ -141,7 +141,7 @@ double tdparse(const std::string& timestr)
 			c -= 'A' - 'a';
 		}
 
-		for (std::size_t ii = 0; ii < sizeof(period_names)/sizeof(char); ++ii)
+		for (std::size_t ii = 0; ii < sizeof(period_names); ++ii)
 		{
 			if (c == period_names[ii])
 			{

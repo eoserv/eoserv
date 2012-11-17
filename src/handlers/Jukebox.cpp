@@ -74,9 +74,35 @@ void Jukebox_Msg(Character *character, PacketReader &reader)
 	std::for_each(UTIL_CRANGE(character->map->characters), std::bind(&Character::Send, _1, builder));
 }
 
+// Bard skill music
+void Jukebox_Use(Character *character, PacketReader &reader)
+{
+	/*unsigned char instrument = */reader.GetChar();
+	unsigned char note = reader.GetChar();
+
+	const auto& eif = character->world->eif;
+	const auto& esf = character->world->esf;
+
+	// Check if user has the bard skill
+	auto find_it = find_if(UTIL_RANGE(character->spells),
+		[&](const Character_Spell& spell) { return esf->Get(spell.id).type == ESF::Bard; });
+
+	if (find_it == character->spells.end())
+		return;
+
+	// Check if the held weapon is an instrument
+	int instrument = eif->Get(character->paperdoll[Character::Weapon]).dollgraphic;
+
+	if (!character->world->IsInstrument(instrument))
+		return;
+
+	character->PlayBard(instrument, note, false);
+}
+
 PACKET_HANDLER_REGISTER(PACKET_JUKEBOX)
 	Register(PACKET_OPEN, Jukebox_Open, Playing);
 	Register(PACKET_MSG, Jukebox_Msg, Playing);
+	Register(PACKET_USE, Jukebox_Use, Playing);
 PACKET_HANDLER_REGISTER_END()
 
 }

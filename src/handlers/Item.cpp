@@ -315,8 +315,16 @@ void Item_Use(Character *character, PacketReader &reader)
 					builder.AddChar(character->level);
 					builder.AddShort(character->statpoints);
 					builder.AddShort(character->skillpoints);
-					// TODO: Something better than this
-					character->Emote(EMOTE_LEVELUP, true);
+
+					UTIL_FOREACH(character->map->characters, check)
+					{
+						if (character != check && character->InRange(check))
+						{
+							PacketBuilder builder(PACKET_ITEM, PACKET_ACCEPT, 2);
+							builder.AddShort(character->player->id);
+							character->Send(builder);
+						}
+					}
 				}
 
 				character->Send(reply);

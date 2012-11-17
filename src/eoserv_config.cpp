@@ -213,6 +213,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "ComputerNameLength" , 64);
 	eoserv_config_default(config, "LimitAttack"        , 251);
 	eoserv_config_default(config, "MuteLength"         , 90);
+	eoserv_config_default(config, "InstrumentItems"    , "49, 50");
 	eoserv_config_default(config, "MaxBankGold"        , 2000000000);
 	eoserv_config_default(config, "MaxItem"            , 2000000000);
 	eoserv_config_default(config, "MaxDrop"            , 10000000);

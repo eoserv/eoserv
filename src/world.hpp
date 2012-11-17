@@ -111,6 +111,7 @@ class World
 		std::array<Board *, 8> boards;
 
 		std::array<int, 254> exp_table;
+		std::vector<int> instrument_ids;
 
 		int admin_count;
 
@@ -179,6 +180,8 @@ class World
 
 		bool PKExcept(const Map *map);
 		bool PKExcept(int mapid);
+
+		bool IsInstrument(int graphic_id);
 
 		~World();
 };
