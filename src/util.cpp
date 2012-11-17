@@ -78,7 +78,7 @@ std::string trim(const std::string &str)
 	}
 	++ei;
 
-	return str.substr(si, ei);
+	return str.substr(si, ei - si);
 }
 
 std::vector<std::string> explode(char delimiter, const std::string& str)
