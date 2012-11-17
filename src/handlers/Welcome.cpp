@@ -39,8 +39,6 @@ void Welcome_Request(Player *player, PacketReader &reader)
 		return;
 
 	player->character = *it;
-	player->character->online = true;
-
 	player->character->CalculateStats();
 
 	std::string guild_str = player->character->guild ? player->character->guild->name : "";

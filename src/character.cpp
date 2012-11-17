@@ -478,6 +478,8 @@ void Character::Login()
 		}
 	}
 
+	this->online = true;
+
 	this->CalculateStats();
 }
 
@@ -1787,6 +1789,10 @@ void Character::Logout()
 
 void Character::Save()
 {
+	const std::string & quest_data = (!this->quest_string.empty())
+	                               ? this->quest_string
+	                               : QuestSerialize(this->quests, this->quests_inactive);
+
 #ifdef DEBUG
 	Console::Dbg("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
@@ -1800,7 +1806,7 @@ void Character::Save()
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, int(this->sitting),
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
 		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
-		this->guild_rank, QuestSerialize(this->quests, this->quests_inactive).c_str(), "", this->name.c_str());
+		this->guild_rank, quest_data.c_str(), "", this->name.c_str());
 }
 
 AdminLevel Character::SourceAccess() const
