@@ -1604,7 +1604,7 @@ void Character::DropAll(Character *killer)
 				PacketBuilder builder(PACKET_PAPERDOLL, PACKET_REMOVE, 43);
 				builder.AddShort(this->player->id);
 				builder.AddChar(SLOT_CLOTHES);
-				builder.AddChar(0); // ?
+				builder.AddChar(0); // sound
 				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Boots]).dollgraphic);
 				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Armor]).dollgraphic);
 				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Hat]).dollgraphic);

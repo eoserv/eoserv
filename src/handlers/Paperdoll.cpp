@@ -103,7 +103,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REMOVE, 43);
 		reply.AddShort(character->player->id);
 		reply.AddChar(SLOT_CLOTHES);
-		reply.AddChar(0); // ?
+		reply.AddChar(0); // sound
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
@@ -139,7 +139,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
 	builder.AddShort(character->player->id);
 	builder.AddChar(SLOT_CLOTHES);
-	builder.AddChar(subloc);
+	builder.AddChar(0); // sound
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
@@ -177,7 +177,7 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_AGREE, 46);
 		reply.AddShort(character->player->id);
 		reply.AddChar(SLOT_CLOTHES);
-		reply.AddChar(0); // ?
+		reply.AddChar(0); // sound
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 		reply.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
@@ -215,7 +215,7 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
 	builder.AddShort(character->player->id);
 	builder.AddChar(SLOT_CLOTHES);
-	builder.AddChar(subloc);
+	builder.AddChar(0); // sound
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 	builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);

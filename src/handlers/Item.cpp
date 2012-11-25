@@ -245,7 +245,7 @@ void Item_Use(Character *character, PacketReader &reader)
 				PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
 				builder.AddShort(character->player->id);
 				builder.AddChar(SLOT_CLOTHES);
-				builder.AddChar(0);
+				builder.AddChar(0); // sound
 				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
 				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
 				builder.AddShort(character->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
