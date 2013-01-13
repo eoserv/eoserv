@@ -19,11 +19,20 @@ class Clock
 	private:
 		double offset;
 		unsigned int last;
+
+		/**
+		 * Maximum time delta (in milliseconds) to accept from GetTimeDelta
+		 */
+		int max_delta;
+
 		unsigned int GetTimeDelta();
 
 	public:
-		Clock();
+		Clock(int max_delta = 1000);
+
 		double GetTime();
+
+		void SetMaxDelta(int max_delta);
 };
 
 /**
@@ -34,6 +43,7 @@ class Timer
 	private:
 		struct impl_t;
 		std::unique_ptr<impl_t> impl;
+		static std::unique_ptr<Clock> clock;
 
 	protected:
 		/**
@@ -51,10 +61,6 @@ class Timer
 		 */
 		bool changed;
 
-#ifdef WIN32
-		static bool use_gtc;
-#endif // WIN32
-
 	public:
 		/**
 		 * TimeEvent lifetime that will never expire
@@ -70,6 +76,8 @@ class Timer
 		 * This is not guaranteed to start at any particular number, or be a UNIX timestamp
 		 */
 		static double GetTime();
+
+		static void SetMaxDelta(int max_delta);
 
 		/**
 		 * Check all contained TimeEvent objects and call any which are ready

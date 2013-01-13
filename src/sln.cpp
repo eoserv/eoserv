@@ -109,7 +109,7 @@ void* SLN::RequestThread(void* void_request)
 
 	try
 	{
-		Clock clock;
+		Clock clock(5000);
 		double start_time = clock.GetTime();
 
 		try

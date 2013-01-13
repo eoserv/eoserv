@@ -22,14 +22,11 @@
 
 #include <pthread.h>
 
+#include "console.hpp"
+
 static int rres = 0;
 
-Clock::Clock()
-	: offset(0.0)
-	, last(GetTimeDelta())
-{ }
-
-unsigned int Clock::GetTimeDelta()
+static unsigned int clock_ticks()
 {
 #ifdef WIN32
 #ifdef TIMER_GETTICKCOUNT
@@ -52,8 +49,36 @@ unsigned int Clock::GetTimeDelta()
 	unsigned int ticks = static_cast<unsigned int>(sec * 1000 + msec);
 #endif // WIN32
 
+	return ticks;
+}
+
+Clock::Clock(int max_delta)
+	: offset(0.0)
+	, last(clock_ticks())
+	, max_delta(1000)
+{
+	SetMaxDelta(max_delta);
+}
+
+unsigned int Clock::GetTimeDelta()
+{
+	unsigned int ticks = clock_ticks();
 	unsigned int delta = ticks - last;
+
+	if ((int)delta < 0)
+	{
+		Console::Wrn("A time delta of %i ms was detected and ignored.", delta);
+		delta = 0;
+	}
+
+	if ((int)delta > max_delta)
+	{
+		Console::Wrn("A time delta of %i ms was detected and ignored.", delta);
+		delta = max_delta;
+	}
+
 	last = ticks;
+
 	return delta;
 }
 
@@ -63,6 +88,19 @@ double Clock::GetTime()
 	offset += relms;
 	return offset;
 }
+
+void Clock::SetMaxDelta(int max_delta)
+{
+	if (max_delta < 1)
+	{
+		Console::Wrn("Invalid clock max delta. Defaulting to 1000 ms.");
+		max_delta = 1000;
+	}
+
+	this->max_delta = max_delta;
+}
+
+std::unique_ptr<Clock> Timer::clock;
 
 struct Timer::impl_t
 {
@@ -131,9 +169,18 @@ Timer::Timer()
 
 double Timer::GetTime()
 {
-	static Clock clock;
+	if (!clock)
+		clock.reset(new Clock());
 
-	return clock.GetTime();
+	return clock->GetTime();
+}
+
+void Timer::SetMaxDelta(int max_delta)
+{
+	if (!clock)
+		clock.reset(new Clock(max_delta));
+	else
+		clock->SetMaxDelta(max_delta);
 }
 
 void Timer::Tick()

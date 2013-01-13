@@ -236,6 +236,9 @@ void world_timed_save(void *world_void)
 
 void World::UpdateConfig()
 {
+	this->timer.SetMaxDelta(this->config["ClockMaxDelta"]);
+
+
 	double rate_face = this->config["PacketRateFace"];
 	double rate_walk = this->config["PacketRateWalk"];
 	double rate_attack = this->config["PacketRateAttack"];
