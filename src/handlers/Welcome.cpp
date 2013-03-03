@@ -258,38 +258,41 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 	// MotDs
 	reply.AddByte(255);
 
+	std::string news_file = player->world->config["NewsFile"];
+
 	char newsbuf[4096] = "";
-	std::FILE *newsfh = std::fopen(static_cast<std::string>(player->world->config["NewsFile"]).c_str(), "rt");
+	std::FILE *newsfh = std::fopen(news_file.c_str(), "rt");
 	bool newseof = (newsfh == 0);
 
 	if (newseof)
 	{
-		Console::Wrn("Could not load news file '%s'", static_cast<std::string>(player->world->config["NewsFile"]).c_str());
+		Console::Wrn("Could not load news file '%s'", news_file.c_str());
 	}
 
 	for (int i = 0; i < 9; ++i)
 	{
-		if (newsfh)
-		{
-			(void)std::fgets(newsbuf, 4096, newsfh);
-		}
-
 		if (!newseof)
 		{
-			std::string str = util::trim(newsbuf);
-			reply.ReserveMore(str.length() + 9 - i);
-			reply.AddBreakString(str);
+			if (!std::fgets(newsbuf, 4096, newsfh))
+			{
+				newseof = true;
+			}
+			else
+			{
+				std::string str = util::trim(newsbuf);
+
+				while (str.length() < 2)
+					str += ' ';
+
+				reply.ReserveMore(str.length() + 9 - i);
+				reply.AddBreakString(str);
+			}
 		}
-		else
+
+		if (newseof)
 		{
 			reply.AddByte(255);
 		}
-
-		if (newsfh && std::feof(newsfh))
-		{
-			newseof = true;
-		}
-
 	}
 
 	if (newsfh)
