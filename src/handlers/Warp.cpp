@@ -42,11 +42,11 @@ void Warp_Accept(Character *character, PacketReader &reader)
 	std::vector<NPC *> updatenpcs;
 	std::vector<std::shared_ptr<Map_Item>> updateitems;
 
-	UTIL_FOREACH(character->map->characters, character)
+	UTIL_FOREACH(character->map->characters, checkcharacter)
 	{
-		if (character->InRange(character))
+		if (checkcharacter->InRange(character))
 		{
-			updatecharacters.push_back(character);
+			updatecharacters.push_back(checkcharacter);
 		}
 	}
 
