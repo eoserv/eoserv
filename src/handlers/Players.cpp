@@ -58,9 +58,11 @@ void Players_List(EOClient *client, PacketReader &reader)
 			--online;
 		}
 	}
+	
+	bool is_friends_list = (reader.Action() == PACKET_LIST);
 
-	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 4 + client->server()->world->characters.size() * 35);
-	reply.AddChar((reader.Action() == PACKET_LIST) ? INIT_FRIEND_LIST_PLAYERS : INIT_PLAYERS);
+	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 4 + online * (is_friends_list ? 13 : 35));
+	reply.AddChar(is_friends_list ? INIT_FRIEND_LIST_PLAYERS : INIT_PLAYERS);
 	reply.AddShort(online);
 	reply.AddByte(255);
 	UTIL_FOREACH(client->server()->world->characters, character)
@@ -71,48 +73,53 @@ void Players_List(EOClient *client, PacketReader &reader)
 		}
 
 		reply.AddBreakString(character->name);
-		reply.AddBreakString(character->title);
-		reply.AddChar(0); // ?
-		if (character->bot && !client->player)
+		
+		// Full information is not sent for friends list requests
+		if (!is_friends_list)
 		{
-			reply.AddChar(ICON_SLN_BOT);
-		}
-		else if (character->admin >= ADMIN_HGM)
-		{
-			if (character->party)
+			reply.AddBreakString(character->title);
+			reply.AddChar(0); // ?
+			if (character->bot && !client->player)
 			{
-				reply.AddChar(ICON_HGM_PARTY);
+				reply.AddChar(ICON_SLN_BOT);
+			}
+			else if (character->admin >= ADMIN_HGM)
+			{
+				if (character->party)
+				{
+					reply.AddChar(ICON_HGM_PARTY);
+				}
+				else
+				{
+					reply.AddChar(ICON_HGM);
+				}
+			}
+			else if (character->admin >= ADMIN_GUIDE)
+			{
+				if (character->party)
+				{
+					reply.AddChar(ICON_GM_PARTY);
+				}
+				else
+				{
+					reply.AddChar(ICON_GM);
+				}
 			}
 			else
 			{
-				reply.AddChar(ICON_HGM);
+				if (character->party)
+				{
+					reply.AddChar(ICON_PARTY);
+				}
+				else
+				{
+					reply.AddChar(ICON_NORMAL);
+				}
 			}
+			reply.AddChar(character->clas);
+			reply.AddString(character->PaddedGuildTag());
+			reply.AddByte(255);
 		}
-		else if (character->admin >= ADMIN_GUIDE)
-		{
-			if (character->party)
-			{
-				reply.AddChar(ICON_GM_PARTY);
-			}
-			else
-			{
-				reply.AddChar(ICON_GM);
-			}
-		}
-		else
-		{
-			if (character->party)
-			{
-				reply.AddChar(ICON_PARTY);
-			}
-			else
-			{
-				reply.AddChar(ICON_NORMAL);
-			}
-		}
-		reply.AddChar(character->clas);
-		reply.AddString(character->PaddedGuildTag());
-		reply.AddByte(255);
 	}
 
 	client->Send(reply);
