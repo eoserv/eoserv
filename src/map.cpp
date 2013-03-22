@@ -1966,6 +1966,8 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 			victim->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
 				{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
 			}.data()), 0.0);
+
+			UTIL_FOREACH(from->quests, q) { q.second->KilledPlayer(); }
 		}
 
 		builder.Reset(4);
