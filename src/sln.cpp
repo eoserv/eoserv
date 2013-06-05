@@ -41,7 +41,8 @@ struct SLN_Request
 
 	~SLN_Request()
 	{
-		delete this->http;
+		if (this->http)
+			delete this->http;
 	}
 };
 
@@ -172,7 +173,11 @@ void SLN::TimedCleanup(void* void_request)
 {
 	SLN_Request* request(static_cast<SLN_Request*>(void_request));
 
-	if (request->timeout)
+	if (!request->http)
+	{
+		Console::Wrn("SLN check-in failed: HTTP connection failed.");
+	}
+	else if (request->timeout)
 	{
 		Console::Wrn("SLN check-in failed: HTTP request timed out.");
 	}
