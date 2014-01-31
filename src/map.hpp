@@ -267,7 +267,8 @@ class Map
 		std::shared_ptr<const Map_Item> GetItem(short uid) const;
 
 		void DelItem(short uid, Character *from = 0);
-		std::list<Map_Item>::iterator DelItem(std::list<Map_Item>::iterator it, Character *from = 0);
+		void DelSomeItem(short uid, int amount, Character *from = 0);
+		std::list<std::shared_ptr<Map_Item>>::iterator DelItem(std::list<std::shared_ptr<Map_Item>>::iterator it, Character *from = 0);
 
 		bool InBounds(unsigned char x, unsigned char y) const;
 		bool Walkable(unsigned char x, unsigned char y, bool npc = false) const;

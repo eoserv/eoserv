@@ -135,15 +135,17 @@ std::string variant::GetString() const
 
 	char buf[1024];
 
+	using namespace std;
+
 	switch (this->type)
 	{
 		case type_int:
-			std::snprintf(buf, 1024, "%i", this->val_int);
+			snprintf(buf, 1024, "%i", this->val_int);
 			this->val_string = buf;
 			break;
 
 		case type_float:
-			std::snprintf(buf, 1024, "%g", this->val_float);
+			snprintf(buf, 1024, "%g", this->val_float);
 			this->val_string = buf;
 			break;
 

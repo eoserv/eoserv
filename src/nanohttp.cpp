@@ -159,7 +159,8 @@ std::string HTTP::URLEncode(std::string raw)
 		}
 		else
 		{
-			std::snprintf(buf, 3, "%02x", c);
+			using namespace std;
+			snprintf(buf, 3, "%02x", c);
 			encoded += std::string("%") + std::string(buf, 2);
 		}
 	}

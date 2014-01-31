@@ -12,7 +12,7 @@
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
-#ifdef NTDDI_WIN2K
+#if defined(NTDDI_WIN2K) && !defined(__MINGW32__)
 #include <Wspiapi.h>
 #else // NTDDI_WIN2K
 #ifdef __MINGW32__

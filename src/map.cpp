@@ -2177,17 +2177,77 @@ void Map::DelItem(short uid, Character *from)
 	{
 		if ((*it)->uid == uid)
 		{
-			PacketBuilder builder(PACKET_ITEM, PACKET_REMOVE, 2);
-			builder.AddShort(uid);
-			UTIL_FOREACH(this->characters, character)
+			this->DelItem(it, from);
+			break;
+		}
+	}
+}
+
+std::list<std::shared_ptr<Map_Item>>::iterator Map::DelItem(std::list<std::shared_ptr<Map_Item>>::iterator it, Character *from)
+{
+	PacketBuilder builder(PACKET_ITEM, PACKET_REMOVE, 2);
+	builder.AddShort((*it)->uid);
+
+	UTIL_FOREACH(this->characters, character)
+	{
+		if ((from && character == from) || !character->InRange(**it))
+		{
+			continue;
+		}
+
+		character->Send(builder);
+	}
+
+	return this->items.erase(it);
+}
+
+void Map::DelSomeItem(short uid, int amount, Character *from)
+{
+	if (amount < 0)
+		return;
+
+	UTIL_IFOREACH(this->items, it)
+	{
+		if ((*it)->uid == uid)
+		{
+			if (amount < (*it)->amount)
 			{
-				if ((from && character == from) || !character->InRange(**it))
+				(*it)->amount -= amount;
+
+				PacketBuilder builder(PACKET_ITEM, PACKET_REMOVE, 2);
+				builder.AddShort((*it)->uid);
+
+				UTIL_FOREACH(this->characters, character)
 				{
-					continue;
+					if ((from && character == from) || !character->InRange(**it))
+					{
+						continue;
+					}
+
+					character->Send(builder);
 				}
-				character->Send(builder);
+
+				builder.Reset(9);
+				builder.SetID(PACKET_ITEM, PACKET_ADD);
+				builder.AddShort((*it)->id);
+				builder.AddShort((*it)->uid);
+				builder.AddThree((*it)->amount);
+				builder.AddChar((*it)->x);
+				builder.AddChar((*it)->y);
+
+				UTIL_FOREACH(this->characters, character)
+				{
+					if (!character->InRange(**it))
+						continue;
+
+					character->Send(builder);
+				}
 			}
-			this->items.erase(it);
+			else
+			{
+				this->DelItem(it, from);
+			}
+
 			break;
 		}
 	}

@@ -1031,8 +1031,9 @@ Character *World::CreateCharacter(Player *player, std::string name, Gender gende
 
 	if (static_cast<int>(this->config["StartMap"]))
 	{
+		using namespace std;
 		startmapinfo = ", `map`, `x`, `y`";
-		std::snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(this->config["StartMap"]), static_cast<int>(this->config["StartX"]), static_cast<int>(this->config["StartY"]));
+		snprintf(buffer, 1024, ",%i,%i,%i", static_cast<int>(this->config["StartMap"]), static_cast<int>(this->config["StartX"]), static_cast<int>(this->config["StartY"]));
 		startmapval = buffer;
 	}
 
