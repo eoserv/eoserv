@@ -253,6 +253,45 @@ int Map_Chest::DelItem(short item_id)
 	return 0;
 }
 
+int Map_Chest::DelSomeItem(short item_id, int amount)
+{
+	UTIL_IFOREACH(this->items, it)
+	{
+		if (it->id == item_id)
+		{
+			if (amount < it->amount)
+			{
+				it->amount -= amount;
+
+				if (it->slot)
+				{
+					double current_time = Timer::GetTime();
+
+					UTIL_FOREACH(this->spawns, spawn)
+					{
+						if (spawn.slot == it->slot)
+						{
+							spawn.last_taken = current_time;
+						}
+					}
+
+					it->slot = 0;
+				}
+
+				return it->amount;
+			}
+			else
+			{
+				return DelItem(item_id);
+			}
+
+			break;
+		}
+	}
+
+	return 0;
+}
+
 void Map_Chest::Update(Map *map, Character *exclude) const
 {
 	PacketBuilder builder(PACKET_CHEST, PACKET_AGREE, this->items.size() * 5);

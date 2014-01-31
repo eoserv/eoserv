@@ -462,17 +462,20 @@ void Item_Get(Character *character, PacketReader &reader)
 
 		int taken = character->CanHoldItem(item->id, item->amount);
 
-		character->AddItem(item->id, taken);
+		if (taken > 0)
+		{
+			character->AddItem(item->id, taken);
 
-		PacketBuilder reply(PACKET_ITEM, PACKET_GET, 9);
-		reply.AddShort(uid);
-		reply.AddShort(item->id);
-		reply.AddThree(taken);
-		reply.AddChar(character->weight);
-		reply.AddChar(character->maxweight);
-		character->Send(reply);
+			PacketBuilder reply(PACKET_ITEM, PACKET_GET, 9);
+			reply.AddShort(uid);
+			reply.AddShort(item->id);
+			reply.AddThree(taken);
+			reply.AddChar(character->weight);
+			reply.AddChar(character->maxweight);
+			character->Send(reply);
 
-		character->map->DelSomeItem(item->uid, taken, character);
+			character->map->DelSomeItem(item->uid, taken, character);
+		}
 	}
 }
 

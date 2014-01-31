@@ -197,6 +197,7 @@ struct Map_Chest
 	int HasItem(short item) const;
 	int AddItem(short item, int amount, int slot = 0);
 	int DelItem(short item);
+	int DelSomeItem(short item, int amount);
 
 	void Update(Map *map, Character *exclude = 0) const;
 };
