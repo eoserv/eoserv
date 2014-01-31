@@ -16,7 +16,8 @@ void Emote_Report(Character *character, PacketReader &reader)
 {
 	Emote emote = static_cast<Emote>(reader.GetChar());
 
-	if (emote <= 10 || emote == 12 || emote == 14)
+	// TODO: Restrict drunk emote
+	if ((emote >= 1 && emote <= 10) || emote == EMOTE_DRUNK || emote == EMOTE_PLAYFUL)
 	{
 		character->Emote(emote, false);
 	}
