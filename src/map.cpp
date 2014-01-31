@@ -1857,8 +1857,7 @@ void Map::SpellSelf(Character *from, unsigned short spell_id)
 
 	from->hp += hpgain;
 
-	if (this->world->config["LimitDamage"])
-		from->hp = std::min(from->hp, from->maxhp);
+	from->hp = std::min(from->hp, from->maxhp);
 
 	PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_SELF, 15);
 	builder.AddShort(from->player->id);
@@ -2085,8 +2084,7 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 
 	from->hp += hpgain;
 
-	if (this->world->config["LimitDamage"])
-		from->hp = std::min(from->hp, from->maxhp);
+	from->hp = std::min(from->hp, from->maxhp);
 
 	std::set<Character *> in_range;
 
