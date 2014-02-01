@@ -605,13 +605,13 @@ void Character::PlayBard(unsigned char instrument, unsigned char note, bool echo
 	}
 }
 
-int Character::HasItem(short item)
+int Character::HasItem(short item, bool include_trade)
 {
 	UTIL_IFOREACH(this->inventory, it)
 	{
 		if (it->id == item)
 		{
-			if (this->trading)
+			if (this->trading && !include_trade)
 			{
 				UTIL_FOREACH(this->trade_inventory, trade_item)
 				{
@@ -762,6 +762,8 @@ int Character::CanHoldItem(short itemid, int max_amount)
 
 bool Character::AddTradeItem(short item, int amount)
 {
+	bool trade_add_quantity = bool(this->world->config["TradeAddQuantity"]);
+
 	if (amount <= 0 || amount > int(this->world->config["MaxTrade"]))
 	{
 		return false;
@@ -772,18 +774,39 @@ bool Character::AddTradeItem(short item, int amount)
 		return false;
 	}
 
-	int hasitem = this->HasItem(item);
+	int hasitem = this->HasItem(item, !trade_add_quantity);
 
-	if (hasitem - amount < 0)
+	amount = std::min(amount, hasitem);
+
+	// Prevent overflow
+	if (trade_add_quantity)
 	{
-		return false;
+		int tradeitem = 0;
+
+		UTIL_FOREACH(this->trade_inventory, trade_item)
+		{
+			if (trade_item.id == item)
+			{
+				tradeitem = trade_item.amount;
+			}
+		}
+
+		if (tradeitem + amount < 0 || tradeitem + amount > int(this->world->config["MaxTrade"]))
+		{
+			return false;
+		}
+
 	}
 
 	UTIL_FOREACH(this->trade_inventory, character_item)
 	{
 		if (character_item.id == item)
 		{
-			character_item.amount += amount;
+			if (trade_add_quantity)
+				character_item.amount += amount;
+			else
+				character_item.amount = amount;
+
 			return true;
 		}
 	}

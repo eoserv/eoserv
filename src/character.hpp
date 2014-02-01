@@ -224,7 +224,7 @@ class Character : public Command_Source
 		void Emote(enum Emote emote, bool echo = true);
 		void Effect(int effect, bool echo = true);
 		void PlayBard(unsigned char instrument, unsigned char note, bool echo = true);
-		int HasItem(short item);
+		int HasItem(short item, bool include_trade = false);
 		bool HasSpell(short spell);
 		short SpellLevel(short spell);
 		bool AddItem(short item, int amount);
