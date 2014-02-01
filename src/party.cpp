@@ -31,8 +31,8 @@ Party::Party(World *world, Character *leader, Character *other)
 
 	this->temp_expsum = 0;
 
-	this->RefreshMembers(leader);
-	this->RefreshMembers(other);
+	this->RefreshMembers(leader, true);
+	this->RefreshMembers(other, true);
 }
 
 void Party::Msg(Character *from, std::string message, bool echo)
@@ -74,7 +74,7 @@ void Party::Join(Character *character)
 		}
 	}
 
-	this->RefreshMembers(character);
+	this->RefreshMembers(character, true);
 }
 
 void Party::Leave(Character *character)
@@ -115,9 +115,9 @@ void Party::Leave(Character *character)
 	}
 }
 
-void Party::RefreshMembers(Character *character)
+void Party::RefreshMembers(Character *character, bool create)
 {
-	PacketBuilder builder(PACKET_PARTY, PACKET_CREATE, this->members.size() * 18);
+	PacketBuilder builder(PACKET_PARTY, create ? PACKET_CREATE : PACKET_LIST, this->members.size() * 18);
 
 	UTIL_FOREACH(this->members, member)
 	{

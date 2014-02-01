@@ -119,10 +119,11 @@ void Packet_Remove(Character *character, PacketReader &reader)
 // Requested list of party members
 void Party_Take(Character *character, PacketReader &reader)
 {
-	(void)character;
 	(void)reader;
 
-	// TODO: Refresh the online list for them
+	if (!character->party) return;
+
+	character->party->RefreshMembers(character);
 }
 
 PACKET_HANDLER_REGISTER(PACKET_PARTY)

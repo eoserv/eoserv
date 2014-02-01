@@ -32,7 +32,7 @@ class Party
 		void Msg(Character *from, std::string message, bool echo = true);
 		void Join(Character *);
 		void Leave(Character *);
-		void RefreshMembers(Character *);
+		void RefreshMembers(Character *, bool create = false);
 		void UpdateHP(Character *);
 		void ShareEXP(int exp, int sharemode, Map *map);
 
