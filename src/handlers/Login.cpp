@@ -22,7 +22,7 @@
 namespace Handlers
 {
 
-// Check if a character exists
+// Log in to an account
 void Login_Request(EOClient *client, PacketReader &reader)
 {
 	std::string username = reader.GetBreakString();
@@ -81,6 +81,14 @@ void Login_Request(EOClient *client, PacketReader &reader)
 		PacketBuilder reply(PACKET_LOGIN, PACKET_REPLY, 2);
 		reply.AddShort(login_reply);
 		client->Send(reply);
+
+		int max_login_attempts = int(client->server()->world->config["MaxLoginAttempts"]);
+
+		if (max_login_attempts != 0 && ++client->login_attempts >= max_login_attempts)
+		{
+			client->Close();
+		}
+
 		return;
 	}
 

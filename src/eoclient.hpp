@@ -97,6 +97,7 @@ class EOClient : public Client
 		bool needpong;
 		int hdid;
 		ClientState state;
+		int login_attempts;
 
 		ActionQueue queue;
 

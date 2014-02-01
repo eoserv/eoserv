@@ -45,6 +45,7 @@ void EOClient::Initialize()
 	this->player = 0;
 	this->version = 0;
 	this->needpong = false;
+	this->login_attempts = 0;
 }
 
 bool EOClient::NeedTick()
@@ -169,6 +170,9 @@ void EOClient::Tick()
 void EOClient::Execute(const std::string &data)
 {
 	if (data.length() < 2)
+		return;
+
+	if (!this->Connected())
 		return;
 
 	PacketReader reader(processor.Decode(data));
