@@ -30,9 +30,9 @@ void Chair_Request(Character *character, PacketReader &reader)
 			return;
 		}
 
-		UTIL_FOREACH(character->map->characters, character)
+		UTIL_FOREACH(character->map->characters, c)
 		{
-			if (character->x == x && character->y == y)
+			if (c->x == x && c->y == y)
 			{
 				return;
 			}

@@ -49,14 +49,14 @@ void Inventory(const std::vector<std::string>& arguments, Character* from)
 			reply.AddInt(victim->goldbank);
 			reply.AddByte(255);
 
-			UTIL_CFOREACH(victim->inventory, item)
+			UTIL_FOREACH(victim->inventory, item)
 			{
 				reply.AddShort(item.id);
 				reply.AddInt(item.amount);
 			}
 			reply.AddByte(255);
 
-			UTIL_CFOREACH(victim->bank, item)
+			UTIL_FOREACH(victim->bank, item)
 			{
 				reply.AddShort(item.id);
 				reply.AddThree(item.amount);
@@ -210,7 +210,7 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 
 		std::size_t reserve = 0;
 
-		UTIL_CFOREACH(victim->quests, quest)
+		UTIL_FOREACH(victim->quests, quest)
 		{
 			if (quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 				reserve += quest.second->GetQuest()->Name().length() + 1;
@@ -218,7 +218,7 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 
 		reply.ReserveMore(reserve);
 
-		UTIL_CFOREACH(victim->quests, quest)
+		UTIL_FOREACH(victim->quests, quest)
 		{
 			if (quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 				reply.AddBreakString(quest.second->GetQuest()->Name());

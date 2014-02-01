@@ -33,7 +33,7 @@ static void open_quest_dialog(Character* character, NPC* npc, int quest_id, int 
 	std::deque<dialog_t> dialogs;
 	std::size_t this_dialog = 0;
 
-	UTIL_CFOREACH(character->quests, quest)
+	UTIL_FOREACH(character->quests, quest)
 	{
 		if (quest.second->GetQuest()->Disabled())
 			continue;
@@ -64,14 +64,14 @@ static void open_quest_dialog(Character* character, NPC* npc, int quest_id, int 
 
 		std::size_t reserve = 0;
 
-		UTIL_CFOREACH(dialogs, dialog)
+		UTIL_FOREACH(dialogs, dialog)
 		{
 			reserve += 3 + dialog.quest->GetQuest()->Name().length();
 		}
 
 		reply.ReserveMore(reserve);
 
-		UTIL_CFOREACH(dialogs, dialog)
+		UTIL_FOREACH(dialogs, dialog)
 		{
 			reply.AddShort(dialog.quest_id);
 			reply.AddBreakString(dialog.quest->GetQuest()->Name());
@@ -187,7 +187,7 @@ void Quest_List(Character *character, PacketReader &reader)
 	switch (page)
 	{
 		case QUEST_PAGE_PROGRESS:
-			UTIL_CFOREACH(character->quests, q)
+			UTIL_FOREACH(character->quests, q)
 			{
 				if (!q.second->Finished() && !q.second->GetQuest()->Disabled() && q.second->GetQuest()->GetQuest()->info.hidden != EOPlus::Info::Hidden)
 					reserve += 9 + q.second->GetQuest()->GetQuest()->info.name.length() + q.second->Desc().length();
@@ -195,7 +195,7 @@ void Quest_List(Character *character, PacketReader &reader)
 
 			reply.ReserveMore(reserve);
 
-			UTIL_CFOREACH(character->quests, q)
+			UTIL_FOREACH(character->quests, q)
 			{
 				if (q.second->Finished() || q.second->GetQuest()->Disabled() || q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::Hidden)
 					continue;
@@ -213,7 +213,7 @@ void Quest_List(Character *character, PacketReader &reader)
 			break;
 
 		case QUEST_PAGE_HISTORY:
-			UTIL_CFOREACH(character->quests, q)
+			UTIL_FOREACH(character->quests, q)
 			{
 				if (q.second->Finished() && q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 					reserve += 1 + q.second->GetQuest()->GetQuest()->info.name.length();
@@ -221,7 +221,7 @@ void Quest_List(Character *character, PacketReader &reader)
 
 			reply.ReserveMore(reserve);
 
-			UTIL_CFOREACH(character->quests, q)
+			UTIL_FOREACH(character->quests, q)
 			{
 				if (q.second->Finished() && q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 					reply.AddBreakString(q.second->GetQuest()->GetQuest()->info.name);

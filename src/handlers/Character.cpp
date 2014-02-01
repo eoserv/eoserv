@@ -74,7 +74,7 @@ void Character_Create(Player *player, PacketReader &reader)
 		reply.AddChar(player->characters.size());
 		reply.AddByte(1); // ??
 		reply.AddByte(255);
-		UTIL_CFOREACH(player->characters, character)
+		UTIL_FOREACH(player->characters, character)
 		{
 			reply.AddBreakString(character->name);
 			reply.AddInt(character->id);
@@ -131,7 +131,7 @@ void Character_Remove(Player *player, PacketReader &reader)
 	reply.AddChar(player->characters.size());
 	reply.AddByte(1); // ??
 	reply.AddByte(255);
-	UTIL_CFOREACH(player->characters, character)
+	UTIL_FOREACH(player->characters, character)
 	{
 		reply.AddBreakString(character->name);
 		reply.AddInt(character->id);

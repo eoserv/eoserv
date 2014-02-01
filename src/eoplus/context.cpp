@@ -86,7 +86,7 @@ namespace EOPlus
 
 			bool last_cond = false;
 
-			UTIL_CFOREACH(this->state->actions, action)
+			UTIL_FOREACH(this->state->actions, action)
 			{
 				if (action.cond == EOPlus::Action::ElseIf || action.cond == EOPlus::Action::Else)
 				{
@@ -140,7 +140,7 @@ namespace EOPlus
 		if (!this->state)
 			return false;
 
-		UTIL_CFOREACH(this->state->rules, check_rule)
+		UTIL_FOREACH(this->state->rules, check_rule)
 		{
 			if (check_rule.expr.function == rule && arg_check(check_rule.expr.args))
 				return true;
@@ -159,7 +159,7 @@ namespace EOPlus
 		if (!this->state)
 			return false;
 
-		UTIL_CFOREACH(this->state->rules, check_rule)
+		UTIL_FOREACH(this->state->rules, check_rule)
 		{
 			if (check_rule.expr.function == rule && arg_check(check_rule.expr.args))
 			{
@@ -190,7 +190,7 @@ namespace EOPlus
 
 		try
 		{
-			UTIL_CFOREACH(this->state->rules, rule)
+			UTIL_FOREACH(this->state->rules, rule)
 			{
 				if (this->CheckRule(rule.expr))
 				{

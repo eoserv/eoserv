@@ -102,7 +102,7 @@ void Welcome_Request(Player *player, PacketReader &reader)
 
 	AdminLevel lowest_command = ADMIN_HGM;
 
-	UTIL_CFOREACH(player->world->admin_config, ac)
+	UTIL_FOREACH(player->world->admin_config, ac)
 	{
 		if (ac.first == "killnpc" || ac.first == "reports")
 		{

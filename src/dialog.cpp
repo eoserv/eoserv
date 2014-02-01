@@ -35,12 +35,12 @@ int Dialog::PacketLength() const
 	std::size_t size = this->pages.size() * 3;
 	size += this->links.size() * 5;
 
-	UTIL_CFOREACH(this->pages, page)
+	UTIL_FOREACH(this->pages, page)
 	{
 		size += page.length();
 	}
 
-	UTIL_CFOREACH(this->links, link)
+	UTIL_FOREACH(this->links, link)
 	{
 		size += link.second.length();
 	}
@@ -52,13 +52,13 @@ void Dialog::BuildPacket(PacketBuilder& builder) const
 {
 	builder.ReserveMore(this->PacketLength());
 
-	UTIL_CFOREACH(this->pages, page)
+	UTIL_FOREACH(this->pages, page)
 	{
 		builder.AddShort(DIALOG_TEXT);
 		builder.AddBreakString(page);
 	}
 
-	UTIL_CFOREACH(this->links, link)
+	UTIL_FOREACH(this->links, link)
 	{
 		builder.AddShort(DIALOG_LINK);
 		builder.AddShort(link.first);

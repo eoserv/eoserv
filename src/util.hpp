@@ -19,8 +19,6 @@
 namespace util
 {
 
-// std::begin/end Not implemented in gcc 4.5
-
 template <class T> inline auto begin(T &c) -> decltype(c.begin()) { return c.begin(); }
 template <class T> inline auto begin(const T &c) -> decltype(c.begin()) { return c.begin(); }
 template <class T, size_t N> inline const T* begin(T(&a)[N]) { return a; }
@@ -35,32 +33,16 @@ template <class T> inline auto cend(T &c) -> decltype(c.cbegin()) { return c.cen
 template <class T> inline auto cend(const T &c) -> decltype(c.cbegin()) { return c.cend(); }
 template <class T, size_t N> inline const T* cend(T(&a)[N]) { return a + N; }
 
-// C++0x for-range loops are still fairly unsupported
+#define UTIL_RANGE(c) (util::begin((c))), (util::end((c)))
+#define UTIL_CRANGE(c) (util::cbegin((c))), (util::cend((c)))
 
-#define UTIL_RANGE(c) (util::begin(c)), (util::end(c))
-#define UTIL_CRANGE(c) (util::cbegin(c)), (util::cend(c))
+#define UTIL_FOREACH_REF(c, as) for (auto& as : (c))
+#define UTIL_FOREACH_CREF(c, as) for (const auto& as : (c))
 
-template <class IT, class ITE> struct foreach_helper
-{
-	IT it;
-	ITE end;
-	int cont;
-
-	bool clause() { return cont-- && it != end; }
-	void act()    { if (cont) ++it; }
-};
-
-#define UTIL_FOREACH_GENERIC(begin, end, as) \
-	for (util::foreach_helper<decltype((begin)), decltype((end))> _util_fe_{(begin), (end), 1}; _util_fe_.clause(); _util_fe_.act()) \
-		for (auto& as = *_util_fe_.it; !_util_fe_.cont; _util_fe_.cont = 1)
-
-#define UTIL_FOREACH(c, as) UTIL_FOREACH_GENERIC(util::begin((c)), util::end((c)), as)
-#define UTIL_CFOREACH(c, as) UTIL_FOREACH_GENERIC(util::cbegin((c)),util::cend((c)), as)
-#define UTIL_RANGE_FOREACH(begin, end, as) UTIL_FOREACH_GENERIC(begin, end, as)
+#define UTIL_FOREACH(c, as) for (const auto as : (c))
 
 #define UTIL_IFOREACH(c, as) for (auto as = util::begin((c)); as != util::end((c)); ++as)
 #define UTIL_CIFOREACH(c, as) for (auto as = util::cbegin((c)); as != util::cend((c)); ++as)
-#define UTIL_RANGE_IFOREACH(begin, end, as) for (auto as = (begin); as != (end); ++as)
 
 /**
  * Trims whitespace from the left of a string.

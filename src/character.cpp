@@ -96,7 +96,7 @@ std::string DollSerialize(const std::array<int, 15> &list)
 {
 	std::string serialized;
 
-	UTIL_CFOREACH(list, item)
+	UTIL_FOREACH(list, item)
 	{
 		serialized.append(util::to_string(item));
 		serialized.append(",");
@@ -127,7 +127,7 @@ std::string SpellSerialize(const std::list<Character_Spell> &list)
 {
 	std::string serialized;
 
-	UTIL_CFOREACH(list, spell)
+	UTIL_FOREACH(list, spell)
 	{
 		serialized.append(util::to_string(spell.id));
 		serialized.append(",");
@@ -166,7 +166,7 @@ std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>>
 {
 	std::string serialized;
 
-	UTIL_CFOREACH(list, quest)
+	UTIL_FOREACH(list, quest)
 	{
 		serialized.append(util::to_string(quest.second->GetQuest()->ID()));
 		serialized.append(",");
@@ -176,7 +176,7 @@ std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>>
 		serialized.append(";");
 	}
 
-	UTIL_CFOREACH(list_inactive, state)
+	UTIL_FOREACH(list_inactive, state)
 	{
 		if (list.find(state.quest_id) != list.end())
 		{
@@ -798,7 +798,7 @@ bool Character::AddTradeItem(short item, int amount)
 
 	}
 
-	UTIL_FOREACH(this->trade_inventory, character_item)
+	UTIL_FOREACH_REF(this->trade_inventory, character_item)
 	{
 		if (character_item.id == item)
 		{

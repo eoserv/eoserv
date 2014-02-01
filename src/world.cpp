@@ -367,7 +367,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 	short max_quest = 0;
 
-	UTIL_CFOREACH(this->enf->data, npc)
+	UTIL_FOREACH(this->enf->data, npc)
 	{
 		if (npc.type == ENF::Quest)
 			max_quest = std::max(max_quest, npc.vendor_id);
@@ -834,7 +834,7 @@ void World::ReloadQuests()
 	std::map<std::string, std::deque<backup_t>> backup;
 
 	// Back up character quest states
-	UTIL_CFOREACH(this->characters, c)
+	UTIL_FOREACH(this->characters, c)
 	{
 		auto result = backup.insert(std::pair<std::string, std::deque<backup_t>>(c->name, std::deque<backup_t>()));
 
@@ -851,7 +851,7 @@ void World::ReloadQuests()
 	}
 
 	// Clear character quest states
-	UTIL_CFOREACH(this->characters, c)
+	UTIL_FOREACH(this->characters, c)
 	{
 		c->quests.clear();
 	}
@@ -871,7 +871,7 @@ void World::ReloadQuests()
 	}
 
 	// Restore character quest states
-	UTIL_CFOREACH(this->characters, c)
+	UTIL_FOREACH(this->characters, c)
 	{
 		c->quests.clear();
 
@@ -880,7 +880,7 @@ void World::ReloadQuests()
 		if (it == backup.end())
 			throw std::runtime_error("Failed to restore quest context");
 
-		UTIL_CFOREACH(it->second, q)
+		UTIL_FOREACH(it->second, q)
 		{
 			auto quest_it = this->quests.find(q.quest_id);
 
@@ -904,7 +904,7 @@ void World::ReloadQuests()
 	}
 
 	// Check new quest rules
-	UTIL_CFOREACH(this->characters, c)
+	UTIL_FOREACH(this->characters, c)
 	{
 		// TODO: If a character is removed by a quest rule...
 		c->CheckQuestRules();

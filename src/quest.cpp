@@ -154,7 +154,7 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		}
 	};
 
-	UTIL_CFOREACH(state.actions, action)
+	UTIL_FOREACH(state.actions, action)
 	{
 		const auto it = action_argument_info.find(action.expr.function);
 
@@ -164,7 +164,7 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		check("Action", action.expr.function, action.expr.args, it->second);
 	}
 
-	UTIL_CFOREACH(state.rules, rule)
+	UTIL_FOREACH(state.rules, rule)
 	{
 		const EOPlus::Action& action = rule.action;
 
@@ -176,7 +176,7 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		check("Action", action.expr.function, action.expr.args, it->second);
 	}
 
-	UTIL_CFOREACH(state.rules, rule)
+	UTIL_FOREACH(state.rules, rule)
 	{
 		const auto it = rule_argument_info.find(rule.expr.function);
 
@@ -377,7 +377,7 @@ void Quest_Context::BeginState(const std::string& name, const EOPlus::State& sta
 	if (this->quest->Disabled())
 		return;
 
-	UTIL_CFOREACH(state.actions, action)
+	UTIL_FOREACH(state.actions, action)
 	{
 		std::string function_name = action.expr.function;
 

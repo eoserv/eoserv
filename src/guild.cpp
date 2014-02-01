@@ -127,8 +127,7 @@ std::shared_ptr<Guild> GuildManager::GetGuild(std::string tag)
 
 		res = this->world->db.Query("SELECT `name`, `guild_rank` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", tag.c_str());
 
-		typedef std::unordered_map<std::string, util::variant> Database_Row;
-		UTIL_FOREACH(res, row)
+		UTIL_FOREACH_REF(res, row)
 		{
 			guild->members.push_back(std::make_shared<Guild_Member>(row["name"], row["guild_rank"]));
 		}
@@ -171,8 +170,7 @@ std::shared_ptr<Guild> GuildManager::GetGuildName(std::string name)
 
 	res = this->world->db.Query("SELECT `name`, `guild_rank` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", static_cast<std::string>(row["tag"]).c_str());
 
-	typedef std::unordered_map<std::string, util::variant> Database_Row;
-	UTIL_FOREACH(res, row)
+	UTIL_FOREACH_REF(res, row)
 	{
 		guild->members.push_back(std::make_shared<Guild_Member>(row["name"], row["guild_rank"]));
 	}

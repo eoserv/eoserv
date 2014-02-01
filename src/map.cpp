@@ -49,13 +49,13 @@ void map_spawn_chests(void *map_void)
 		std::vector<std::list<Map_Chest_Spawn>> spawns;
 		spawns.resize(chest->slots);
 
-		UTIL_CFOREACH(chest->spawns, spawn)
+		UTIL_FOREACH(chest->spawns, spawn)
 		{
 			if (spawn.last_taken + spawn.time*60.0 < current_time)
 			{
 				bool slot_used = false;
 
-				UTIL_CFOREACH(chest->items, item)
+				UTIL_FOREACH(chest->items, item)
 				{
 					if (item.slot == spawn.slot)
 					{
@@ -70,7 +70,7 @@ void map_spawn_chests(void *map_void)
 			}
 		}
 
-		UTIL_CFOREACH(spawns, slot_spawns)
+		UTIL_FOREACH(spawns, slot_spawns)
 		{
 			if (!slot_spawns.empty())
 			{
@@ -169,7 +169,7 @@ int Map_Chest::AddItem(short item_id, int amount, int slot)
 
 	if (slot == 0)
 	{
-		UTIL_FOREACH(this->items, item)
+		UTIL_FOREACH_REF(this->items, item)
 		{
 			if (item.id == item_id)
 			{
@@ -193,7 +193,7 @@ int Map_Chest::AddItem(short item_id, int amount, int slot)
 	{
 		int user_items = 0;
 
-		UTIL_CFOREACH(this->items, item)
+		UTIL_FOREACH(this->items, item)
 		{
 			if (item.slot == 0)
 			{
@@ -236,7 +236,7 @@ int Map_Chest::DelItem(short item_id)
 			{
 				double current_time = Timer::GetTime();
 
-				UTIL_FOREACH(this->spawns, spawn)
+				UTIL_FOREACH_REF(this->spawns, spawn)
 				{
 					if (spawn.slot == it->slot)
 					{
@@ -267,7 +267,7 @@ int Map_Chest::DelSomeItem(short item_id, int amount)
 				{
 					double current_time = Timer::GetTime();
 
-					UTIL_FOREACH(this->spawns, spawn)
+					UTIL_FOREACH_REF(this->spawns, spawn)
 					{
 						if (spawn.slot == it->slot)
 						{
@@ -296,7 +296,7 @@ void Map_Chest::Update(Map *map, Character *exclude) const
 {
 	PacketBuilder builder(PACKET_CHEST, PACKET_AGREE, this->items.size() * 5);
 
-	UTIL_CFOREACH(this->items, item)
+	UTIL_FOREACH(this->items, item)
 	{
 		builder.AddShort(item.id);
 		builder.AddThree(item.amount);
@@ -2199,7 +2199,7 @@ std::shared_ptr<Map_Item> Map::GetItem(short uid)
 
 std::shared_ptr<const Map_Item> Map::GetItem(short uid) const
 {
-	UTIL_CFOREACH(this->items, item)
+	UTIL_FOREACH(this->items, item)
 	{
 		if (item->uid == uid)
 		{

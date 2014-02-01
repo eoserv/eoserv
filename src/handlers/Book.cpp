@@ -83,7 +83,7 @@ void Book_Request(Character *character, PacketReader &reader)
 
 	std::size_t reserve = 0;
 
-	UTIL_CFOREACH(target->quests, quest)
+	UTIL_FOREACH(target->quests, quest)
 	{
 		if (quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 			reserve += quest.second->GetQuest()->Name().length() + 1;
@@ -91,7 +91,7 @@ void Book_Request(Character *character, PacketReader &reader)
 
 	reply.ReserveMore(reserve);
 
-	UTIL_CFOREACH(target->quests, quest)
+	UTIL_FOREACH(target->quests, quest)
 	{
 		if (quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
 			reply.AddBreakString(quest.second->GetQuest()->Name());

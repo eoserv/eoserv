@@ -132,7 +132,7 @@ void Chest_Open(Character *character, PacketReader &reader)
 			reply.AddChar(x);
 			reply.AddChar(y);
 
-			UTIL_CFOREACH(character->map->chests, chest)
+			UTIL_FOREACH(character->map->chests, chest)
 			{
 				if (chest->x == x && chest->y == y)
 				{
