@@ -114,165 +114,208 @@ void NPC::LoadShopDrop()
 		}
 	}
 
-	this->shop_name = static_cast<std::string>(map->world->shops_config[util::to_string(this->id) + ".name"]);
-	Config::iterator shops = map->world->shops_config.find(util::to_string(this->id) + ".trade");
-	if (shops != map->world->shops_config.end())
+	short shop_vend_id;
+
+	if (int(map->world->shops_config["Version"]) < 2)
 	{
-		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
+		shop_vend_id = this->id;
+	}
+	else
+	{
+		shop_vend_id = this->Data().vendor_id;
+	}
 
-		if (parts.size() > 1)
+	if (this->Data().type == ENF::Type::Shop && shop_vend_id > 0)
+	{
+		this->shop_name = static_cast<std::string>(map->world->shops_config[util::to_string(shop_vend_id) + ".name"]);
+		Config::iterator shops = map->world->shops_config.find(util::to_string(shop_vend_id) + ".trade");
+		if (shops != map->world->shops_config.end())
 		{
-			if (parts.size() % 3 != 0)
+			std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
+
+			if (parts.size() > 1)
 			{
-				Console::Wrn("skipping invalid trade shop data for NPC #%i", id);
-				return;
-			}
-
-			this->shop_trade.resize(parts.size() / 3);
-
-			for (std::size_t i = 0; i < parts.size(); i += 3)
-			{
-				NPC_Shop_Trade_Item *item(new NPC_Shop_Trade_Item);
-				item->id = util::to_int(parts[i]);
-				item->buy = util::to_int(parts[i+1]);
-				item->sell = util::to_int(parts[i+2]);
-
-				if (item->buy != 0 && item->sell != 0 && item->sell > item->buy)
+				if (parts.size() % 3 != 0)
 				{
-					Console::Wrn("item #%i (NPC #%i) has a higher sell price than buy price.", item->id, id);
+					Console::Wrn("skipping invalid trade shop data for vendor #%i", shop_vend_id);
+					return;
 				}
 
-				this->shop_trade[i/3] = item;
+				this->shop_trade.resize(parts.size() / 3);
+
+				for (std::size_t i = 0; i < parts.size(); i += 3)
+				{
+					NPC_Shop_Trade_Item *item(new NPC_Shop_Trade_Item);
+					item->id = util::to_int(parts[i]);
+					item->buy = util::to_int(parts[i+1]);
+					item->sell = util::to_int(parts[i+2]);
+
+					if (item->buy != 0 && item->sell != 0 && item->sell > item->buy)
+					{
+						Console::Wrn("item #%i (vendor #%i) has a higher sell price than buy price.", item->id, shop_vend_id);
+					}
+
+					this->shop_trade[i/3] = item;
+				}
+			}
+		}
+
+		shops = this->map->world->shops_config.find(util::to_string(shop_vend_id) + ".craft");
+		if (shops != this->map->world->shops_config.end())
+		{
+			std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
+
+			if (parts.size() > 1)
+			{
+				if (parts.size() % 9 != 0)
+				{
+					Console::Wrn("skipping invalid craft shop data for vendor #%i", shop_vend_id);
+					return;
+				}
+
+				this->shop_craft.resize(parts.size() / 9);
+
+				for (std::size_t i = 0; i < parts.size(); i += 9)
+				{
+					NPC_Shop_Craft_Item *item = new NPC_Shop_Craft_Item;
+					std::vector<NPC_Shop_Craft_Ingredient *> ingredients;
+					ingredients.resize(4);
+
+					item->id = util::to_int(parts[i]);
+
+					for (int ii = 0; ii < 4; ++ii)
+					{
+						NPC_Shop_Craft_Ingredient *ingredient = new NPC_Shop_Craft_Ingredient;
+						ingredient->id = util::to_int(parts[i+1+ii*2]);
+						ingredient->amount = util::to_int(parts[i+2+ii*2]);
+						ingredients[ii] = ingredient;
+					}
+
+					item->ingredients = ingredients;
+
+					this->shop_craft[i/9] = item;
+				}
 			}
 		}
 	}
 
-	shops = this->map->world->shops_config.find(util::to_string(this->id) + ".craft");
-	if (shops != this->map->world->shops_config.end())
+	short skills_vend_id;
+
+	if (int(map->world->skills_config["Version"]) < 2)
 	{
-		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
+		skills_vend_id = this->id;
+	}
+	else
+	{
+		skills_vend_id = this->Data().vendor_id;
+	}
 
-		if (parts.size() > 1)
+	if (this->Data().type == ENF::Type::Skills && skills_vend_id > 0)
+	{
+		this->skill_name = static_cast<std::string>(map->world->skills_config[util::to_string(skills_vend_id) + ".name"]);
+		Config::iterator skills = this->map->world->skills_config.find(util::to_string(skills_vend_id) + ".learn");
+		if (skills != this->map->world->skills_config.end())
 		{
-			if (parts.size() % 9 != 0)
+			std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*skills).second));
+
+			if (parts.size() > 1)
 			{
-				Console::Wrn("skipping invalid craft shop data for NPC #%i", id);
-				return;
-			}
-
-			this->shop_craft.resize(parts.size() / 9);
-
-			for (std::size_t i = 0; i < parts.size(); i += 9)
-			{
-				NPC_Shop_Craft_Item *item = new NPC_Shop_Craft_Item;
-				std::vector<NPC_Shop_Craft_Ingredient *> ingredients;
-				ingredients.resize(4);
-
-				item->id = util::to_int(parts[i]);
-
-				for (int ii = 0; ii < 4; ++ii)
+				if (parts.size() % 14 != 0)
 				{
-					NPC_Shop_Craft_Ingredient *ingredient = new NPC_Shop_Craft_Ingredient;
-					ingredient->id = util::to_int(parts[i+1+ii*2]);
-					ingredient->amount = util::to_int(parts[i+2+ii*2]);
-					ingredients[ii] = ingredient;
+					Console::Err("WARNING: skipping invalid skill learn data for vendor #%i", skills_vend_id);
+					return;
 				}
 
-				item->ingredients = ingredients;
+				this->skill_learn.resize(parts.size() / 14);
 
-				this->shop_craft[i/9] = item;
+				for (std::size_t i = 0; i < parts.size(); i += 14)
+				{
+					NPC_Learn_Skill *skill = new NPC_Learn_Skill;
+
+					skill->id = util::to_int(parts[i]);
+					skill->cost = util::to_int(parts[i+1]);
+					skill->levelreq = util::to_int(parts[i+2]);
+					skill->classreq = util::to_int(parts[i+3]);
+
+					skill->skillreq[0] = util::to_int(parts[i+4]);
+					skill->skillreq[1] = util::to_int(parts[i+5]);
+					skill->skillreq[2] = util::to_int(parts[i+6]);
+					skill->skillreq[3] = util::to_int(parts[i+7]);
+
+					skill->strreq = util::to_int(parts[i+8]);
+					skill->intreq = util::to_int(parts[i+9]);
+					skill->wisreq = util::to_int(parts[i+10]);
+					skill->agireq = util::to_int(parts[i+11]);
+					skill->conreq = util::to_int(parts[i+12]);
+					skill->chareq = util::to_int(parts[i+13]);
+
+					this->skill_learn[i/14] = skill;
+				}
 			}
 		}
 	}
 
-    this->skill_name = static_cast<std::string>(map->world->skills_config[util::to_string(this->id) + ".name"]);
-    Config::iterator skills = this->map->world->skills_config.find(util::to_string(this->id) + ".learn");
-	if (skills != this->map->world->skills_config.end())
+	short home_vend_id;
+
+	if (int(map->world->home_config["Version"]) < 2)
 	{
-		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*skills).second));
-
-		if (parts.size() > 1)
-		{
-			if (parts.size() % 14 != 0)
-			{
-				Console::Err("WARNING: skipping invalid skill learn data for NPC #%i", id);
-				return;
-			}
-
-			this->skill_learn.resize(parts.size() / 14);
-
-			for (std::size_t i = 0; i < parts.size(); i += 14)
-			{
-				NPC_Learn_Skill *skill = new NPC_Learn_Skill;
-
-				skill->id = util::to_int(parts[i]);
-				skill->cost = util::to_int(parts[i+1]);
-				skill->levelreq = util::to_int(parts[i+2]);
-				skill->classreq = util::to_int(parts[i+3]);
-
-				skill->skillreq[0] = util::to_int(parts[i+4]);
-				skill->skillreq[1] = util::to_int(parts[i+5]);
-				skill->skillreq[2] = util::to_int(parts[i+6]);
-				skill->skillreq[3] = util::to_int(parts[i+7]);
-
-				skill->strreq = util::to_int(parts[i+8]);
-				skill->intreq = util::to_int(parts[i+9]);
-				skill->wisreq = util::to_int(parts[i+10]);
-				skill->agireq = util::to_int(parts[i+11]);
-				skill->conreq = util::to_int(parts[i+12]);
-				skill->chareq = util::to_int(parts[i+13]);
-
-				this->skill_learn[i/14] = skill;
-			}
-		}
+		home_vend_id = this->id;
+	}
+	else
+	{
+		home_vend_id = this->Data().vendor_id;
 	}
 
 	this->citizenship = 0;
 
-	restart_loop:
-	UTIL_FOREACH(this->map->world->home_config, hc)
+	if (this->Data().type == ENF::Type::Inn && home_vend_id > 0)
 	{
-		std::vector<std::string> parts = util::explode('.', hc.first);
-
-		if (parts.size() < 2)
+		restart_loop:
+		UTIL_FOREACH(this->map->world->home_config, hc)
 		{
-			continue;
-		}
+			std::vector<std::string> parts = util::explode('.', hc.first);
 
-		if (!this->citizenship && parts[1] == "innkeeper" && util::to_int(hc.second) == this->id)
-		{
-			this->citizenship = new NPC_Citizenship;
-			this->citizenship->home = parts[0];
-			Home* home = this->map->world->GetHome(this->citizenship->home);
-
-			if (home)
-				home->innkeeper_vend = this->Data().vendor_id;
-			else
-				Console::Wrn("NPC #%i's innkeeper set on non-existent home: %s", id, this->citizenship->home.c_str());
-
-			goto restart_loop;
-		}
-		else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "question")
-		{
-			int index = parts[1][parts[1].length() - 1] - '1';
-
-			if (index < 0 || index >= 3)
+			if (parts.size() < 2)
 			{
-				Console::Wrn("Exactly 3 questions must be specified for %s innkeeper NPC #%i", std::string(hc.second).c_str(), id);
+				continue;
 			}
 
-			this->citizenship->questions[index] = static_cast<std::string>(hc.second);
-		}
-		else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "answer")
-		{
-			int index = parts[1][parts[1].length() - 1] - '1';
-
-			if (index < 0 || index >= 3)
+			if (!this->citizenship && parts[1] == "innkeeper" && util::to_int(hc.second) == home_vend_id)
 			{
-				Console::Wrn("Exactly 3 answers must be specified for %s innkeeper NPC #%i", std::string(hc.second).c_str(), id);
-			}
+				this->citizenship = new NPC_Citizenship;
+				this->citizenship->home = parts[0];
+				Home* home = this->map->world->GetHome(this->citizenship->home);
 
-			this->citizenship->answers[index] = static_cast<std::string>(hc.second);
+				if (home)
+					home->innkeeper_vend = this->Data().vendor_id;
+				else
+					Console::Wrn("Vendor #%i's innkeeper set on non-existent home: %s", home_vend_id, this->citizenship->home.c_str());
+
+				// Restart the loop so questions/answers specified before the innkeeper option will load
+				goto restart_loop;
+			}
+			else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "question")
+			{
+				int index = parts[1][parts[1].length() - 1] - '1';
+
+				if (index < 0 || index >= 3)
+				{
+					Console::Wrn("Exactly 3 questions must be specified for %s innkeeper vendor #%i", std::string(hc.second).c_str(), home_vend_id);
+				}
+
+				this->citizenship->questions[index] = static_cast<std::string>(hc.second);
+			}
+			else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "answer")
+			{
+				int index = parts[1][parts[1].length() - 1] - '1';
+
+				if (index < 0 || index >= 3)
+				{
+					Console::Wrn("Exactly 3 answers must be specified for %s innkeeper vendor #%i", std::string(hc.second).c_str(), home_vend_id);
+				}
+
+				this->citizenship->answers[index] = static_cast<std::string>(hc.second);
+			}
 		}
 	}
 }
