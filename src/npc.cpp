@@ -611,6 +611,8 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 	else
 	{
 		this->Killed(from, amount, spell_id);
+		// *this may not be valid here
+		return;
 	}
 }
 
@@ -988,6 +990,12 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 	}
 
 	UTIL_FOREACH(from->quests, q) { q.second->KilledNPC(this->Data().id); }
+
+	if (this->temporary)
+	{
+		delete this;
+		return;
+	}
 }
 
 void NPC::Die(bool show)

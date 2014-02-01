@@ -1496,6 +1496,7 @@ void Map::Attack(Character *from, Direction direction)
 				}
 
 				npc->Damage(from, amount);
+				// *npc may not be valid here
 
 				return;
 			}
@@ -1920,6 +1921,7 @@ void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 		}
 
 		npc->Damage(from, amount, spell_id);
+		// *npc may not be valid here
 	}
 }
 

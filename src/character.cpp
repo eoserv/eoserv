@@ -912,6 +912,8 @@ void Character::SpellAct()
 			if (npc_victim)
 				this->map->SpellAttack(this, npc_victim, spell_id);
 
+			// *npc_victim may not be valid here
+
 			break;
 
 		case TargetPlayer:
