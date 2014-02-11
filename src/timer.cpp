@@ -4,7 +4,9 @@
  * See LICENSE.txt for more info.
  */
 
+#include "database.hpp"
 #include "timer.hpp"
+#include "socket.hpp"
 
 #include "util.hpp"
 
