@@ -1173,7 +1173,7 @@ void World::Ban(Command_Source *from, Character *victim, int duration, bool anno
 		query += ")";
 	}
 
-	db.Query(query.c_str(), std::time(0));
+	db.Query(query.c_str(), int(std::time(0)));
 
 	victim->player->client->Close();
 }
@@ -1216,7 +1216,7 @@ int World::CheckBan(const std::string *username, const IPAddress *address, const
 		query += " OR ";
 	}
 
-	Database_Result res = db.Query((query.substr(0, query.length()-4) + ") AND (expires > # OR expires = 0)").c_str(), std::time(0));
+	Database_Result res = db.Query((query.substr(0, query.length()-4) + ") AND (expires > # OR expires = 0)").c_str(), int(std::time(0)));
 
 	return static_cast<int>(res[0]["expires"]);
 }

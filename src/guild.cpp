@@ -217,7 +217,7 @@ std::shared_ptr<Guild> GuildManager::CreateGuild(std::shared_ptr<Guild_Create> c
 {
 	description = util::text_word_wrap(description, this->world->config["GuildMaxWidth"]);
 
-	this->world->db.Query("INSERT INTO `guilds` (`tag`, `name`, `description`, `created`, `ranks`) VALUES ('$', '$', '$', #, '$')", create->tag.c_str(), create->name.c_str(), description.c_str(), time(0), static_cast<std::string>(this->world->config["GuildDefaultRanks"]).c_str());
+	this->world->db.Query("INSERT INTO `guilds` (`tag`, `name`, `description`, `created`, `ranks`) VALUES ('$', '$', '$', #, '$')", create->tag.c_str(), create->name.c_str(), description.c_str(), int(std::time(0)), static_cast<std::string>(this->world->config["GuildDefaultRanks"]).c_str());
 
 	this->create_cache.erase(create->tag);
 
