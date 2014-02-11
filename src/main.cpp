@@ -224,10 +224,10 @@ int eoserv_main(int argc, char *argv[])
 	}
 #endif // WIN32
 
-#ifndef DEBUG
+#ifndef DEBUG_EXCEPTIONS
 	try
 	{
-#endif // DEBUG
+#endif // DEBUG_EXCEPTIONS
 		Config config, aconfig;
 
 		try
@@ -399,7 +399,7 @@ int eoserv_main(int argc, char *argv[])
 
 			server.Tick();
 		}
-#ifndef DEBUG
+#ifndef DEBUG_EXCEPTIONS
 	}
 	catch (Socket_Exception &e)
 	{
@@ -431,7 +431,7 @@ int eoserv_main(int argc, char *argv[])
 		Console::Err("Uncaught Exception");
 		return 1;
 	}
-#endif // DEBUG
+#endif // DEBUG_EXCEPTIONS
 
 #ifdef WIN32
 	::SetEvent(eoserv_close_event);

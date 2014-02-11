@@ -53,9 +53,9 @@ void server_pump_queue(void *server_void)
 
 		if (size > 40)
 		{
-#ifdef DEBUG
+#ifdef DEBUG_EXCEPTIONS
 			Console::Wrn("Client was disconnected for filling up the action queue");
-#endif // DEBUG
+#endif // DEBUG_EXCEPTIONS
 			client->Close();
 			continue;
 		}
@@ -65,12 +65,12 @@ void server_pump_queue(void *server_void)
 			std::unique_ptr<ActionQueue_Action> action = std::move(client->queue.queue.front());
 			client->queue.queue.pop();
 
-#ifndef DEBUG
+#ifndef DEBUG_EXCEPTIONS
 			try
 			{
-#endif // DEBUG
+#endif // DEBUG_EXCEPTIONS
 				Handlers::Handle(action->reader.Family(), action->reader.Action(), client, action->reader, !action->auto_queue);
-#ifndef DEBUG
+#ifndef DEBUG_EXCEPTIONS
 			}
 			catch (Socket_Exception& e)
 			{
@@ -107,7 +107,7 @@ void server_pump_queue(void *server_void)
 				Console::Err("Client caused an exception and was closed: %s.", static_cast<std::string>(client->GetRemoteAddr()).c_str());
 				client->Close();
 			}
-#endif // DEBUG
+#endif // DEBUG_EXCEPTIONS
 
 			client->queue.next = now + action->time;
 		}

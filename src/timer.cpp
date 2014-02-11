@@ -214,12 +214,12 @@ void Timer::Tick()
 				}
 			}
 
-#ifndef DEBUG
+#ifndef DEBUG_EXCEPTIONS
 			try
 			{
-#endif // DEBUG
+#endif // DEBUG_EXCEPTIONS
 				timer->callback(timer->param);
-#ifndef DEBUG
+#ifndef DEBUG_EXCEPTIONS
 			}
 			catch (Socket_Exception& e)
 			{
@@ -250,7 +250,7 @@ void Timer::Tick()
 			{
 				Console::Err("Timer callback caused an exception");
 			}
-#endif // DEBUG
+#endif // DEBUG_EXCEPTIONS
 
 			if (timer->manager == 0)
 				delete timer;
