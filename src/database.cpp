@@ -259,14 +259,19 @@ void Database::Close()
 	}
 }
 
-Database_Result Database::RawQuery(const char* query)
+Database_Result Database::RawQuery(const char* query, bool tx_control)
 {
+	if (!this->connected)
+	{
+		throw Database_QueryFailed("Not connected to database.");
+	}
+
 	std::size_t query_length = std::strlen(query);
 
 	Database_Result result;
 
 #ifdef DATABASE_DEBUG
-	Console::Dbg(query);
+	Console::Dbg("%s", query);
 #endif // DATABASE_DEBUG
 
 	switch (this->engine)
@@ -274,25 +279,116 @@ Database_Result Database::RawQuery(const char* query)
 #ifdef DATABASE_MYSQL
 		case MySQL:
 		{
-			MYSQL_RES *mresult;
-			MYSQL_FIELD *fields;
-			int num_fields;
+			MYSQL_RES* mresult = nullptr;
+			MYSQL_FIELD* fields = nullptr;
+			int num_fields = 0;
 
 			exec_query:
 			if (mysql_real_query(this->impl->mysql_handle, query, query_length) != 0)
 			{
 				int myerr = mysql_errno(this->impl->mysql_handle);
+				int recovery_attempt = 0;
 
 				if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
 				{
+					server_gone:
+
+					if (++recovery_attempt > 10)
+					{
+						Console::Err("Could not re-connect to database. Halting server.");
+						std::terminate();
+					}
+
+					Console::Wrn("Connection to database lost! Attempting to reconnect... (Attempt %i / 10)", recovery_attempt);
 					this->Close();
-					this->Connect(this->engine, this->host, this->port, this->user, this->pass, this->db);
+					util::sleep(2.0 * recovery_attempt);
+
+					try
+					{
+						this->Connect(this->engine, this->host, this->port, this->user, this->pass, this->db);
+					}
+					catch (const Database_OpenFailed& e)
+					{
+						Console::Err("Connection failed: %s", e.error());
+					}
+
+					if (!this->connected)
+					{
+						goto server_gone;
+					}
+
+					if (this->in_transaction)
+					{
+#ifdef DEBUG
+						Console::Dbg("Replaying %i queries.", this->transaction_log.size());
+#endif // DEBUG
+
+						if (mysql_real_query(this->impl->mysql_handle, "START TRANSACTION", std::strlen("START TRANSACTION")) != 0)
+						{
+							int myerr = mysql_errno(this->impl->mysql_handle);
+
+							if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
+							{
+								goto server_gone;
+							}
+							else
+							{
+								Console::Err("Error during recovery: %s", mysql_error(this->impl->mysql_handle));
+								Console::Err("Halting server.");
+								std::terminate();
+							}
+						}
+
+						for (const std::string& q : this->transaction_log)
+						{
+#ifdef DATABASE_DEBUG
+							Console::Dbg("%s", q.c_str());
+#endif // DATABASE_DEBUG
+							int myerr = 0;
+							int query_result = mysql_real_query(this->impl->mysql_handle, q.c_str(), q.length());
+
+							if (query_result == 0)
+							{
+								mresult = mysql_use_result(this->impl->mysql_handle);
+							}
+
+							myerr = mysql_errno(this->impl->mysql_handle);
+
+							if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
+							{
+								goto server_gone;
+							}
+							else if (myerr)
+							{
+								Console::Err("Error during recovery: %s", mysql_error(this->impl->mysql_handle));
+								Console::Err("Halting server.");
+								std::terminate();
+							}
+							else
+							{
+								if (mresult)
+								{
+									mysql_free_result(mresult);
+									mresult = 0;
+								}
+							}
+						}
+					}
+
 					goto exec_query;
 				}
 				else
 				{
 					throw Database_QueryFailed(mysql_error(this->impl->mysql_handle));
 				}
+			}
+
+			if (this->in_transaction && !tx_control)
+			{
+				using namespace std;
+
+				if (strncmp(query, "SELECT", 6) != 0)
+					this->transaction_log.emplace_back(std::string(query));
 			}
 
 			num_fields = mysql_field_count(this->impl->mysql_handle);
@@ -382,7 +478,7 @@ Database_Result Database::Query(const char *format, ...)
 {
 	if (!this->connected)
 	{
-		this->Connect(this->engine, this->host, this->port, this->user, this->pass, this->db);
+		throw Database_QueryFailed("Not connected to database.");
 	}
 
 	std::va_list ap;
@@ -528,25 +624,25 @@ void Database::ExecuteFile(const std::string& filename)
 
 bool Database::Pending() const
 {
-	return in_transaction;
+	return this->in_transaction;
 }
 
 bool Database::BeginTransaction()
 {
-	if (in_transaction)
+	if (this->in_transaction)
 		return false;
 
 	switch (this->engine)
 	{
 #ifdef DATABASE_MYSQL
 		case MySQL:
-			this->RawQuery("START TRANSACTION");
+			this->RawQuery("START TRANSACTION", true);
 			break;
 #endif // DATABASE_MYSQL
 
 #ifdef DATABASE_SQLITE
 		case SQLite:
-			this->RawQuery("BEGIN");
+			this->RawQuery("BEGIN", true);
 			break;
 #endif // DATABASE_SQLITE
 	}
@@ -558,20 +654,22 @@ bool Database::BeginTransaction()
 
 void Database::Commit()
 {
-	if (!in_transaction)
+	if (!this->in_transaction)
 		throw Database_Exception("No transaction to commit");
 
-	this->RawQuery("COMMIT");
-	in_transaction = false;
+	this->RawQuery("COMMIT", true);
+	this->in_transaction = false;
+	this->transaction_log.clear();
 }
 
 void Database::Rollback()
 {
-	if (!in_transaction)
+	if (!this->in_transaction)
 		throw Database_Exception("No transaction to rollback");
 
-	this->RawQuery("ROLLBACK");
-	in_transaction = false;
+	this->RawQuery("ROLLBACK", true);
+	this->in_transaction = false;
+	this->transaction_log.clear();
 }
 
 Database::~Database()

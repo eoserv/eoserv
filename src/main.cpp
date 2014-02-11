@@ -347,6 +347,10 @@ int eoserv_main(int argc, char *argv[])
 			}
 			catch (Database_Exception &e)
 			{
+#ifdef DEBUG
+				Console::Dbg("Install check: %s: %s", e.what(), e.error());
+#endif // DEBUG
+
 				if (tried_install)
 				{
 					Console::Err("Could not find or install tables.");

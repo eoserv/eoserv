@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <exception>
 #include <functional>
+#include <list>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -109,6 +110,7 @@ class Database
 		unsigned int port;
 
 		bool in_transaction;
+		std::list<std::string> transaction_log;
 
 	public:
 		struct Bulk_Query_Context
@@ -149,14 +151,14 @@ class Database
 		void Close();
 
 		/**
-		 * Executes a raw query and returns it's result. [Re]connects to the database if required
+		 * Executes a raw query and returns it's result. Reconnects to the database if required
 		 * @throw Database_QueryFailed
 		 * @throw Database_OpenFailed
 		 */
-		Database_Result RawQuery(const char* query);
+		Database_Result RawQuery(const char* query, bool tx_control = false);
 
 		/**
-		 * Executes a formatted query and returns it's result. [Re]connects to the database if required
+		 * Executes a formatted query and returns it's result. Reconnects to the database if required
 		 * @throw Database_QueryFailed
 		 * @throw Database_OpenFailed
 		 */
