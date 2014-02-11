@@ -214,7 +214,43 @@ void Timer::Tick()
 				}
 			}
 
-			timer->callback(timer->param);
+#ifndef DEBUG
+			try
+			{
+#endif // DEBUG
+				timer->callback(timer->param);
+#ifndef DEBUG
+			}
+			catch (Socket_Exception& e)
+			{
+				Console::Err("Timer callback caused an exception");
+				Console::Err("%s: %s", e.what(), e.error());
+			}
+			catch (Database_Exception& e)
+			{
+				Console::Err("Timer callback caused an exception");
+				Console::Err("%s: %s", e.what(), e.error());
+			}
+			catch (std::runtime_error& e)
+			{
+				Console::Err("Timer callback caused an exception");
+				Console::Err("Runtime Error: %s", e.what());
+			}
+			catch (std::logic_error& e)
+			{
+				Console::Err("Timer callback caused an exception");
+				Console::Err("Logic Error: %s", e.what());
+			}
+			catch (std::exception& e)
+			{
+				Console::Err("Timer callback caused an exception");
+				Console::Err("Uncaught Exception: %s", e.what());
+			}
+			catch (...)
+			{
+				Console::Err("Timer callback caused an exception");
+			}
+#endif // DEBUG
 
 			if (timer->manager == 0)
 				delete timer;
