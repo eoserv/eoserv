@@ -632,19 +632,41 @@ bool Database::BeginTransaction()
 	if (this->in_transaction)
 		return false;
 
-	switch (this->engine)
+	for (int attempt = 1; ; ++attempt)
 	{
+		try
+		{
+			if (attempt > 1)
+			{
+				Console::Wrn("Start transaction failed. Trying again... (Attempt %i / 10)", attempt);
+				util::sleep(1.0 * attempt);
+			}
+
+			switch (this->engine)
+			{
 #ifdef DATABASE_MYSQL
-		case MySQL:
-			this->RawQuery("START TRANSACTION", true);
-			break;
+				case MySQL:
+					this->RawQuery("START TRANSACTION", true);
+					break;
 #endif // DATABASE_MYSQL
 
 #ifdef DATABASE_SQLITE
-		case SQLite:
-			this->RawQuery("BEGIN", true);
-			break;
+				case SQLite:
+					this->RawQuery("BEGIN", true);
+					break;
 #endif // DATABASE_SQLITE
+			}
+
+			break;
+		}
+		catch (...)
+		{
+			if (attempt >= 10)
+			{
+				Console::Err("Failed to begin transaction. Halting server.");
+				std::terminate();
+			}
+		}
 	}
 
 	this->in_transaction = true;
