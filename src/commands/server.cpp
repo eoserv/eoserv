@@ -46,7 +46,7 @@ void ReloadPub(const std::vector<std::string>& arguments, Command_Source* from)
 	if (arguments.size() >= 1)
 		quiet = (arguments[0] == "quiet");
 
-	from->SourceWorld()->ReloadPub();
+	from->SourceWorld()->ReloadPub(quiet);
 }
 
 void ReloadConfig(const std::vector<std::string>& arguments, Command_Source* from)
