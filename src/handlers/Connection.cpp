@@ -23,7 +23,10 @@ void Connection_Ping(EOClient *client, PacketReader &reader)
 {
 	(void)reader;
 
-	client->needpong = false;
+	if (client->needpong)
+	{
+		client->needpong = false;
+	}
 }
 
 PACKET_HANDLER_REGISTER(PACKET_CONNECTION)

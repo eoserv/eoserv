@@ -7,6 +7,7 @@
 #include "eoclient.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
 #include <stdexcept>
 
@@ -38,6 +39,9 @@ ActionQueue::~ActionQueue()
 void EOClient::Initialize()
 {
 	this->upload_fh = 0;
+	this->seq_start = 0;
+	this->upcoming_seq_start = -1;
+	this->seq = 1;
 	this->id = this->server()->world->GeneratePlayerID();
 	this->length = 0;
 	this->packet_state = EOClient::ReadLen1;
@@ -167,6 +171,61 @@ void EOClient::Tick()
 	}
 }
 
+void EOClient::InitNewSequence()
+{
+	this->seq_start = util::rand(0, 1757);
+}
+
+void EOClient::PingNewSequence()
+{
+	this->upcoming_seq_start = util::rand(0, 1757);
+}
+
+void EOClient::PongNewSequence()
+{
+	this->seq_start = this->upcoming_seq_start;
+}
+
+std::pair<unsigned char, unsigned char> EOClient::GetSeqInitBytes()
+{
+	int s1_max = (this->seq_start + 13) / 7;
+	int s1_min = std::max(0, (this->seq_start - 252 + 13 + 6) / 7);
+
+	unsigned char s1 = util::rand(s1_min, s1_max);
+	unsigned char s2 = this->seq_start - s1 * 7 + 13;
+
+	return {s1, s2};
+}
+
+std::pair<unsigned short, unsigned char> EOClient::GetSeqUpdateBytes()
+{
+	int s1_max = this->upcoming_seq_start + 252;
+	int s1_min = this->upcoming_seq_start;
+
+	unsigned short s1 = util::rand(s1_min, s1_max);
+	unsigned char s2 = s1 - this->upcoming_seq_start;
+
+	return {s1, s2};
+}
+
+int EOClient::GenSequence()
+{
+	int result = std::uint32_t(this->seq_start + this->seq);
+
+	this->seq = (this->seq + 1) % 10;
+
+	return result;
+}
+
+int EOClient::GenUpcomingSequence()
+{
+	int result = std::uint32_t(this->upcoming_seq_start + this->seq);
+
+	this->seq = (this->seq + 1) % 10;
+
+	return result;
+}
+
 void EOClient::Execute(const std::string &data)
 {
 	if (data.length() < 2)
@@ -179,14 +238,35 @@ void EOClient::Execute(const std::string &data)
 
 	if (reader.Family() == PACKET_INTERNAL)
 	{
-		Console::Wrn("Closing client connection sending a reserved packet ID.");
+		Console::Wrn("Closing client connection sending a reserved packet ID: %s", static_cast<std::string>(this->GetRemoteAddr()).c_str());
 		this->Close();
 		return;
 	}
 
 	if (reader.Family() != PACKET_F_INIT)
 	{
-		reader.GetChar(); // Ordering Byte
+		bool ping_reply = (reader.Family() == PACKET_CONNECTION && reader.Action() == PACKET_PING);
+
+		if (ping_reply)
+			this->PongNewSequence();
+
+		int client_seq;
+		int server_seq = this->GenSequence();
+
+		if (server_seq >= 253)
+			client_seq = reader.GetShort();
+		else
+			client_seq = reader.GetChar();
+
+		if (this->server()->world->config["EnforceSequence"])
+		{
+			if (client_seq != server_seq)
+			{
+				Console::Wrn("Closing client connection sending invalid sequence: %s, Got %i, expected %i.", static_cast<std::string>(this->GetRemoteAddr()).c_str(), client_seq, server_seq);
+				this->Close();
+				return;
+			}
+		}
 	}
 
 	queue.AddAction(reader, 0.02, true);

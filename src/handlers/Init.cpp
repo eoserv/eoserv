@@ -104,7 +104,7 @@ void Init_Init(EOClient *client, PacketReader &reader)
 	{
 		maxversion = 28;
 	}
-	
+
 	bool accepted_version = client->version >= minversion && (maxversion < 0 || client->version <= maxversion);
 
 	if (client->server()->world->config["CheckVersion"] && !accepted_version)
@@ -123,13 +123,16 @@ void Init_Init(EOClient *client, PacketReader &reader)
 	int emulti_e = util::rand(6,12);
 	int emulti_d = util::rand(6,12);
 
+	client->InitNewSequence();
+	auto seq_bytes = client->GetSeqInitBytes();
+
 	reply.AddByte(INIT_OK);
-	reply.AddByte(10); // "eID" starting value (1 = +7)
-	reply.AddByte(10); // "eID" starting value (1 = +1)
-	reply.AddByte(emulti_e); // dickwinder multiple
-	reply.AddByte(emulti_d); // dickwinder multiple
-	reply.AddShort(client->id); // player id
-	reply.AddThree(response); // hash result
+	reply.AddByte(seq_bytes.first);
+	reply.AddByte(seq_bytes.second);
+	reply.AddByte(emulti_e);
+	reply.AddByte(emulti_d);
+	reply.AddShort(client->id);
+	reply.AddThree(response);
 
 	client->processor.SetEMulti(emulti_e, emulti_d);
 

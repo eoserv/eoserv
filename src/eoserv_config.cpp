@@ -41,6 +41,11 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "TimedSave"          , "5m");
 	eoserv_config_default(config, "IgnoreHDID"         , false);
 	eoserv_config_default(config, "ServerLanguage"     , "./lang/en.ini");
+	eoserv_config_default(config, "PacketQueueMax"     , 40);
+	eoserv_config_default(config, "PingRate"           , 60.0);
+	eoserv_config_default(config, "EnforceSequence"    , true);
+	eoserv_config_default(config, "EnforceTimestamps"  , true);
+	eoserv_config_default(config, "EnforceSessions"    , true);
 	eoserv_config_default(config, "PasswordSalt"       , "ChangeMe");
 	eoserv_config_default(config, "SeoseCompat"        , "ChangeMe");
 	eoserv_config_default(config, "SeoseCompatKey"     , "D4q9_f30da%#q02#)8");

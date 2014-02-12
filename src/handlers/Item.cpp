@@ -352,7 +352,7 @@ void Item_Drop(Character *character, PacketReader &reader)
 		return;
 	}
 
-	if (reader.Length() == 10)
+	if (reader.Remaining() == 5)
 	{
 		amount = reader.GetThree();
 	}

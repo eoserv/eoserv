@@ -20,10 +20,6 @@ void server_ping_all(void *server_void)
 {
 	EOServer *server = static_cast<EOServer *>(server_void);
 
-	PacketBuilder builder(PACKET_CONNECTION, PACKET_PLAYER, 3);
-	builder.AddShort(0);
-	builder.AddChar(0);
-
 	UTIL_FOREACH(server->clients, rawclient)
 	{
 		EOClient *client = static_cast<EOClient *>(rawclient);
@@ -34,6 +30,13 @@ void server_ping_all(void *server_void)
 		}
 		else
 		{
+			client->PingNewSequence();
+			auto seq_bytes = client->GetSeqUpdateBytes();
+
+			PacketBuilder builder(PACKET_CONNECTION, PACKET_PLAYER, 3);
+			builder.AddShort(seq_bytes.first);
+			builder.AddChar(seq_bytes.second);
+
 			client->needpong = true;
 			client->Send(builder);
 		}
@@ -51,11 +54,9 @@ void server_pump_queue(void *server_void)
 
 		std::size_t size = client->queue.queue.size();
 
-		if (size > 40)
+		if (size > std::size_t(int(server->world->config["PacketQueueMax"])))
 		{
-#ifdef DEBUG_EXCEPTIONS
-			Console::Wrn("Client was disconnected for filling up the action queue");
-#endif // DEBUG_EXCEPTIONS
+			Console::Wrn("Client was disconnected for filling up the action queue: %s", static_cast<std::string>(client->GetRemoteAddr()).c_str());
 			client->Close();
 			continue;
 		}
@@ -118,7 +119,7 @@ void EOServer::Initialize(std::array<std::string, 6> dbinfo, const Config &eoser
 {
 	this->world = new World(dbinfo, eoserv_config, admin_config);
 
-	TimeEvent *event = new TimeEvent(server_ping_all, this, 60.0, Timer::FOREVER);
+	TimeEvent *event = new TimeEvent(server_ping_all, this, double(this->world->config["PingRate"]), Timer::FOREVER);
 	this->world->timer.Register(event);
 
 	event = new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER);

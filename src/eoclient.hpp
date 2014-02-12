@@ -9,10 +9,12 @@
 
 #include "fwd/eoclient.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdio>
 #include <queue>
 #include <string>
+#include <utility>
 
 #include "socket.hpp"
 
@@ -89,6 +91,10 @@ class EOClient : public Client
 		std::size_t send_buffer2_ppos;
 		std::size_t send_buffer2_used;
 
+		int seq_start;
+		int upcoming_seq_start;
+		int seq;
+
 	public:
 		EOServer *server() { return static_cast<EOServer *>(Client::server); };
 		int version;
@@ -121,6 +127,14 @@ class EOClient : public Client
 		virtual bool NeedTick();
 
 		void Tick();
+
+		void InitNewSequence();
+		void PingNewSequence();
+		void PongNewSequence();
+		std::pair<unsigned char, unsigned char> GetSeqInitBytes();
+		std::pair<unsigned short, unsigned char> GetSeqUpdateBytes();
+		int GenSequence();
+		int GenUpcomingSequence();
 
 		void Execute(const std::string &data);
 

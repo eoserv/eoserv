@@ -282,10 +282,15 @@ void PacketProcessor::SetEMulti(unsigned char emulti_e, unsigned char emulti_d)
 
 unsigned int PacketProcessor::Number(unsigned char b1, unsigned char b2, unsigned char b3, unsigned char b4)
 {
-	if (b1 == 0 || b1 == 254) b1 = 1;
-	if (b2 == 0 || b2 == 254) b2 = 1;
-	if (b3 == 0 || b3 == 254) b3 = 1;
-	if (b4 == 0 || b4 == 254) b4 = 1;
+	if (b1 == 254) b1 = 1;
+	if (b2 == 254) b2 = 1;
+	if (b3 == 254) b3 = 1;
+	if (b4 == 254) b4 = 1;
+
+	if (b1 == 0) b1 = 128;
+	if (b2 == 0) b2 = 128;
+	if (b3 == 0) b3 = 128;
+	if (b4 == 0) b4 = 128;
 
 	--b1;
 	--b2;
