@@ -84,6 +84,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "GuildPromoteSameRank", 1);
 	eoserv_config_default(config, "GuildDemoteRank"    , 1);
 	eoserv_config_default(config, "GuildRecruitRank"   , 2);
+	eoserv_config_default(config, "GuildDisbandRank"   , 0);
 	eoserv_config_default(config, "GuildMultipleFounders", true);
 	eoserv_config_default(config, "GuildAnnounce"      , true);
 	eoserv_config_default(config, "GuildDateFormat"    , "%Y/%m/%d");

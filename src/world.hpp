@@ -102,7 +102,6 @@ class World
 		I18N i18n;
 
 		std::vector<Character *> characters;
-		std::vector<Guild *> guilds;
 		std::vector<Party *> parties;
 		std::vector<Map *> maps;
 		std::vector<Home *> homes;
@@ -145,7 +144,7 @@ class World
 		void Reboot(int seconds, std::string reason);
 
 		void Rehash();
-		void ReloadPub();
+		void ReloadPub(bool quiet = false);
 		void ReloadQuests();
 
 		void Kick(Command_Source *from, Character *victim, bool announce = true);

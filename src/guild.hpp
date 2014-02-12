@@ -113,6 +113,8 @@ class Guild : public std::enable_shared_from_this<Guild>
 		void AddBank(int gold);
 		void DelBank(int gold);
 
+		void Disband(Character *disbander);
+
 		std::shared_ptr<Guild_Member> GetMember(std::string name);
 
 		void SetDescription(std::string);

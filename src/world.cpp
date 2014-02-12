@@ -800,7 +800,7 @@ void World::Rehash()
 	}
 }
 
-void World::ReloadPub()
+void World::ReloadPub(bool quiet)
 {
 	auto eif_id = this->eif->rid;
 	auto enf_id = this->enf->rid;
@@ -815,9 +815,12 @@ void World::ReloadPub()
 	if (eif_id != this->eif->rid || enf_id != this->enf->rid
 	 || esf_id != this->esf->rid || ecf_id != this->ecf->rid)
 	{
-		UTIL_FOREACH(this->characters, character)
+		if (!quiet)
 		{
-			character->ServerMsg("The server has been reloaded, please log out and in again.");
+			UTIL_FOREACH(this->characters, character)
+			{
+				character->ServerMsg("The server has been reloaded, please log out and in again.");
+			}
 		}
 	}
 }

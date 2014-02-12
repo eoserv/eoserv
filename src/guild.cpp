@@ -309,6 +309,7 @@ void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int r
 		builder.AddBreakString(this->tag);
 		builder.AddBreakString(this->name);
 		builder.AddBreakString(rank_str);
+		builder.AddByte(255);
 		joined->Send(builder);
 	}
 
@@ -356,10 +357,12 @@ void Guild::DelMember(std::string kicked, Character *kicker, bool alert)
 		{
 			character->guild.reset();
 			character->guild_rank = 0;
+			// *this may not be valid after this point
+			return;
 		}
 	}
 
-	// *this may not be valid after this point
+	this->manager->world->db.Query("UPDATE `characters` SET `guild` = NULL, `guild_rank` = NULL WHERE `name` = '$'", kicked.c_str());
 }
 
 void Guild::SetMemberRank(std::string name, int rank)
@@ -396,6 +399,21 @@ void Guild::DelBank(int gold)
 	{
 		this->needs_save = true;
 		this->bank -= gold;
+	}
+}
+
+void Guild::Disband(Character* disbander)
+{
+	std::vector<std::shared_ptr<Guild_Member>> disband_members = this->members;
+
+	if (this->manager->world->config["GuildAnnounce"])
+	{
+		this->Msg(0, manager->world->i18n.Format("guild_disband", util::ucfirst(disbander->name)));
+	}
+
+	UTIL_FOREACH(disband_members, member)
+	{
+		this->DelMember(member->name);
 	}
 }
 
@@ -474,5 +492,13 @@ Guild::~Guild()
 		}
 	}
 
-	this->Save();
+	if (this->members.size() > 0)
+	{
+		this->Save();
+	}
+	else
+	{
+		this->manager->world->db.Query("UPDATE `characters` SET `guild` = NULL, `guild_rank` = NULL WHERE `guild` = '$'", this->tag.c_str());
+		this->manager->world->db.Query("DELETE FROM `guilds` WHERE tag = '$'", this->tag.c_str());
+	}
 }

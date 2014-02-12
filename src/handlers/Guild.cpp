@@ -637,7 +637,10 @@ void Guild_Junk(Character *character, PacketReader &reader)
 	{
 		if (character->guild)
 		{
-			// TODO: Guild disbanding
+			if (character->guild_rank <= static_cast<int>(character->world->config["GuildDisbandRank"]))
+			{
+				character->guild->Disband(character);
+			}
 		}
 	}
 }

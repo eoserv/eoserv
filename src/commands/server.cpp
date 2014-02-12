@@ -40,6 +40,12 @@ void ReloadPub(const std::vector<std::string>& arguments, Command_Source* from)
 	(void)arguments;
 
 	Console::Out("Pub files reloaded by %s", from->SourceName().c_str());
+
+	bool quiet = false;
+
+	if (arguments.size() >= 1)
+		quiet = (arguments[0] == "quiet");
+
 	from->SourceWorld()->ReloadPub();
 }
 
@@ -79,7 +85,7 @@ void Uptime(const std::vector<std::string>& arguments, Command_Source* from)
 COMMAND_HANDLER_REGISTER()
 	using namespace std::placeholders;
 	RegisterCharacter({"remap", {}, {}, 3}, ReloadMap);
-	Register({"repub", {}, {}, 3}, ReloadPub);
+	Register({"repub", {}, {"quiet"}, 3}, ReloadPub);
 	Register({"rehash"}, ReloadConfig);
 	Register({"request", {}, {}, 3}, ReloadQuest);
 	Register({"shutdown", {}, {}, 8}, Shutdown);
