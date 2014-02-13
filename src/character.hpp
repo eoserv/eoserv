@@ -235,6 +235,7 @@ class Character : public Command_Source
 		std::list<Character_Item> inventory;
 		std::list<Character_Item> bank;
 		std::array<int, 15> paperdoll;
+		std::array<int, 15> cosmetic_paperdoll;
 		std::list<Character_Spell> spells;
 		std::list<NPC *> unregister_npc;
 		std::map<short, std::shared_ptr<Quest_Context>> quests;
@@ -298,6 +299,11 @@ class Character : public Command_Source
 		void PlaySound(unsigned char id);
 
 		void FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix = "");
+
+		void Dress(EquipLocation, unsigned short gfx_id);
+		void Undress();
+		void Undress(EquipLocation);
+		void AddPaperdollData(PacketBuilder&, const char* format);
 
 		void Send(const PacketBuilder &);
 

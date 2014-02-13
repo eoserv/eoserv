@@ -183,11 +183,7 @@ void Strip(const std::vector<std::string>& arguments, Command_Source* from)
 						builder.AddShort(victim->player->id);
 						builder.AddChar(SLOT_CLOTHES);
 						builder.AddChar(0); // ?
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Boots]).dollgraphic);
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Armor]).dollgraphic);
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Hat]).dollgraphic);
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Weapon]).dollgraphic);
-						builder.AddShort(victim->world->eif->Get(victim->paperdoll[Character::Shield]).dollgraphic);
+						victim->AddPaperdollData(builder, "B000A0HSW");
 						builder.AddShort(itemid);
 						builder.AddChar(subloc);
 						builder.AddShort(victim->maxhp);
@@ -233,6 +229,94 @@ void Strip(const std::vector<std::string>& arguments, Command_Source* from)
 	}
 }
 
+void Dress(const std::vector<std::string>& arguments, Command_Source* from)
+{
+	int argp = 0;
+	Character *victim;
+
+	if (arguments.size() > 1)
+		victim = from->SourceWorld()->GetCharacter(arguments[argp++]);
+	else
+		victim = from->SourceCharacter();
+
+	if (!victim)
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
+		return;
+	}
+
+	int item = util::to_int(arguments[argp++]);
+	const EIF_Data &eif = from->SourceWorld()->eif->Get(item);
+
+	     if (eif.type == EIF::Hat)    victim->Dress(Character::Hat, eif.dollgraphic);
+	else if (eif.type == EIF::Armor)  victim->Dress(Character::Armor, eif.dollgraphic);
+	else if (eif.type == EIF::Boots)  victim->Dress(Character::Boots, eif.dollgraphic);
+	else if (eif.type == EIF::Weapon) victim->Dress(Character::Weapon, eif.dollgraphic);
+	else if (eif.type == EIF::Shield) victim->Dress(Character::Shield, eif.dollgraphic);
+	else from->ServerMsg(from->SourceWorld()->i18n.Format("can_not_dress"));
+}
+
+void Dress2(const std::vector<std::string>& arguments, Command_Source* from)
+{
+	int argp = 0;
+	Character *victim;
+
+	if (arguments.size() > 2)
+		victim = from->SourceWorld()->GetCharacter(arguments[argp++]);
+	else
+		victim = from->SourceCharacter();
+
+	if (!victim)
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
+		return;
+	}
+
+	std::string slot = util::lowercase(arguments[argp++]);
+	int gfx_id = util::to_int(arguments[argp++]);
+
+		 if (slot == "hat")    victim->Dress(Character::Hat, gfx_id);
+	else if (slot == "armor")  victim->Dress(Character::Armor, gfx_id);
+	else if (slot == "boots")  victim->Dress(Character::Boots, gfx_id);
+	else if (slot == "weapon") victim->Dress(Character::Weapon, gfx_id);
+	else if (slot == "shield") victim->Dress(Character::Shield, gfx_id);
+	else from->ServerMsg(from->SourceWorld()->i18n.Format("invalid_dress_slot"));
+}
+
+void Undress(const std::vector<std::string>& arguments, Command_Source* from)
+{
+	int argp = 0;
+	Character *victim;
+
+	if (arguments.size() > 1)
+		victim = from->SourceWorld()->GetCharacter(arguments[argp++]);
+	else
+		victim = from->SourceCharacter();
+
+	if (!victim)
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
+		return;
+	}
+
+	if (arguments.size() > 0)
+	{
+		std::string slot = util::lowercase(arguments[argp++]);
+
+		     if (slot == "hat")    victim->Undress(Character::Hat);
+		else if (slot == "armor")  victim->Undress(Character::Armor);
+		else if (slot == "boots")  victim->Undress(Character::Boots);
+		else if (slot == "weapon") victim->Undress(Character::Weapon);
+		else if (slot == "shield") victim->Undress(Character::Shield);
+		else if (slot == "all")    victim->Undress();
+		else from->ServerMsg(from->SourceWorld()->i18n.Format("invalid_dress_slot"));
+	}
+	else
+	{
+		victim->Undress();
+	}
+}
+
 COMMAND_HANDLER_REGISTER()
 	using namespace std::placeholders;
 	Register({"setlevel", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "level"));
@@ -258,6 +342,11 @@ COMMAND_HANDLER_REGISTER()
 	Register({"setkarma", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "karma"));
 	Register({"setclass", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "class"));
 	Register({"strip", {"victim"}, {}, 2}, Strip);
+	Register({"dress", {"victim"}, {"id"}}, Dress);
+	Register({"dress2", {"victim"}, {"slot", "id"}, 6}, Dress2);
+	Register({"undress", {}, {"victim", "slot"}, 3}, Undress);
+
+	RegisterAlias("d2", "dress2");
 COMMAND_HANDLER_REGISTER_END()
 
 }

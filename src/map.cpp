@@ -734,22 +734,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	builder.AddShort(character->maxtp);
 	builder.AddShort(character->tp);
 	// equipment
-	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
-	builder.AddShort(0); // ??
-	builder.AddShort(0); // ??
-	builder.AddShort(0); // ??
-	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
-	builder.AddShort(0); // ??
-	builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
-
-	const EIF_Data& wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
-
-	if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
-		builder.AddShort(wep.dual_wield_dollgraphic);
-	else
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
-
-	builder.AddShort(wep.dollgraphic);
+	character->AddPaperdollData(builder, "B000A0HSW");
 
 	builder.AddChar(character->sitting);
 	builder.AddChar(character->hidden);
@@ -1084,15 +1069,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.AddShort(from->maxtp);
 	builder.AddShort(from->tp);
 	// equipment
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Boots]).dollgraphic);
-	builder.AddShort(0); // ??
-	builder.AddShort(0); // ??
-	builder.AddShort(0); // ??
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Armor]).dollgraphic);
-	builder.AddShort(0); // ??
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Hat]).dollgraphic);
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Shield]).dollgraphic);
-	builder.AddShort(this->world->eif->Get(from->paperdoll[Character::Weapon]).dollgraphic);
+	from->AddPaperdollData(builder, "B000A0HSW");
 	builder.AddChar(from->sitting);
 	builder.AddChar(from->hidden);
 	builder.AddByte(255);
@@ -1120,22 +1097,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		rbuilder.AddShort(character->maxtp);
 		rbuilder.AddShort(character->tp);
 		// equipment
-		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
-		rbuilder.AddShort(0); // ??
-		rbuilder.AddShort(0); // ??
-		rbuilder.AddShort(0); // ??
-		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
-		rbuilder.AddShort(0); // ??
-		rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
-
-		const EIF_Data& wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
-
-		if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
-			rbuilder.AddShort(wep.dual_wield_dollgraphic);
-		else
-			rbuilder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
-
-		rbuilder.AddShort(wep.dollgraphic);
+		character->AddPaperdollData(rbuilder, "B000A0HSW");
 
 		rbuilder.AddChar(character->sitting);
 		rbuilder.AddChar(character->hidden);

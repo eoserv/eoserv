@@ -319,6 +319,7 @@ template <typename T> static T GetRow(std::unordered_map<std::string, util::vari
 Character::Character(std::string name, World *world)
 	: muted_until(0)
 	, bot(false)
+	, cosmetic_paperdoll{{}}
 	, world(world)
 	, display_str(this->world->config["UseAdjustedStats"] ? adj_str : str)
 	, display_intl(this->world->config["UseAdjustedStats"] ? adj_intl : intl)
@@ -1272,22 +1273,7 @@ void Character::Refresh()
 		builder.AddShort(character->maxtp);
 		builder.AddShort(character->tp);
 		// equipment
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Boots]).dollgraphic);
-		builder.AddShort(0); // ??
-		builder.AddShort(0); // ??
-		builder.AddShort(0); // ??
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Armor]).dollgraphic);
-		builder.AddShort(0); // ??
-		builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Hat]).dollgraphic);
-
-		const EIF_Data& wep = this->world->eif->Get(character->paperdoll[Character::Weapon]);
-
-		if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
-			builder.AddShort(wep.dual_wield_dollgraphic);
-		else
-			builder.AddShort(this->world->eif->Get(character->paperdoll[Character::Shield]).dollgraphic);
-
-		builder.AddShort(wep.dollgraphic);
+		character->AddPaperdollData(builder, "B000A0HSW");
 
 		builder.AddChar(character->sitting);
 		builder.AddChar(character->hidden);
@@ -1630,11 +1616,7 @@ void Character::DropAll(Character *killer)
 				builder.AddShort(this->player->id);
 				builder.AddChar(SLOT_CLOTHES);
 				builder.AddChar(0); // sound
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Boots]).dollgraphic);
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Armor]).dollgraphic);
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Hat]).dollgraphic);
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Weapon]).dollgraphic);
-				builder.AddShort(this->world->eif->Get(this->paperdoll[Character::Shield]).dollgraphic);
+				this->AddPaperdollData(builder, "BAHWS");
 				builder.AddShort(id);
 				builder.AddChar(subloc);
 				builder.AddShort(this->maxhp);
@@ -1764,6 +1746,106 @@ void Character::FormulaVars(std::unordered_map<std::string, double> &vars, std::
 
 #undef vv
 #undef v
+
+void Character::Dress(EquipLocation loc, unsigned short gfx_id)
+{
+	if (gfx_id == 0)
+		gfx_id = 65535;
+
+	this->cosmetic_paperdoll[loc] = gfx_id;
+
+	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
+	builder.AddShort(this->player->id);
+	builder.AddChar(SLOT_CLOTHES);
+	builder.AddChar(0); // sound
+	this->AddPaperdollData(builder, "BAHWS");
+
+	UTIL_FOREACH(this->map->characters, updatecharacter)
+	{
+		if (!this->InRange(updatecharacter))
+			continue;
+
+		updatecharacter->Send(builder);
+	}
+}
+
+void Character::Undress()
+{
+	for (std::size_t i = 0; i < cosmetic_paperdoll.size(); ++i)
+		this->cosmetic_paperdoll[i] = 0;
+
+	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
+	builder.AddShort(this->player->id);
+	builder.AddChar(SLOT_CLOTHES);
+	builder.AddChar(0); // sound
+	this->AddPaperdollData(builder, "BAHWS");
+
+	UTIL_FOREACH(this->map->characters, updatecharacter)
+	{
+		if (!this->InRange(updatecharacter))
+			continue;
+
+		updatecharacter->Send(builder);
+	}
+}
+
+void Character::Undress(EquipLocation loc)
+{
+	this->cosmetic_paperdoll[loc] = 0;
+
+	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
+	builder.AddShort(this->player->id);
+	builder.AddChar(SLOT_CLOTHES);
+	builder.AddChar(0); // sound
+	this->AddPaperdollData(builder, "BAHWS");
+
+	UTIL_FOREACH(this->map->characters, updatecharacter)
+	{
+		if (!this->InRange(updatecharacter))
+			continue;
+
+		updatecharacter->Send(builder);
+	}
+}
+
+void Character::AddPaperdollData(PacketBuilder& builder, const char* format)
+{
+	const EIF_Data& wep = this->world->eif->Get(this->paperdoll[Character::Weapon]);
+
+	unsigned short boots = this->world->eif->Get(this->paperdoll[Character::Boots]).dollgraphic;
+	unsigned short armor = this->world->eif->Get(this->paperdoll[Character::Armor]).dollgraphic;
+	unsigned short hat = this->world->eif->Get(this->paperdoll[Character::Hat]).dollgraphic;
+	unsigned short weapon = wep.dollgraphic;
+	unsigned short shield = this->world->eif->Get(this->paperdoll[Character::Shield]).dollgraphic;
+
+	if (wep.subtype == EIF::TwoHanded && wep.dual_wield_dollgraphic)
+		shield = wep.dual_wield_dollgraphic;
+
+	if (this->cosmetic_paperdoll[Character::Boots])  boots = this->cosmetic_paperdoll[Character::Boots];
+	if (this->cosmetic_paperdoll[Character::Armor])  armor = this->cosmetic_paperdoll[Character::Armor];
+	if (this->cosmetic_paperdoll[Character::Hat])    hat = this->cosmetic_paperdoll[Character::Hat];
+	if (this->cosmetic_paperdoll[Character::Weapon]) weapon = this->cosmetic_paperdoll[Character::Weapon];
+	if (this->cosmetic_paperdoll[Character::Shield]) shield = this->cosmetic_paperdoll[Character::Shield];
+
+	if (boots == 65535)  boots = 0;
+	if (armor == 65535)  armor = 0;
+	if (hat == 65535)    hat = 0;
+	if (weapon == 65535) weapon = 0;
+	if (shield == 65535) shield = 0;
+
+	for (const char* p = format; *p != '\0'; ++p)
+	{
+		switch (*p)
+		{
+			case 'B': builder.AddShort(boots); break;
+			case 'A': builder.AddShort(armor); break;
+			case 'H': builder.AddShort(hat); break;
+			case 'W': builder.AddShort(weapon); break;
+			case 'S': builder.AddShort(shield); break;
+			case '0': builder.AddShort(0); break;
+		}
+	}
+}
 
 void Character::Send(const PacketBuilder &builder)
 {
