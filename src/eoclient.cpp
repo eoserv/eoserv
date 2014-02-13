@@ -41,7 +41,7 @@ void EOClient::Initialize()
 	this->upload_fh = 0;
 	this->seq_start = 0;
 	this->upcoming_seq_start = -1;
-	this->seq = 1;
+	this->seq = 0;
 	this->id = this->server()->world->GeneratePlayerID();
 	this->length = 0;
 	this->packet_state = EOClient::ReadLen1;
@@ -267,6 +267,10 @@ void EOClient::Execute(const std::string &data)
 				return;
 			}
 		}
+	}
+	else
+	{
+		this->GenSequence();
 	}
 
 	queue.AddAction(reader, 0.02, true);
