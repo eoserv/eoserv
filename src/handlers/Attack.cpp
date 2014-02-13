@@ -17,7 +17,19 @@ namespace Handlers
 void Attack_Use(Character *character, PacketReader &reader)
 {
 	Direction direction = static_cast<Direction>(reader.GetChar());
-	/*int timestamp = */reader.GetThree();
+	Timestamp timestamp = reader.GetThree();
+
+	int ts_diff = timestamp - character->timestamp;
+
+	if (character->world->config["EnforceTimestamps"])
+	{
+		if (ts_diff < 48)
+		{
+			return;
+		}
+	}
+
+	character->timestamp = timestamp;
 
 	if (character->sitting != SIT_STAND)
 		return;
@@ -30,22 +42,10 @@ void Attack_Use(Character *character, PacketReader &reader)
 	if (limit_attack != 0 && character->attacks >= limit_attack)
 		return;
 
-	// TODO: Find a way to implement this
-
-	/*if (direction != character->direction)
+	if (!character->world->config["EnforceTimestamps"] || ts_diff >= 60)
 	{
-		if (direction >= 0 && direction <= 3)
-		{
-			character->map->Face(character, direction);
-			//CLIENT_FORCE_QUEUE_ACTION(0.67)
-		}
-		else
-		{
-			return;
-		}
-	}*/
-
-	direction = character->direction;
+		direction = character->direction;
+	}
 
 	character->Attack(direction);
 }

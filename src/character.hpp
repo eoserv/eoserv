@@ -29,6 +29,38 @@
 #include "eodata.hpp"
 #include "guild.hpp"
 
+struct Timestamp
+{
+	private:
+		int ts;
+		static const int max_ts = 8640000;
+
+	public:
+		Timestamp()
+			: ts(-1)
+		{ }
+
+		Timestamp(int ts)
+			: ts(ts % max_ts)
+		{ }
+
+		int GetHour() const        { return ts / 360000; }
+		int GetMinute() const      { return ts / 6000 - GetHour() * 60; }
+		int GetSecond() const      { return ts / 100 - GetHour() * 3600 - GetMinute() * 60; }
+		int GetMillisecond() const { return ts * 10 - GetHour() * 3600000 - GetMinute() * 60000 - GetSecond() * 1000; }
+
+		int operator-(Timestamp b) const
+		{
+			if (ts == -1) return b.ts;
+			if (b.ts == -1) return ts;
+
+			if (b.ts > ts)
+				return ts - b.ts + max_ts;
+			else
+				return ts - b.ts;
+		}
+};
+
 void character_cast_spell(void *character_void);
 
 /**
@@ -158,6 +190,8 @@ class Character : public Command_Source
 		bool jukebox_open;
 		std::string guild_join;
 		std::string guild_invite;
+
+		Timestamp timestamp;
 
 		enum SpellTarget
 		{

@@ -17,9 +17,19 @@ namespace Handlers
 static void walk_common(Character *character, PacketReader &reader, bool (Character::*f)(Direction))
 {
 	Direction direction = static_cast<Direction>(reader.GetChar());
-	/*int timestamp = */reader.GetThree();
+	Timestamp timestamp = reader.GetThree();
 	unsigned char x = reader.GetChar();
 	unsigned char y = reader.GetChar();
+
+	if (character->world->config["EnforceTimestamps"])
+	{
+		if (timestamp - character->timestamp < 36)
+		{
+			return;
+		}
+	}
+
+	character->timestamp = timestamp;
 
 	if (character->sitting != SIT_STAND)
 	{

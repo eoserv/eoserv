@@ -21,7 +21,9 @@ namespace Handlers
 void Spell_Request(Character *character, PacketReader &reader)
 {
 	unsigned short spell_id = reader.GetShort();
-	/*int timestamp = */reader.GetThree();
+	int timestamp = reader.GetThree();
+
+	character->timestamp = timestamp;
 
 	character->CancelSpell();
 
@@ -33,7 +35,7 @@ void Spell_Request(Character *character, PacketReader &reader)
 			return;
 
 		character->spell_id = spell_id;
-		character->spell_event = new TimeEvent(character_cast_spell, character, 0.5 * spell.cast_time, 1);
+		character->spell_event = new TimeEvent(character_cast_spell, character, 0.47 * spell.cast_time, 1);
 		character->world->timer.Register(character->spell_event);
 
 		PacketBuilder builder(PACKET_SPELL, PACKET_REQUEST, 4);
@@ -54,14 +56,28 @@ void Spell_Request(Character *character, PacketReader &reader)
 void Spell_Target_Self(Character *character, PacketReader &reader)
 {
 	/*unsigned char target_type = */reader.GetChar();
-	/*unsigned short spell_id = */reader.GetChar();
-	/*int timestamp = */reader.GetThree();
+	/*unsigned short spell_id = */reader.GetShort();
+	Timestamp timestamp = reader.GetThree();
 
 	if (!character->spell_event && !character->spell_ready)
 		return;
 
 	character->spell_target = Character::TargetSelf;
 	character->spell_target_id = 0;
+
+	if (character->world->config["EnforceTimestamps"])
+	{
+		const ESF_Data& spell = character->world->esf->Get(character->spell_id);
+
+		if (timestamp - character->timestamp < (spell.cast_time - 1) * 47 + 35
+		 || timestamp - character->timestamp > spell.cast_time * 50)
+		{
+			character->CancelSpell();
+			return;
+		}
+	}
+
+	character->timestamp = timestamp;
 
 	if (character->spell_ready)
 		character->SpellAct();
@@ -75,6 +91,7 @@ void Spell_Target_Other(Character *character, PacketReader &reader)
 	reader.GetShort();
 	/*unsigned short spell_id = */reader.GetShort();
 	unsigned short victim_id = reader.GetShort();
+	Timestamp timestamp = reader.GetThree();
 
 	if (!character->spell_event && !character->spell_ready)
 		return;
@@ -96,6 +113,20 @@ void Spell_Target_Other(Character *character, PacketReader &reader)
 			return;
 	}
 
+	if (character->world->config["EnforceTimestamps"])
+	{
+		const ESF_Data& spell = character->world->esf->Get(character->spell_id);
+
+		if (timestamp - character->timestamp < (spell.cast_time - 1) * 47 + 35
+		 || timestamp - character->timestamp > spell.cast_time * 50)
+		{
+			character->CancelSpell();
+			return;
+		}
+	}
+
+	character->timestamp = timestamp;
+
 	if (character->spell_ready)
 		character->SpellAct();
 }
@@ -103,13 +134,28 @@ void Spell_Target_Other(Character *character, PacketReader &reader)
 // Group spell cast
 void Spell_Target_Group(Character *character, PacketReader &reader)
 {
-	(void)reader;
+	/*unsigned short spell_id = */reader.GetShort();
+	Timestamp timestamp = reader.GetThree();
 
 	if (!character->spell_event && !character->spell_ready)
 		return;
 
 	character->spell_target = Character::TargetGroup;
 	character->spell_target_id = 0;
+
+	if (character->world->config["EnforceTimestamps"])
+	{
+		const ESF_Data& spell = character->world->esf->Get(character->spell_id);
+
+		if (timestamp - character->timestamp < (spell.cast_time - 1) * 47 + 35
+		 || timestamp - character->timestamp > spell.cast_time * 50)
+		{
+			character->CancelSpell();
+			return;
+		}
+	}
+
+	character->timestamp = timestamp;
 
 	if (character->spell_ready)
 		character->SpellAct();
