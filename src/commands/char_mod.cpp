@@ -24,7 +24,7 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 {
 	Character *victim = from->SourceWorld()->GetCharacter(arguments[0]);
 
-	if (!victim)
+	if (!victim || victim->nowhere)
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
 	}
@@ -162,7 +162,7 @@ void Strip(const std::vector<std::string>& arguments, Command_Source* from)
 {
 	Character *victim = from->SourceWorld()->GetCharacter(arguments[0]);
 
-	if (!victim)
+	if (!victim || victim->nowhere)
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
 	}
@@ -239,7 +239,7 @@ void Dress(const std::vector<std::string>& arguments, Command_Source* from)
 	else
 		victim = from->SourceCharacter();
 
-	if (!victim)
+	if (!victim || victim->nowhere)
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
 		return;
@@ -278,7 +278,7 @@ void Dress2(const std::vector<std::string>& arguments, Command_Source* from)
 	else
 		victim = from->SourceCharacter();
 
-	if (!victim)
+	if (!victim || victim->nowhere)
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
 		return;

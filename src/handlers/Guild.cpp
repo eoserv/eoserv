@@ -283,7 +283,7 @@ void Guild_Player(Character *character, PacketReader &reader)
 
 			if (recruiter)
 			{
-				if (recruiter->map == character->map)
+				if (!recruiter->nowhere && recruiter->mapid == character->mapid)
 				{
 					if (recruiter->guild && recruiter->guild->tag == tag)
 					{

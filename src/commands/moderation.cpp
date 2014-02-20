@@ -19,7 +19,7 @@ static void do_punishment(Command_Source* from, Character* victim, std::function
 {
 	World* world = from->SourceWorld();
 
-	if (!victim)
+	if (!victim || victim->nowhere)
 	{
 		from->ServerMsg(world->i18n.Format("character_not_found"));
 	}

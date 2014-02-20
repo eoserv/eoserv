@@ -28,7 +28,7 @@ void WarpMeTo(const std::vector<std::string>& arguments, Character* from)
 {
 	Character *victim = from->world->GetCharacter(arguments[0]);
 
-	if (!victim)
+	if (!victim || victim->nowhere)
 	{
 		from->ServerMsg(from->world->i18n.Format("character_not_found"));
 	}
@@ -49,7 +49,7 @@ void WarpToMe(const std::vector<std::string>& arguments, Character* from)
 {
 	Character *victim = from->world->GetCharacter(arguments[0]);
 
-	if (!victim)
+	if (!victim || victim->nowhere)
 	{
 		from->ServerMsg(from->world->i18n.Format("character_not_found"));
 	}
