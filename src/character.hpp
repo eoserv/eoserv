@@ -10,6 +10,7 @@
 #include "fwd/character.hpp"
 
 #include <array>
+#include <deque>
 #include <list>
 #include <map>
 #include <memory>
@@ -193,6 +194,8 @@ class Character : public Command_Source
 
 		Timestamp timestamp;
 
+		std::deque<std::string> chat_log;
+
 		enum SpellTarget
 		{
 			TargetInvalid,
@@ -304,6 +307,9 @@ class Character : public Command_Source
 		void Undress();
 		void Undress(EquipLocation);
 		void AddPaperdollData(PacketBuilder&, const char* format);
+
+		void AddChatLog(std::string marker, std::string name, std::string msg);
+		std::string GetChatLogDump();
 
 		void Send(const PacketBuilder &);
 

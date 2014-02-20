@@ -514,6 +514,9 @@ void Character::Msg(Character *from, std::string message)
 {
 	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
 
+	from->AddChatLog("!", "to " + this->name, message);
+	this->AddChatLog("!", "from " + from->name, message);
+
 	PacketBuilder builder(PACKET_TALK, PACKET_TELL, 2 + from->name.length() + message.length());
 	builder.AddBreakString(from->name);
 	builder.AddBreakString(message);
@@ -1845,6 +1848,27 @@ void Character::AddPaperdollData(PacketBuilder& builder, const char* format)
 			case '0': builder.AddShort(0); break;
 		}
 	}
+}
+
+void Character::AddChatLog(std::string marker, std::string name, std::string msg)
+{
+	if (int(chat_log.size()) >= int(this->world->config["ReportChatLogSize"]))
+		chat_log.pop_front();
+
+	chat_log.push_back(marker + " " + util::ucfirst(name) + ": " + msg);
+}
+
+std::string Character::GetChatLogDump()
+{
+	std::string result;
+
+	for (const std::string& line : chat_log)
+	{
+		result += line;
+		result += "\r\n";
+	}
+
+	return result;
 }
 
 void Character::Send(const PacketBuilder &builder)

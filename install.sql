@@ -85,8 +85,17 @@ CREATE TABLE IF NOT EXISTS `bans`
 	`expires`  INTEGER     NOT NULL DEFAULT 0
 );
 
-CREATE INDEX `character_account_index` ON `characters` (`account`);
-CREATE INDEX `character_guild_index` ON `characters` (`guild`);
-CREATE INDEX `ban_ip_index` ON `bans` (`ip`);
-CREATE INDEX `ban_hdid_index` ON `bans` (`hdid`);
-CREATE INDEX `ban_username_index` ON `bans` (`username`);
+CREATE TABLE IF NOT EXISTS `reports`
+(
+	`reporter` VARCHAR(16) NOT NULL,
+	`reported` VARCHAR(16) NOT NULL,
+	`reason`   TEXT,
+	`time`     INTEGER     NOT NULL,
+	`chat_log` TEXT        NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS `character_account_index` ON `characters` (`account`);
+CREATE INDEX IF NOT EXISTS `character_guild_index` ON `characters` (`guild`);
+CREATE INDEX IF NOT EXISTS `ban_ip_index` ON `bans` (`ip`);
+CREATE INDEX IF NOT EXISTS `ban_hdid_index` ON `bans` (`hdid`);
+CREATE INDEX IF NOT EXISTS `ban_username_index` ON `bans` (`username`);

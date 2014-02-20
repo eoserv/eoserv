@@ -459,13 +459,15 @@ void Guild::Msg(Character *from, std::string message, bool echo)
 
 	UTIL_FOREACH(this->manager->world->characters, character)
 	{
-		if (!echo && character == from)
-		{
-			continue;
-		}
-
 		if (character->guild.get() == this)
 		{
+			character->AddChatLog("&", from_name, message);
+
+			if (!echo && character == from)
+			{
+				continue;
+			}
+
 			character->Send(builder);
 		}
 	}

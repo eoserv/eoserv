@@ -46,10 +46,12 @@ void Party::Msg(Character *from, std::string message, bool echo)
 
 	UTIL_FOREACH(this->members, member)
 	{
-		if (echo || member != from)
-		{
-			member->Send(builder);
-		}
+		member->AddChatLog("'", from->name, message);
+
+		if (!echo && member == from)
+			continue;
+
+		member->Send(builder);
 	}
 }
 

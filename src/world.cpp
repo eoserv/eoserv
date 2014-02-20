@@ -621,6 +621,8 @@ void World::Msg(Command_Source *from, std::string message, bool echo)
 
 	UTIL_FOREACH(this->characters, character)
 	{
+		character->AddChatLog("~", from_str, message);
+
 		if (!echo && character == from)
 		{
 			continue;
@@ -642,6 +644,8 @@ void World::AdminMsg(Command_Source *from, std::string message, int minlevel, bo
 
 	UTIL_FOREACH(this->characters, character)
 	{
+		character->AddChatLog("+", from_str, message);
+
 		if ((!echo && character == from) || character->admin < minlevel)
 		{
 			continue;
@@ -663,6 +667,8 @@ void World::AnnounceMsg(Command_Source *from, std::string message, bool echo)
 
 	UTIL_FOREACH(this->characters, character)
 	{
+		character->AddChatLog("@", from_str, message);
+
 		if (!echo && character == from)
 		{
 			continue;
@@ -704,11 +710,12 @@ void World::AdminReport(Character *from, std::string reportee, std::string messa
 		}
 	}
 
-	short boardid = static_cast<int>(this->server->world->config["AdminBoard"]) - 1;
+	short boardid = static_cast<int>(this->config["AdminBoard"]) - 1;
 
-	if (static_cast<std::size_t>(boardid) < this->server->world->boards.size())
+	if (static_cast<std::size_t>(boardid) < this->boards.size())
 	{
-		Board *admin_board = this->server->world->boards[boardid];
+		std::string chat_log_dump;
+		Board *admin_board = this->boards[boardid];
 
 		Board_Post *newpost = new Board_Post;
 		newpost->id = ++admin_board->last_id;
@@ -718,9 +725,35 @@ void World::AdminReport(Character *from, std::string reportee, std::string messa
 		newpost->body = message;
 		newpost->time = Timer::GetTime();
 
+		if (int(this->config["ReportChatLogSize"]) > 0)
+		{
+			chat_log_dump = from->GetChatLogDump();
+			newpost->body += "\r\n\r\n";
+			newpost->body += chat_log_dump;
+		}
+
+		if (this->config["LogReports"])
+		{
+			try
+			{
+				this->db.Query("INSERT INTO `reports` (`reporter`, `reported`, `reason`, `time`, `chat_log`) VALUES ('$', '$', '$', #, '$')",
+					from->name.c_str(),
+					reportee.c_str(),
+					message.c_str(),
+					int(std::time(0)),
+					chat_log_dump.c_str()
+				);
+			}
+			catch (Database_Exception& e)
+			{
+				Console::Err("Could not save report to database.");
+				Console::Err("%s", e.error());
+			}
+		}
+
 		admin_board->posts.push_front(newpost);
 
-		if (admin_board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->server->world->config["AdminBoardLimit"])))
+		if (admin_board->posts.size() > static_cast<std::size_t>(static_cast<int>(this->config["AdminBoardLimit"])))
 		{
 			admin_board->posts.pop_back();
 		}

@@ -209,6 +209,8 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "CitizenUnsubscribeAnywhere", false);
 	eoserv_config_default(config, "ClockMaxDelta"      , 1000);
 	eoserv_config_default(config, "TradeAddQuantity"   , false);
+	eoserv_config_default(config, "LogReports"         , false);
+	eoserv_config_default(config, "ReportChatLogSize"  , 25);
 	eoserv_config_default(config, "NPCMovementRate"    , "0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0");
 	eoserv_config_default(config, "DoorTimer"          , 3.0);
 	eoserv_config_default(config, "ChatMaxWidth"       , 1500);

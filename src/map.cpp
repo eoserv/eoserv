@@ -796,10 +796,13 @@ void Map::Msg(Character *from, std::string message, bool echo)
 
 	UTIL_FOREACH(this->characters, character)
 	{
-		if ((!echo && character == from) || !from->InRange(character))
-		{
+		if (!from->InRange(character))
 			continue;
-		}
+
+		character->AddChatLog("", from->name, message);
+
+		if (!echo && character == from)
+			continue;
 
 		character->Send(builder);
 	}
