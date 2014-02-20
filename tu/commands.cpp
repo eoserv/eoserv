@@ -1,3 +1,9 @@
+
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include "../src/commands/char_mod.cpp"
 #include "../src/commands/debug.cpp"
 #include "../src/commands/info.cpp"

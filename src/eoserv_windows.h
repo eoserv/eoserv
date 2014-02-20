@@ -1,3 +1,9 @@
+
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #ifndef EOSERV_WINDOWS_H_INCLUDED
 #define EOSERV_WINDOWS_H_INCLUDED
 

@@ -1,3 +1,9 @@
+
+/* $Id$
+ * EOSERV is released under the zlib license.
+ * See LICENSE.txt for more info.
+ */
+
 #include "../src/handlers/Account.cpp"
 #include "../src/handlers/AdminInteract.cpp"
 #include "../src/handlers/Attack.cpp"
