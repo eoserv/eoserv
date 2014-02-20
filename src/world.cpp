@@ -1209,7 +1209,15 @@ void World::Ban(Command_Source *from, Character *victim, int duration, bool anno
 		query += ")";
 	}
 
-	db.Query(query.c_str(), int(std::time(0)));
+	try
+	{
+		this->db.Query(query.c_str());
+	}
+	catch (Database_Exception& e)
+	{
+		Console::Err("Could not save ban to database.");
+		Console::Err("%s", e.error());
+	}
 
 	victim->player->client->Close();
 }

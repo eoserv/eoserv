@@ -82,7 +82,9 @@ CREATE TABLE IF NOT EXISTS `bans`
 	`hdid`     INTEGER              DEFAULT NULL,
 	`username` VARCHAR(16)          DEFAULT NULL,
 	`setter`   VARCHAR(16)          DEFAULT NULL,
-	`expires`  INTEGER     NOT NULL DEFAULT 0
+	`expires`  INTEGER     NOT NULL DEFAULT 0,
+	
+	PRIMARY KEY (`ip`, `hdid`, `username`, `expires`)
 );
 
 CREATE TABLE IF NOT EXISTS `reports`
@@ -91,7 +93,9 @@ CREATE TABLE IF NOT EXISTS `reports`
 	`reported` VARCHAR(16) NOT NULL,
 	`reason`   TEXT,
 	`time`     INTEGER     NOT NULL,
-	`chat_log` TEXT        NOT NULL
+	`chat_log` TEXT        NOT NULL,
+	
+	PRIMARY KEY (`reporter`, `reported`, `time`)
 );
 
 CREATE INDEX IF NOT EXISTS `character_account_index` ON `characters` (`account`);
