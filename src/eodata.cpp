@@ -12,23 +12,23 @@
 #include "console.hpp"
 #include "packet.hpp"
 
-static const char *safe_fail_filename;
+static const char *eodata_safe_fail_filename;
 
-static void safe_fail(int line)
+static void eodata_safe_fail(int line)
 {
-	Console::Err("Invalid file / failed read/seek: %s -- %i", safe_fail_filename, line);
+	Console::Err("Invalid file / failed read/seek: %s -- %i", eodata_safe_fail_filename, line);
 	std::exit(1);
 }
 
-#define SAFE_SEEK(fh, offset, from) if (std::fseek(fh, offset, from) != 0) { std::fclose(fh); safe_fail(__LINE__); }
-#define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<std::size_t>(count)) { std::fclose(fh); safe_fail(__LINE__); }
+#define SAFE_SEEK(fh, offset, from) if (std::fseek(fh, offset, from) != 0) { std::fclose(fh); eodata_safe_fail(__LINE__); }
+#define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<std::size_t>(count)) { std::fclose(fh); eodata_safe_fail(__LINE__); }
 
 void EIF::Read(const std::string& filename)
 {
 	this->data.clear();
 
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
-	safe_fail_filename = filename.c_str();
+	eodata_safe_fail_filename = filename.c_str();
 
 	if (!fh)
 	{
@@ -159,7 +159,7 @@ void ENF::Read(const std::string& filename)
 	this->data.clear();
 
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
-	safe_fail_filename = filename.c_str();
+	eodata_safe_fail_filename = filename.c_str();
 
 	if (!fh)
 	{
@@ -246,7 +246,7 @@ void ESF::Read(const std::string& filename)
 	this->data.clear();
 
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
-	safe_fail_filename = filename.c_str();
+	eodata_safe_fail_filename = filename.c_str();
 
 	if (!fh)
 	{
@@ -349,7 +349,7 @@ void ECF::Read(const std::string& filename)
 	this->data.clear();
 
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
-	safe_fail_filename = filename.c_str();
+	eodata_safe_fail_filename = filename.c_str();
 
 	if (!fh)
 	{
@@ -424,3 +424,6 @@ const ECF_Data& ECF::Get(unsigned int id) const
 	else
 		return this->data[0];
 }
+
+#undef SAFE_SEEK
+#undef SAFE_READ

@@ -40,6 +40,6 @@ void Sit_Request(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_SIT)
 	Register(PACKET_REQUEST, Sit_Request, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_SIT)
 
 }

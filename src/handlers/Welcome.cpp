@@ -394,6 +394,6 @@ PACKET_HANDLER_REGISTER(PACKET_WELCOME)
 	Register(PACKET_REQUEST, Welcome_Request, Character_Menu);
 	Register(PACKET_MSG, Welcome_Msg, Logging_In);
 	Register(PACKET_AGREE, Welcome_Agree, Logging_In, 0.15);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_WELCOME)
 
 }

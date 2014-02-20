@@ -145,6 +145,6 @@ void Init_Init(EOClient *client, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_F_INIT)
 	Register(PACKET_A_INIT, Init_Init, Uninitialized);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_F_INIT)
 
 }

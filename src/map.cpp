@@ -27,15 +27,15 @@
 #include "quest.hpp"
 #include "world.hpp"
 
-static const char *safe_fail_filename;
+static const char *map_safe_fail_filename;
 
-static void safe_fail(int line)
+static void map_safe_fail(int line)
 {
-	Console::Err("Invalid file / failed read/seek: %s -- %i", safe_fail_filename, line);
+	Console::Err("Invalid file / failed read/seek: %s -- %i", map_safe_fail_filename, line);
 }
 
-#define SAFE_SEEK(fh, offset, from) if (std::fseek(fh, offset, from) != 0) { std::fclose(fh); safe_fail(__LINE__); return false; }
-#define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<int>(count)) {  std::fclose(fh); safe_fail(__LINE__);return false; }
+#define SAFE_SEEK(fh, offset, from) if (std::fseek(fh, offset, from) != 0) { std::fclose(fh); map_safe_fail(__LINE__); return false; }
+#define SAFE_READ(buf, size, count, fh) if (std::fread(buf, size, count, fh) != static_cast<int>(count)) {  std::fclose(fh); map_safe_fail(__LINE__);return false; }
 
 void map_spawn_chests(void *map_void)
 {
@@ -435,7 +435,7 @@ bool Map::Load()
 	filename.append(namebuf);
 	filename.append(".emf");
 
-	safe_fail_filename = filename.c_str();
+	map_safe_fail_filename = filename.c_str();
 
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 
@@ -556,7 +556,7 @@ bool Map::Load()
 			catch (...)
 			{
 				std::fclose(fh);
-				safe_fail(__LINE__);
+				map_safe_fail(__LINE__);
 				return false;
 			}
 		}
@@ -2468,3 +2468,6 @@ NPC *Map::GetNPCIndex(unsigned char index)
 
 	return 0;
 }
+
+#undef SAFE_SEEK
+#undef SAFE_READ

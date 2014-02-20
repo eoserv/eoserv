@@ -20,16 +20,16 @@
 #define COMMAND_HANDLER_PASTE_AUX2(base, id) base##id
 #define COMMAND_HANDLER_PASTE_AUX(base, id) COMMAND_HANDLER_PASTE_AUX2(base, id)
 
-#define COMMAND_HANDLER_REGISTER() \
-namespace { struct COMMAND_HANDLER_PASTE_AUX(command_handler_register_helper_, __LINE__) : public command_handler_register_helper \
+#define COMMAND_HANDLER_REGISTER(uid) \
+namespace { struct COMMAND_HANDLER_PASTE_AUX(command_handler_register_helper_, uid) : public command_handler_register_helper \
 { \
-	COMMAND_HANDLER_PASTE_AUX(command_handler_register_helper_, __LINE__)() \
+	COMMAND_HANDLER_PASTE_AUX(command_handler_register_helper_, uid)() \
 	{ \
 		command_handler_register_init _init; \
 
-#define COMMAND_HANDLER_REGISTER_END() ; \
+#define COMMAND_HANDLER_REGISTER_END(uid) ; \
 	} \
-} COMMAND_HANDLER_PASTE_AUX(command_handler_register_helper_instance_, __LINE__); }
+} COMMAND_HANDLER_PASTE_AUX(command_handler_register_helper_instance_, uid); }
 
 namespace Commands
 {

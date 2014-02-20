@@ -1,0 +1,7 @@
+#include "../src/character.cpp"
+#include "../src/command_source.cpp"
+#include "../src/map.cpp"
+#include "../src/npc.cpp"
+#include "../src/party.cpp"
+#include "../src/player.cpp"
+#include "../src/world.cpp"

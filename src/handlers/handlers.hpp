@@ -20,15 +20,15 @@
 #define PACKET_HANDLER_PASTE_AUX(base, id) PACKET_HANDLER_PASTE_AUX2(base, id)
 
 #define PACKET_HANDLER_REGISTER(family) \
-namespace { struct PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_, __LINE__) : public packet_handler_register_helper<family> \
+namespace { struct PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_, family) : public packet_handler_register_helper<family> \
 { \
-	PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_, __LINE__)() \
+	PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_, family)() \
 	{ \
 		packet_handler_register_init _init; \
 
-#define PACKET_HANDLER_REGISTER_END() ; \
+#define PACKET_HANDLER_REGISTER_END(family) ; \
 	} \
-} PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_instance_, __LINE__); }
+} PACKET_HANDLER_PASTE_AUX(packet_handler_register_helper_instance_, family); }
 
 namespace Handlers
 {

@@ -21,6 +21,6 @@ void Refresh_Request(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_REFRESH)
 	Register(PACKET_REQUEST, Refresh_Request, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_REFRESH)
 
 }

@@ -58,7 +58,7 @@ void Players_List(EOClient *client, PacketReader &reader)
 			--online;
 		}
 	}
-	
+
 	bool is_friends_list = (reader.Action() == PACKET_LIST);
 
 	PacketBuilder reply(PACKET_F_INIT, PACKET_A_INIT, 4 + online * (is_friends_list ? 13 : 35));
@@ -73,7 +73,7 @@ void Players_List(EOClient *client, PacketReader &reader)
 		}
 
 		reply.AddBreakString(character->name);
-		
+
 		// Full information is not sent for friends list requests
 		if (!is_friends_list)
 		{
@@ -129,6 +129,6 @@ PACKET_HANDLER_REGISTER(PACKET_PLAYERS)
 	Register(PACKET_ACCEPT, Players_Accept, Playing);
 	Register(PACKET_LIST, Players_List, Any);
 	Register(PACKET_REQUEST, Players_List, Any);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_PLAYERS)
 
 }

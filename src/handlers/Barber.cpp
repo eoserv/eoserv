@@ -98,6 +98,6 @@ void Barber_Buy(Character *character, PacketReader &reader)
 PACKET_HANDLER_REGISTER(PACKET_BARBER)
 	Register(PACKET_OPEN, Barber_Open, Playing);
 	Register(PACKET_BUY, Barber_Buy, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_BARBER)
 
 }

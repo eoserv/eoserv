@@ -17,7 +17,7 @@
 #include "platform.h"
 
 #ifdef WIN32
-#include <windows.h>
+#include "eoserv_windows.h"
 #endif // WIN32
 
 #include "util/variant.hpp"

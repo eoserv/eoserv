@@ -317,7 +317,7 @@ void Undress(const std::vector<std::string>& arguments, Command_Source* from)
 	}
 }
 
-COMMAND_HANDLER_REGISTER()
+COMMAND_HANDLER_REGISTER(char_mod)
 	using namespace std::placeholders;
 	Register({"setlevel", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "level"));
 	Register({"setexp", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "exp"));
@@ -347,6 +347,6 @@ COMMAND_HANDLER_REGISTER()
 	Register({"undress", {}, {"victim", "slot"}, 3}, Undress);
 
 	RegisterAlias("d2", "dress2");
-COMMAND_HANDLER_REGISTER_END()
+COMMAND_HANDLER_REGISTER_END(char_mod)
 
 }

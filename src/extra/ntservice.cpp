@@ -7,7 +7,7 @@
 #include "ntservice.hpp"
 
 #include <cstdlib>
-#include <windows.h>
+#include "../eoserv_windows.h"
 
 #include "../fwd/socket.hpp" // OSErrorString
 #include "../console.hpp"

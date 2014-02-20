@@ -30,6 +30,6 @@ void Internal_Warp(Character *character, PacketReader &reader)
 PACKET_HANDLER_REGISTER(PACKET_INTERNAL)
 	Register(PACKET_INTERNAL_NULL, Internal_Null, Any);
 	Register(PACKET_INTERNAL_WARP, Internal_Warp, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_INTERNAL)
 
 }

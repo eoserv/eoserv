@@ -160,7 +160,7 @@ void QuestState(const std::vector<std::string>& arguments, Character* from)
 	}
 }
 
-COMMAND_HANDLER_REGISTER()
+COMMAND_HANDLER_REGISTER(debug)
 	RegisterCharacter({"sitem", {"item"}, {"amount"}, 2}, SpawnItem);
 	RegisterCharacter({"ditem", {"item"}, {"amount", "x", "y"}, 2}, DropItem);
 	RegisterCharacter({"snpc", {"npc"}, {"amount"}, 2}, SpawnNPC);
@@ -169,6 +169,6 @@ COMMAND_HANDLER_REGISTER()
 	RegisterAlias("si", "sitem");
 	RegisterAlias("di", "ditem");
 	RegisterAlias("sn", "snpc");
-COMMAND_HANDLER_REGISTER_END()
+COMMAND_HANDLER_REGISTER_END(debug)
 
 }

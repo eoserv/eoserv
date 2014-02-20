@@ -65,7 +65,7 @@ void Board(const std::vector<std::string>& arguments, Character* from)
 	}
 }
 
-COMMAND_HANDLER_REGISTER()
+COMMAND_HANDLER_REGISTER(map)
 	RegisterCharacter({"arena"}, LaunchArena);
 	RegisterCharacter({"evacuate"}, EvacuateMap);
 	RegisterCharacter({"quake", {}, {"strength"}}, Quake);
@@ -77,6 +77,6 @@ COMMAND_HANDLER_REGISTER()
 	RegisterAlias("h", "hide");
 	RegisterAlias("q", "quake");
 	RegisterAlias("x", "hide");
-COMMAND_HANDLER_REGISTER_END()
+COMMAND_HANDLER_REGISTER_END(map)
 
 }

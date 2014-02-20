@@ -25,6 +25,6 @@ void Emote_Report(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_EMOTE)
 	Register(PACKET_REPORT, Emote_Report, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_EMOTE)
 
 }

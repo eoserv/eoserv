@@ -163,6 +163,6 @@ PACKET_HANDLER_REGISTER(PACKET_CHARACTER)
 	Register(PACKET_CREATE, Character_Create, Character_Menu, 1.0);
 	Register(PACKET_REMOVE, Character_Remove, Character_Menu, 1.0);
 	Register(PACKET_TAKE, Character_Take, Character_Menu);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_CHARACTER)
 
 }

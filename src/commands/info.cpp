@@ -296,7 +296,7 @@ void Info(const std::vector<std::string>& arguments, Character* from)
 	}
 }
 
-COMMAND_HANDLER_REGISTER()
+COMMAND_HANDLER_REGISTER(info)
 	RegisterCharacter({"inventory", {"victim"}, {}, 3}, Inventory);
 	RegisterCharacter({"paperdoll", {"victim"}, {}}, Paperdoll);
 	RegisterCharacter({"book", {"victim"}, {}, 2}, Book);
@@ -304,6 +304,6 @@ COMMAND_HANDLER_REGISTER()
 
 	RegisterAlias("p", "paperdoll");
 	RegisterAlias("i", "info");
-COMMAND_HANDLER_REGISTER_END()
+COMMAND_HANDLER_REGISTER_END(info)
 
 }

@@ -182,6 +182,6 @@ void Chair_Request(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_CHAIR)
 	Register(PACKET_REQUEST, Chair_Request, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_CHAIR)
 
 }

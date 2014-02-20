@@ -75,7 +75,7 @@ void Mute(const std::vector<std::string>& arguments, Command_Source* from, bool 
 	do_punishment(from, victim, std::mem_fn(&World::Mute), announce);
 }
 
-COMMAND_HANDLER_REGISTER()
+COMMAND_HANDLER_REGISTER(moderation)
 	using namespace std::placeholders;
 	Register({"kick", {"victim"}, {}}, std::bind(Kick, _1, _2, true));
 	Register({"skick", {"victim"}, {}, 2}, std::bind(Kick, _1, _2, false));
@@ -90,6 +90,6 @@ COMMAND_HANDLER_REGISTER()
 	RegisterAlias("b", "ban");
 	RegisterAlias("j", "jail");
 	RegisterAlias("m", "mute");
-COMMAND_HANDLER_REGISTER_END()
+COMMAND_HANDLER_REGISTER_END(moderation)
 
 }

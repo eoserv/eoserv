@@ -25,7 +25,7 @@
 #include "version.h"
 
 #ifdef WIN32
-#include <windows.h>
+#include "eoserv_windows.h"
 #include "extra/ntservice.hpp"
 #endif // WIN32
 

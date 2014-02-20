@@ -131,6 +131,6 @@ void Login_Request(EOClient *client, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_LOGIN)
 	Register(PACKET_REQUEST, Login_Request, Menu, 1.0);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_LOGIN)
 
 }

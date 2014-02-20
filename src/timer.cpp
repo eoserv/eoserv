@@ -16,7 +16,7 @@
 #include <stdexcept>
 
 #ifdef WIN32
-#include <windows.h>
+#include "eoserv_windows.h"
 #else // WIN32
 #include <sys/time.h>
 #include <sys/types.h>

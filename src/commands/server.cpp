@@ -82,7 +82,7 @@ void Uptime(const std::vector<std::string>& arguments, Command_Source* from)
 	from->ServerMsg(buffer);
 }
 
-COMMAND_HANDLER_REGISTER()
+COMMAND_HANDLER_REGISTER(server)
 	using namespace std::placeholders;
 	RegisterCharacter({"remap", {}, {}, 3}, ReloadMap);
 	Register({"repub", {}, {"quiet"}, 3}, ReloadPub);
@@ -90,6 +90,6 @@ COMMAND_HANDLER_REGISTER()
 	Register({"request", {}, {}, 3}, ReloadQuest);
 	Register({"shutdown", {}, {}, 8}, Shutdown);
 	Register({"uptime"}, Uptime);
-COMMAND_HANDLER_REGISTER_END()
+COMMAND_HANDLER_REGISTER_END(server)
 
 }

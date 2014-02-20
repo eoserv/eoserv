@@ -32,6 +32,6 @@ void Connection_Ping(EOClient *client, PacketReader &reader)
 PACKET_HANDLER_REGISTER(PACKET_CONNECTION)
 	Register(PACKET_ACCEPT, Connection_Accept, Menu);
 	Register(PACKET_PING, Connection_Ping, Any | OutOfBand);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_CONNECTION)
 
 }

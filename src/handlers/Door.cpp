@@ -23,6 +23,6 @@ void Door_Open(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_DOOR)
 	Register(PACKET_OPEN, Door_Open, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_DOOR)
 
 }

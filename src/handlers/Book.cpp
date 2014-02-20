@@ -102,6 +102,6 @@ void Book_Request(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_BOOK)
 	Register(PACKET_REQUEST, Book_Request, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_BOOK)
 
 }

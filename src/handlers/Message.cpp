@@ -23,6 +23,6 @@ void Message_Ping(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_MESSAGE)
 	Register(PACKET_PING, Message_Ping, Playing | OutOfBand)
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_MESSAGE)
 
 }

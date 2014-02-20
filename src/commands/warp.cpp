@@ -66,11 +66,11 @@ void WarpToMe(const std::vector<std::string>& arguments, Character* from)
 	}
 }
 
-COMMAND_HANDLER_REGISTER()
+COMMAND_HANDLER_REGISTER(warp)
 	RegisterCharacter({"warp", {"map", "x", "y"}}, Warp);
 	RegisterCharacter({"warpmeto", {"victim"}}, WarpMeTo);
 	RegisterCharacter({"warptome", {"victim"}}, WarpToMe);
 	RegisterAlias("w", "warp");
-COMMAND_HANDLER_REGISTER_END()
+COMMAND_HANDLER_REGISTER_END(warp)
 
 }

@@ -30,6 +30,6 @@ void Face_Player(Character *character, PacketReader &reader)
 
 PACKET_HANDLER_REGISTER(PACKET_FACE)
 	Register(PACKET_PLAYER, Face_Player, Playing, 0.12);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_FACE)
 
 }

@@ -51,6 +51,6 @@ void AdminInteract_Report(Character *character, PacketReader &reader)
 PACKET_HANDLER_REGISTER(PACKET_ADMININTERACT)
 	Register(PACKET_TELL, AdminInteract_Tell, Playing | OutOfBand);
 	Register(PACKET_REPORT, AdminInteract_Report, Playing | OutOfBand);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_ADMININTERACT)
 
 }

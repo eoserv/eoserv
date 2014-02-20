@@ -10,8 +10,7 @@
 #include "platform.h"
 
 #ifdef WIN32
-#include <winsock2.h>
-#include <windows.h>
+#include "eoserv_windows.h"
 #if defined(NTDDI_WIN2K) && !defined(__MINGW32__)
 #include <Wspiapi.h>
 #else // NTDDI_WIN2K
