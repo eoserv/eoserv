@@ -245,8 +245,20 @@ void Dress(const std::vector<std::string>& arguments, Command_Source* from)
 		return;
 	}
 
+	if (victim->admin >= int(from->SourceWorld()->admin_config["cmdprotect"]) && victim->admin > from->SourceAccess())
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
+		return;
+	}
+
 	int item = util::to_int(arguments[argp++]);
 	const EIF_Data &eif = from->SourceWorld()->eif->Get(item);
+
+	if (eif.type == EIF::Armor && eif.gender != victim->gender)
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("can_not_dress"));
+		return;
+	}
 
 	     if (eif.type == EIF::Hat)    victim->Dress(Character::Hat, eif.dollgraphic);
 	else if (eif.type == EIF::Armor)  victim->Dress(Character::Armor, eif.dollgraphic);
@@ -269,6 +281,12 @@ void Dress2(const std::vector<std::string>& arguments, Command_Source* from)
 	if (!victim)
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
+		return;
+	}
+
+	if (victim->admin >= int(from->SourceWorld()->admin_config["cmdprotect"]) && victim->admin > from->SourceAccess())
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
 		return;
 	}
 
@@ -296,6 +314,12 @@ void Undress(const std::vector<std::string>& arguments, Command_Source* from)
 	if (!victim)
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
+		return;
+	}
+
+	if (victim->admin >= int(from->SourceWorld()->admin_config["cmdprotect"]) && victim->admin > from->SourceAccess())
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
 		return;
 	}
 
