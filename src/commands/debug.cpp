@@ -138,7 +138,7 @@ void QuestState(const std::vector<std::string>& arguments, Character* from)
 		{
 			// WARNING: holds a non-tracked reference to shared_ptr
 			quest = std::make_shared<Quest_Context>(from, it->second.get());
-			from->quests.insert(std::make_pair(it->first, quest));
+			from->quests[it->first] = quest;
 			quest->SetState("begin", true);
 		}
 	}

@@ -1595,7 +1595,13 @@ bool Map::AttackPK(Character *from, Direction direction)
 						{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
 					}.data()), 0.0);
 
-					UTIL_FOREACH(from->quests, q) { q.second->KilledPlayer(); }
+					UTIL_FOREACH(from->quests, q)
+					{
+						if (!q.second || q.second->GetQuest()->Disabled())
+							continue;
+
+						q.second->KilledPlayer();
+					}
 				}
 
 				builder.Reset(4);
@@ -1972,7 +1978,13 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 				{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
 			}.data()), 0.0);
 
-			UTIL_FOREACH(from->quests, q) { q.second->KilledPlayer(); }
+			UTIL_FOREACH(from->quests, q)
+			{
+				if (!q.second || q.second->GetQuest()->Disabled())
+					continue;
+
+				q.second->KilledPlayer();
+			}
 		}
 
 		builder.Reset(4);

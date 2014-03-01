@@ -15,7 +15,7 @@
 namespace EOPlus
 {
 	static int recursive_depth = 0;
-	static const int max_recursion = 1000;
+	static const int max_recursion = 100;
 
 	Context::Context(const Quest* quest)
 		: quest(quest)

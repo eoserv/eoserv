@@ -31,6 +31,17 @@ void Item_Use(Character *character, PacketReader &reader)
 		reply.AddChar(item.type);
 		reply.AddShort(id);
 
+		auto QuestUsedItems = [](Character* character, int id)
+		{
+			UTIL_FOREACH(character->quests, q)
+			{
+				if (!q.second || q.second->GetQuest()->Disabled())
+					continue;
+
+				q.second->UsedItem(id);
+			}
+		};
+
 		switch (item.type)
 		{
 			case EIF::Teleport:
@@ -67,7 +78,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				character->Send(reply);
 
-				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
+				QuestUsedItems(character, id);
 			}
 			break;
 
@@ -128,7 +139,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				character->Send(reply);
 
-				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
+				QuestUsedItems(character, id);
 			}
 			break;
 
@@ -164,7 +175,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				character->Send(reply);
 
-				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
+				QuestUsedItems(character, id);
 			}
 			break;
 
@@ -179,7 +190,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				character->Send(reply);
 
-				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
+				QuestUsedItems(character, id);
 			}
 			break;
 
@@ -197,7 +208,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				character->Send(reply);
 
-				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
+				QuestUsedItems(character, id);
 			}
 			break;
 
@@ -258,7 +269,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				character->Send(reply);
 
-				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
+				QuestUsedItems(character, id);
 			}
 			break;
 
@@ -318,7 +329,7 @@ void Item_Use(Character *character, PacketReader &reader)
 
 				character->Send(reply);
 
-				UTIL_FOREACH(character->quests, q) { q.second->UsedItem(id); }
+				QuestUsedItems(character, id);
 			}
 			break;
 

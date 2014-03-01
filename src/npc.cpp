@@ -1032,7 +1032,13 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 		);
 	}
 
-	UTIL_FOREACH(from->quests, q) { q.second->KilledNPC(this->Data().id); }
+	UTIL_FOREACH(from->quests, q)
+	{
+		if (!q.second || q.second->GetQuest()->Disabled())
+			continue;
+
+		q.second->KilledNPC(this->Data().id);
+	}
 
 	if (this->temporary)
 	{

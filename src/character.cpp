@@ -168,6 +168,9 @@ std::string QuestSerialize(const std::map<short, std::shared_ptr<Quest_Context>>
 
 	UTIL_FOREACH(list, quest)
 	{
+		if (!quest.second)
+			continue;
+
 		serialized.append(util::to_string(quest.second->GetQuest()->ID()));
 		serialized.append(",");
 		serialized.append(quest.second->StateName());
@@ -473,7 +476,7 @@ void Character::Login()
 			if (!quest->Disabled())
 			{
 				auto context = std::make_shared<Quest_Context>(this, quest);
-				this->quests.insert({it->first, context});
+				this->quests[it->first] = context;
 				context->SetState("begin");
 			}
 		}
@@ -946,7 +949,13 @@ void Character::SpellAct()
 			return;
 	}
 
-	UTIL_FOREACH(this->quests, q) { q.second->UsedSpell(spell_id); }
+	UTIL_FOREACH(this->quests, q)
+	{
+		if (!q.second || q.second->GetQuest()->Disabled())
+			continue;
+
+		q.second->UsedSpell(spell_id);
+	}
 }
 
 bool Character::Unequip(short item, unsigned char subloc)
@@ -1411,12 +1420,12 @@ unsigned char Character::SpawnY()
 
 void Character::CheckQuestRules()
 {
-	restart_loop:
-
 	UTIL_FOREACH(this->quests, q)
 	{
-		if (q.second->CheckRules())
-			goto restart_loop;
+		if (!q.second || q.second->GetQuest()->Disabled())
+			continue;
+
+		q.second->CheckRules();
 	}
 }
 
@@ -1713,7 +1722,7 @@ std::shared_ptr<Quest_Context> Character::GetQuest(short id)
 
 void Character::ResetQuest(short id)
 {
-	this->quests.erase(id);
+	this->quests[id].reset();
 }
 
 void Character::Mute(const Command_Source *by)
