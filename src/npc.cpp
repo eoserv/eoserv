@@ -327,6 +327,9 @@ const ENF_Data& NPC::Data() const
 
 void NPC::Spawn(NPC *parent)
 {
+	if (this->alive)
+		return;
+
 	if (this->Data().boss && !parent)
 	{
 		UTIL_FOREACH(this->map->npcs, npc)
@@ -996,19 +999,36 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 	if (this->Data().boss)
 	{
+		std::vector<NPC*> child_npcs;
+
 		UTIL_FOREACH(this->map->npcs, npc)
 		{
-			if (npc->Data().child && !npc->Data().boss)
+			if (npc->Data().child && !npc->Data().boss && npc->alive)
 			{
-				if (childid == -1 || childid == npc->Data().id)
-				{
-					npc->Die(false);
-					childid = npc->Data().id;
-				}
-				else
-				{
-					npc->Die(true);
-				}
+				child_npcs.push_back(npc);
+			}
+		}
+
+		UTIL_FOREACH(child_npcs, npc)
+		{
+			if (childid == -1 || childid == npc->Data().id)
+			{
+				npc->Die(false);
+				childid = npc->Data().id;
+			}
+			else
+			{
+				npc->Die(true);
+			}
+
+			if (npc->temporary)
+			{
+				this->map->npcs.erase(
+					std::remove(this->map->npcs.begin(), this->map->npcs.end(), npc),
+					this->map->npcs.end()
+				);
+				
+				delete npc;
 			}
 		}
 	}
@@ -1049,7 +1069,11 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 void NPC::Die(bool show)
 {
+	if (!this->alive)
+		return;
+
 	this->alive = false;
+	this->parent = 0;
 	this->dead_since = int(Timer::GetTime());
 
 	UTIL_FOREACH(this->damagelist, opponent)
