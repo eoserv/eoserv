@@ -293,13 +293,14 @@ rand_init rand_init_instance;
 
 static unsigned long long_rand()
 {
+	typedef unsigned long ul;
 #if RAND_MAX < 65535
-	return (std::rand() & 0xFF) << 24 | (std::rand() & 0xFF) << 16 | (std::rand() & 0xFF) << 8 | (std::rand() & 0xFF);
+	return ul(std::rand() & 0xFF) << 24 | ul(std::rand() & 0xFF) << 16 | ul(std::rand() & 0xFF) << 8 | ul(std::rand() & 0xFF);
 #else
 #if RAND_MAX < 4294967295
-	return (std::rand() & 0xFFFF) << 16 | (std::rand() & 0xFFFF);
+	return ul(std::rand() & 0xFFFF) << 16 | ul(std::rand() & 0xFFFF);
 #else
-	return std::rand() & 0xFFFFFFFFU;
+	return ul(std::rand() & 0xFFFFFFFFU);
 #endif
 #endif
 }
