@@ -1,8 +1,9 @@
 
-CFLAGS += -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX `mysql_config --cflags`
-CXXFLAGS += -std=gnu++0x -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX `mysql_config --cflags`
+CFLAGS += -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX `mariadb_config --include`
+CXXFLAGS += -std=gnu++0x -DEOSERV_MAKEFILE_LNX -DEOSERV_LINUX `mariadb_config --include`
 LIBS += -lrt
 
-MYSQL_LIB = `mysql_config --libs`
+MYSQL_LIB = `mariadb_config --libs`
 SQLITE_LIB = -lsqlite3
 PTHREAD_LIB = -lpthread
+

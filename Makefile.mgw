@@ -6,8 +6,9 @@ CFLAGS += -DEOSERV_MAKEFILE_MGW -DEOSERV_MINGW
 CXXFLAGS += -std=gnu++0x -DEOSERV_MAKEFILE_MGW -DEOSERV_MINGW
 LIBS += -lws2_32 -lwinmm
 
-MYSQL_LIB = -lmysql
+MYSQL_LIB = -lmariadb
 SQLITE_LIB = -lsqlite3
 PTHREAD_LIB = -lpthreadGC2
 
 OBJ += $(OBJDIR)/extra/ntservice.o
+

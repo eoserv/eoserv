@@ -23,7 +23,7 @@
 					<Add option="-DDATABASE_SQLITE" />
 				</Compiler>
 				<Linker>
-					<Add library="mysqlclient" />
+					<Add library="mariadb" />
 					<Add library="sqlite3" />
 				</Linker>
 			</Target>
@@ -42,7 +42,7 @@
 					<Add option="-DDATABASE_MYSQL" />
 				</Compiler>
 				<Linker>
-					<Add library="mysqlclient" />
+					<Add library="mariadb" />
 				</Linker>
 			</Target>
 			<Target title="DEBUG+SQLITE">
@@ -76,7 +76,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="mysqlclient" />
+					<Add library="mariadb" />
 					<Add library="sqlite3" />
 				</Linker>
 			</Target>
@@ -92,7 +92,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="mysqlclient" />
+					<Add library="mariadb" />
 				</Linker>
 			</Target>
 			<Target title="SQLITE">
@@ -119,7 +119,7 @@
 			<Add option="-DEOSERV_PROJECT" />
 			<Add option="-DEOSERV_PROJECT_CBP" />
 			<Add option="-DEOSERV_LINUX" />
-			<Add directory="/usr/include/mysql" />
+			<Add directory="/usr/include/mariadb" />
 			<Add directory="../src/" />
 		</Compiler>
 		<Linker>

@@ -172,11 +172,11 @@ void Database::Connect(Database::Engine type, const std::string& host, unsigned 
 			{
 				unsigned int client_version = mysql_get_client_version();
 
-				Console::Err("libMySQL client version mismatch! Please recompile EOSERV with the correct MySQL client library.");
+				Console::Err("MySQL client library version mismatch! Please recompile EOSERV with the correct MySQL client library.");
 				Console::Err("  Expected version: %i.%i.%i", (MYSQL_VERSION_ID) / 10000, ((MYSQL_VERSION_ID) / 100) % 100, (MYSQL_VERSION_ID) % 100);
 				Console::Err("  Library version:  %i.%i.%i", (client_version) / 10000, ((client_version) / 100) % 100, (client_version) % 100);
-				Console::Err("Make sure EOSERV is using the correct version of libmysql.dll");
-				throw Database_OpenFailed("libMySQL client version mismatch");
+				Console::Err("Make sure EOSERV is using the correct version of libmariadb.dll");
+				throw Database_OpenFailed("MySQL client library version mismatch");
 			}
 #endif
 

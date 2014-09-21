@@ -305,7 +305,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 	std::string dbdesc;
 
-	if (dbinfo[0].compare("sqlite") == 0)
+	if (util::lowercase(dbinfo[0]).compare("sqlite") == 0)
 	{
 		engine = Database::SQLite;
 		dbdesc = std::string("SQLite: ")
