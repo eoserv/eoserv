@@ -365,7 +365,7 @@ void Item_Drop(Character *character, PacketReader &reader)
 
 	amount = std::min<int>(amount, character->world->config["MaxDrop"]);
 
-	if (amount == 0)
+	if (amount <= 0)
 	{
 		return;
 	}
@@ -424,6 +424,9 @@ void Item_Junk(Character *character, PacketReader &reader)
 
 	int id = reader.GetShort();
 	int amount = reader.GetInt();
+
+	if (amount <= 0)
+		return;
 
 	if (character->HasItem(id) >= amount)
 	{
