@@ -10,8 +10,8 @@ RELEASE_OBJDIR = obj/Release/$(SRCDIR)
 DEBUG_FORMAT = -g
 OPTIMIZATION_LEVEL = -O2
 
-CFLAGS = -DEOSERV_MAKEFILE
-CXXFLAGS = -DEOSERV_MAKEFILE
+CFLAGS = -fwrapv -fno-strict-aliasing -Wall -Wextra -std=gnu++0x -DEOSERV_MAKEFILE
+CXXFLAGS = -fwrapv -fno-strict-aliasing -Wall -Wextra -std=gnu++0x -DEOSERV_MAKEFILE
 LDFLAGS = 
 LIBS = $(PTHREAD_LIB)
 

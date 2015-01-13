@@ -112,6 +112,8 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-fwrapv" />
+			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-std=gnu++0x" />
