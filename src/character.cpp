@@ -1192,7 +1192,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	if (this->trading)
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
-		builder.AddShort(this->id);
+		builder.AddShort(this->player->id);
 		this->trade_partner->Send(builder);
 
 		this->trading = false;
@@ -1897,7 +1897,7 @@ void Character::Logout()
 	if (this->trading)
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
-		builder.AddShort(this->id);
+		builder.AddShort(this->player->id);
 		this->trade_partner->Send(builder);
 
 		this->player->client->state = EOClient::Playing;

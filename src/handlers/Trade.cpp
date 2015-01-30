@@ -33,7 +33,7 @@ void Trade_Request(Character *character, PacketReader &reader)
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_REQUEST, 3 + character->name.length());
 		builder.AddChar(something);
-		builder.AddShort(character->id);
+		builder.AddShort(character->player->id);
 		builder.AddString(character->name);
 		victim->Send(builder);
 
@@ -49,19 +49,19 @@ void Trade_Accept(Character *character, PacketReader &reader)
 	/*int accept =*/ reader.GetChar();
 	int victimid = reader.GetShort();
 
-	Character *victim(character->map->GetCharacterCID(victimid));
+	Character *victim(character->map->GetCharacterPID(victimid));
 
 	if (victim && victim->mapid == character->mapid && victim->trade_partner == character && !victim->trading)
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_OPEN, 30);
 		builder.AddShort(victim->id);
 		builder.AddBreakString(victim->name);
-		builder.AddShort(character->id);
+		builder.AddShort(character->player->id);
 		builder.AddBreakString(character->name);
 		character->Send(builder);
 
 		builder.Reset(30);
-		builder.AddShort(character->id);
+		builder.AddShort(character->player->id);
 		builder.AddBreakString(character->name);
 		builder.AddShort(victim->id);
 		builder.AddBreakString(victim->name);
@@ -267,7 +267,7 @@ void Trade_Close(Character *character, PacketReader &reader)
 
 	PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
 
-	builder.AddShort(character->id);
+	builder.AddShort(character->player->id);
 	character->trade_partner->Send(builder);
 
 	character->trading = false;
