@@ -166,6 +166,9 @@ void Trade_Agree(Character *character, PacketReader &reader)
 			character->trade_inventory.clear();
 			character->trade_agree = false;
 
+			character->CheckQuestRules();
+			character->trade_partner->CheckQuestRules();
+
 			character->trade_partner->trading = false;
 			character->trade_partner->trade_inventory.clear();
 			character->trade_agree = false;
@@ -206,7 +209,7 @@ void Trade_Add(Character *character, PacketReader &reader)
 	int itemid = reader.GetShort();
 	int amount = reader.GetInt();
 
-	if (character->world->eif->Get(itemid)->special == EIF::Lore)
+	if (character->world->eif->Get(itemid).special == EIF::Lore)
 	{
 		return;
 	}
@@ -275,6 +278,9 @@ void Trade_Close(Character *character, PacketReader &reader)
 	character->trade_partner->trade_inventory.clear();
 	character->trade_agree = false;
 
+	character->CheckQuestRules();
+	character->trade_partner->CheckQuestRules();
+
 	character->trade_partner->trade_partner = 0;
 	character->trade_partner = 0;
 }
@@ -286,6 +292,6 @@ PACKET_HANDLER_REGISTER(PACKET_TRADE)
 	Register(PACKET_AGREE, Trade_Agree, Playing);
 	Register(PACKET_ADD, Trade_Add, Playing);
 	Register(PACKET_CLOSE, Trade_Close, Playing);
-PACKET_HANDLER_REGISTER_END()
+PACKET_HANDLER_REGISTER_END(PACKET_TRADE)
 
 }
