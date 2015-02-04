@@ -9,6 +9,7 @@
 
 #ifdef DATABASE_MYSQL
 #include "socket_impl.hpp"
+#include <my_global.h>
 #include <mysql.h>
 #include <errmsg.h>
 #endif // DATABASE_MYSQL
