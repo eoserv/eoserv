@@ -134,10 +134,9 @@ struct Timer::impl_t
 Timer::Timer()
 	: impl(new impl_t)
 {
-	int res;
 #ifdef WIN32
 #ifndef TIMER_GETTICKCOUNT
-	for (res = 1; res <= 50; ++res)
+	for (int res = 1; res <= 50; ++res)
 	{
 		if (timeBeginPeriod(res) == TIMERR_NOERROR)
 		{

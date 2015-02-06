@@ -45,8 +45,10 @@ void Party_Request(Character *character, PacketReader &reader)
 // Accept invite/join request
 void Party_Accept(Character *character, PacketReader &reader)
 {
-	/*PartyRequestType type = */static_cast<PartyRequestType>(reader.GetChar());
+	PartyRequestType type = static_cast<PartyRequestType>(reader.GetChar());
 	unsigned short inviter_id = reader.GetShort();
+
+	(void)type;
 
 	Character *inviter = character->map->GetCharacterPID(inviter_id);
 

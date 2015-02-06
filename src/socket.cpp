@@ -63,6 +63,7 @@ const char *OSErrorString()
 const char *OSErrorString()
 {
 	eoserv_strlcpy(ErrorBuf, strerror(errno), sizeof(ErrorBuf));
+	return ErrorBuf;
 }
 #endif // WIN32
 

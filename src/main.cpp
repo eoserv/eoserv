@@ -108,6 +108,9 @@ int main(int argc, char *argv[])
 
 int eoserv_main(int argc, char *argv[])
 {
+	(void)argc;
+	(void)argv;
+
 	// Type checks
 	if (std::numeric_limits<unsigned char>::digits < 8){ Console::Err("You cannot run this program (uchar is less than 8 bits)"); std::exit(1); }
 	if (std::numeric_limits<unsigned short>::digits < 16){ Console::Err("You cannot run this program (ushort is less than 16 bits)"); std::exit(1); }
@@ -283,7 +286,7 @@ int eoserv_main(int argc, char *argv[])
 					std::fprintf(stderr, "\n\n--- %s ---\n\n", timestr);
 				}
 
-				if (!std::setvbuf(stderr, 0, _IONBF, 0) == 0)
+				if (std::setvbuf(stderr, 0, _IONBF, 0) != 0)
 				{
 					Console::Wrn("Failed to change stderr buffer settings");
 				}
@@ -303,7 +306,7 @@ int eoserv_main(int argc, char *argv[])
 					std::printf("\n\n--- %s ---\n\n", timestr);
 				}
 
-				if (!std::setvbuf(stdout, 0, _IONBF, 0) == 0)
+				if (std::setvbuf(stdout, 0, _IONBF, 0) != 0)
 				{
 					Console::Wrn("Failed to change stdout buffer settings");
 				}
