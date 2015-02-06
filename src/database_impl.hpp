@@ -9,7 +9,14 @@
 
 #ifdef DATABASE_MYSQL
 #include "socket_impl.hpp"
-#include <my_global.h>
+
+// Define this for broken MariaDB C connector release 2.1.0
+#ifdef MARIADB_CC_2_1_0_WORKAROUND
+#if defined(__EMX__) || !defined(HAVE_UINT)
+typedef unsigned int uint;
+#endif
+#endif // MARIADB_CC_2_1_0_WORKAROUND
+
 #include <mysql.h>
 #include <errmsg.h>
 #endif // DATABASE_MYSQL
