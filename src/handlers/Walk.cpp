@@ -10,6 +10,7 @@
 
 #include "../character.hpp"
 #include "../npc.hpp"
+#include "../player.hpp"
 
 namespace Handlers
 {
