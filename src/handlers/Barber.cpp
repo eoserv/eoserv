@@ -87,7 +87,7 @@ void Barber_Buy(Character *character, PacketReader &reader)
 		{
 			if (updatecharacter != character && character->InRange(updatecharacter))
 			{
-				character->Send(builder);
+				updatecharacter->Send(builder);
 			}
 		}
 
