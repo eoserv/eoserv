@@ -1861,7 +1861,7 @@ void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 	{
 		from->tp -= spell.tp;
 
-		int amount = util::rand(from->mindam, from->maxdam);
+		int amount = util::rand(from->mindam + spell.mindam, from->maxdam + spell.maxdam);
 		double rand = util::rand(0.0, 1.0);
 
 		bool critical = rand < static_cast<double>(this->world->config["CriticalRate"]);
@@ -1907,7 +1907,7 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 	{
 		from->tp -= spell.tp;
 
-		int amount = util::rand(from->mindam, from->maxdam);
+		int amount = util::rand(from->mindam + spell.mindam, from->maxdam + spell.maxdam);
 		double rand = util::rand(0.0, 1.0);
 
 		bool critical = rand < static_cast<double>(this->world->config["CriticalRate"]);
