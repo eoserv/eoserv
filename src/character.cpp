@@ -771,11 +771,6 @@ bool Character::AddTradeItem(short item, int amount)
 {
 	bool trade_add_quantity = bool(this->world->config["TradeAddQuantity"]);
 
-	if (amount <= 0 || amount > int(this->world->config["MaxTrade"]))
-	{
-		return false;
-	}
-
 	if (item <= 0 || static_cast<std::size_t>(item) >= this->world->eif->data.size())
 	{
 		return false;
@@ -784,6 +779,11 @@ bool Character::AddTradeItem(short item, int amount)
 	int hasitem = this->HasItem(item, !trade_add_quantity);
 
 	amount = std::min(amount, hasitem);
+
+	if (amount <= 0 || amount > int(this->world->config["MaxTrade"]))
+	{
+		return false;
+	}
 
 	// Prevent overflow
 	if (trade_add_quantity)
