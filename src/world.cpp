@@ -1187,14 +1187,17 @@ void World::Jail(Command_Source *from, Character *victim, bool announce)
 
 void World::Ban(Command_Source *from, Character *victim, int duration, bool announce)
 {
+	std::string from_str = from ? from->SourceName() : "server";
+
 	if (announce)
-		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->SourceName() : "server", i18n.Format("banned")));
+		this->ServerMsg(i18n.Format("announce_removed", victim->name, from_str, i18n.Format("banned")));
 
 	std::string query("INSERT INTO bans (username, ip, hdid, expires, setter) VALUES ");
 
 	query += "('" + db.Escape(victim->player->username) + "', ";
 	query += util::to_string(static_cast<int>(victim->player->client->GetRemoteAddr())) + ", ";
 	query += util::to_string(victim->player->client->hdid) + ", ";
+
 	if (duration == -1)
 	{
 		query += "0";
@@ -1203,14 +1206,8 @@ void World::Ban(Command_Source *from, Character *victim, int duration, bool anno
 	{
 		query += util::to_string(int(std::time(0) + duration));
 	}
-	if (from)
-	{
-		query += ", '" + db.Escape(from->SourceName()) + "')";
-	}
-	else
-	{
-		query += ")";
-	}
+
+	query += ", '" + db.Escape(from_str) + "')";
 
 	try
 	{
