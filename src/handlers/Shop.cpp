@@ -6,6 +6,8 @@
 
 #include "handlers.hpp"
 
+#include <cstdint>
+
 #include "../util.hpp"
 
 #include "../character.hpp"
@@ -77,12 +79,18 @@ void Shop_Buy(Character *character, PacketReader &reader)
 	{
 		UTIL_FOREACH(character->npc->shop_trade, checkitem)
 		{
-			int cost = amount * checkitem->buy;
-
-			if (cost <= 0) return;
-
-			if (checkitem->id == item && checkitem->buy != 0 && character->HasItem(1) >= cost)
+			if (checkitem->id == item && checkitem->buy != 0)
 			{
+				std::int_least64_t cost64 = std::int_least64_t(amount) * std::int_least64_t(checkitem->buy);
+
+				if (cost64 < 0 || cost64 > int(character->world->config["MaxItem"]))
+					break;
+
+				int cost = int(cost64);
+
+				if (character->HasItem(1) < cost)
+					break;
+
 				character->DelItem(1, cost);
 				character->AddItem(item, amount);
 
@@ -93,6 +101,7 @@ void Shop_Buy(Character *character, PacketReader &reader)
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
 				character->Send(reply);
+
 				break;
 			}
 		}
@@ -108,16 +117,26 @@ void Shop_Sell(Character *character, PacketReader &reader)
 	int amount = reader.GetInt();
 	/*int shopid = reader.GetInt();*/
 
-	if (amount <= 0) return;
+	if (amount <= 0 || amount > static_cast<int>(character->world->config["MaxItem"])) return;
 
 	if (character->npc_type == ENF::Shop)
 	{
 		UTIL_FOREACH(character->npc->shop_trade, checkitem)
 		{
-			if (checkitem->id == item && checkitem->sell != 0 && character->HasItem(item) >= amount)
+			if (checkitem->id == item && checkitem->sell != 0)
 			{
+				std::int_least64_t owed64 = std::int_least64_t(amount) * std::int_least64_t(checkitem->sell);
+
+				if (owed64 < 0 || owed64 > (int(character->world->config["MaxItem"]) - character->HasItem(1)))
+					break;
+
+				int owed = int(owed64);
+
+				if (character->HasItem(item) < amount)
+					break;
+
 				character->DelItem(item, amount);
-				character->AddItem(1, amount * checkitem->sell);
+				character->AddItem(1, owed);
 
 				PacketBuilder reply(PACKET_SHOP, PACKET_SELL, 12);
 				reply.AddInt(character->HasItem(item));
@@ -126,6 +145,7 @@ void Shop_Sell(Character *character, PacketReader &reader)
 				reply.AddChar(character->weight);
 				reply.AddChar(character->maxweight);
 				character->Send(reply);
+
 				break;
 			}
 		}
