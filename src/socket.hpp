@@ -219,7 +219,7 @@ class Client
 {
 	private:
 		struct impl_;
-		std::auto_ptr<impl_> impl;
+		std::unique_ptr<impl_> impl;
 
 	protected:
 		Server *server;
