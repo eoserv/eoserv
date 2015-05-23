@@ -6,6 +6,8 @@
 
 #include "commands.hpp"
 
+#include <csignal>
+
 #include "../util.hpp"
 
 #include "../console.hpp"
@@ -16,7 +18,7 @@
 #include "../timer.hpp"
 #include "../world.hpp"
 
-extern bool eoserv_sig_abort;
+extern volatile std::sig_atomic_t eoserv_sig_abort;
 
 namespace Commands
 {
