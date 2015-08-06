@@ -38,7 +38,6 @@ void character_cast_spell(void *character_void)
 	if (!character->spell_event)
 		return;
 
-	delete character->spell_event;
 	character->spell_event = 0;
 
 	const ESF_Data& spell = character->world->esf->Get(character->spell_id);
