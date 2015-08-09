@@ -259,13 +259,14 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "sjail"         , 3);
 	eoserv_config_default(config, "ban"           , 2);
 	eoserv_config_default(config, "sban"          , 3);
-	eoserv_config_default(config, "mute"          , 2);
+	eoserv_config_default(config, "mute"          , 1);
 	eoserv_config_default(config, "smute"         , 3);
 	eoserv_config_default(config, "warp"          , 2);
 	eoserv_config_default(config, "warptome"      , 2);
 	eoserv_config_default(config, "warpmeto"      , 2);
 	eoserv_config_default(config, "hide"          , 2);
-	eoserv_config_default(config, "evacuate"      , 2);
+	eoserv_config_default(config, "show"          , 2);
+	eoserv_config_default(config, "evacuate"      , 3);
 	eoserv_config_default(config, "remap"         , 4);
 	eoserv_config_default(config, "arena"         , 1);
 	eoserv_config_default(config, "board"         , 1);
@@ -306,7 +307,7 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "dress"         , 2);
 	eoserv_config_default(config, "undress"       , 2);
 	eoserv_config_default(config, "dress2"        , 3);
-	eoserv_config_default(config, "killnpc"       , 2);
+	eoserv_config_default(config, "killnpc"       , 4);
 	eoserv_config_default(config, "boardmod"      , 1);
 	eoserv_config_default(config, "reports"       , 1);
 	eoserv_config_default(config, "nowall"        , 2);
