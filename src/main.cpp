@@ -87,6 +87,10 @@ static BOOL WINAPI eoserv_win_event_handler(DWORD event)
 }
 #endif // WIN32
 
+static_assert(std::numeric_limits<unsigned char>::digits >= 8, "You cannot run this program (char is less than 8 bits)");
+static_assert(std::numeric_limits<unsigned short>::digits >= 16, "You cannot run this program (short is less than 16 bits)");
+static_assert(std::numeric_limits<unsigned int>::digits >= 32, "You cannot run this program (int is less than 32 bits)");
+
 static void exception_test() throw()
 {
 	try
@@ -112,14 +116,6 @@ int eoserv_main(int argc, char *argv[])
 	(void)argv;
 
 	// Type checks
-	if (std::numeric_limits<unsigned char>::digits < 8){ Console::Err("You cannot run this program (uchar is less than 8 bits)"); std::exit(1); }
-	if (std::numeric_limits<unsigned short>::digits < 16){ Console::Err("You cannot run this program (ushort is less than 16 bits)"); std::exit(1); }
-	if (std::numeric_limits<unsigned int>::digits < 32){ Console::Err("You cannot run this program (uint is less than 32 bits)"); std::exit(1); }
-
-	if (std::numeric_limits<char>::digits < 7){ Console::Err("You cannot run this program (char is less than 8 bits)"); std::exit(1); }
-	if (std::numeric_limits<short>::digits < 15){ Console::Err("You cannot run this program (short is less than 16 bits)"); std::exit(1); }
-	if (std::numeric_limits<int>::digits < 31){ Console::Err("You cannot run this program (int is less than 32 bits)"); std::exit(1); }
-
 	if (!std::numeric_limits<char>::is_signed) Console::Wrn("char is not signed, correct operation of the server cannot be guaranteed.");
 
 	exception_test();
