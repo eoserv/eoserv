@@ -126,7 +126,6 @@ COMMAND_HANDLER_REGISTER(map)
 
 	RegisterAlias("a", "arena");
 	RegisterAlias("e", "evacuate");
-	RegisterAlias("h", "hide");
 	RegisterAlias("q", "quake");
 	RegisterAlias("x", "hide");
 	RegisterAlias("h", "hide");
