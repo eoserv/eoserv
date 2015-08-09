@@ -1182,7 +1182,14 @@ void World::Jail(Command_Source *from, Character *victim, bool announce)
 	if (announce)
 		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->SourceName() : "server", i18n.Format("jailed")));
 
-	victim->Warp(static_cast<int>(this->config["JailMap"]), static_cast<int>(this->config["JailX"]), static_cast<int>(this->config["JailY"]), this->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
+	bool bubbles = this->config["WarpBubbles"] && !victim->IsHideWarp();
+
+	Character* charfrom = dynamic_cast<Character*>(from);
+
+	if (charfrom && charfrom->IsHideWarp())
+		bubbles = false;
+
+	victim->Warp(static_cast<int>(this->config["JailMap"]), static_cast<int>(this->config["JailX"]), static_cast<int>(this->config["JailY"]), bubbles ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 }
 
 void World::Ban(Command_Source *from, Character *victim, int duration, bool announce)

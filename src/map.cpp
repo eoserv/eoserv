@@ -737,7 +737,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	character->AddPaperdollData(builder, "B000A0HSW");
 
 	builder.AddChar(character->sitting);
-	builder.AddChar(character->hidden);
+	builder.AddChar(character->IsHideInvisible());
 	builder.AddChar(animation);
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
@@ -1074,7 +1074,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	// equipment
 	from->AddPaperdollData(builder, "B000A0HSW");
 	builder.AddChar(from->sitting);
-	builder.AddChar(from->hidden);
+	builder.AddChar(from->IsHideInvisible());
 	builder.AddByte(255);
 	builder.AddChar(1); // 0 = NPC, 1 = player
 
@@ -1103,7 +1103,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 		character->AddPaperdollData(rbuilder, "B000A0HSW");
 
 		rbuilder.AddChar(character->sitting);
-		rbuilder.AddChar(character->hidden);
+		rbuilder.AddChar(character->IsHideInvisible());
 		rbuilder.AddByte(255);
 		rbuilder.AddChar(1); // 0 = NPC, 1 = player
 

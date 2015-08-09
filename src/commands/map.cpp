@@ -41,14 +41,65 @@ void Quake(const std::vector<std::string>& arguments, Character* from)
 	from->map->Effect(MAP_EFFECT_QUAKE, strength);
 }
 
+void HideImpl(const std::vector<std::string>& arguments, Character* from, bool set)
+{
+	int flags = 0;
+
+	for (const auto& flag : util::explode(",", util::lowercase(arguments[0])))
+	{
+		     if (flag == "invisible") flags |= Character::HideInvisible;
+		else if (flag == "online")    flags |= Character::HideOnline;
+		else if (flag == "npc")       flags |= Character::HideNpc;
+		else if (flag == "admin")     flags |= Character::HideAdmin;
+		else if (flag == "warp")      flags |= Character::HideWarp;
+		else if (flag == "all")       flags |= Character::HideAll;
+		else
+		{
+			from->ServerMsg(from->SourceWorld()->i18n.Format("invalid_hide_flag"));
+			return;
+		}
+
+		int explicit_flags = (flags & ~Character::HideInvisible) << 16;
+		flags |= explicit_flags;
+	}
+
+	if (set)
+		from->Hide(flags);
+	else
+		from->Unhide(flags);
+}
+
 void Hide(const std::vector<std::string>& arguments, Character* from)
 {
-	(void)arguments;
-
-	if (from->hidden)
-		from->Unhide();
+	if (arguments.size() >= 1)
+	{
+		HideImpl(arguments, from, true);
+	}
 	else
-		from->Hide();
+	{
+		int flags = Character::HideAll;
+		flags &= ((from->hidden & 0xFFFF0000) | ~(from->hidden >> 16));
+
+		if (from->IsHideInvisible())
+			from->Unhide(flags);
+		else
+			from->Hide(flags);
+	}
+}
+
+void Unhide(const std::vector<std::string>& arguments, Character* from)
+{
+	if (arguments.size() >= 1)
+	{
+		HideImpl(arguments, from, false);
+	}
+	else
+	{
+		int flags = Character::HideAll;
+		flags &= ((from->hidden & 0xFFFF0000) | ~(from->hidden >> 16));
+
+		from->Unhide(flags);
+	}
 }
 
 void Board(const std::vector<std::string>& arguments, Character* from)
@@ -69,7 +120,8 @@ COMMAND_HANDLER_REGISTER(map)
 	RegisterCharacter({"arena"}, LaunchArena);
 	RegisterCharacter({"evacuate"}, EvacuateMap);
 	RegisterCharacter({"quake", {}, {"strength"}}, Quake);
-	RegisterCharacter({"hide"}, Hide);
+	RegisterCharacter({"hide", {}, {"flags"}}, Hide);
+	RegisterCharacter({"show", {}, {"flags"}}, Unhide);
 	RegisterCharacter({"board", {}, {"board"}}, Board);
 
 	RegisterAlias("a", "arena");
@@ -77,6 +129,8 @@ COMMAND_HANDLER_REGISTER(map)
 	RegisterAlias("h", "hide");
 	RegisterAlias("q", "quake");
 	RegisterAlias("x", "hide");
+	RegisterAlias("h", "hide");
+	RegisterAlias("s", "show");
 COMMAND_HANDLER_REGISTER_END(map)
 
 }

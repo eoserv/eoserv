@@ -24,7 +24,7 @@ void Players_Accept(Character *character, PacketReader &reader)
 
 	PacketBuilder reply(PACKET_PLAYERS, PACKET_PING, name.length());
 
-	if (victim && !victim->hidden)
+	if (victim && !victim->IsHideInvisible())
 	{
 		if (victim->mapid == character->mapid && !victim->nowhere)
 		{
@@ -53,7 +53,7 @@ void Players_List(EOClient *client, PacketReader &reader)
 
 	UTIL_FOREACH(client->server()->world->characters, character)
 	{
-		if (character->hidden)
+		if (character->IsHideOnline())
 		{
 			--online;
 		}
@@ -67,7 +67,7 @@ void Players_List(EOClient *client, PacketReader &reader)
 	reply.AddByte(255);
 	UTIL_FOREACH(client->server()->world->characters, character)
 	{
-		if (character->hidden)
+		if (character->IsHideOnline())
 		{
 			continue;
 		}
@@ -83,7 +83,7 @@ void Players_List(EOClient *client, PacketReader &reader)
 			{
 				reply.AddChar(ICON_SLN_BOT);
 			}
-			else if (character->admin >= ADMIN_HGM)
+			else if (character->admin >= ADMIN_HGM && !character->IsHideAdmin())
 			{
 				if (character->party)
 				{
@@ -94,7 +94,7 @@ void Players_List(EOClient *client, PacketReader &reader)
 					reply.AddChar(ICON_HGM);
 				}
 			}
-			else if (character->admin >= ADMIN_GUIDE)
+			else if (character->admin >= ADMIN_GUIDE && !character->IsHideAdmin())
 			{
 				if (character->party)
 				{

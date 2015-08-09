@@ -133,6 +133,22 @@ struct Character_QuestState
 class Character : public Command_Source
 {
 	public:
+		enum HideFlag
+		{
+			HideInvisible = 0x01,
+			HideOnline    = 0x02,
+			HideNpc       = 0x04,
+			HideAdmin     = 0x08,
+			HideWarp      = 0x10,
+
+			HideOnlineExplicit    = 0x020000,
+			HideNpcExplicit       = 0x040000,
+			HideAdminExplicit     = 0x080000,
+			HideWarpExplicit      = 0x100000
+		};
+
+		static constexpr int HideAll = 0x1F;
+
 		int login_time;
 		bool online;
 		bool nowhere;
@@ -159,7 +175,7 @@ class Character : public Command_Source
 		short weight, maxweight;
 		short karma;
 		SitState sitting;
-		bool hidden;
+		int hidden;
 		bool whispers;
 		int bankmax;
 		int goldbank;
@@ -247,6 +263,12 @@ class Character : public Command_Source
 
 		Character(std::string name, World *);
 
+		bool IsHideInvisible() const { return hidden & HideInvisible; }
+		bool IsHideOnline() const { return hidden & HideOnline; }
+		bool IsHideNpc() const { return hidden & HideNpc; }
+		bool IsHideAdmin() const { return hidden & HideAdmin; }
+		bool IsHideWarp() const { return hidden & HideWarp; }
+
 		void Login();
 
 		static bool ValidName(std::string name);
@@ -292,8 +314,8 @@ class Character : public Command_Source
 		void CheckQuestRules();
 		void CalculateStats(bool trigger_quests = true);
 		void DropAll(Character *killer);
-		void Hide();
-		void Unhide();
+		void Hide(int setflags);
+		void Unhide(int unsetflags);
 		void Reset();
 		std::shared_ptr<Quest_Context> GetQuest(short id);
 		void ResetQuest(short id);

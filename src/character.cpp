@@ -338,8 +338,8 @@ Character::Character(std::string name, World *world)
 
 	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `fiance`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`,"
 	"`map`, `x`, `y`, `direction`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
-	"`karma`, `sitting`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` FROM `characters` "
-	"WHERE `name` = '$'", name.c_str());
+	"`karma`, `sitting`, `hidden`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` "
+	"FROM `characters` WHERE `name` = '$'", name.c_str());
 	std::unordered_map<std::string, util::variant> row = res.front();
 
 	this->login_time = std::time(0);
@@ -418,7 +418,7 @@ Character::Character(std::string name, World *world)
 	this->warp_anim = WARP_ANIMATION_INVALID;
 
 	this->sitting = static_cast<SitState>(GetRow<int>(row, "sitting"));
-	this->hidden = false;
+	this->hidden = GetRow<int>(row, "hidden");
 	this->whispers = true;
 
 	this->bankmax = GetRow<int>(row, "bankmax");
@@ -1664,29 +1664,37 @@ void Character::DropAll(Character *killer)
 	}
 }
 
-void Character::Hide()
+void Character::Hide(int setflags)
 {
-	this->hidden = true;
+	bool washidden = this->hidden & HideInvisible;
+	this->hidden |= setflags;
 
-	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REMOVE, 2);
-	builder.AddShort(this->player->id);
-
-	UTIL_FOREACH(this->map->characters, character)
+	if (!washidden && (setflags & HideInvisible))
 	{
-		character->Send(builder);
+		PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REMOVE, 2);
+		builder.AddShort(this->player->id);
+
+		UTIL_FOREACH(this->map->characters, character)
+		{
+			character->Send(builder);
+		}
 	}
 }
 
-void Character::Unhide()
+void Character::Unhide(int unsetflags)
 {
-	this->hidden = false;
+	bool washidden = this->hidden & HideInvisible;
+	this->hidden &= ~unsetflags;
 
-	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_AGREE, 2);
-	builder.AddShort(this->player->id);
-
-	UTIL_FOREACH(this->map->characters, character)
+	if (washidden && (unsetflags & HideInvisible))
 	{
-		character->Send(builder);
+		PacketBuilder builder(PACKET_ADMININTERACT, PACKET_AGREE, 2);
+		builder.AddShort(this->player->id);
+
+		UTIL_FOREACH(this->map->characters, character)
+		{
+			character->Send(builder);
+		}
 	}
 }
 
@@ -1957,12 +1965,12 @@ void Character::Save()
 #endif // DEBUG
 	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `fiance` = '$', `partner` = '$', `admin` = #, `class` = #, `gender` = #, `race` = #, "
 		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
-		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, "
+		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, `hidden` = #, "
 		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
 		"`spells` = '$', `guild` = '$', guild_rank = #, `quest` = '$', `vars` = '$' WHERE `name` = '$'",
 		this->title.c_str(), this->home.c_str(), this->fiance.c_str(), this->partner.c_str(), int(this->admin), this->clas, int(this->gender), int(this->race),
 		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, int(this->direction), this->level, this->exp, this->hp, this->tp,
-		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, int(this->sitting),
+		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, int(this->sitting), int(this->hidden),
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
 		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
 		this->guild_rank, quest_data.c_str(), "", this->name.c_str());

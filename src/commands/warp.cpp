@@ -21,7 +21,8 @@ void Warp(const std::vector<std::string>& arguments, Character* from)
 	int x = util::to_int(arguments[1]);
 	int y = util::to_int(arguments[2]);
 
-	from->Warp(map, x, y, from->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
+	bool bubbles = from->world->config["WarpBubbles"] && !from->IsHideWarp();
+	from->Warp(map, x, y, bubbles ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 }
 
 void WarpMeTo(const std::vector<std::string>& arguments, Character* from)
@@ -36,7 +37,8 @@ void WarpMeTo(const std::vector<std::string>& arguments, Character* from)
 	{
 		if (victim->admin < int(from->world->admin_config["cmdprotect"]) || victim->admin <= from->SourceAccess())
 		{
-			from->Warp(victim->mapid, victim->x, victim->y, from->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
+			bool bubbles = from->world->config["WarpBubbles"] && !from->IsHideWarp() && !victim->IsHideWarp();
+			from->Warp(victim->mapid, victim->x, victim->y, bubbles ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 		}
 		else
 		{
@@ -57,7 +59,8 @@ void WarpToMe(const std::vector<std::string>& arguments, Character* from)
 	{
 		if (victim->admin < int(from->world->admin_config["cmdprotect"]) || victim->admin <= from->SourceAccess())
 		{
-			victim->Warp(from->mapid, from->x, from->y, from->world->config["WarpBubbles"] ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
+			bool bubbles = from->world->config["WarpBubbles"] && !from->IsHideWarp() && !victim->IsHideWarp();
+			victim->Warp(from->mapid, from->x, from->y, bubbles ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 		}
 		else
 		{

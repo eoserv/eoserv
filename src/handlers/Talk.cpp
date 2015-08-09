@@ -84,7 +84,7 @@ void Talk_Tell(Character *character, PacketReader &reader)
 	limit_message(message, static_cast<int>(character->world->config["ChatLength"]));
 	Character *to = character->world->GetCharacter(name);
 
-	if (to && !to->hidden)
+	if (to && !to->IsHideOnline())
 	{
 		if (to->whispers)
 		{

@@ -489,6 +489,9 @@ void NPC::Act()
 
 		UTIL_FOREACH(this->map->characters, character)
 		{
+			if (character->IsHideNpc())
+				continue;
+
 			int distance = util::path_length(character->x, character->y, this->x, this->y);
 
 			if (distance < closest_distance)

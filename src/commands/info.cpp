@@ -105,7 +105,7 @@ void Paperdoll(const std::vector<std::string>& arguments, Character* from)
 			reply.AddShort(item);
 		}
 
-		if (victim->admin >= ADMIN_HGM)
+		if (victim->admin >= ADMIN_HGM && !victim->IsHideAdmin())
 		{
 			if (victim->party)
 			{
@@ -116,7 +116,7 @@ void Paperdoll(const std::vector<std::string>& arguments, Character* from)
 				reply.AddChar(ICON_HGM);
 			}
 		}
-		else if (victim->admin >= ADMIN_GUIDE)
+		else if (victim->admin >= ADMIN_GUIDE && !victim->IsHideAdmin())
 		{
 			if (victim->party)
 			{

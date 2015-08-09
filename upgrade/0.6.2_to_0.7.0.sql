@@ -8,3 +8,5 @@ CREATE TABLE `reports`
 	
 	PRIMARY KEY (`reporter`, `reported`, `time`)
 );
+ALTER TABLE `characters`
+    ADD COLUMN `hidden` INTEGER DEFAULT 0 NOT NULL;

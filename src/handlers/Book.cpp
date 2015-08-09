@@ -45,7 +45,7 @@ void Book_Request(Character *character, PacketReader &reader)
 	reply.AddChar(target->gender);
 	reply.AddChar(0);
 
-	if (target->admin >= ADMIN_HGM)
+	if (target->admin >= ADMIN_HGM && !target->IsHideAdmin())
 	{
 		if (target->party)
 		{
@@ -56,7 +56,7 @@ void Book_Request(Character *character, PacketReader &reader)
 			reply.AddChar(ICON_HGM);
 		}
 	}
-	else if (target->admin >= ADMIN_GUIDE)
+	else if (target->admin >= ADMIN_GUIDE && !target->IsHideAdmin())
 	{
 		if (target->party)
 		{

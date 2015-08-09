@@ -50,7 +50,7 @@ void Paperdoll_Request(Character *character, PacketReader &reader)
 		reply.AddShort(item);
 	}
 
-	if (target->admin >= ADMIN_HGM)
+	if (target->admin >= ADMIN_HGM && !target->IsHideAdmin())
 	{
 		if (target->party)
 		{
@@ -61,7 +61,7 @@ void Paperdoll_Request(Character *character, PacketReader &reader)
 			reply.AddChar(ICON_HGM);
 		}
 	}
-	else if (target->admin >= ADMIN_GUIDE)
+	else if (target->admin >= ADMIN_GUIDE && !target->IsHideAdmin())
 	{
 		if (target->party)
 		{

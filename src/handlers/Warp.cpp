@@ -97,7 +97,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 		character->AddPaperdollData(reply, "B000A0HSW");
 
 		reply.AddChar(character->sitting);
-		reply.AddChar(character->hidden);
+		reply.AddChar(character->IsHideInvisible());
 		reply.AddByte(255);
 	}
 	UTIL_FOREACH(updatenpcs, npc)
