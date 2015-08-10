@@ -1287,7 +1287,7 @@ void Character::Refresh()
 		character->AddPaperdollData(builder, "B000A0HSW");
 
 		builder.AddChar(character->sitting);
-		builder.AddChar(character->hidden);
+		builder.AddChar(character->IsHideInvisible());
 		builder.AddByte(255);
 	}
 
