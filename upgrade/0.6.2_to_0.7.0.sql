@@ -9,4 +9,5 @@ CREATE TABLE `reports`
 	PRIMARY KEY (`reporter`, `reported`, `time`)
 );
 ALTER TABLE `characters`
-    ADD COLUMN `hidden` INTEGER DEFAULT 0 NOT NULL;
+    ADD COLUMN `hidden` INTEGER DEFAULT 0 NOT NULL,
+    ADD COLUMN `guild_rank_string` VARCHAR(16) DEFAULT NULL;

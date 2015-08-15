@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`spells`      TEXT,
 	`guild`       CHAR(3)              DEFAULT NULL,
 	`guild_rank`  INTEGER              DEFAULT NULL,
+	`guild_rank_string` VARCHAR(16)    DEFAULT NULL,
 	`quest`       TEXT,
 	`vars`        TEXT,
 
