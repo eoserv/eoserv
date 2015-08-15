@@ -83,7 +83,7 @@ void Paperdoll(const std::vector<std::string>& arguments, Character* from)
 	{
 		std::string home_str = victim->world->GetHome(victim)->name;
 		std::string guild_str = victim->guild ? victim->guild->name : "";
-		std::string rank_str = victim->guild ? victim->guild->GetRank(victim->guild_rank) : "";
+		std::string rank_str = victim->GuildRankString();
 
 		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REPLY,
 			12 + victim->name.length() + home_str.length() + victim->partner.length() + victim->title.length()
@@ -155,7 +155,7 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 	{
 		std::string home_str = victim->world->GetHome(victim)->name;
 		std::string guild_str = victim->guild ? victim->guild->name : "";
-		std::string rank_str = victim->guild ? victim->guild->GetRank(victim->guild_rank) : "";
+		std::string rank_str = victim->GuildRankString();
 
 		PacketBuilder reply(PACKET_BOOK, PACKET_REPLY,
 			13 + victim->name.length() + home_str.length() + victim->partner.length() + victim->title.length()

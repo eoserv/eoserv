@@ -42,7 +42,7 @@ void Welcome_Request(Player *player, PacketReader &reader)
 	player->character->CalculateStats();
 
 	std::string guild_str = player->character->guild ? player->character->guild->name : "";
-	std::string guild_rank = player->character->guild ? player->character->guild->GetRank(player->character->guild_rank) : "";
+	std::string guild_rank = player->character->GuildRankString();
 
 	PacketBuilder reply(PACKET_WELCOME, PACKET_REPLY,
 		114 + player->character->paperdoll.size() * 2 + player->character->name.length() + player->character->title.length()

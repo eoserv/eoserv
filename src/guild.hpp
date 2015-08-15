@@ -33,8 +33,13 @@ class Guild_Member
 	public:
 		std::string name;
 		int rank;
+		std::string rank_string;
 
-		Guild_Member(std::string name_, int rank_ = 9) : name(name_), rank(std::max(0, std::min(9, rank_))) { }
+		Guild_Member(std::string name_, int rank_ = 9, std::string rank_string_ = "")
+			: name(name_)
+			, rank(std::max(0, std::min(9, rank_)))
+			, rank_string(rank_string_)
+		{ }
 };
 
 /**
@@ -99,9 +104,12 @@ class Guild : public std::enable_shared_from_this<Guild>
 		bool needs_save;
 
 		Guild(GuildManager *manager_) : manager(manager_), created(0), bank(0), needs_save(false) { }
+		Guild(const Guild&) = delete;
 
 		static bool ValidName(std::string name);
 		static bool ValidTag(std::string tag);
+		static bool ValidRank(std::string rank);
+		static bool ValidDescription(std::string description);
 
 		void AddMember(Character *joined, Character *recruiter, bool alert = false, int rank = 9);
 		void DelMember(std::string kicked, Character *kicker = 0, bool alert = false);

@@ -307,6 +307,7 @@ class Character : public Command_Source
 		void Refresh();
 		void ShowBoard(Board *board = 0);
 		std::string PaddedGuildTag();
+		std::string GuildRankString();
 		int Usage();
 		short SpawnMap();
 		unsigned char SpawnX();
@@ -350,6 +351,7 @@ class Character : public Command_Source
 		std::shared_ptr<Guild> guild;
 		std::shared_ptr<Guild_Create> guild_create;
 		unsigned char guild_rank;
+		std::string guild_rank_string;
 		Party *party;
 		Map *map;
 

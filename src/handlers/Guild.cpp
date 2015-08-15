@@ -189,10 +189,8 @@ void Guild_Agree(Character *character, PacketReader &reader)
 						{
 							new_ranks[i] = reader.GetBreakString();
 
-							if (new_ranks[i].length() > std::size_t(int(character->world->config["GuildMaxRankLength"])))
-							{
+							if (!character->guild->ValidRank(new_ranks[i]))
 								return;
-							}
 						}
 
 						for (std::size_t i = 0; i < character->guild->ranks.size(); ++i)
@@ -245,7 +243,7 @@ void Guild_Create(Character *character, PacketReader &reader)
 
 				character->DelItem(1, character->world->config["GuildPrice"]);
 
-				std::string rank_str = guild->GetRank(character->guild_rank);
+				std::string rank_str = character->GuildRankString();
 
 				PacketBuilder reply(PACKET_GUILD, PACKET_CREATE, 13 + guild->name.length() + rank_str.length());
 				reply.AddShort(create->leader->player->id);
@@ -510,7 +508,15 @@ void Guild_Tell(Character *character, PacketReader &reader)
 				reply.AddChar(member->rank);
 				reply.AddByte(255);
 				reply.AddBreakString(member->name);
-				reply.AddBreakString(guild->GetRank(member->rank));
+
+				if (character->world->config["GuildCustomRanks"] && !member->rank_string.empty())
+				{
+					reply.AddBreakString(member->rank_string);
+				}
+				else
+				{
+					reply.AddBreakString(guild->GetRank(member->rank));
+				}
 			});
 
 			character->Send(reply);

@@ -338,7 +338,7 @@ Character::Character(std::string name, World *world)
 
 	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `fiance`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`,"
 	"`map`, `x`, `y`, `direction`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
-	"`karma`, `sitting`, `hidden`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `quest`, `vars` "
+	"`karma`, `sitting`, `hidden`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `guild_rank_string`, `quest`, `vars` "
 	"FROM `characters` WHERE `name` = '$'", name.c_str());
 	std::unordered_map<std::string, util::variant> row = res.front();
 
@@ -438,7 +438,8 @@ Character::Character(std::string name, World *world)
 	if (!guild_tag.empty())
 	{
 		this->guild = this->world->guildmanager->GetGuild(guild_tag);
-		this->guild_rank = static_cast<int>(row["guild_rank"]);
+		this->guild_rank = GetRow<int>(row, "guild_rank");
+		this->guild_rank_string = GetRow<std::string>(row, "guild_rank_string");
 	}
 	else
 	{
@@ -1397,6 +1398,21 @@ std::string Character::PaddedGuildTag()
 	return tag;
 }
 
+std::string Character::GuildRankString()
+{
+	if (!this->guild)
+		return "";
+
+	if (this->world->config["GuildCustomRanks"] && !this->guild_rank_string.empty())
+	{
+		return this->guild_rank_string;
+	}
+	else
+	{
+		return this->guild->GetRank(this->guild_rank);
+	}
+}
+
 int Character::Usage()
 {
 	return this->usage + (std::time(0) - this->login_time) / 60;
@@ -1967,13 +1983,13 @@ void Character::Save()
 		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
 		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, `hidden` = #, "
 		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
-		"`spells` = '$', `guild` = '$', guild_rank = #, `quest` = '$', `vars` = '$' WHERE `name` = '$'",
+		"`spells` = '$', `guild` = '$', `guild_rank` = #, `guild_rank_string` = '$', `quest` = '$', `vars` = '$' WHERE `name` = '$'",
 		this->title.c_str(), this->home.c_str(), this->fiance.c_str(), this->partner.c_str(), int(this->admin), this->clas, int(this->gender), int(this->race),
 		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, int(this->direction), this->level, this->exp, this->hp, this->tp,
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, int(this->sitting), int(this->hidden),
 		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
 		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
-		this->guild_rank, quest_data.c_str(), "", this->name.c_str());
+		this->guild_rank, this->guild_rank_string.c_str(), quest_data.c_str(), "", this->name.c_str());
 }
 
 AdminLevel Character::SourceAccess() const

@@ -28,7 +28,7 @@ void Book_Request(Character *character, PacketReader &reader)
 
 	std::string home_str = target->world->GetHome(target)->name;
 	std::string guild_str = target->guild ? target->guild->name : "";
-	std::string rank_str = target->guild ? target->guild->GetRank(target->guild_rank) : "";
+	std::string rank_str = target->GuildRankString();
 
 	PacketBuilder reply(PACKET_BOOK, PACKET_REPLY,
 		13 + target->name.length() + home_str.length() + target->partner.length() + target->title.length()

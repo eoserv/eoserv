@@ -39,7 +39,7 @@ std::array<std::string, 9> RankUnserialize(std::string serialized)
 		serialized.push_back(',');
 	}
 
-	while ((p = serialized.find_first_of(',', p+1)) != std::string::npos)
+	while (i < 9 && (p = serialized.find_first_of(',', p+1)) != std::string::npos)
 	{
 		list[i++] = serialized.substr(lastp+1, p-lastp-1);
 		lastp = p;
@@ -85,16 +85,6 @@ void Guild_Create::AddMember(std::string character, int rank)
 Guild_Create::~Guild_Create()
 {
 	this->manager->CancelCreate(this->tag);
-
-	if (!this->manager->cache_clearing)
-	{
-		std::unordered_map<std::string, std::weak_ptr<Guild>>::iterator findentry = this->manager->cache.find(tag);
-
-		if (findentry != this->manager->cache.end())
-		{
-			this->manager->cache.erase(findentry);
-		}
-	}
 }
 
 std::shared_ptr<Guild> GuildManager::GetGuild(std::string tag)
@@ -125,14 +115,15 @@ std::shared_ptr<Guild> GuildManager::GetGuild(std::string tag)
 		guild->ranks = RankUnserialize(static_cast<std::string>(row["ranks"]));
 		guild->bank = static_cast<int>(row["bank"]);
 
-		res = this->world->db.Query("SELECT `name`, `guild_rank` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", tag.c_str());
+		res = this->world->db.Query("SELECT `name`, `guild_rank`, `guild_rank_string` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", tag.c_str());
 
 		UTIL_FOREACH_REF(res, row)
 		{
-			guild->members.push_back(std::make_shared<Guild_Member>(row["name"], row["guild_rank"]));
+			guild->members.push_back(std::make_shared<Guild_Member>(row["name"], row["guild_rank"], row["guild_rank_string"]));
 		}
 
-		this->cache[tag] = guild;
+		this->cache[guild->tag] = guild;
+		this->cache[guild->name] = guild;
 
 		return guild;
 	}
@@ -142,42 +133,42 @@ std::shared_ptr<Guild> GuildManager::GetGuildName(std::string name)
 {
 	name = util::lowercase(name);
 
-	UTIL_FOREACH(this->cache, entry)
-	{
-		std::shared_ptr<Guild> guild(entry.second);
+	std::unordered_map<std::string, std::weak_ptr<Guild>>::iterator findguild = this->cache.find(name);
 
-		if (guild && guild->name == name)
+	if (findguild != this->cache.end())
+	{
+		return std::shared_ptr<Guild>(findguild->second);
+	}
+	else
+	{
+		Database_Result res = this->world->db.Query("SELECT `tag`, `name`, `description`, `created`, `ranks`, `bank` FROM `guilds` WHERE `name` = '$'", name.c_str());
+
+		if (res.empty())
 		{
-			return guild;
+			return std::shared_ptr<Guild>();
 		}
+
+		std::unordered_map<std::string, util::variant> row = res.front();
+		std::shared_ptr<Guild> guild(new Guild(this));
+		guild->tag = static_cast<std::string>(row["tag"]);
+		guild->name = static_cast<std::string>(row["name"]);
+		guild->description = static_cast<std::string>(row["description"]);
+		guild->created = static_cast<int>(row["created"]);
+		guild->ranks = RankUnserialize(static_cast<std::string>(row["ranks"]));
+		guild->bank = static_cast<int>(row["bank"]);
+
+		res = this->world->db.Query("SELECT `name`, `guild_rank`, `guild_rank_string` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", static_cast<std::string>(row["tag"]).c_str());
+
+		UTIL_FOREACH_REF(res, row)
+		{
+			guild->members.push_back(std::make_shared<Guild_Member>(row["name"], row["guild_rank"], row["guild_rank_string"]));
+		}
+
+		this->cache[guild->tag] = guild;
+		this->cache[guild->name] = guild;
+
+		return guild;
 	}
-
-	Database_Result res = this->world->db.Query("SELECT `tag`, `name`, `description`, `created`, `ranks`, `bank` FROM `guilds` WHERE `name` = '$'", name.c_str());
-
-	if (res.empty())
-	{
-		return std::shared_ptr<Guild>();
-	}
-
-	std::unordered_map<std::string, util::variant> row = res.front();
-	std::shared_ptr<Guild> guild(new Guild(this));
-	guild->tag = static_cast<std::string>(row["tag"]);
-	guild->name = static_cast<std::string>(row["name"]);
-	guild->description = static_cast<std::string>(row["description"]);
-	guild->created = static_cast<int>(row["created"]);
-	guild->ranks = RankUnserialize(static_cast<std::string>(row["ranks"]));
-	guild->bank = static_cast<int>(row["bank"]);
-
-	res = this->world->db.Query("SELECT `name`, `guild_rank` FROM `characters` WHERE `guild` = '$' ORDER BY `guild_rank` ASC, `name` ASC", static_cast<std::string>(row["tag"]).c_str());
-
-	UTIL_FOREACH_REF(res, row)
-	{
-		guild->members.push_back(std::make_shared<Guild_Member>(row["name"], row["guild_rank"]));
-	}
-
-	this->cache[row["tag"]] = guild;
-
-	return guild;
 }
 
 std::shared_ptr<Guild_Create> GuildManager::GetCreate(std::string tag)
@@ -256,7 +247,8 @@ bool Guild::ValidName(std::string name)
 {
 	name = util::lowercase(name);
 
-	if (name.length() < 4)
+	//if (name.length() < 4 || name.length() > std::size_t(int(this->world->config["GuildMaxNameLength"])))
+	if (name.length() < 4 || name.length() > 24)
 	{
 		return false;
 	}
@@ -292,23 +284,67 @@ bool Guild::ValidTag(std::string tag)
 	return true;
 }
 
+bool Guild::ValidRank(std::string rank)
+{
+	rank = util::lowercase(rank);
+
+	//if (rank.length() > std::size_t(int(this->world->config["GuildMaxRankLength"])))
+	if (rank.length() > 16)
+	{
+		return false;
+	}
+
+	for (std::size_t i = 0; i < rank.length(); ++i)
+	{
+		if ((rank[i] < 'a' || rank[i] > 'z') && rank[i] != ' ')
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool Guild::ValidDescription(std::string description)
+{
+	description = util::lowercase(description);
+
+	//if (description.length() > std::size_t(int(this->world->config["GuildMaxDescLength"])))
+	if (description.length() > 200)
+	{
+		return false;
+	}
+
+	for (std::size_t i = 0; i < description.length(); ++i)
+	{
+		char c = description[i];
+
+		if ((c < 'a' || c > 'z') && (c < '0' || c > '9')
+		 && c != ' ' && c != '@' && c != '_' && c != '-' && c != '.')
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int rank)
 {
 	joined->guild = shared_from_this();
 	joined->guild_rank = rank;
+	joined->guild_rank_string = this->GetRank(rank);
 
-	this->members.push_back(std::make_shared<Guild_Member>(joined->name, rank));
+	this->members.push_back(std::make_shared<Guild_Member>(joined->name, rank, joined->guild_rank_string));
 
 	if (recruiter != joined) // Leader of new guild
 	{
-		std::string rank_str = this->GetRank(rank);
-
-		PacketBuilder builder(PACKET_GUILD, PACKET_AGREE, 9 + this->name.length() + rank_str.length());
+		PacketBuilder builder(PACKET_GUILD, PACKET_AGREE, 9 + this->name.length() + joined->guild_rank_string.length());
 		builder.AddShort(recruiter->player->id);
 		builder.AddByte(255);
 		builder.AddBreakString(this->tag);
 		builder.AddBreakString(this->name);
-		builder.AddBreakString(rank_str);
+		builder.AddBreakString(joined->guild_rank_string);
 		builder.AddByte(255);
 		joined->Send(builder);
 	}
@@ -351,18 +387,33 @@ void Guild::DelMember(std::string kicked, Character *kicker, bool alert)
 		}
 	}
 
-	UTIL_FOREACH(this->manager->world->characters, character)
+	World* world = this->manager->world;
+
+	UTIL_FOREACH(world->server->clients, client)
 	{
-		if (character->name == kicked)
+		EOClient *eoclient = static_cast<EOClient *>(client);
+
+		if (eoclient->player)
 		{
-			character->guild.reset();
-			character->guild_rank = 0;
-			// *this may not be valid after this point
-			return;
+			UTIL_FOREACH(eoclient->player->characters, character)
+			{
+				if (character->name == kicked)
+				{
+					character->guild.reset();
+					character->guild_rank = 0;
+					character->guild_rank_string.clear();
+					// *this may not be valid after this point
+
+					if (character->online)
+						return;
+					else
+						break;
+				}
+			}
 		}
 	}
 
-	this->manager->world->db.Query("UPDATE `characters` SET `guild` = NULL, `guild_rank` = NULL WHERE `name` = '$'", kicked.c_str());
+	world->db.Query("UPDATE `characters` SET `guild` = NULL, `guild_rank` = NULL, `guild_rank_string` = NULL WHERE `name` = '$'", kicked.c_str());
 }
 
 void Guild::SetMemberRank(std::string name, int rank)
@@ -371,15 +422,37 @@ void Guild::SetMemberRank(std::string name, int rank)
 
 	if (member)
 	{
-		member->rank = rank;
+		std::string rank_str = this->GetRank(rank);
 
-		UTIL_FOREACH(this->manager->world->characters, character)
+		member->rank = rank;
+		member->rank_string = rank_str;
+
+		World* world = this->manager->world;
+
+		UTIL_FOREACH(world->server->clients, client)
 		{
-			if (character->name == name)
+			EOClient *eoclient = static_cast<EOClient *>(client);
+
+			if (eoclient->player)
 			{
-				character->guild_rank = rank;
+				UTIL_FOREACH(eoclient->player->characters, character)
+				{
+					if (character->name == name)
+					{
+						character->guild_rank = rank;
+						character->guild_rank_string = rank_str;
+						
+						if (character->online)
+							return;
+						else
+							break;
+					}
+				}
 			}
 		}
+
+		world->db.Query("UPDATE `characters` SET `guild_rank` = #, `guild_rank_string` = '$' WHERE `name` = '$'",
+			rank, rank_str.c_str(), name.c_str());
 	}
 }
 
@@ -411,9 +484,11 @@ void Guild::Disband(Character* disbander)
 		this->Msg(0, manager->world->i18n.Format("guild_disband", util::ucfirst(disbander->name)));
 	}
 
+	std::shared_ptr<Guild> guild(shared_from_this());
+
 	UTIL_FOREACH(disband_members, member)
 	{
-		this->DelMember(member->name);
+		this->DelMember(member->name, disbander);
 	}
 }
 
@@ -489,9 +564,12 @@ Guild::~Guild()
 		std::unordered_map<std::string, std::weak_ptr<Guild>>::iterator findentry = this->manager->cache.find(tag);
 
 		if (findentry != this->manager->cache.end())
-		{
 			this->manager->cache.erase(findentry);
-		}
+
+		std::unordered_map<std::string, std::weak_ptr<Guild>>::iterator findentry2 = this->manager->cache.find(name);
+
+		if (findentry2 != this->manager->cache.end())
+			this->manager->cache.erase(findentry2);
 	}
 
 	if (this->members.size() > 0)
@@ -500,7 +578,7 @@ Guild::~Guild()
 	}
 	else
 	{
-		this->manager->world->db.Query("UPDATE `characters` SET `guild` = NULL, `guild_rank` = NULL WHERE `guild` = '$'", this->tag.c_str());
+		this->manager->world->db.Query("UPDATE `characters` SET `guild` = NULL, `guild_rank` = NULL, `guild_rank_string` = NULL WHERE `guild` = '$'", this->tag.c_str());
 		this->manager->world->db.Query("DELETE FROM `guilds` WHERE tag = '$'", this->tag.c_str());
 	}
 }
