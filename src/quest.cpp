@@ -524,7 +524,7 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 		PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY, 11);
 		builder.AddInt(this->character->exp);
 		builder.AddShort(this->character->karma);
-		builder.AddChar(this->character->level);
+		builder.AddChar(level_up ? this->character->level : 0);
 
 		if (level_up)
 		{
