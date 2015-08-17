@@ -39,7 +39,7 @@ std::array<std::string, 9> RankUnserialize(std::string serialized)
 		serialized.push_back(',');
 	}
 
-	while (i < 9 && (p = serialized.find_first_of(',', p+1)) != std::string::npos)
+	while (i < 9 && (p = serialized.find_first_of(',', lastp+1)) != std::string::npos)
 	{
 		list[i++] = serialized.substr(lastp+1, p-lastp-1);
 		lastp = p;
