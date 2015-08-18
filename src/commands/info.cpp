@@ -35,11 +35,11 @@ void Inventory(const std::vector<std::string>& arguments, Character* from)
 
 			switch (victim->admin)
 			{
-				case ADMIN_HGM: reply.AddString(from->world->i18n.Format("high_game_master_title", name)); break;
-				case ADMIN_GM: reply.AddString(from->world->i18n.Format("game_master_title", name)); break;
+				case ADMIN_HGM:      reply.AddString(from->world->i18n.Format("high_game_master_title", name)); break;
+				case ADMIN_GM:       reply.AddString(from->world->i18n.Format("game_master_title", name)); break;
 				case ADMIN_GUARDIAN: reply.AddString(from->world->i18n.Format("guardian_title", name)); break;
-				case ADMIN_GUIDE: reply.AddString(from->world->i18n.Format("light_guide_title", name)); break;
-				default: reply.AddString(name); break;
+				case ADMIN_GUIDE:    reply.AddString(from->world->i18n.Format("light_guide_title", name)); break;
+				default:             reply.AddString(name); break;
 			}
 
 			reply.AddString(" ");
@@ -246,11 +246,11 @@ void Info(const std::vector<std::string>& arguments, Character* from)
 
 			switch (victim->admin)
 			{
-				case ADMIN_HGM: reply.AddString(from->world->i18n.Format("high_game_master_title", name)); break;
-				case ADMIN_GM: reply.AddString(from->world->i18n.Format("game_master_title", name)); break;
+				case ADMIN_HGM:      reply.AddString(from->world->i18n.Format("high_game_master_title", name)); break;
+				case ADMIN_GM:       reply.AddString(from->world->i18n.Format("game_master_title", name)); break;
 				case ADMIN_GUARDIAN: reply.AddString(from->world->i18n.Format("guardian_title", name)); break;
-				case ADMIN_GUIDE: reply.AddString(from->world->i18n.Format("light_guide_title", name)); break;
-				default: ;
+				case ADMIN_GUIDE:    reply.AddString(from->world->i18n.Format("light_guide_title", name)); break;
+				default:             reply.AddString(name);
 			}
 
 			reply.AddString(" ");
