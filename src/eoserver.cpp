@@ -52,6 +52,9 @@ void server_pump_queue(void *server_void)
 	{
 		EOClient *client = static_cast<EOClient *>(rawclient);
 
+		if (!client->Connected())
+			continue;
+
 		std::size_t size = client->queue.queue.size();
 
 		if (size > std::size_t(int(server->world->config["PacketQueueMax"])))
