@@ -1533,6 +1533,7 @@ void Character::CalculateStats(bool trigger_quests)
 
 	if (this->SourceDutyAccess() >= static_cast<int>(world->admin_config["unlimitedweight"]))
 	{
+		this->weight = 0;
 		this->maxweight = 251;
 	}
 	else
