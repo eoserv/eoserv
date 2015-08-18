@@ -23,12 +23,17 @@ namespace Commands
 void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::string set)
 {
 	Character *victim = from->SourceWorld()->GetCharacter(arguments[0]);
+	Character *from_character = from->SourceCharacter();
 
 	if (!victim || victim->nowhere)
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("character_not_found"));
 	}
-	else if (victim->admin >= from->SourceAccess() && victim != from->SourceCharacter())
+	else if (victim->SourceAccess() >= from->SourceAccess() && victim != from_character)
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
+	}
+	else if (from_character && from_character != victim && !from_character->CanInteractCharMod())
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
 	}
@@ -168,7 +173,7 @@ void Strip(const std::vector<std::string>& arguments, Command_Source* from)
 	}
 	else
 	{
-		if (victim->admin < from->SourceAccess() || victim == from->SourceCharacter())
+		if (victim->SourceAccess() < from->SourceAccess() || victim == from->SourceCharacter())
 		{
 			for (std::size_t i = 0; i < victim->paperdoll.size(); ++i)
 			{
@@ -245,7 +250,8 @@ void Dress(const std::vector<std::string>& arguments, Command_Source* from)
 		return;
 	}
 
-	if (victim->admin >= int(from->SourceWorld()->admin_config["cmdprotect"]) && victim->admin > from->SourceAccess())
+	if (victim->SourceAccess() >= int(from->SourceWorld()->admin_config["cmdprotect"])
+	 && victim->SourceAccess() > from->SourceAccess())
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
 		return;
@@ -284,7 +290,8 @@ void Dress2(const std::vector<std::string>& arguments, Command_Source* from)
 		return;
 	}
 
-	if (victim->admin >= int(from->SourceWorld()->admin_config["cmdprotect"]) && victim->admin > from->SourceAccess())
+	if (victim->SourceAccess() >= int(from->SourceWorld()->admin_config["cmdprotect"])
+	 && victim->SourceAccess() > from->SourceAccess())
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
 		return;
@@ -317,7 +324,8 @@ void Undress(const std::vector<std::string>& arguments, Command_Source* from)
 		return;
 	}
 
-	if (victim->admin >= int(from->SourceWorld()->admin_config["cmdprotect"]) && victim->admin > from->SourceAccess())
+	if (victim->SourceAccess() >= int(from->SourceWorld()->admin_config["cmdprotect"])
+	 && victim->SourceAccess() > from->SourceAccess())
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
 		return;
@@ -343,28 +351,28 @@ void Undress(const std::vector<std::string>& arguments, Command_Source* from)
 
 COMMAND_HANDLER_REGISTER(char_mod)
 	using namespace std::placeholders;
-	Register({"setlevel", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "level"));
-	Register({"setexp", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "exp"));
-	Register({"setstr", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "str"));
-	Register({"setint", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "int"));
-	Register({"setwis", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "wis"));
-	Register({"setagi", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "agi"));
-	Register({"setcon", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "con"));
-	Register({"setcha", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "cha"));
-	Register({"setstatpoints", {"victim", "value"}, {}, 7}, std::bind(SetX, _1, _2, "statpoints"));
-	Register({"setskillpoints", {"victim", "value"}, {}, 8}, std::bind(SetX, _1, _2, "skillpoints"));
+	Register({"setlevel", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "level"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setexp", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "exp"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setstr", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "str"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setint", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "int"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setwis", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "wis"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setagi", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "agi"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setcon", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "con"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setcha", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "cha"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setstatpoints", {"victim", "value"}, {}, 7}, std::bind(SetX, _1, _2, "statpoints"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setskillpoints", {"victim", "value"}, {}, 8}, std::bind(SetX, _1, _2, "skillpoints"), CMD_FLAG_DUTY_RESTRICT);
 	Register({"setadmin", {"victim", "value"}, {}, 8}, std::bind(SetX, _1, _2, "admin"));
 	Register({"settitle", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "title"));
 	Register({"setfiance", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "fiance"));
 	Register({"setpartner", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "partner"));
-	Register({"sethome", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "home"));
-	Register({"setgender", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "gender"));
-	Register({"sethairstyle", {"victim", "value"}, {}, 8}, std::bind(SetX, _1, _2, "hairstyle"));
-	Register({"sethaircolor", {"victim", "value"}, {}, 8}, std::bind(SetX, _1, _2, "haircolor"));
-	Register({"setrace", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "race"));
+	Register({"sethome", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "home"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setgender", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "gender"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"sethairstyle", {"victim", "value"}, {}, 8}, std::bind(SetX, _1, _2, "hairstyle"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"sethaircolor", {"victim", "value"}, {}, 8}, std::bind(SetX, _1, _2, "haircolor"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setrace", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "race"), CMD_FLAG_DUTY_RESTRICT);
 	Register({"setguildrank", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "guildrank"));
-	Register({"setkarma", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "karma"));
-	Register({"setclass", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "class"));
+	Register({"setkarma", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "karma"), CMD_FLAG_DUTY_RESTRICT);
+	Register({"setclass", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "class"), CMD_FLAG_DUTY_RESTRICT);
 	Register({"strip", {"victim"}, {}, 2}, Strip);
 	Register({"dress", {"victim"}, {"id"}}, Dress); // victim is the actual optional argument
 	Register({"dress2", {"victim", "slot"}, {"id"}, 6}, Dress2); // victim is the actual optional argument

@@ -62,7 +62,7 @@ void Jukebox_Msg(Character *character, PacketReader &reader)
 
 	character->DelItem(1, static_cast<int>(character->world->config["JukeboxPrice"]));
 
-	character->map->jukebox_player = character->name;
+	character->map->jukebox_player = character->SourceName();
 	character->map->jukebox_protect = Timer::GetTime() + static_cast<int>(character->world->config["JukeboxTimer"]);
 
 	PacketBuilder reply(PACKET_JUKEBOX, PACKET_AGREE, 4);

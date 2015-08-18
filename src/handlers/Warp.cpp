@@ -76,7 +76,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 	reply.AddByte(255);
 	UTIL_FOREACH(updatecharacters, character)
 	{
-		reply.AddBreakString(character->name);
+		reply.AddBreakString(character->SourceName());
 		reply.AddShort(character->player->id);
 		reply.AddShort(character->mapid);
 		reply.AddShort(character->x);

@@ -106,7 +106,8 @@ void Board(const std::vector<std::string>& arguments, Character* from)
 {
 	short boardid = ((arguments.size() >= 1) ? util::to_int(arguments[0]) : int(from->world->config["AdminBoard"])) - 1;
 
-	if (boardid != int(from->world->config["AdminBoard"]) - 1 || from->admin >= int(from->world->admin_config["reports"]))
+	if (boardid != int(from->world->config["AdminBoard"]) - 1
+	 || from->SourceAccess() >= int(from->world->admin_config["reports"]))
 	{
 		if (std::size_t(boardid) < from->world->boards.size())
 		{
@@ -117,11 +118,11 @@ void Board(const std::vector<std::string>& arguments, Character* from)
 }
 
 COMMAND_HANDLER_REGISTER(map)
-	RegisterCharacter({"arena"}, LaunchArena);
+	RegisterCharacter({"arena"}, LaunchArena, CMD_FLAG_DUTY_RESTRICT);
 	RegisterCharacter({"evacuate"}, EvacuateMap);
 	RegisterCharacter({"quake", {}, {"strength"}}, Quake);
-	RegisterCharacter({"hide", {}, {"flags"}}, Hide);
-	RegisterCharacter({"show", {}, {"flags"}}, Unhide);
+	RegisterCharacter({"hide", {}, {"flags"}}, Hide, CMD_FLAG_DUTY_RESTRICT);
+	RegisterCharacter({"show", {}, {"flags"}}, Unhide, CMD_FLAG_DUTY_RESTRICT);
 	RegisterCharacter({"board", {}, {"board"}}, Board);
 
 	RegisterAlias("a", "arena");

@@ -489,7 +489,7 @@ void NPC::Act()
 
 		UTIL_FOREACH(this->map->characters, character)
 		{
-			if (character->IsHideNpc())
+			if (character->IsHideNpc() || !character->CanInteractCombat())
 				continue;
 
 			int distance = util::path_length(character->x, character->y, this->x, this->y);

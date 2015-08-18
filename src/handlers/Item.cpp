@@ -343,6 +343,7 @@ void Item_Use(Character *character, PacketReader &reader)
 void Item_Drop(Character *character, PacketReader &reader)
 {
 	if (character->trading) return;
+	if (!character->CanInteractItems()) return;
 
 	int id = reader.GetShort();
 	int amount;

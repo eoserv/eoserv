@@ -143,6 +143,10 @@
 			<Option link="0" />
 		</Unit>
 		<Unit filename="../src/command_source.hpp" />
+		<Unit filename="../src/commands/admin.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
 		<Unit filename="../src/commands/char_mod.cpp">
 			<Option compile="0" />
 			<Option link="0" />

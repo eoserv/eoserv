@@ -136,7 +136,7 @@ void map_evacuate(void *map_evacuate_void)
 		restart_loop:
 		UTIL_FOREACH(evac->map->characters, character)
 		{
-			if (character->admin < ADMIN_GUIDE)
+			if (character->SourceAccess() < ADMIN_GUIDE)
 			{
 				character->world->Jail(0, character, false);
 				goto restart_loop;
@@ -716,7 +716,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 	PacketBuilder builder(PACKET_PLAYERS, PACKET_AGREE, 63);
 
 	builder.AddByte(255);
-	builder.AddBreakString(character->name);
+	builder.AddBreakString(character->SourceName());
 	builder.AddShort(character->player->id);
 	builder.AddShort(character->mapid);
 	builder.AddShort(character->x);
@@ -788,7 +788,7 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 
 void Map::Msg(Character *from, std::string message, bool echo)
 {
-	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->SourceName()) + "  "));
 
 	PacketBuilder builder(PACKET_TALK, PACKET_PLAYER, 2 + message.length());
 	builder.AddShort(from->player->id);
@@ -799,7 +799,7 @@ void Map::Msg(Character *from, std::string message, bool echo)
 		if (!from->InRange(character))
 			continue;
 
-		character->AddChatLog("", from->name, message);
+		character->AddChatLog("", from->SourceName(), message);
 
 		if (!echo && character == from)
 			continue;
@@ -889,12 +889,12 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 	const Map_Warp& warp = this->GetWarp(target_x, target_y);
 
-	if (!admin && warp)
+	if (warp)
 	{
 		if (from->level >= warp.levelreq && (warp.spec == Map_Warp::NoDoor || warp.open))
 		{
 			Map* map = this->world->GetMap(warp.map);
-			if (from->admin < ADMIN_GUIDE && map->evacuate_lock && map->id != from->map->id)
+			if (from->SourceAccess() < ADMIN_GUIDE && map->evacuate_lock && map->id != from->map->id)
 			{
 				from->StatusMsg(this->world->i18n.Format("map_evacuate_block"));
 				from->Refresh();
@@ -903,9 +903,12 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 			{
 				from->Warp(warp.map, warp.x, warp.y);
 			}
+
+			return false;
 		}
 
-		return false;
+		if (!admin)
+			return false;
 	}
 
     from->last_walk = Timer::GetTime();
@@ -1054,7 +1057,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	builder.SetID(PACKET_PLAYERS, PACKET_AGREE);
 
 	builder.AddByte(255);
-	builder.AddBreakString(from->name);
+	builder.AddBreakString(from->SourceName());
 	builder.AddShort(from->player->id);
 	builder.AddShort(from->mapid);
 	builder.AddShort(from->x);
@@ -1082,7 +1085,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 	{
 		PacketBuilder rbuilder(PACKET_PLAYERS, PACKET_AGREE, 62);
 		rbuilder.AddByte(255);
-		rbuilder.AddBreakString(character->name);
+		rbuilder.AddBreakString(character->SourceName());
 		rbuilder.AddShort(character->player->id);
 		rbuilder.AddShort(character->mapid);
 		rbuilder.AddShort(character->x);
@@ -1394,6 +1397,9 @@ void Map::Attack(Character *from, Direction direction)
 	if (is_instrument)
 		return;
 
+	if (!from->CanInteractCombat())
+		return;
+
 	int target_x = from->x;
 	int target_y = from->y;
 
@@ -1427,7 +1433,7 @@ void Map::Attack(Character *from, Direction direction)
 
 		UTIL_FOREACH(this->npcs, npc)
 		{
-			if ((npc->Data().type == ENF::Passive || npc->Data().type == ENF::Aggressive || from->admin >= static_cast<int>(this->world->admin_config["killnpc"]))
+			if ((npc->Data().type == ENF::Passive || npc->Data().type == ENF::Aggressive || from->SourceDutyAccess() >= static_cast<int>(this->world->admin_config["killnpc"]))
 			 && npc->alive && npc->x == target_x && npc->y == target_y)
 			{
 				int amount = util::rand(from->mindam, from->maxdam);
@@ -1476,6 +1482,9 @@ void Map::Attack(Character *from, Direction direction)
 
 bool Map::AttackPK(Character *from, Direction direction)
 {
+	if (!from->CanInteractCombat())
+		return false;
+
 	(void)direction;
 
 	int target_x = from->x;
@@ -1719,7 +1728,7 @@ bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
 	{
 		UTIL_FOREACH(this->characters, character)
 		{
-			if (character->x == x && character->y == y)
+			if (character->x == x && character->y == y && character->CanInteractCombat())
 			{
 				return true;
 			}
@@ -1761,7 +1770,8 @@ bool Map::OpenDoor(Character *from, unsigned char x, unsigned char y)
 
 		if (from && warp.spec > Map_Warp::Door)
 		{
-			if (!from->HasItem(this->world->eif->GetKey(warp.spec - static_cast<int>(Map_Warp::Door) + 1)))
+			if (!from->CanInteractDoors()
+			 || !from->HasItem(this->world->eif->GetKey(warp.spec - static_cast<int>(Map_Warp::Door) + 1)))
 			{
 				return false;
 			}
@@ -1813,6 +1823,9 @@ void Map::CloseDoor(unsigned char x, unsigned char y)
 
 void Map::SpellSelf(Character *from, unsigned short spell_id)
 {
+	if (!from->CanInteractCombat())
+		return;
+
 	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
 	if (!spell || spell.type != ESF::Heal || from->tp < spell.tp)
@@ -1852,6 +1865,9 @@ void Map::SpellSelf(Character *from, unsigned short spell_id)
 
 void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 {
+	if (!from->CanInteractCombat())
+		return;
+
 	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
 	if (!spell || spell.type != ESF::Damage || from->tp < spell.tp)
@@ -1898,6 +1914,9 @@ void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 
 void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell_id)
 {
+	if (!from->CanInteractCombat())
+		return;
+
 	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
 	if (!spell || (spell.type != ESF::Heal && spell.type != ESF::Damage) || from->tp < spell.tp)
@@ -2047,6 +2066,9 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 
 void Map::SpellGroup(Character *from, unsigned short spell_id)
 {
+	if (!from->CanInteractCombat())
+		return;
+
 	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
 	if (!spell || spell.type != ESF::Heal || !from->party || from->tp < spell.tp)
@@ -2118,7 +2140,7 @@ std::shared_ptr<Map_Item> Map::AddItem(short id, int amount, unsigned char x, un
 {
 	std::shared_ptr<Map_Item> newitem(std::make_shared<Map_Item>(0, id, amount, x, y, 0, 0));
 
-	if (from || (from && from->admin <= ADMIN_GM))
+	if (from || (from && from->SourceAccess() <= ADMIN_GM))
 	{
 		int ontile = 0;
 		int onmap = 0;
@@ -2436,7 +2458,7 @@ Character *Map::GetCharacter(std::string name)
 
 	UTIL_FOREACH(this->characters, character)
 	{
-		if (character->name.compare(name) == 0)
+		if (character->SourceName().compare(name) == 0)
 		{
 			return character;
 		}

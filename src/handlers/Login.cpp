@@ -114,7 +114,7 @@ void Login_Request(EOClient *client, PacketReader &reader)
 	reply.AddByte(255);
 	UTIL_FOREACH(client->player->characters, character)
 	{
-		reply.AddBreakString(character->name);
+		reply.AddBreakString(character->SourceName());
 		reply.AddInt(character->id);
 		reply.AddChar(character->level);
 		reply.AddChar(character->gender);

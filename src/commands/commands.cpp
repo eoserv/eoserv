@@ -17,12 +17,15 @@
 namespace Commands
 {
 
-void command_handler_register::Register(command_handler handler)
+void command_handler_register::Register(command_handler handler, int flags)
 {
 	if (handler.info.partial_min_chars < 1)
 		handler.info.partial_min_chars = 1;
 	else if (handler.info.partial_min_chars > handler.info.name.length())
 		handler.info.partial_min_chars = handler.info.name.length();
+
+	if (flags & CMD_FLAG_DUTY_RESTRICT)
+		handler.info.duty_restrict = true;
 
 	auto result = handlers.insert(std::make_pair(handler.info.name, handler));
 
@@ -62,7 +65,9 @@ bool command_handler_register::Handle(std::string command, const std::vector<std
 		if (admin_result != from->SourceWorld()->admin_config.end())
 			admin_req = AdminLevel(int(admin_result->second));
 
-		if (from->SourceAccess() < admin_req || (command_result->second.info.require_character && !from->SourceCharacter()))
+		int access = command_result->second.info.duty_restrict ? from->SourceDutyAccess() : from->SourceAccess();
+
+		if (access < admin_req || (command_result->second.info.require_character && !from->SourceCharacter()))
 		{
 			from->ServerMsg(from->SourceWorld()->i18n.Format("unknown_command"));
 			return false;
@@ -98,7 +103,9 @@ bool command_handler_register::Handle(std::string command, const std::vector<std
 				if (admin_result != from->SourceWorld()->admin_config.end())
 					admin_req = AdminLevel(int(admin_result->second));
 
-				if (from->SourceAccess() < admin_req || (handler->second.info.require_character && !from->SourceCharacter()))
+				int access = handler->second.info.duty_restrict ? from->SourceDutyAccess() : from->SourceAccess();
+
+				if (access < admin_req || (handler->second.info.require_character && !from->SourceCharacter()))
 					continue;
 
 				// Ambiguous abbreviation

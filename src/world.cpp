@@ -189,7 +189,7 @@ void world_warp_suck(void *world_void)
 
 	UTIL_FOREACH(actions, act)
 	{
-		if (act.character->admin < ADMIN_GUIDE && world->GetMap(act.map)->evacuate_lock)
+		if (act.character->SourceAccess() < ADMIN_GUIDE && world->GetMap(act.map)->evacuate_lock)
 		{
 			act.character->StatusMsg(world->i18n.Format("map_evacuate_block"));
 			act.character->Refresh();
@@ -646,7 +646,7 @@ void World::AdminMsg(Command_Source *from, std::string message, int minlevel, bo
 	{
 		character->AddChatLog("+", from_str, message);
 
-		if ((!echo && character == from) || character->admin < minlevel)
+		if ((!echo && character == from) || character->SourceAccess() < minlevel)
 		{
 			continue;
 		}
@@ -693,18 +693,18 @@ void World::ServerMsg(std::string message)
 
 void World::AdminReport(Character *from, std::string reportee, std::string message)
 {
-	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  reports: " + reportee + ", "));
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->SourceName()) + "  reports: " + reportee + ", "));
 
-	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY, 5 + from->name.length() + message.length() + reportee.length());
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY, 5 + from->SourceName().length() + message.length() + reportee.length());
 	builder.AddChar(2); // message type
 	builder.AddByte(255);
-	builder.AddBreakString(from->name);
+	builder.AddBreakString(from->SourceName());
 	builder.AddBreakString(message);
 	builder.AddBreakString(reportee);
 
 	UTIL_FOREACH(this->characters, character)
 	{
-		if (character->admin >= static_cast<int>(this->admin_config["reports"]))
+		if (character->SourceAccess() >= static_cast<int>(this->admin_config["reports"]))
 		{
 			character->Send(builder);
 		}
@@ -719,9 +719,9 @@ void World::AdminReport(Character *from, std::string reportee, std::string messa
 
 		Board_Post *newpost = new Board_Post;
 		newpost->id = ++admin_board->last_id;
-		newpost->author = from->name;
+		newpost->author = from->SourceName();
 		newpost->author_admin = from->admin;
-		newpost->subject = std::string(" [Report] ") + util::ucfirst(from->name) + " reports: " + reportee;
+		newpost->subject = std::string(" [Report] ") + util::ucfirst(from->SourceName()) + " reports: " + reportee;
 		newpost->body = message;
 		newpost->time = Timer::GetTime();
 
@@ -737,7 +737,7 @@ void World::AdminReport(Character *from, std::string reportee, std::string messa
 			try
 			{
 				this->db.Query("INSERT INTO `reports` (`reporter`, `reported`, `reason`, `time`, `chat_log`) VALUES ('$', '$', '$', #, '$')",
-					from->name.c_str(),
+					from->SourceName().c_str(),
 					reportee.c_str(),
 					message.c_str(),
 					int(std::time(0)),
@@ -762,17 +762,17 @@ void World::AdminReport(Character *from, std::string reportee, std::string messa
 
 void World::AdminRequest(Character *from, std::string message)
 {
-	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  needs help: "));
+	message = util::text_cap(message, static_cast<int>(this->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->SourceName()) + "  needs help: "));
 
-	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY, 4 + from->name.length() + message.length());
+	PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REPLY, 4 + from->SourceName().length() + message.length());
 	builder.AddChar(1); // message type
 	builder.AddByte(255);
-	builder.AddBreakString(from->name);
+	builder.AddBreakString(from->SourceName());
 	builder.AddBreakString(message);
 
 	UTIL_FOREACH(this->characters, character)
 	{
-		if (character->admin >= static_cast<int>(this->admin_config["reports"]))
+		if (character->SourceAccess() >= static_cast<int>(this->admin_config["reports"]))
 		{
 			character->Send(builder);
 		}
@@ -786,9 +786,9 @@ void World::AdminRequest(Character *from, std::string message)
 
 		Board_Post *newpost = new Board_Post;
 		newpost->id = ++admin_board->last_id;
-		newpost->author = from->name;
+		newpost->author = from->SourceName();
 		newpost->author_admin = from->admin;
-		newpost->subject = std::string(" [Request] ") + util::ucfirst(from->name) + " needs help";
+		newpost->subject = std::string(" [Request] ") + util::ucfirst(from->SourceName()) + " needs help";
 		newpost->body = message;
 		newpost->time = Timer::GetTime();
 
@@ -872,7 +872,7 @@ void World::ReloadQuests()
 	// Back up character quest states
 	UTIL_FOREACH(this->characters, c)
 	{
-		auto result = backup.insert(std::pair<std::string, std::deque<backup_t>>(c->name, std::deque<backup_t>()));
+		auto result = backup.insert(std::pair<std::string, std::deque<backup_t>>(c->real_name, std::deque<backup_t>()));
 
 		if (!result.second)
 			throw std::runtime_error("Failed to back up quest contexts");
@@ -914,7 +914,7 @@ void World::ReloadQuests()
 	{
 		c->quests.clear();
 
-		auto it = backup.find(c->name);
+		auto it = backup.find(c->real_name);
 
 		if (it == backup.end())
 			throw std::runtime_error("Failed to restore quest context");
@@ -958,7 +958,22 @@ Character *World::GetCharacter(std::string name)
 
 	UTIL_FOREACH(this->characters, character)
 	{
-		if (character->name == name)
+		if (character->SourceName() == name)
+		{
+			return character;
+		}
+	}
+
+	return 0;
+}
+
+Character *World::GetCharacterReal(std::string real_name)
+{
+	real_name = util::lowercase(real_name);
+
+	UTIL_FOREACH(this->characters, character)
+	{
+		if (character->real_name == real_name)
 		{
 			return character;
 		}
@@ -1172,7 +1187,7 @@ bool World::PlayerOnline(std::string username)
 void World::Kick(Command_Source *from, Character *victim, bool announce)
 {
 	if (announce)
-		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->SourceName() : "server", i18n.Format("kicked")));
+		this->ServerMsg(i18n.Format("announce_removed", victim->SourceName(), from ? from->SourceName() : "server", i18n.Format("kicked")));
 
 	victim->player->client->Close();
 }
@@ -1180,7 +1195,7 @@ void World::Kick(Command_Source *from, Character *victim, bool announce)
 void World::Jail(Command_Source *from, Character *victim, bool announce)
 {
 	if (announce)
-		this->ServerMsg(i18n.Format("announce_removed", victim->name, from ? from->SourceName() : "server", i18n.Format("jailed")));
+		this->ServerMsg(i18n.Format("announce_removed", victim->SourceName(), from ? from->SourceName() : "server", i18n.Format("jailed")));
 
 	bool bubbles = this->config["WarpBubbles"] && !victim->IsHideWarp();
 
@@ -1192,12 +1207,27 @@ void World::Jail(Command_Source *from, Character *victim, bool announce)
 	victim->Warp(static_cast<int>(this->config["JailMap"]), static_cast<int>(this->config["JailX"]), static_cast<int>(this->config["JailY"]), bubbles ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
 }
 
+void World::Unjail(Command_Source *from, Character *victim)
+{
+	bool bubbles = this->config["WarpBubbles"] && !victim->IsHideWarp();
+
+	Character* charfrom = dynamic_cast<Character*>(from);
+
+	if (charfrom && charfrom->IsHideWarp())
+		bubbles = false;
+
+	if (victim->mapid != static_cast<int>(this->config["JailMap"]))
+		return;
+
+	victim->Warp(static_cast<int>(this->config["JailMap"]), static_cast<int>(this->config["UnJailX"]), static_cast<int>(this->config["UnJailY"]), bubbles ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
+}
+
 void World::Ban(Command_Source *from, Character *victim, int duration, bool announce)
 {
 	std::string from_str = from ? from->SourceName() : "server";
 
 	if (announce)
-		this->ServerMsg(i18n.Format("announce_removed", victim->name, from_str, i18n.Format("banned")));
+		this->ServerMsg(i18n.Format("announce_removed", victim->SourceName(), from_str, i18n.Format("banned")));
 
 	std::string query("INSERT INTO bans (username, ip, hdid, expires, setter) VALUES ");
 
@@ -1232,7 +1262,7 @@ void World::Ban(Command_Source *from, Character *victim, int duration, bool anno
 void World::Mute(Command_Source *from, Character *victim, bool announce)
 {
 	if (announce && !this->config["SilentMute"])
-		this->ServerMsg(i18n.Format("announce_muted", victim->name, from ? from->SourceName() : "server", i18n.Format("banned")));
+		this->ServerMsg(i18n.Format("announce_muted", victim->SourceName(), from ? from->SourceName() : "server", i18n.Format("banned")));
 
 	victim->Mute(from);
 }

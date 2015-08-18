@@ -35,7 +35,8 @@ void WarpMeTo(const std::vector<std::string>& arguments, Character* from)
 	}
 	else
 	{
-		if (victim->admin < int(from->world->admin_config["cmdprotect"]) || victim->admin <= from->SourceAccess())
+		if (victim->SourceAccess() < int(from->world->admin_config["cmdprotect"])
+		 || victim->SourceAccess() <= from->SourceAccess())
 		{
 			bool bubbles = from->world->config["WarpBubbles"] && !from->IsHideWarp() && !victim->IsHideWarp();
 			from->Warp(victim->mapid, victim->x, victim->y, bubbles ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
@@ -57,7 +58,8 @@ void WarpToMe(const std::vector<std::string>& arguments, Character* from)
 	}
 	else
 	{
-		if (victim->admin < int(from->world->admin_config["cmdprotect"]) || victim->admin <= from->SourceAccess())
+		if (victim->SourceAccess() < int(from->world->admin_config["cmdprotect"])
+		 || victim->SourceAccess() <= from->SourceAccess())
 		{
 			bool bubbles = from->world->config["WarpBubbles"] && !from->IsHideWarp() && !victim->IsHideWarp();
 			victim->Warp(from->mapid, from->x, from->y, bubbles ? WARP_ANIMATION_ADMIN : WARP_ANIMATION_NONE);
@@ -70,9 +72,9 @@ void WarpToMe(const std::vector<std::string>& arguments, Character* from)
 }
 
 COMMAND_HANDLER_REGISTER(warp)
-	RegisterCharacter({"warp", {"map", "x", "y"}}, Warp);
-	RegisterCharacter({"warpmeto", {"victim"}}, WarpMeTo);
-	RegisterCharacter({"warptome", {"victim"}}, WarpToMe);
+	RegisterCharacter({"warp", {"map", "x", "y"}}, Warp, CMD_FLAG_DUTY_RESTRICT);
+	RegisterCharacter({"warpmeto", {"victim"}}, WarpMeTo, CMD_FLAG_DUTY_RESTRICT);
+	RegisterCharacter({"warptome", {"victim"}}, WarpToMe, CMD_FLAG_DUTY_RESTRICT);
 	RegisterAlias("w", "warp");
 COMMAND_HANDLER_REGISTER_END(warp)
 

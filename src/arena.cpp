@@ -162,26 +162,26 @@ void Arena::Attack(Character *from, Direction direction)
 
 			// TODO: The numbers here seem to be variable-sized
 
-			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC, 12 + from->name.length() + character->name.length());
+			PacketBuilder builder(PACKET_ARENA, PACKET_SPEC, 12 + from->SourceName().length() + character->SourceName().length());
 			builder.AddShort(0); // ?
 			builder.AddByte(255);
 			builder.AddChar(0); // ?
 			builder.AddByte(255);
 			builder.AddInt(from->arena_kills);
 			builder.AddByte(255);
-			builder.AddBreakString(from->name);
-			builder.AddBreakString(character->name);
+			builder.AddBreakString(from->SourceName());
+			builder.AddBreakString(character->SourceName());
 
 			if (from->arena->occupants == 2)
 			{
 				actions.push_back({from, this->map->id, this->map->relog_x, this->map->relog_y});
 
-				PacketBuilder builder(PACKET_ARENA, PACKET_ACCEPT, 8 + from->name.length() * 2 + character->name.length());
-				builder.AddBreakString(from->name);
+				PacketBuilder builder(PACKET_ARENA, PACKET_ACCEPT, 8 + from->SourceName().length() * 2 + character->SourceName().length());
+				builder.AddBreakString(from->SourceName());
 				builder.AddInt(from->arena_kills);
 				builder.AddByte(255);
-				builder.AddBreakString(from->name);
-				builder.AddBreakString(character->name);
+				builder.AddBreakString(from->SourceName());
+				builder.AddBreakString(character->SourceName());
 
 				UTIL_FOREACH(this->map->characters, character)
 				{

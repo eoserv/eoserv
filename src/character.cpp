@@ -338,8 +338,8 @@ Character::Character(std::string name, World *world)
 
 	Database_Result res = this->world->db.Query("SELECT `name`, `title`, `home`, `fiance`, `partner`, `admin`, `class`, `gender`, `race`, `hairstyle`, `haircolor`,"
 	"`map`, `x`, `y`, `direction`, `level`, `exp`, `hp`, `tp`, `str`, `int`, `wis`, `agi`, `con`, `cha`, `statpoints`, `skillpoints`, "
-	"`karma`, `sitting`, `hidden`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `guild_rank_string`, `quest`, `vars` "
-	"FROM `characters` WHERE `name` = '$'", name.c_str());
+	"`karma`, `sitting`, `hidden`, `bankmax`, `goldbank`, `usage`, `inventory`, `bank`, `paperdoll`, `spells`, `guild`, `guild_rank`, `guild_rank_string`, `quest`, `vars`, "
+	"`nointeract` FROM `characters` WHERE `name` = '$'", name.c_str());
 	std::unordered_map<std::string, util::variant> row = res.front();
 
 	this->login_time = std::time(0);
@@ -349,7 +349,7 @@ Character::Character(std::string name, World *world)
 	this->id = this->world->GenerateCharacterID();
 
 	this->admin = static_cast<AdminLevel>(GetRow<int>(row, "admin"));
-	this->name = GetRow<std::string>(row, "name");
+	this->real_name = GetRow<std::string>(row, "name");
 	this->title = GetRow<std::string>(row, "title");
 	this->home = GetRow<std::string>(row, "home");
 	this->fiance = GetRow<std::string>(row, "fiance");
@@ -454,6 +454,13 @@ Character::Character(std::string name, World *world)
 	this->attacks = 0;
 
 	this->quest_string = GetRow<std::string>(row, "quest");
+
+	this->nointeract = GetRow<int>(row, "nointeract");
+
+	if (this->admin >= static_cast<int>(world->config["NoInteractDefaultAdmin"]) && !(this->nointeract & NoInteractCustom))
+	{
+		this->nointeract = static_cast<int>(world->config["NoInteractDefault"]);
+	}
 }
 
 void Character::Login()
@@ -515,13 +522,13 @@ bool Character::ValidName(std::string name)
 
 void Character::Msg(Character *from, std::string message)
 {
-	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->SourceName()) + "  "));
 
-	from->AddChatLog("!", "to " + this->name, message);
-	this->AddChatLog("!", "from " + from->name, message);
+	from->AddChatLog("!", "to " + this->SourceName(), message);
+	this->AddChatLog("!", "from " + from->SourceName(), message);
 
-	PacketBuilder builder(PACKET_TALK, PACKET_TELL, 2 + from->name.length() + message.length());
-	builder.AddBreakString(from->name);
+	PacketBuilder builder(PACKET_TALK, PACKET_TELL, 2 + from->SourceName().length() + message.length());
+	builder.AddBreakString(from->SourceName());
 	builder.AddBreakString(message);
 	this->player->Send(builder);
 }
@@ -752,7 +759,8 @@ int Character::CanHoldItem(short itemid, int max_amount)
 {
 	int amount = max_amount;
 
-	if (int(this->world->config["EnforceWeight"]) >= 2)
+	if (int(this->world->config["EnforceWeight"]) >= 2
+	 && SourceDutyAccess() < static_cast<int>(world->config["unlimitedweight"]))
 	{
 		const EIF_Data &item = this->world->eif->Get(itemid);
 
@@ -1267,7 +1275,7 @@ void Character::Refresh()
 
 	UTIL_FOREACH(updatecharacters, character)
 	{
-		builder.AddBreakString(character->name);
+		builder.AddBreakString(character->SourceName());
 		builder.AddShort(character->player->id);
 		builder.AddShort(character->mapid);
 		builder.AddShort(character->x);
@@ -1333,7 +1341,7 @@ void Character::ShowBoard(Board *board)
 
 	UTIL_FOREACH(board->posts, post)
 	{
-		if (post->author == this->player->character->name)
+		if (post->author == this->player->character->SourceName())
 		{
 			++post_count;
 
@@ -1523,9 +1531,16 @@ void Character::CalculateStats(bool trigger_quests)
 		this->Send(builder);
 	}
 
-	if (this->maxweight < 70 || this->maxweight > 250)
+	if (this->SourceDutyAccess() >= static_cast<int>(world->admin_config["unlimitedweight"]))
 	{
-		this->maxweight = 250;
+		this->maxweight = 251;
+	}
+	else
+	{
+		if (this->maxweight < 70 || this->maxweight > 250)
+		{
+			this->maxweight = 250;
+		}
 	}
 
 	if (this->world->config["UseClassFormulas"])
@@ -1564,6 +1579,8 @@ void Character::CalculateStats(bool trigger_quests)
 
 void Character::DropAll(Character *killer)
 {
+	if (!CanInteractItems()) return;
+
 	std::list<Character_Item>::iterator it = this->inventory.begin();
 
 	while (it != this->inventory.end())
@@ -1976,30 +1993,40 @@ void Character::Save()
 	                               ? this->quest_string
 	                               : QuestSerialize(this->quests, this->quests_inactive);
 
+	int nointeract = this->nointeract;
+
+	if (!(nointeract & NoInteractCustom))
+		nointeract = 0;
+
 #ifdef DEBUG
-	Console::Dbg("Saving character '%s' (session lasted %i minutes)", this->name.c_str(), int(std::time(0) - this->login_time) / 60);
+	Console::Dbg("Saving character '%s' (session lasted %i minutes)", this->real_name.c_str(), int(std::time(0) - this->login_time) / 60);
 #endif // DEBUG
 	this->world->db.Query("UPDATE `characters` SET `title` = '$', `home` = '$', `fiance` = '$', `partner` = '$', `admin` = #, `class` = #, `gender` = #, `race` = #, "
 		"`hairstyle` = #, `haircolor` = #, `map` = #, `x` = #, `y` = #, `direction` = #, `level` = #, `exp` = #, `hp` = #, `tp` = #, "
 		"`str` = #, `int` = #, `wis` = #, `agi` = #, `con` = #, `cha` = #, `statpoints` = #, `skillpoints` = #, `karma` = #, `sitting` = #, `hidden` = #, "
-		"`bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
+		"`nointeract` = #, `bankmax` = #, `goldbank` = #, `usage` = #, `inventory` = '$', `bank` = '$', `paperdoll` = '$', "
 		"`spells` = '$', `guild` = '$', `guild_rank` = #, `guild_rank_string` = '$', `quest` = '$', `vars` = '$' WHERE `name` = '$'",
 		this->title.c_str(), this->home.c_str(), this->fiance.c_str(), this->partner.c_str(), int(this->admin), this->clas, int(this->gender), int(this->race),
 		this->hairstyle, this->haircolor, this->mapid, this->x, this->y, int(this->direction), this->level, this->exp, this->hp, this->tp,
 		this->str, this->intl, this->wis, this->agi, this->con, this->cha, this->statpoints, this->skillpoints, this->karma, int(this->sitting), int(this->hidden),
-		this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
+		nointeract, this->bankmax, this->goldbank, this->Usage(), ItemSerialize(this->inventory).c_str(), ItemSerialize(this->bank).c_str(),
 		DollSerialize(this->paperdoll).c_str(), SpellSerialize(this->spells).c_str(), (this->guild ? this->guild->tag.c_str() : ""),
-		this->guild_rank, this->guild_rank_string.c_str(), quest_data.c_str(), "", this->name.c_str());
+		this->guild_rank, this->guild_rank_string.c_str(), quest_data.c_str(), "", this->real_name.c_str());
 }
 
 AdminLevel Character::SourceAccess() const
+{
+	return world->config["UseDutyAdmin"] ? player->Admin() : admin;
+}
+
+AdminLevel Character::SourceDutyAccess() const
 {
 	return admin;
 }
 
 std::string Character::SourceName() const
 {
-	return name;
+	return faux_name.empty() ? real_name : faux_name;
 }
 
 Character* Character::SourceCharacter()

@@ -44,6 +44,11 @@ template <class T> struct empty_vector_init
 	explicit operator std::vector<T>&&() { return std::move(v); }
 };
 
+enum command_flags
+{
+	CMD_FLAG_DUTY_RESTRICT = 0x01
+};
+
 struct command_info
 {
 	std::string name;
@@ -51,6 +56,7 @@ struct command_info
 	std::vector<std::string> optional_arguments;
 	std::size_t partial_min_chars;
 	bool require_character;
+	bool duty_restrict;
 
 	command_info(std::string name, empty_vector_init<std::string> arguments = empty_vector_init<std::string>(),
 	             empty_vector_init<std::string> optional_arguments = empty_vector_init<std::string>(), std::size_t partial_min_chars = 0)
@@ -59,6 +65,7 @@ struct command_info
 		, optional_arguments(optional_arguments)
 		, partial_min_chars(partial_min_chars)
 		, require_character(false)
+		, duty_restrict(false)
 	{ }
 };
 
@@ -93,7 +100,7 @@ class command_handler_register
 		std::unordered_map<std::string, std::string> aliases;
 
 	public:
-		void Register(command_handler handler);
+		void Register(command_handler handler, int flags);
 		void RegisterAlias(const std::string& alias, const std::string& command);
 
 		bool Handle(std::string command, const std::vector<std::string>& arguments, Command_Source* from, int alias_depth = 0) const;
@@ -127,14 +134,14 @@ class command_handler_register_init
 class command_handler_register_helper
 {
 	public:
-		template <class F> void Register(command_info info, const F& f)
+		template <class F> void Register(command_info info, const F& f, int flags = 0)
 		{
-			command_handler_register_instance->Register(command_handler(info, std::function<void(const std::vector<std::string>&, Command_Source*)>(f)));
+			command_handler_register_instance->Register(command_handler(info, std::function<void(const std::vector<std::string>&, Command_Source*)>(f)), flags);
 		}
 
-		template <class F>  void RegisterCharacter(command_info info, const F& f)
+		template <class F>  void RegisterCharacter(command_info info, const F& f, int flags = 0)
 		{
-			command_handler_register_instance->Register(command_handler(info, std::function<void(const std::vector<std::string>&, Character*)>(f)));
+			command_handler_register_instance->Register(command_handler(info, std::function<void(const std::vector<std::string>&, Character*)>(f)), flags);
 		}
 
 		void RegisterAlias(const std::string& alias, const std::string& command)

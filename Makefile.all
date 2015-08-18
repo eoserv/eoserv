@@ -61,6 +61,7 @@ OBJ += $(OBJDIR)/arena.o \
        $(OBJDIR)/eoplus/parse.o \
        $(OBJDIR)/eoplus/lex.o \
        $(OBJDIR)/extra/seose_compat.o \
+       $(OBJDIR)/commands/admin.o \
        $(OBJDIR)/commands/commands.o \
        $(OBJDIR)/commands/char_mod.o \
        $(OBJDIR)/commands/debug.o \

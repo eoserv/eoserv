@@ -57,7 +57,7 @@ Guild_Create::Guild_Create(GuildManager *manager, std::string tag, std::string n
 	this->name = name;
 	this->leader = leader;
 
-	this->AddMember(leader->name, 0);
+	this->AddMember(leader->real_name, 0);
 }
 
 Guild_Member *Guild_Create::GetMember(std::string character)
@@ -110,7 +110,7 @@ std::shared_ptr<Guild> GuildManager::GetGuild(std::string tag)
 		std::shared_ptr<Guild> guild(new Guild(this));
 		guild->tag = static_cast<std::string>(row["tag"]);
 		guild->name = static_cast<std::string>(row["name"]);
-		guild->description = static_cast<std::string>(row["description"]);
+		guild->description = util::text_word_wrap(static_cast<std::string>(row["description"]), this->world->config["GuildMaxWidth"]);
 		guild->created = static_cast<int>(row["created"]);
 		guild->ranks = RankUnserialize(static_cast<std::string>(row["ranks"]));
 		guild->bank = static_cast<int>(row["bank"]);
@@ -218,7 +218,7 @@ std::shared_ptr<Guild> GuildManager::CreateGuild(std::shared_ptr<Guild_Create> c
 	{
 		UTIL_FOREACH(create->members, member)
 		{
-			Character *character = this->world->GetCharacter(member->name);
+			Character *character = this->world->GetCharacterReal(member->name);
 
 			if (character)
 			{
@@ -335,7 +335,7 @@ void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int r
 	joined->guild_rank = rank;
 	joined->guild_rank_string = this->GetRank(rank);
 
-	this->members.push_back(std::make_shared<Guild_Member>(joined->name, rank, joined->guild_rank_string));
+	this->members.push_back(std::make_shared<Guild_Member>(joined->real_name, rank, joined->guild_rank_string));
 
 	if (recruiter != joined) // Leader of new guild
 	{
@@ -351,12 +351,12 @@ void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int r
 
 	if (alert && this->manager->world->config["GuildAnnounce"])
 	{
-		std::string name = joined->name;
+		std::string name = joined->real_name;
 
 		std::string msg = manager->world->i18n.Format("guild_join", util::ucfirst(name));
 
 		if (recruiter)
-			msg += " " + manager->world->i18n.Format("guild_recruit", util::ucfirst(recruiter->name));
+			msg += " " + manager->world->i18n.Format("guild_recruit", util::ucfirst(recruiter->real_name));
 
 		this->Msg(0, msg);
 	}
@@ -371,7 +371,7 @@ void Guild::DelMember(std::string kicked, Character *kicker, bool alert)
 		std::string msg = manager->world->i18n.Format("guild_leave", util::ucfirst(kicked));
 
 		if (kicker)
-			msg += " " + manager->world->i18n.Format("guild_kick", util::ucfirst(kicker->name));
+			msg += " " + manager->world->i18n.Format("guild_kick", util::ucfirst(kicker->real_name));
 
 		this->Msg(0, msg);
 	}
@@ -397,7 +397,7 @@ void Guild::DelMember(std::string kicked, Character *kicker, bool alert)
 		{
 			UTIL_FOREACH(eoclient->player->characters, character)
 			{
-				if (character->name == kicked)
+				if (character->real_name == kicked)
 				{
 					character->guild.reset();
 					character->guild_rank = 0;
@@ -437,7 +437,7 @@ void Guild::SetMemberRank(std::string name, int rank)
 			{
 				UTIL_FOREACH(eoclient->player->characters, character)
 				{
-					if (character->name == name)
+					if (character->real_name == name)
 					{
 						character->guild_rank = rank;
 						character->guild_rank_string = rank_str;
@@ -481,7 +481,7 @@ void Guild::Disband(Character* disbander)
 
 	if (this->manager->world->config["GuildAnnounce"])
 	{
-		this->Msg(0, manager->world->i18n.Format("guild_disband", util::ucfirst(disbander->name)));
+		this->Msg(0, manager->world->i18n.Format("guild_disband", util::ucfirst(disbander->real_name)));
 	}
 
 	std::shared_ptr<Guild> guild(shared_from_this());
@@ -524,9 +524,9 @@ void Guild::SetDescription(std::string description)
 
 void Guild::Msg(Character *from, std::string message, bool echo)
 {
-	message = util::text_cap(message, static_cast<int>(this->manager->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->name : "Server") + "  "));
+	message = util::text_cap(message, static_cast<int>(this->manager->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from ? from->SourceName() : "Server") + "  "));
 
-	std::string from_name = from ? from->name : "Server";
+	std::string from_name = from ? from->SourceName() : "Server";
 
 	PacketBuilder builder(PACKET_TALK, PACKET_REQUEST, 2 + from_name.length() + message.length());
 	builder.AddBreakString(from_name);

@@ -111,9 +111,9 @@ void Guild_Accept(Character *character, PacketReader &reader)
 
 		if (create)
 		{
-			create->AddMember(character->name);
+			create->AddMember(character->real_name);
 
-			PacketBuilder builder(PACKET_GUILD, PACKET_REPLY, 2 + character->name.length());
+			PacketBuilder builder(PACKET_GUILD, PACKET_REPLY, 2 + character->real_name.length());
 
 			if (create->members.size() == static_cast<std::size_t>(static_cast<int>(character->world->config["GuildCreateMembers"])))
 			{
@@ -124,7 +124,7 @@ void Guild_Accept(Character *character, PacketReader &reader)
 				builder.AddShort(GUILD_CREATE_ADD);
 			}
 
-			builder.AddString(character->name);
+			builder.AddString(character->real_name);
 			create->leader->Send(builder);
 		}
 
@@ -142,7 +142,7 @@ void Guild_Remove(Character *character, PacketReader &reader)
 	{
 		if (character->guild)
 		{
-			character->guild->DelMember(character->name, 0, true);
+			character->guild->DelMember(character->real_name, 0, true);
 		}
 	}
 }
@@ -277,7 +277,7 @@ void Guild_Player(Character *character, PacketReader &reader)
 	{
 		if (!character->guild)
 		{
-			Character *recruiter = character->world->GetCharacter(recruiter_name);
+			Character *recruiter = character->world->GetCharacterReal(recruiter_name);
 
 			if (recruiter)
 			{
@@ -289,10 +289,10 @@ void Guild_Player(Character *character, PacketReader &reader)
 						{
 							character->guild_join = tag;
 
-							PacketBuilder builder(PACKET_GUILD, PACKET_REPLY, 4 + character->name.length());
+							PacketBuilder builder(PACKET_GUILD, PACKET_REPLY, 4 + character->real_name.length());
 							builder.AddShort(GUILD_JOIN_REQUEST);
 							builder.AddShort(character->player->id);
-							builder.AddString(util::ucfirst(character->name));
+							builder.AddString(util::ucfirst(character->real_name));
 							recruiter->Send(builder);
 						}
 						else

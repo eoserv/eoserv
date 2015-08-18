@@ -24,7 +24,7 @@ void Board_Remove(Character *character, PacketReader &reader)
 
 	if (character->board)
 	{
-		if (character->admin < static_cast<int>(character->world->admin_config["boardmod"]))
+		if (character->SourceAccess() < static_cast<int>(character->world->admin_config["boardmod"]))
 		{
 			// Not in the official EO servers, but nice to use
 			character->ShowBoard();
@@ -36,7 +36,7 @@ void Board_Remove(Character *character, PacketReader &reader)
 			if ((*post)->id == postid)
 			{
 				if ((*post)->author_admin < character->admin
-				 || (*post)->author == character->name)
+				 || (*post)->author == character->SourceName())
 				{
 					character->board->posts.erase(post);
 				}
@@ -75,7 +75,7 @@ void Board_Create(Character *character, PacketReader &reader)
 	{
 		UTIL_FOREACH(character->board->posts, post)
 		{
-			if (post->author == character->name)
+			if (post->author == character->SourceName())
 			{
 				++post_count;
 
@@ -102,7 +102,7 @@ void Board_Create(Character *character, PacketReader &reader)
 
 		Board_Post *newpost = new Board_Post;
 		newpost->id = ++character->board->last_id;
-		newpost->author = character->name;
+		newpost->author = character->SourceName();
 		newpost->author_admin = character->admin;
 		newpost->subject = subject;
 		newpost->body = body;
@@ -163,7 +163,7 @@ void Board_Open(Character *character, PacketReader &reader)
 	}
 
 	if (boardid != static_cast<int>(character->world->config["AdminBoard"]) - 1
-	 || character->admin >= static_cast<int>(character->world->admin_config["reports"]))
+	 || character->SourceAccess() >= static_cast<int>(character->world->admin_config["reports"]))
 	{
 		for (std::size_t y = 0; y < character->map->height; ++y)
 		{

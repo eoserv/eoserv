@@ -37,7 +37,7 @@ Party::Party(World *world, Character *leader, Character *other)
 
 void Party::Msg(Character *from, std::string message, bool echo)
 {
-	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->name) + "  "));
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->SourceName()) + "  "));
 
 	PacketBuilder builder(PACKET_TALK, PACKET_OPEN, 2 + message.length());
 
@@ -46,7 +46,7 @@ void Party::Msg(Character *from, std::string message, bool echo)
 
 	UTIL_FOREACH(this->members, member)
 	{
-		member->AddChatLog("'", from->name, message);
+		member->AddChatLog("'", from->SourceName(), message);
 
 		if (!echo && member == from)
 			continue;
@@ -61,12 +61,12 @@ void Party::Join(Character *character)
 
 	this->members.push_back(character);
 
-	PacketBuilder builder(PACKET_PARTY, PACKET_ADD, 5 + character->name.length());
+	PacketBuilder builder(PACKET_PARTY, PACKET_ADD, 5 + character->SourceName().length());
 	builder.AddShort(character->player->id);
 	builder.AddChar(character == this->leader);
 	builder.AddChar(character->level);
 	builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
-	builder.AddString(character->name);
+	builder.AddString(character->SourceName());
 
 	UTIL_FOREACH(this->members, checkcharacter)
 	{
@@ -127,7 +127,7 @@ void Party::RefreshMembers(Character *character, bool create)
 		builder.AddChar(member == this->leader);
 		builder.AddChar(member->level);
 		builder.AddChar(util::clamp<int>(double(member->hp) / double(member->maxhp) * 100.0, 0, 100));
-		builder.AddBreakString(member->name);
+		builder.AddBreakString(member->SourceName());
 	}
 
 	character->Send(builder);
@@ -153,6 +153,9 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 
 	UTIL_FOREACH(this->members, member)
 	{
+		if (!member->CanInteractCombat())
+			continue;
+
 		if (member->map == map && !member->nowhere)
 		{
 			if (member->level == 0)
@@ -167,8 +170,14 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 		}
 	}
 
+	if (members == 0 || sumlevel == 0)
+		return;
+
 	UTIL_FOREACH(this->members, member)
 	{
+		if (!member->CanInteractCombat())
+			continue;
+
 		if (member->map != map || member->nowhere)
 		{
 			continue;

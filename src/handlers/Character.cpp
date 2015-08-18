@@ -76,7 +76,7 @@ void Character_Create(Player *player, PacketReader &reader)
 		reply.AddByte(255);
 		UTIL_FOREACH(player->characters, character)
 		{
-			reply.AddBreakString(character->name);
+			reply.AddBreakString(character->SourceName());
 			reply.AddInt(character->id);
 			reply.AddChar(character->level);
 			reply.AddChar(character->gender);
@@ -107,8 +107,8 @@ void Character_Remove(Player *player, PacketReader &reader)
 	if (it == player->characters.end())
 		return;
 
-	player->world->DeleteCharacter((*it)->name);
-	Console::Out("Deleted character: %s (%s)", (*it)->name.c_str(), player->username.c_str());
+	player->world->DeleteCharacter((*it)->real_name);
+	Console::Out("Deleted character: %s (%s)", (*it)->real_name.c_str(), player->username.c_str());
 
 	if ((*it)->admin > 0)
 		player->world->DecAdminCount();
@@ -122,7 +122,7 @@ void Character_Remove(Player *player, PacketReader &reader)
 	reply.AddByte(255);
 	UTIL_FOREACH(player->characters, character)
 	{
-		reply.AddBreakString(character->name);
+		reply.AddBreakString(character->SourceName());
 		reply.AddInt(character->id);
 		reply.AddChar(character->level);
 		reply.AddChar(character->gender);

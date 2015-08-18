@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS `characters`
 	`karma`       INTEGER     NOT NULL DEFAULT 1000,
 	`sitting`     INTEGER     NOT NULL DEFAULT 0,
 	`hidden`      INTEGER     NOT NULL DEFAULT 0,
+	`nointeract`  INTEGER     NOT NULL DEFAULT 0,
 	`bankmax`     INTEGER     NOT NULL DEFAULT 0,
 	`goldbank`    INTEGER     NOT NULL DEFAULT 0,
 	`usage`       INTEGER     NOT NULL DEFAULT 0,

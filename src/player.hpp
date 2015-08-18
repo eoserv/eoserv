@@ -30,6 +30,8 @@ class Player
 		unsigned int id;
 		std::string username;
 
+		std::string dutylast;
+
 		Player(std::string username, World *);
 
 		std::vector<Character *> characters;
@@ -38,6 +40,8 @@ class Player
 		static bool ValidName(std::string username);
 		bool AddCharacter(std::string name, Gender gender, int hairstyle, int haircolor, Skin race);
 		void ChangePass(util::secure_string&& password);
+
+		AdminLevel Admin() const;
 
 		void Send(const PacketBuilder &);
 

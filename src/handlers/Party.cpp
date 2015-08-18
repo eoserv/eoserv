@@ -30,10 +30,10 @@ void Party_Request(Character *character, PacketReader &reader)
 	if (!invitee || character == invitee || !character->InRange(invitee))
 		return;
 
-	PacketBuilder builder(PACKET_PARTY, PACKET_REQUEST, 3 + character->name.length());
+	PacketBuilder builder(PACKET_PARTY, PACKET_REQUEST, 3 + character->SourceName().length());
 	builder.AddChar(type);
 	builder.AddShort(character->player->id);
-	builder.AddString(character->name);
+	builder.AddString(character->SourceName());
 
 	invitee->Send(builder);
 

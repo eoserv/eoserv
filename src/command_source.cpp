@@ -17,6 +17,11 @@ AdminLevel System_Command_Source::SourceAccess() const
 	return ADMIN_HGM;
 }
 
+AdminLevel System_Command_Source::SourceDutyAccess() const
+{
+	return ADMIN_HGM;
+}
+
 std::string System_Command_Source::SourceName() const
 {
 	return "server";

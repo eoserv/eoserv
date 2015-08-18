@@ -92,7 +92,7 @@ void Talk_Tell(Character *character, PacketReader &reader)
 		}
 		else
 		{
-			character->Msg(to, character->world->i18n.Format("whisper_blocked", to->name));
+			character->Msg(to, character->world->i18n.Format("whisper_blocked", to->SourceName()));
 		}
 	}
 	else
@@ -117,7 +117,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 		return;
 	}
 
-	if (character->admin && message[0] == '$')
+	if (character->SourceAccess() && message[0] == '$')
 	{
 		std::string command;
 		std::vector<std::string> arguments = util::explode(' ', message);
@@ -135,7 +135,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 // Admin chat message
 void Talk_Admin(Character *character, PacketReader &reader)
 {
-	if (character->admin < ADMIN_GUARDIAN) return;
+	if (character->SourceAccess() < ADMIN_GUARDIAN) return;
 	if (character->muted_until > time(0)) return;
 
 	std::string message = reader.GetEndString(); // message
@@ -147,7 +147,7 @@ void Talk_Admin(Character *character, PacketReader &reader)
 // Announcement message
 void Talk_Announce(Character *character, PacketReader &reader)
 {
-	if (character->admin < ADMIN_GUARDIAN) return;
+	if (character->SourceAccess() < ADMIN_GUARDIAN) return;
 	if (character->muted_until > time(0)) return;
 
 	std::string message = reader.GetEndString(); // message

@@ -25,7 +25,7 @@ static void do_punishment(Command_Source* from, Character* victim, std::function
 	}
 	else
 	{
-		if (victim->admin < from->SourceAccess())
+		if (victim->SourceAccess() < from->SourceAccess())
 		{
 			f(world, from, victim, announce);
 		}
@@ -69,6 +69,22 @@ void Jail(const std::vector<std::string>& arguments, Command_Source* from, bool 
 	do_punishment(from, victim, std::mem_fn(&World::Jail), announce);
 }
 
+void Unjail(const std::vector<std::string>& arguments, Command_Source* from)
+{
+	Character* victim = from->SourceWorld()->GetCharacter(arguments[0]);
+
+	if (victim->mapid != static_cast<int>(from->SourceWorld()->config["JailMap"]))
+	{
+		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
+		return;
+	}
+
+	do_punishment(from, victim, [](World* world, Command_Source* from, Character* victim, bool announce)
+		{
+			world->Unjail(from, victim);
+		}, false);
+}
+
 void Mute(const std::vector<std::string>& arguments, Command_Source* from, bool announce = true)
 {
 	Character* victim = from->SourceWorld()->GetCharacter(arguments[0]);
@@ -83,12 +99,14 @@ COMMAND_HANDLER_REGISTER(moderation)
 	Register({"sban", {"victim"}, {"duration"}, 2}, std::bind(Ban, _1, _2, false));
 	Register({"jail", {"victim"}, {}}, std::bind(Jail, _1, _2, true));
 	Register({"sjail", {"victim"}, {}, 2}, std::bind(Jail, _1, _2, false));
+	Register({"unjail", {"victim"}, {}}, Unjail);
 	Register({"mute", {"victim"}, {}}, std::bind(Mute, _1, _2, true));
 	Register({"smute", {"victim"}, {}, 2}, std::bind(Mute, _1, _2, false));
 
 	RegisterAlias("k", "kick");
 	RegisterAlias("b", "ban");
 	RegisterAlias("j", "jail");
+	RegisterAlias("u", "unjail");
 	RegisterAlias("m", "mute");
 COMMAND_HANDLER_REGISTER_END(moderation)
 

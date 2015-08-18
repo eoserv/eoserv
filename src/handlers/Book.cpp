@@ -31,10 +31,10 @@ void Book_Request(Character *character, PacketReader &reader)
 	std::string rank_str = target->GuildRankString();
 
 	PacketBuilder reply(PACKET_BOOK, PACKET_REPLY,
-		13 + target->name.length() + home_str.length() + target->partner.length() + target->title.length()
+		13 + target->SourceName().length() + home_str.length() + target->partner.length() + target->title.length()
 		+ guild_str.length() + rank_str.length());
 
-	reply.AddBreakString(target->name);
+	reply.AddBreakString(target->SourceName());
 	reply.AddBreakString(home_str);
 	reply.AddBreakString(target->partner);
 	reply.AddBreakString(target->title);

@@ -78,7 +78,7 @@ bool Player::AddCharacter(std::string name, Gender gender, int hairstyle, int ha
 
 	if (this->world->admin_count == 0 && this->world->config["FirstCharacterAdmin"])
 	{
-		Console::Out("%s has been given HGM admin status!", newchar->name.c_str());
+		Console::Out("%s has been given HGM admin status!", newchar->real_name.c_str());
 		newchar->admin = ADMIN_HGM;
 		this->world->IncAdminCount();
 	}
@@ -96,6 +96,18 @@ void Player::ChangePass(util::secure_string&& password)
 	}
 
 	this->world->db.Query("UPDATE `accounts` SET `password` = '$' WHERE username = '$'", password.str().c_str(), this->username.c_str());
+}
+
+AdminLevel Player::Admin() const
+{
+	AdminLevel admin = ADMIN_PLAYER;
+
+	for (const Character* c : this->characters)
+	{
+		admin = std::max(admin, c->admin);
+	}
+
+	return admin;
 }
 
 void Player::Send(const PacketBuilder &builder)

@@ -27,9 +27,10 @@ void Inventory(const std::vector<std::string>& arguments, Character* from)
 	}
 	else
 	{
-		if (victim->admin < int(from->world->admin_config["cmdprotect"]) || victim->admin <= from->SourceAccess())
+		if (victim->SourceAccess() < int(from->world->admin_config["cmdprotect"])
+		 || victim->SourceAccess() <= from->SourceAccess())
 		{
-			std::string name = util::ucfirst(victim->name);
+			std::string name = util::ucfirst(victim->SourceName());
 
 			PacketBuilder reply(PACKET_ADMININTERACT, PACKET_LIST, 32 + name.length() + victim->inventory.size() * 6 + victim->bank.size() * 7);
 
@@ -86,10 +87,10 @@ void Paperdoll(const std::vector<std::string>& arguments, Character* from)
 		std::string rank_str = victim->GuildRankString();
 
 		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REPLY,
-			12 + victim->name.length() + home_str.length() + victim->partner.length() + victim->title.length()
+			12 + victim->SourceName().length() + home_str.length() + victim->partner.length() + victim->title.length()
 			+ guild_str.length() + rank_str.length() + victim->paperdoll.size() * 2);
 
-		reply.AddBreakString(victim->name);
+		reply.AddBreakString(victim->SourceName());
 		reply.AddBreakString(home_str);
 		reply.AddBreakString(victim->partner);
 		reply.AddBreakString(victim->title);
@@ -105,7 +106,7 @@ void Paperdoll(const std::vector<std::string>& arguments, Character* from)
 			reply.AddShort(item);
 		}
 
-		if (victim->admin >= ADMIN_HGM && !victim->IsHideAdmin())
+		if (victim->SourceDutyAccess() >= ADMIN_HGM && !victim->IsHideAdmin())
 		{
 			if (victim->party)
 			{
@@ -116,7 +117,7 @@ void Paperdoll(const std::vector<std::string>& arguments, Character* from)
 				reply.AddChar(ICON_HGM);
 			}
 		}
-		else if (victim->admin >= ADMIN_GUIDE && !victim->IsHideAdmin())
+		else if (victim->SourceDutyAccess() >= ADMIN_GUIDE && !victim->IsHideAdmin())
 		{
 			if (victim->party)
 			{
@@ -158,10 +159,10 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 		std::string rank_str = victim->GuildRankString();
 
 		PacketBuilder reply(PACKET_BOOK, PACKET_REPLY,
-			13 + victim->name.length() + home_str.length() + victim->partner.length() + victim->title.length()
+			13 + victim->SourceName().length() + home_str.length() + victim->partner.length() + victim->title.length()
 			+ guild_str.length() + rank_str.length());
 
-		reply.AddBreakString(victim->name);
+		reply.AddBreakString(victim->SourceName());
 		reply.AddBreakString(home_str);
 		reply.AddBreakString(victim->partner);
 		reply.AddBreakString(victim->title);
@@ -172,7 +173,7 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 		reply.AddChar(victim->gender);
 		reply.AddChar(0);
 
-		if (victim->admin >= ADMIN_HGM)
+		if (victim->SourceDutyAccess() >= ADMIN_HGM)
 		{
 			if (victim->party)
 			{
@@ -183,7 +184,7 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 				reply.AddChar(ICON_HGM);
 			}
 		}
-		else if (victim->admin >= ADMIN_GUIDE)
+		else if (victim->SourceDutyAccess() >= ADMIN_GUIDE)
 		{
 			if (victim->party)
 			{
@@ -238,9 +239,10 @@ void Info(const std::vector<std::string>& arguments, Character* from)
 	}
 	else
 	{
-		if (victim->admin < int(from->world->admin_config["cmdprotect"]) || victim->admin <= from->SourceAccess())
+		if (victim->SourceAccess() < int(from->world->admin_config["cmdprotect"])
+		 || victim->SourceAccess() <= from->SourceAccess())
 		{
-			std::string name = util::ucfirst(victim->name);
+			std::string name = util::ucfirst(victim->SourceName());
 
 			PacketBuilder reply(PACKET_ADMININTERACT, PACKET_TELL, 85 + name.length());
 

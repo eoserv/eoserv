@@ -18,6 +18,7 @@ namespace Handlers
 void Chest_Add(Character *character, PacketReader &reader)
 {
 	if (character->trading) return;
+	if (!character->CanInteractItems()) return;
 
 	int x = reader.GetChar();
 	int y = reader.GetChar();

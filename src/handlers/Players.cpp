@@ -72,7 +72,7 @@ void Players_List(EOClient *client, PacketReader &reader)
 			continue;
 		}
 
-		reply.AddBreakString(character->name);
+		reply.AddBreakString(character->SourceName());
 
 		// Full information is not sent for friends list requests
 		if (!is_friends_list)

@@ -162,7 +162,9 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "StartY"             , 0);
 	eoserv_config_default(config, "JailMap"            , 76);
 	eoserv_config_default(config, "JailX"              , 6);
-	eoserv_config_default(config, "JailY"              , 5);
+	eoserv_config_default(config, "JailY"              , 7);
+	eoserv_config_default(config, "UnJailX"            , 8);
+	eoserv_config_default(config, "UnJailY"            , 11);
 	eoserv_config_default(config, "StartItems"         , "");
 	eoserv_config_default(config, "StartSpells"        , "");
 	eoserv_config_default(config, "StartEquipMale"     , "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,");
@@ -212,6 +214,9 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "TradeAddQuantity"   , false);
 	eoserv_config_default(config, "LogReports"         , false);
 	eoserv_config_default(config, "ReportChatLogSize"  , 25);
+	eoserv_config_default(config, "UseDutyAdmin"       , false);
+	eoserv_config_default(config, "NoInteractDefault"  , 0);
+	eoserv_config_default(config, "NoInteractDefaultAdmin", 2);
 	eoserv_config_default(config, "NPCMovementRate"    , "0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0");
 	eoserv_config_default(config, "DoorTimer"          , 3.0);
 	eoserv_config_default(config, "ChatMaxWidth"       , 1400);
@@ -257,6 +262,7 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "kick"          , 1);
 	eoserv_config_default(config, "skick"         , 3);
 	eoserv_config_default(config, "jail"          , 1);
+	eoserv_config_default(config, "unjail"        , 1);
 	eoserv_config_default(config, "sjail"         , 3);
 	eoserv_config_default(config, "ban"           , 2);
 	eoserv_config_default(config, "sban"          , 3);
@@ -308,10 +314,12 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "dress"         , 2);
 	eoserv_config_default(config, "undress"       , 2);
 	eoserv_config_default(config, "dress2"        , 3);
+	eoserv_config_default(config, "duty"          , 3);
 	eoserv_config_default(config, "killnpc"       , 4);
 	eoserv_config_default(config, "boardmod"      , 1);
 	eoserv_config_default(config, "reports"       , 1);
 	eoserv_config_default(config, "nowall"        , 2);
 	eoserv_config_default(config, "seehide"       , 3);
 	eoserv_config_default(config, "cmdprotect"    , 3);
+	eoserv_config_default(config, "unlimitedweight", 3);
 }

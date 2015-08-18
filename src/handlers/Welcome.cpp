@@ -45,7 +45,7 @@ void Welcome_Request(Player *player, PacketReader &reader)
 	std::string guild_rank = player->character->GuildRankString();
 
 	PacketBuilder reply(PACKET_WELCOME, PACKET_REPLY,
-		114 + player->character->paperdoll.size() * 2 + player->character->name.length() + player->character->title.length()
+		114 + player->character->paperdoll.size() * 2 + player->character->SourceName().length() + player->character->title.length()
 		+ guild_str.length() + guild_rank.length());
 
 	reply.AddShort(1); // REPLY_WELCOME sub-id
@@ -91,7 +91,7 @@ void Welcome_Request(Player *player, PacketReader &reader)
 	reply.AddByte(player->world->ecf->rid[3]);
 	reply.AddByte(player->world->ecf->len[0]);
 	reply.AddByte(player->world->ecf->len[1]);
-	reply.AddBreakString(player->character->name);
+	reply.AddBreakString(player->character->SourceName());
 	reply.AddBreakString(player->character->title);
 	reply.AddBreakString(guild_str); // Guild Name
 	reply.AddBreakString(guild_rank); // Guild Rank
@@ -112,24 +112,23 @@ void Welcome_Request(Player *player, PacketReader &reader)
 		lowest_command = std::min<AdminLevel>(lowest_command, static_cast<AdminLevel>(util::to_int(ac.second)));
 	}
 
-	if (player->character->admin >= static_cast<int>(player->world->admin_config["seehide"])
-	 && player->character->admin < ADMIN_HGM)
+	if (player->character->SourceAccess() >= static_cast<int>(player->world->admin_config["seehide"])
+	 && player->character->SourceAccess() < ADMIN_HGM)
 	{
 		reply.AddChar(ADMIN_HGM);
 	}
-	else if (player->character->admin >= static_cast<int>(player->world->admin_config["nowall"])
-	 && player->character->admin < ADMIN_GM)
+	else if (player->character->SourceDutyAccess() >= static_cast<int>(player->world->admin_config["nowall"])
+	 && player->character->SourceDutyAccess() < ADMIN_GM)
 	{
 		reply.AddChar(ADMIN_GM);
 	}
-	else if (player->character->admin >= lowest_command
-	 && player->character->admin < ADMIN_GUIDE)
+	else if (player->character->SourceAccess() >= lowest_command && player->character->SourceAccess() < ADMIN_GUIDE)
 	{
 		reply.AddChar(ADMIN_GUIDE);
 	}
 	else
 	{
-		reply.AddChar(player->character->admin);
+		reply.AddChar(player->character->SourceAccess());
 	}
 
 	reply.AddChar(player->character->level);
@@ -209,12 +208,12 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 	{
 		if (player->character->world->GetMap(player->character->SpawnMap())->exists)
 		{
-			Console::Wrn("Player logged in to non-existent map (%s, map %i) - Position reset", player->character->name.c_str(), player->character->mapid);
+			Console::Wrn("Player logged in to non-existent map (%s, map %i) - Position reset", player->character->real_name.c_str(), player->character->mapid);
 			player->character->Warp(player->character->SpawnMap(), player->character->SpawnX(), player->character->SpawnY());
 		}
 		else
 		{
-			Console::Wrn("Player logged in to non-existent map (%s, map %i) - Disconnected", player->character->name.c_str(), player->character->mapid);
+			Console::Wrn("Player logged in to non-existent map (%s, map %i) - Disconnected", player->character->real_name.c_str(), player->character->mapid);
 			player->client->Close();
 			return;
 		}
@@ -323,7 +322,7 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 	reply.AddByte(255);
 	UTIL_FOREACH(updatecharacters, character)
 	{
-		reply.AddBreakString(character->name);
+		reply.AddBreakString(character->SourceName());
 		reply.AddShort(character->player->id);
 		reply.AddShort(character->mapid);
 		reply.AddShort(character->x);

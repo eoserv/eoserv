@@ -149,12 +149,23 @@ class Character : public Command_Source
 
 		static constexpr int HideAll = 0x1F;
 
+		enum NoInteractFlag
+		{
+			NoInteractCustom  = 0x01,
+			NoInteractItems   = 0x02,
+			NoInteractCombat  = 0x04,
+			NoInteractDoors   = 0x08,
+			NoInteractCharMod = 0x10
+		};
+
+		static constexpr int NoInteractAll = 0xFFFF;
+
 		int login_time;
 		bool online;
 		bool nowhere;
 		unsigned int id;
 		AdminLevel admin;
-		std::string name;
+		std::string real_name;
 		std::string title;
 		std::string home;
 		std::string fiance;
@@ -176,12 +187,15 @@ class Character : public Command_Source
 		short karma;
 		SitState sitting;
 		int hidden;
+		int nointeract;
 		bool whispers;
 		int bankmax;
 		int goldbank;
 		int usage;
 		int muted_until;
 		bool bot;
+
+		std::string faux_name;
 
 		Arena *next_arena;
 		Arena *arena;
@@ -269,6 +283,11 @@ class Character : public Command_Source
 		bool IsHideAdmin() const { return hidden & HideAdmin; }
 		bool IsHideWarp() const { return hidden & HideWarp; }
 
+		bool CanInteractItems() const { return !(nointeract & NoInteractItems); }
+		bool CanInteractCombat() const { return !(nointeract & NoInteractCombat); }
+		bool CanInteractDoors() const { return !(nointeract & NoInteractDoors); }
+		bool CanInteractCharMod() const { return !(nointeract & NoInteractCharMod); }
+
 		void Login();
 
 		static bool ValidName(std::string name);
@@ -301,8 +320,7 @@ class Character : public Command_Source
 		bool Equip(short item, unsigned char subloc);
 		bool InRange(unsigned char x, unsigned char y) const;
 		bool InRange(const Character *) const;
-		bool InRange(const NPC *) const;
-		bool InRange(const Map_Item&) const;
+		bool InRange(const NPC *) const;		bool InRange(const Map_Item&) const;
 		void Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation = WARP_ANIMATION_NONE);
 		void Refresh();
 		void ShowBoard(Board *board = 0);
@@ -340,6 +358,7 @@ class Character : public Command_Source
 		void Save();
 
 		AdminLevel SourceAccess() const;
+		AdminLevel SourceDutyAccess() const;
 		std::string SourceName() const;
 		Character* SourceCharacter();
 		World* SourceWorld();

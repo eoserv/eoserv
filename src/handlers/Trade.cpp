@@ -18,6 +18,7 @@ namespace Handlers
 void Trade_Request(Character *character, PacketReader &reader)
 {
 	if (character->trading) return;
+	if (!character->CanInteractItems()) return;
 
 	int something = reader.GetChar(); // ?
 	int victimid = reader.GetShort();
@@ -29,12 +30,12 @@ void Trade_Request(Character *character, PacketReader &reader)
 		return;
 	}
 
-	if (victim && !victim->trading)
+	if (victim && !victim->trading && victim->CanInteractItems())
 	{
-		PacketBuilder builder(PACKET_TRADE, PACKET_REQUEST, 3 + character->name.length());
+		PacketBuilder builder(PACKET_TRADE, PACKET_REQUEST, 3 + character->SourceName().length());
 		builder.AddChar(something);
 		builder.AddShort(character->player->id);
-		builder.AddString(character->name);
+		builder.AddString(character->SourceName());
 		victim->Send(builder);
 
 		character->trade_partner = victim;
@@ -45,26 +46,28 @@ void Trade_Request(Character *character, PacketReader &reader)
 void Trade_Accept(Character *character, PacketReader &reader)
 {
 	if (character->trading) return;
+	if (!character->CanInteractItems()) return;
 
 	/*int accept =*/ reader.GetChar();
 	int victimid = reader.GetShort();
 
 	Character *victim(character->map->GetCharacterPID(victimid));
 
-	if (victim && victim->mapid == character->mapid && victim->trade_partner == character && !victim->trading)
+	if (victim && victim->mapid == character->mapid && victim->trade_partner == character
+	 && !victim->trading && victim->CanInteractItems())
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_OPEN, 30);
 		builder.AddShort(victim->player->id);
-		builder.AddBreakString(victim->name);
+		builder.AddBreakString(victim->SourceName());
 		builder.AddShort(character->player->id);
-		builder.AddBreakString(character->name);
+		builder.AddBreakString(character->SourceName());
 		character->Send(builder);
 
 		builder.Reset(30);
 		builder.AddShort(character->player->id);
-		builder.AddBreakString(character->name);
+		builder.AddBreakString(character->SourceName());
 		builder.AddShort(victim->player->id);
-		builder.AddBreakString(victim->name);
+		builder.AddBreakString(victim->SourceName());
 		victim->Send(builder);
 
 		character->trade_partner = victim;

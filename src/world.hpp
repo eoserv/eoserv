@@ -149,12 +149,14 @@ class World
 
 		void Kick(Command_Source *from, Character *victim, bool announce = true);
 		void Jail(Command_Source *from, Character *victim, bool announce = true);
+		void Unjail(Command_Source *from, Character *victim);
 		void Ban(Command_Source *from, Character *victim, int duration, bool announce = true);
 		void Mute(Command_Source *from, Character *victim, bool announce = true);
 
 		int CheckBan(const std::string *username, const IPAddress *address, const int *hdid);
 
 		Character *GetCharacter(std::string name);
+		Character *GetCharacterReal(std::string real_name);
 		Character *GetCharacterPID(unsigned int id);
 		Character *GetCharacterCID(unsigned int id);
 
