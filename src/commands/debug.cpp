@@ -73,6 +73,14 @@ void SpawnNPC(const std::vector<std::string>& arguments, Character* from)
 {
 	int id = util::to_int(arguments[0]);
 	int amount = (arguments.size() >= 2) ? util::to_int(arguments[1]) : 1;
+	unsigned char speed = (arguments.size() >= 3) ? util::to_int(arguments[2]) : int(from->world->config["SpawnNPCSpeed"]);
+
+	short direction = DIRECTION_DOWN;
+
+	if (speed == 7 && arguments.size() >= 4)
+	{
+		direction = util::to_int(arguments[3]);
+	}
 
 	if (id <= 0 || std::size_t(id) > from->world->enf->data.size())
 		return;
@@ -84,9 +92,27 @@ void SpawnNPC(const std::vector<std::string>& arguments, Character* from)
 		if (index > 250)
 			break;
 
-		NPC *npc = new NPC(from->map, id, from->x, from->y, 1, 1, index, true);
+		NPC *npc = new NPC(from->map, id, from->x, from->y, speed, direction, index, true);
 		from->map->npcs.push_back(npc);
 		npc->Spawn();
+	}
+}
+
+void DespawnNPC(const std::vector<std::string>& arguments, Character* from)
+{
+	std::vector<NPC*> despawn_npcs;
+
+	for (NPC* npc : from->map->npcs)
+	{
+		if (npc->temporary)
+		{
+			despawn_npcs.push_back(npc);
+		}
+	}
+
+	for (NPC* npc : despawn_npcs)
+	{
+		npc->Die();
 	}
 }
 
@@ -163,12 +189,14 @@ void QuestState(const std::vector<std::string>& arguments, Character* from)
 COMMAND_HANDLER_REGISTER(debug)
 	RegisterCharacter({"sitem", {"item"}, {"amount"}, 2}, SpawnItem, CMD_FLAG_DUTY_RESTRICT);
 	RegisterCharacter({"ditem", {"item"}, {"amount", "x", "y"}, 2}, DropItem, CMD_FLAG_DUTY_RESTRICT);
-	RegisterCharacter({"snpc", {"npc"}, {"amount"}, 2}, SpawnNPC, CMD_FLAG_DUTY_RESTRICT);
+	RegisterCharacter({"snpc", {"npc"}, {"amount", "speed", "direction"}, 2}, SpawnNPC, CMD_FLAG_DUTY_RESTRICT);
+	RegisterCharacter({"dnpc", {}, {}, 2}, DespawnNPC, CMD_FLAG_DUTY_RESTRICT);
 	RegisterCharacter({"learn", {"skill"}, {"level"}}, Learn, CMD_FLAG_DUTY_RESTRICT);
 	RegisterCharacter({"qstate", {"quest", "state"}}, QuestState, CMD_FLAG_DUTY_RESTRICT);
 	RegisterAlias("si", "sitem");
 	RegisterAlias("di", "ditem");
 	RegisterAlias("sn", "snpc");
+	RegisterAlias("dn", "dnpc");
 COMMAND_HANDLER_REGISTER_END(debug)
 
 }

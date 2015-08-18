@@ -218,6 +218,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "NoInteractDefault"  , 0);
 	eoserv_config_default(config, "NoInteractDefaultAdmin", 2);
 	eoserv_config_default(config, "NPCMovementRate"    , "0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0");
+	eoserv_config_default(config, "SpawnNPCSpeed"      , "0");
 	eoserv_config_default(config, "DoorTimer"          , 3.0);
 	eoserv_config_default(config, "ChatMaxWidth"       , 1400);
 	eoserv_config_default(config, "AccountMinLength"   , 4);
@@ -284,6 +285,7 @@ void eoserv_config_validate_admin(Config& config)
 	eoserv_config_default(config, "sitem"         , 3);
 	eoserv_config_default(config, "ditem"         , 3);
 	eoserv_config_default(config, "snpc"          , 3);
+	eoserv_config_default(config, "dnpc"          , 3);
 	eoserv_config_default(config, "learn"         , 3);
 	eoserv_config_default(config, "qstate"        , 3);
 	eoserv_config_default(config, "quake"         , 2);

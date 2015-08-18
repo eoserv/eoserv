@@ -1014,7 +1014,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 		UTIL_FOREACH(child_npcs, npc)
 		{
-			if (childid == -1 || childid == npc->Data().id)
+			if (!npc->temporary && (childid == -1 || childid == npc->Data().id))
 			{
 				npc->Die(false);
 				childid = npc->Data().id;
@@ -1022,16 +1022,6 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 			else
 			{
 				npc->Die(true);
-			}
-
-			if (npc->temporary)
-			{
-				this->map->npcs.erase(
-					std::remove(this->map->npcs.begin(), this->map->npcs.end(), npc),
-					this->map->npcs.end()
-				);
-				
-				delete npc;
 			}
 		}
 	}
@@ -1110,6 +1100,16 @@ void NPC::Die(bool show)
 				character->Send(builder);
 			}
 		}
+	}
+
+	if (this->temporary)
+	{
+		this->map->npcs.erase(
+			std::remove(this->map->npcs.begin(), this->map->npcs.end(), this),
+			this->map->npcs.end()
+		);
+
+		delete this;
 	}
 }
 
