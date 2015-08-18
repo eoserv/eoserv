@@ -366,8 +366,8 @@ COMMAND_HANDLER_REGISTER(char_mod)
 	Register({"setkarma", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "karma"));
 	Register({"setclass", {"victim", "value"}, {}, 4}, std::bind(SetX, _1, _2, "class"));
 	Register({"strip", {"victim"}, {}, 2}, Strip);
-	Register({"dress", {"victim"}, {"id"}}, Dress);
-	Register({"dress2", {"victim"}, {"slot", "id"}, 6}, Dress2);
+	Register({"dress", {"victim"}, {"id"}}, Dress); // victim is the actual optional argument
+	Register({"dress2", {"victim", "slot"}, {"id"}, 6}, Dress2); // victim is the actual optional argument
 	Register({"undress", {}, {"victim", "slot"}, 3}, Undress);
 
 	RegisterAlias("d2", "dress2");
