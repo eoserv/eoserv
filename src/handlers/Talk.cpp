@@ -121,7 +121,7 @@ void Talk_Report(Character *character, PacketReader &reader)
 	{
 		if (character->world->config["LogCommands"])
 		{
-			Console::Out("%s: %s", character->SourceName().c_str(), message.c_str());
+			Console::Out("%s: %s", character->real_name.c_str(), message.c_str());
 		}
 
 		std::string command;

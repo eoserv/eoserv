@@ -1193,12 +1193,12 @@ Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 		int amount = from->maxhp * spike_damage;
 
 		from->SpikeDamage(amount);
-	}
 
-	if (from->hp == 0)
-	{
-		from->DeathRespawn();
-		return WalkWarped;
+		if (from->hp == 0)
+		{
+			from->DeathRespawn();
+			return WalkWarped;
+		}	
 	}
 
 	return WalkOK;
