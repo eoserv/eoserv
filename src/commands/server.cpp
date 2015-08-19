@@ -25,15 +25,36 @@ namespace Commands
 
 void ReloadMap(const std::vector<std::string>& arguments, Character* from)
 {
-	(void)arguments;
+	World* world = from->SourceWorld();
+	Map* map = from->map;
+	bool isnew = false;
 
-	if (!(from->map->Reload()))
+	if (arguments.size() >= 1)
 	{
-		while (!from->map->characters.empty())
+		int mapid = util::to_int(arguments[0]);
+
+		if (mapid < 1)
+			mapid = 1;
+
+		if (world->maps.size() > mapid - 1)
 		{
-			from->map->characters.back()->player->client->Close();
-			from->map->characters.pop_back();
+			map = world->maps[mapid - 1];
 		}
+		else if (mapid <= static_cast<int>(world->config["Maps"]))
+		{
+			isnew = true;
+
+			while (world->maps.size() < mapid)
+			{
+				int newmapid = world->maps.size() + 1;
+				world->maps.push_back(new Map(newmapid, world));
+			}
+		}
+	}
+
+	if (map && !isnew)
+	{
+		map->Reload();
 	}
 }
 

@@ -415,7 +415,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 		}
 	}
-	Console::Out("%i quests loaded.", this->quests.size());
+	Console::Out("%i/%i quests loaded.", this->quests.size(), max_quest);
 
 	this->last_character_id = 0;
 
@@ -943,17 +943,42 @@ void World::ReloadQuests()
 		c->quests.clear();
 	}
 
-	// Reload quests
-	UTIL_IFOREACH(this->quests, it)
+	// Reload all quests
+	short max_quest = 0;
+
+	UTIL_FOREACH(this->enf->data, npc)
+	{
+		if (npc.type == ENF::Quest)
+			max_quest = std::max(max_quest, npc.vendor_id);
+	}
+
+	for (short i = 0; i <= max_quest; ++i)
 	{
 		try
 		{
-			std::shared_ptr<Quest> q = std::make_shared<Quest>(it->first, this);
-			std::swap(it->second, q);
+			std::shared_ptr<Quest> q = std::make_shared<Quest>(i, this);
+			this->quests.insert(std::make_pair(i, std::move(q)));
 		}
 		catch (...)
 		{
+			this->quests.erase(i);
+		}
+	}
 
+	// Reload quests that might still be loaded above the highest quest npc ID
+	UTIL_IFOREACH(this->quests, it)
+	{
+		if (it->first > max_quest)
+		{
+			try
+			{
+				std::shared_ptr<Quest> q = std::make_shared<Quest>(it->first, this);
+				std::swap(it->second, q);
+			}
+			catch (...)
+			{
+				it = this->quests.erase(it);
+			}
 		}
 	}
 
@@ -997,7 +1022,7 @@ void World::ReloadQuests()
 		c->CheckQuestRules();
 	}
 
-	Console::Out("%i quests loaded.", this->quests.size());
+	Console::Out("%i/%i quests loaded.", this->quests.size(), max_quest);
 }
 
 Character *World::GetCharacter(std::string name)

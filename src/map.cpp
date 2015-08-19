@@ -2433,8 +2433,6 @@ bool Map::Reload()
 
 	this->characters = temp;
 
-	std::fclose(fh);
-
 	UTIL_FOREACH(temp, character)
 	{
 		character->player->client->Upload(FILE_MAP, character->mapid, INIT_MAP_MUTATION);
