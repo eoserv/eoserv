@@ -383,12 +383,12 @@ void Quest_Context::BeginState(const std::string& name, const EOPlus::State& sta
 {
 	this->state_desc = state.desc;
 
-	for (auto it = this->progress.begin(); it != this->progress.end(); ++it)
+	for (auto it = this->progress.begin(); it != this->progress.end(); )
 	{
 		if (it->first != "d" && it->first != "c")
-		{
 			it = this->progress.erase(it);
-		}
+		else
+			++it;
 	}
 
 	this->dialogs.clear();
