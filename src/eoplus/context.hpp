@@ -24,6 +24,7 @@ namespace EOPlus
 		private:
 			const Quest* quest;
 			const State* state;
+			std::string state_name;
 			bool finished;
 
 		protected:
@@ -35,6 +36,8 @@ namespace EOPlus
 			Context(const Quest* quest);
 
 			const State* GetState() const;
+			std::string StateName() const;
+
 			void SetState(const std::string& state, bool do_actions = true);
 
 			void DoActions();

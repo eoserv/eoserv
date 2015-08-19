@@ -85,7 +85,7 @@ void Book_Request(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(target->quests, quest)
 	{
-		if (quest.second && quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
+		if (quest.second && quest.second->Finished() && !quest.second->IsHidden())
 			reserve += quest.second->GetQuest()->Name().length() + 1;
 	}
 
@@ -93,7 +93,7 @@ void Book_Request(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(target->quests, quest)
 	{
-		if (quest.second && quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
+		if (quest.second && quest.second->Finished() && !quest.second->IsHidden())
 			reply.AddBreakString(quest.second->GetQuest()->Name());
 	}
 

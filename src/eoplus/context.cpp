@@ -28,11 +28,18 @@ namespace EOPlus
 		return this->state;
 	}
 
+	std::string Context::StateName() const
+	{
+		return this->state_name;
+	}
+
 	void Context::SetState(const std::string& state, bool do_actions)
 	{
 		std::string state_id = util::lowercase(state);
 
-		if (state_id == "end")
+		this->state_name = state_id;
+
+		if (state_id == "end" || state_id == "done")
 		{
 			this->state = 0;
 			this->finished = true;
@@ -42,7 +49,7 @@ namespace EOPlus
 
 		if (it == this->quest->states.end())
 		{
-			if (state_id == "end")
+			if (state_id == "end" || state_id == "done")
 				return;
 			else
 				throw Runtime_Error("Unknown quest state: " + state_id);

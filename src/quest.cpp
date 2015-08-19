@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <ctime>
 #include <functional>
 #include <fstream>
 #include <iterator>
@@ -24,6 +25,11 @@
 #include "packet.hpp"
 #include "player.hpp"
 #include "world.hpp"
+
+static int quest_day()
+{
+	return (std::time(nullptr) / 86400) & 0x7FFF;
+}
 
 struct Validation_Error : public EOPlus::Runtime_Error
 {
@@ -63,6 +69,7 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 	static std::map<std::string, info_t> action_argument_info{
 		{"setstate", 1},
 		{"reset", 0},
+		{"resetdaily", 0},
 		{"end", 0},
 
 		{"startquest", {1, 2}},
@@ -96,6 +103,8 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		{"setstat", 2},
 		{"givestat", 2},
 		{"removestat", 2},
+
+		{"roll", 1},
 	};
 
 	static std::map<std::string, info_t> rule_argument_info{
@@ -103,6 +112,8 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		{"talkedtonpc", 1},
 
 		{"always", 0},
+
+		{"donedaily", 1},
 
 		{"entermap", 1},
 		{"entercoord", 3},
@@ -126,6 +137,8 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 		{"usedspell", {1, 2}},
 
 		{"citizenof", 1},
+
+		{"rolled", 1},
 
 		// Only needed until expression support is added
 		{"statis", 2},
@@ -369,9 +382,15 @@ Quest_Context::Quest_Context(Character* character, const Quest* quest)
 void Quest_Context::BeginState(const std::string& name, const EOPlus::State& state)
 {
 	this->state_desc = state.desc;
-	this->state_name = name;
 
-	this->progress.clear();
+	for (auto it = this->progress.begin(); it != this->progress.end(); ++it)
+	{
+		if (it->first != "d" && it->first != "c")
+		{
+			it = this->progress.erase(it);
+		}
+	}
+
 	this->dialogs.clear();
 
 	if (this->quest->Disabled())
@@ -412,9 +431,24 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 	}
 	else if (function_name == "reset")
 	{
-		this->character->ResetQuest(this->quest->ID());
+		if (this->progress.find("c") == this->progress.end())
+		{
+			this->character->ResetQuest(this->quest->ID());
+		}
+		else
+		{
+			this->SetState("done");
+		}
+
 		return true;
-		// *this is not valid after this point
+		// *this may not be valid after this point
+	}
+	else if (function_name == "resetdaily")
+	{
+		this->progress["d"] = quest_day();
+		++this->progress["c"];
+		this->SetState("done");
+		return true;
 	}
 	else if (function_name == "end")
 	{
@@ -425,7 +459,9 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 	{
 		short id = int(action.expr.args[0]);
 
-		if (!this->character->GetQuest(id))
+		auto context = character->GetQuest(id);
+
+		if (!context)
 		{
 			auto it = this->character->world->quests.find(id);
 
@@ -438,13 +474,25 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 				context->SetState(action.expr.args.size() >= 2 ? std::string(action.expr.args[1]) : "begin");
 			}
 		}
+		else if (context->StateName() == "done")
+		{
+			context->SetState(action.expr.args.size() >= 2 ? std::string(action.expr.args[1]) : "begin");
+		}
 	}
 	else if (function_name == "resetquest")
 	{
 		short this_id = this->quest->ID();
 		short id = int(action.expr.args[0]);
 
-		this->character->ResetQuest(id);
+		auto context = this->character->GetQuest(id);
+
+		if (context)
+		{
+			if (this->progress.find("c") == this->progress.end())
+				context->SetState("done");
+			else
+				this->character->ResetQuest(id);
+		}
 
 		if (id == this_id)
 		{
@@ -686,6 +734,10 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 		if (!modify_stat(stat, [value](int x) { return x - value; }, this->character))
 			throw EOPlus::Runtime_Error("Unknown stat: " + stat);
 	}
+	else if (function_name == "roll")
+	{
+		this->progress["r"] = util::rand(1, int(action.expr.args[0]));
+	}
 
 	return false;
 }
@@ -714,6 +766,19 @@ bool Quest_Context::CheckRule(const EOPlus::Expression& expr)
 	if (function_name == "always")
 	{
 		return true;
+	}
+	else if (function_name == "donedaily")
+	{
+		if (this->progress["d"] == quest_day())
+		{
+			return this->progress["c"] >= int(expr.args[0]);
+		}
+		else
+		{
+			this->progress["d"] = quest_day();
+			this->progress["c"] = 0;
+			return false;
+		}
 	}
 	else if (function_name == "entermap")
 	{
@@ -772,6 +837,10 @@ bool Quest_Context::CheckRule(const EOPlus::Expression& expr)
 	{
 		return this->character->home == std::string(expr.args[0]);
 	}
+	else if (function_name == "rolled")
+	{
+		return this->progress["r"] == int(expr.args[0]);
+	}
 	else if (function_name == "statis")
 	{
 		return rpn_char_eval({expr.args[1], expr.args[0], "="}, character);
@@ -817,14 +886,6 @@ const Dialog* Quest_Context::GetDialog(short id) const
 
 	// WARNING: returns a non-tracked reference to shared_ptr
 	return it->second.get();
-}
-
-std::string Quest_Context::StateName() const
-{
-	if (this->Finished())
-		return "end";
-	else
-		return this->state_name;
 }
 
 std::string Quest_Context::Desc() const
@@ -1029,6 +1090,12 @@ void Quest_Context::KilledPlayer()
 
 	if (this->TriggerRule("killedplayers", [amount](const std::deque<util::variant>& args) { return amount >= int(args[0]); }))
 		this->progress.erase("killedplayers");
+}
+
+bool Quest_Context::IsHidden() const
+{
+	return this->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::Hidden
+	    || this->StateName() == "done";
 }
 
 Quest_Context::~Quest_Context()

@@ -213,7 +213,7 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 
 		UTIL_FOREACH(victim->quests, quest)
 		{
-			if (quest.second && quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
+			if (quest.second && quest.second->Finished() && !quest.second->IsHidden())
 				reserve += quest.second->GetQuest()->Name().length() + 1;
 		}
 
@@ -221,7 +221,7 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 
 		UTIL_FOREACH(victim->quests, quest)
 		{
-			if (quest.second && quest.second->Finished() && quest.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
+			if (quest.second && quest.second->Finished() && !quest.second->IsHidden())
 				reply.AddBreakString(quest.second->GetQuest()->Name());
 		}
 

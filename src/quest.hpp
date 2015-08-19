@@ -52,7 +52,6 @@ class Quest_Context : public EOPlus::Context
 		Character* character;
 		const Quest* quest;
 
-		std::string state_name;
 		std::string state_desc;
 		std::map<short, std::shared_ptr<Dialog>> dialogs;
 
@@ -69,7 +68,6 @@ class Quest_Context : public EOPlus::Context
 		const Quest* GetQuest() const;
 		const Dialog* GetDialog(short id) const;
 
-		std::string StateName() const;
 		std::string Desc() const;
 		ProgressInfo Progress() const;
 
@@ -84,6 +82,8 @@ class Quest_Context : public EOPlus::Context
 
 		void KilledNPC(short id);
 		void KilledPlayer();
+
+		bool IsHidden() const;
 
 		~Quest_Context();
 };

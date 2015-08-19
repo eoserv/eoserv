@@ -101,7 +101,9 @@ void Quest_Use(Character *character, PacketReader &reader)
 			if (quest_id == 0)
 				quest_id = vendor_id;
 
-			if (!character->GetQuest(vendor_id))
+			auto context = character->GetQuest(vendor_id);
+
+			if (!context)
 			{
 				auto it = character->world->quests.find(vendor_id);
 
@@ -113,10 +115,14 @@ void Quest_Use(Character *character, PacketReader &reader)
 					if (quest->Disabled())
 						continue;
 
-					auto context = std::make_shared<Quest_Context>(character, quest);
-					character->quests[it->first] = context;
-					context->SetState("begin");
+					auto newcontext = std::make_shared<Quest_Context>(character, quest);
+					character->quests[it->first] = newcontext;
+					newcontext->SetState("begin");
 				}
+			}
+			else if (context->StateName() == "done")
+			{
+				context->SetState("begin");
 			}
 
 			open_quest_dialog(character, npc, quest_id, vendor_id);
@@ -189,7 +195,7 @@ void Quest_List(Character *character, PacketReader &reader)
 		case QUEST_PAGE_PROGRESS:
 			UTIL_FOREACH(character->quests, q)
 			{
-				if (q.second && !q.second->Finished() && !q.second->GetQuest()->Disabled() && q.second->GetQuest()->GetQuest()->info.hidden != EOPlus::Info::Hidden)
+				if (q.second && !q.second->Finished() && !q.second->GetQuest()->Disabled() && !q.second->IsHidden())
 					reserve += 9 + q.second->GetQuest()->GetQuest()->info.name.length() + q.second->Desc().length();
 			}
 
@@ -197,7 +203,7 @@ void Quest_List(Character *character, PacketReader &reader)
 
 			UTIL_FOREACH(character->quests, q)
 			{
-				if (!q.second || q.second->Finished() || q.second->GetQuest()->Disabled() || q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::Hidden)
+				if (!q.second || q.second->Finished() || q.second->GetQuest()->Disabled() || q.second->IsHidden())
 					continue;
 
 				Quest_Context::ProgressInfo progress = q.second->Progress();
@@ -215,7 +221,7 @@ void Quest_List(Character *character, PacketReader &reader)
 		case QUEST_PAGE_HISTORY:
 			UTIL_FOREACH(character->quests, q)
 			{
-				if (q.second && q.second->Finished() && q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
+				if (q.second && q.second->Finished() && !q.second->IsHidden())
 					reserve += 1 + q.second->GetQuest()->GetQuest()->info.name.length();
 			}
 
@@ -223,7 +229,7 @@ void Quest_List(Character *character, PacketReader &reader)
 
 			UTIL_FOREACH(character->quests, q)
 			{
-				if (q.second && q.second->Finished() && q.second->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::NotHidden)
+				if (q.second && q.second->Finished() && !q.second->IsHidden())
 					reply.AddBreakString(q.second->GetQuest()->GetQuest()->info.name);
 			}
 
