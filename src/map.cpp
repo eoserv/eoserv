@@ -447,10 +447,7 @@ bool Map::Load()
 	std::FILE *fh = std::fopen(filename.c_str(), "rb");
 
 	if (!fh)
-	{
-		Console::Err("Could not load file: %s", filename.c_str());
 		return false;
-	}
 
 	this->has_timed_spikes = false;
 

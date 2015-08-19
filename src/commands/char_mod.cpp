@@ -188,7 +188,7 @@ void Strip(const std::vector<std::string>& arguments, Command_Source* from)
 						builder.AddShort(victim->player->id);
 						builder.AddChar(SLOT_CLOTHES);
 						builder.AddChar(0); // ?
-						victim->AddPaperdollData(builder, "B000A0HSW");
+						victim->AddPaperdollData(builder, "BAHWS");
 						builder.AddShort(itemid);
 						builder.AddChar(subloc);
 						builder.AddShort(victim->maxhp);
