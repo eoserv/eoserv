@@ -133,14 +133,20 @@ void map_evacuate(void *map_evacuate_void)
 	}
 	else
 	{
+		std::vector<Character*> evac_chars;
+
 		restart_loop:
 		UTIL_FOREACH(evac->map->characters, character)
 		{
 			if (character->SourceAccess() < ADMIN_GUIDE)
 			{
-				character->world->Jail(0, character, false);
-				goto restart_loop;
+				evac_chars.push_back(character);
 			}
+		}
+
+		UTIL_FOREACH(evac_chars, character)
+		{
+			character->world->Jail(0, character, false);
 		}
 
 		evac->map->evacuate_lock = false;
@@ -324,6 +330,7 @@ Map::Map(int id, World *world)
 	this->jukebox_protect = 0.0;
 	this->arena = 0;
 	this->evacuate_lock = false;
+	this->has_timed_spikes = false;
 
 	this->LoadArena();
 
@@ -445,6 +452,8 @@ bool Map::Load()
 		return false;
 	}
 
+	this->has_timed_spikes = false;
+
 	SAFE_SEEK(fh, 0x03, SEEK_SET);
 	SAFE_READ(this->rid, sizeof(char), 4, fh);
 
@@ -453,8 +462,9 @@ bool Map::Load()
 	unsigned char innersize;
 
 	SAFE_SEEK(fh, 0x1F, SEEK_SET);
-	SAFE_READ(buf, sizeof(char), 1, fh);
+	SAFE_READ(buf, sizeof(char), 2, fh);
 	this->pk = PacketProcessor::Number(buf[0]) == 3;
+	this->effect = static_cast<EffectType>(PacketProcessor::Number(buf[1]));
 
 	SAFE_SEEK(fh, 0x25, SEEK_SET);
 	SAFE_READ(buf, sizeof(char), 2, fh);
@@ -521,6 +531,11 @@ bool Map::Load()
 				chest.y = yloc;
 				chest.slots = 0;
 				this->chests.push_back(std::make_shared<Map_Chest>(chest));
+			}
+
+			if (spec == Map_Tile::Spikes1)
+			{
+				this->has_timed_spikes = true;
 			}
 		}
 	}
@@ -825,7 +840,7 @@ void Map::Msg(NPC *from, std::string message)
 	}
 }
 
-bool Map::Walk(Character *from, Direction direction, bool admin)
+Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 {
 	int seedistance = this->world->config["SeeDistance"];
 
@@ -839,7 +854,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 			if (target_y > from->y)
 			{
-				return false;
+				return WalkFail;
 			}
 
 			break;
@@ -849,7 +864,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 			if (target_x < from->x)
 			{
-				return false;
+				return WalkFail;
 			}
 
 			break;
@@ -859,7 +874,7 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 			if (target_x < from->x)
 			{
-				return false;
+				return WalkFail;
 			}
 
 			break;
@@ -869,22 +884,22 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 			if (target_x > from->x)
 			{
-				return false;
+				return WalkFail;
 			}
 
 			break;
 	}
 
 	if (!this->InBounds(target_x, target_y))
-		return false;
+		return WalkFail;
 
 	if (!admin)
 	{
 		if (!this->Walkable(target_x, target_y))
-			return false;
+			return WalkFail;
 
 		if (this->Occupied(target_x, target_y, PlayerOnly) && (from->last_walk + double(this->world->config["GhostTimer"]) > Timer::GetTime()))
-			return false;
+			return WalkFail;
 	}
 
 	const Map_Warp& warp = this->GetWarp(target_x, target_y);
@@ -904,11 +919,11 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 				from->Warp(warp.map, warp.x, warp.y);
 			}
 
-			return false;
+			return WalkWarped;
 		}
 
 		if (!admin)
-			return false;
+			return WalkFail;
 	}
 
     from->last_walk = Timer::GetTime();
@@ -1169,10 +1184,27 @@ bool Map::Walk(Character *from, Direction direction, bool admin)
 
 	from->CheckQuestRules();
 
-	return true;
+	Map_Tile::TileSpec spec = this->GetSpec(from->x, from->y);
+
+	double spike_damage = this->world->config["SpikeDamage"];
+
+	if (spike_damage > 0.0 && (spec == Map_Tile::Spikes2 || spec == Map_Tile::Spikes3) && !from->IsHideInvisible())
+	{
+		int amount = from->maxhp * spike_damage;
+
+		from->SpikeDamage(amount);
+	}
+
+	if (from->hp == 0)
+	{
+		from->DeathRespawn();
+		return WalkWarped;
+	}
+
+	return WalkOK;
 }
 
-bool Map::Walk(NPC *from, Direction direction)
+Map::WalkResult Map::Walk(NPC *from, Direction direction)
 {
 	int seedistance = this->world->config["SeeDistance"];
 
@@ -1186,7 +1218,7 @@ bool Map::Walk(NPC *from, Direction direction)
 
 			if (target_y > from->y)
 			{
-				return false;
+				return WalkFail;
 			}
 
 			break;
@@ -1196,7 +1228,7 @@ bool Map::Walk(NPC *from, Direction direction)
 
 			if (target_x < from->x)
 			{
-				return false;
+				return WalkFail;
 			}
 
 			break;
@@ -1206,7 +1238,7 @@ bool Map::Walk(NPC *from, Direction direction)
 
 			if (target_x < from->x)
 			{
-				return false;
+				return WalkFail;
 			}
 
 			break;
@@ -1216,7 +1248,7 @@ bool Map::Walk(NPC *from, Direction direction)
 
 			if (target_x > from->x)
 			{
-				return false;
+				return WalkFail;
 			}
 
 			break;
@@ -1224,7 +1256,7 @@ bool Map::Walk(NPC *from, Direction direction)
 
 	if (!this->Walkable(target_x, target_y, true) || this->Occupied(target_x, target_y, Map::PlayerAndNPC))
 	{
-		return false;
+		return WalkFail;
 	}
 
 	from->x = target_x;
@@ -1354,7 +1386,7 @@ bool Map::Walk(NPC *from, Direction direction)
 		from->RemoveFromView(character);
 	}
 
-	return true;
+	return WalkOK;
 }
 
 void Map::Attack(Character *from, Direction direction)
@@ -1582,27 +1614,7 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				if (character->hp == 0)
 				{
-					character->hp = int(character->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0);
-
-					if (this->world->config["Deadly"])
-					{
-						character->DropAll(from);
-					}
-
-					character->map->Leave(character, WARP_ANIMATION_NONE, true);
-					character->nowhere = true;
-					character->map = this->world->GetMap(character->SpawnMap());
-					character->mapid = character->SpawnMap();
-					character->x = character->SpawnX();
-					character->y = character->SpawnY();
-
-					character->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
-						{char(PACKET_INTERNAL_NULL), char(PACKET_INTERNAL)}
-					}.data()), 1.5);
-
-					character->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
-						{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
-					}.data()), 0.0);
+					character->DeathRespawn();
 
 					UTIL_FOREACH(from->quests, q)
 					{
@@ -1975,27 +1987,7 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 
 		if (victim->hp == 0)
 		{
-			victim->hp = int(victim->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0);
-
-			if (this->world->config["Deadly"])
-			{
-				victim->DropAll(from);
-			}
-
-			victim->map->Leave(victim, WARP_ANIMATION_NONE, true);
-			victim->nowhere = true;
-			victim->map = this->world->GetMap(victim->SpawnMap());
-			victim->mapid = victim->SpawnMap();
-			victim->x = victim->SpawnX();
-			victim->y = victim->SpawnY();
-
-			victim->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
-				{char(PACKET_INTERNAL_NULL), char(PACKET_INTERNAL)}
-			}.data()), 1.5);
-
-			victim->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
-				{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
-			}.data()), 0.0);
+			victim->DeathRespawn();
 
 			UTIL_FOREACH(from->quests, q)
 			{
@@ -2422,6 +2414,8 @@ bool Map::Reload()
 	SAFE_SEEK(fh, 0x03, SEEK_SET);
 	SAFE_READ(checkrid, sizeof(char), 4, fh);
 
+	std::fclose(fh);
+
 	if (this->rid[0] == checkrid[0] && this->rid[1] == checkrid[1]
 	 && this->rid[2] == checkrid[2] && this->rid[3] == checkrid[3])
 	{
@@ -2450,6 +2444,141 @@ bool Map::Reload()
 	this->exists = true;
 
 	return true;
+}
+
+void Map::TimedSpikes()
+{
+	if (!this->has_timed_spikes)
+		return;
+
+	PacketBuilder builder(PACKET_EFFECT, PACKET_REPORT, 1);
+	builder.AddByte(83); // S
+
+	double spike_damage = this->world->config["SpikeDamage"];
+
+	std::vector<Character*> killed;
+
+	for (Character* character : this->characters)
+	{
+		if (character->nowhere || character->IsHideInvisible())
+			continue;
+
+		Map_Tile::TileSpec spec = this->GetSpec(character->x, character->y);
+
+		if (spike_damage > 0.0 && spec == Map_Tile::Spikes1)
+		{
+			int amount = character->maxhp * spike_damage;
+
+			character->SpikeDamage(amount);
+
+			if (character->hp == 0)
+				killed.push_back(character);
+		}
+		else
+		{
+			character->Send(builder);
+		}
+	}
+
+	for (Character* character : killed)
+	{
+		character->DeathRespawn();
+	}
+}
+
+void Map::TimedDrains()
+{
+	if (this->effect == EffectHPDrain)
+	{
+		double hpdrain_damage = this->world->config["DrainHPDamage"];
+
+		std::vector<int> damage_map;
+		damage_map.resize(this->characters.size());
+
+		std::size_t i = 0;
+
+		for (Character* character : this->characters)
+		{
+			if (character->nowhere || character->IsHideInvisible())
+				continue;
+
+			int amount = character->maxhp * hpdrain_damage;
+			amount = std::max(std::min(amount, int(character->hp - 1)), 0);
+			character->hp -= amount;
+
+			damage_map[i++] = amount;
+		}
+
+		i = 0;
+
+		for (Character* character : this->characters)
+		{
+			if (character->nowhere || character->IsHideInvisible())
+				continue;
+
+			if (hpdrain_damage > 0.0)
+			{
+				int damage = damage_map[i++];
+
+				PacketBuilder builder(PACKET_EFFECT, PACKET_TARGET_OTHER, 6 + this->characters.size() * 5);
+				builder.AddShort(damage);
+				builder.AddShort(character->hp);
+				builder.AddShort(character->maxhp);
+
+				std::size_t ii = 0;
+
+				for (Character* other : this->characters)
+				{
+					if (other->nowhere || other->IsHideInvisible())
+						continue;
+
+					int damage = damage_map[ii++];
+
+					if (!character->InRange(other) || other == character)
+						continue;
+
+					builder.AddShort(other->player->id);
+					builder.AddChar(util::clamp<int>(double(other->hp) / double(other->maxhp) * 100.0, 0, 100));
+					builder.AddShort(damage);
+				}
+
+				character->Send(builder);
+			}
+		}
+	}
+	
+	if (this->effect == EffectTPDrain)
+	{
+		double tpdrain_damage = this->world->config["DrainTPDamage"];
+
+		for (Character* character : this->characters)
+		{
+			if (character->nowhere || character->IsHideInvisible())
+				continue;
+
+			if (tpdrain_damage > 0.0)
+			{
+				int amount = character->maxtp * tpdrain_damage;
+				
+				amount = std::min(amount, int(character->tp));
+
+				character->tp -= amount;
+
+				PacketBuilder builder(PACKET_EFFECT, PACKET_SPEC, 7);
+				builder.AddChar(1);
+				builder.AddShort(amount);
+				builder.AddShort(character->tp);
+				builder.AddShort(character->maxtp);
+
+				character->Send(builder);
+			}
+		}
+	}
+}
+
+void Map::TimedQuakes()
+{
+
 }
 
 Character *Map::GetCharacter(std::string name)

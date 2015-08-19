@@ -15,12 +15,13 @@
 namespace Handlers
 {
 
-static void walk_common(Character *character, PacketReader &reader, bool (Character::*f)(Direction))
+static void walk_common(Character *character, PacketReader &reader, Map::WalkResult (Character::*f)(Direction))
 {
 	Direction direction = static_cast<Direction>(reader.GetChar());
 	Timestamp timestamp = reader.GetThree();
 	unsigned char x = reader.GetChar();
 	unsigned char y = reader.GetChar();
+	Map::WalkResult walk_result;
 
 	if (character->world->config["EnforceTimestamps"])
 	{
@@ -65,13 +66,10 @@ static void walk_common(Character *character, PacketReader &reader, bool (Charac
 			character->trade_partner = 0;
 		}
 
-		if (!(character->*f)(direction))
-		{
-			return;
-		}
+		walk_result = (character->*f)(direction);
 	}
 
-	if (character->x != x || character->y != y)
+	if (walk_result == Map::WalkFail || (walk_result == Map::WalkOK && (character->x != x || character->y != y)))
 	{
 		character->Refresh();
 	}

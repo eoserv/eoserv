@@ -551,12 +551,12 @@ void Character::StatusMsg(std::string message)
 	this->player->Send(builder);
 }
 
-bool Character::Walk(Direction direction)
+Map::WalkResult Character::Walk(Direction direction)
 {
 	return this->map->Walk(this, direction);
 }
 
-bool Character::AdminWalk(Direction direction)
+Map::WalkResult Character::AdminWalk(Direction direction)
 {
 	return this->map->Walk(this, direction, true);
 }
@@ -1764,6 +1764,66 @@ std::shared_ptr<Quest_Context> Character::GetQuest(short id)
 void Character::ResetQuest(short id)
 {
 	this->quests[id].reset();
+}
+
+void Character::SpikeDamage(int amount)
+{
+	int limitamount = std::min(amount, int(this->hp));
+
+	if (this->world->config["LimitDamage"])
+	{
+		amount = limitamount;
+	}
+
+	this->hp -= limitamount;
+
+	PacketBuilder builder2(PACKET_EFFECT, PACKET_SPEC, 7);
+	builder2.AddChar(2);
+	builder2.AddShort(amount);
+	builder2.AddShort(this->hp);
+	builder2.AddShort(this->maxhp);
+
+	PacketBuilder builder3(PACKET_EFFECT, PACKET_ADMIN, 7);
+	builder3.AddShort(this->player->id);
+	builder3.AddChar(util::clamp<int>(double(this->hp) / double(this->maxhp) * 100.0, 0, 100));
+	builder3.AddChar(this->hp == 0);
+	builder3.AddThree(amount);
+
+	this->Send(builder2);
+
+	for (Character* watcher : this->map->CharactersInRange(this->x, this->y, static_cast<int>(this->world->config["SeeDistance"])))
+	{
+		if (watcher == this)
+			continue;
+
+		watcher->Send(builder3);
+	}
+}
+
+
+void Character::DeathRespawn()
+{
+	this->hp = int(this->maxhp * static_cast<double>(this->world->config["DeathRecover"]) / 100.0);
+
+	if (this->world->config["Deadly"])
+	{
+		this->DropAll(nullptr);
+	}
+
+	this->map->Leave(this, WARP_ANIMATION_NONE, true);
+	this->nowhere = true;
+	this->map = this->world->GetMap(this->SpawnMap());
+	this->mapid = this->SpawnMap();
+	this->x = this->SpawnX();
+	this->y = this->SpawnY();
+
+	this->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
+		{char(PACKET_INTERNAL_NULL), char(PACKET_INTERNAL)}
+	}.data()), 1.5);
+
+	this->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
+		{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
+	}.data()), 0.0);
 }
 
 void Character::Mute(const Command_Source *by)

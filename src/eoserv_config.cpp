@@ -25,6 +25,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "LogOut"             , "-");
 	eoserv_config_default(config, "LogErr"             , "error.log");
 	eoserv_config_default(config, "StyleConsole"       , true);
+	eoserv_config_default(config, "LogCommands"        , true);
 	eoserv_config_default(config, "Host"               , "0.0.0.0");
 	eoserv_config_default(config, "Port"               , 8078);
 	eoserv_config_default(config, "MaxConnections"     , 300);
@@ -151,6 +152,16 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "TPRecoverRate"      , 0.1);
 	eoserv_config_default(config, "SitTPRecoverRate"   , 0.2);
 	eoserv_config_default(config, "NPCRecoverRate"     , 0.1);
+	eoserv_config_default(config, "SpikeTime"          , 1.5);
+	eoserv_config_default(config, "SpikeDamage"        , 0.2);
+	eoserv_config_default(config, "DrainTime"          , 15);
+	eoserv_config_default(config, "DrainHPDamage"      , 0.2);
+	eoserv_config_default(config, "DrainTPDamage"      , 0.1);
+	eoserv_config_default(config, "QuakeRate"          , 5);
+	eoserv_config_default(config, "Quake1"             , "4,12,0,1");
+	eoserv_config_default(config, "Quake2"             , "6,12,0,2");
+	eoserv_config_default(config, "Quake3"             , "2,10,3,5");
+	eoserv_config_default(config, "Quake4"             , "1,4,6,8");
 	eoserv_config_default(config, "ChatLength"         , 128);
 	eoserv_config_default(config, "ShareMode"          , 2);
 	eoserv_config_default(config, "PartyShareMode"     , 2);

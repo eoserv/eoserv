@@ -119,6 +119,11 @@ void Talk_Report(Character *character, PacketReader &reader)
 
 	if (character->SourceAccess() && message[0] == '$')
 	{
+		if (character->world->config["LogCommands"])
+		{
+			Console::Out("%s: %s", character->SourceName().c_str(), message.c_str());
+		}
+
 		std::string command;
 		std::vector<std::string> arguments = util::explode(' ', message);
 		command = arguments.front().substr(1);

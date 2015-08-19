@@ -295,8 +295,8 @@ class Character : public Command_Source
 		void Msg(Character *from, std::string message);
 		void ServerMsg(std::string message);
 		void StatusMsg(std::string message);
-		bool Walk(Direction direction);
-		bool AdminWalk(Direction direction);
+		Map::WalkResult Walk(Direction direction);
+		Map::WalkResult AdminWalk(Direction direction);
 		void Attack(Direction direction);
 		void Sit(SitState sit_type);
 		void Stand();
@@ -320,7 +320,8 @@ class Character : public Command_Source
 		bool Equip(short item, unsigned char subloc);
 		bool InRange(unsigned char x, unsigned char y) const;
 		bool InRange(const Character *) const;
-		bool InRange(const NPC *) const;		bool InRange(const Map_Item&) const;
+		bool InRange(const NPC *) const;
+		bool InRange(const Map_Item&) const;
 		void Warp(short map, unsigned char x, unsigned char y, WarpAnimation animation = WARP_ANIMATION_NONE);
 		void Refresh();
 		void ShowBoard(Board *board = 0);
@@ -338,6 +339,9 @@ class Character : public Command_Source
 		void Reset();
 		std::shared_ptr<Quest_Context> GetQuest(short id);
 		void ResetQuest(short id);
+
+		void SpikeDamage(int amount);
+		void DeathRespawn();
 
 		void Mute(const Command_Source *by);
 		void PlaySound(unsigned char id);

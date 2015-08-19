@@ -542,7 +542,7 @@ void NPC::Act()
 			}
 		}
 
-		if (!this->Walk(this->direction))
+		if (this->Walk(this->direction) == Map::WalkFail)
 		{
 			this->Walk(static_cast<Direction>(util::rand(0,3)));
 		}
@@ -1198,47 +1198,15 @@ void NPC::Attack(Character *target)
 		character->Send(builder);
 	}
 
-	int rechp = int(target->maxhp * static_cast<double>(this->map->world->config["DeathRecover"]));
-
 	if (target->hp == 0)
 	{
-		builder.AddShort(rechp);
+		target->DeathRespawn();
 	}
-	else
-	{
-		builder.AddShort(target->hp);
-	}
+
+	builder.AddShort(target->hp);
 	builder.AddShort(target->tp);
 
 	target->Send(builder);
-
-	if (target->hp == 0)
-	{
-		target->hp = rechp;
-
-		if (this->map->world->config["Deadly"])
-		{
-			target->DropAll(0);
-		}
-
-		target->map->Leave(target, WARP_ANIMATION_NONE, true);
-
-		target->nowhere = true;
-		target->map = this->map->world->GetMap(target->SpawnMap());
-		target->mapid = target->SpawnMap();
-		target->x = target->SpawnX();
-		target->y = target->SpawnY();
-
-		PacketReader reader("");
-
-		target->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
-			{char(PACKET_INTERNAL_NULL), char(PACKET_INTERNAL)}
-		}.data()), 1.5);
-
-		target->player->client->queue.AddAction(PacketReader(std::array<char, 2>{
-			{char(PACKET_INTERNAL_WARP), char(PACKET_INTERNAL)}
-		}.data()), 0.0);
-	}
 }
 
 #define v(x) vars[prefix + #x] = x;

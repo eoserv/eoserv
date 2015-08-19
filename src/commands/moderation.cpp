@@ -73,7 +73,7 @@ void Unjail(const std::vector<std::string>& arguments, Command_Source* from)
 {
 	Character* victim = from->SourceWorld()->GetCharacter(arguments[0]);
 
-	if (victim->mapid != static_cast<int>(from->SourceWorld()->config["JailMap"]))
+	if (victim && victim->mapid != static_cast<int>(from->SourceWorld()->config["JailMap"]))
 	{
 		from->ServerMsg(from->SourceWorld()->i18n.Format("command_access_denied"));
 		return;

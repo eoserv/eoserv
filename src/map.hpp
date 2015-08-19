@@ -212,10 +212,29 @@ class Map
 		void Unload();
 
 	public:
+		enum WalkResult
+		{
+			WalkFail = 0,
+			WalkOK = 1,
+			WalkWarped = 2
+		};
+
+		enum EffectType
+		{
+			EffectNone = 0,
+			EffectHPDrain = 1,
+			EffectTPDrain = 2,
+			EffectQuake1 = 3,
+			EffectQuake2 = 4,
+			EffectQuake3 = 5,
+			EffectQuake4 = 6
+		};
+
 		World *world;
 		short id;
 		char rid[4];
 		bool pk;
+		EffectType effect;
 		int filesize;
 		unsigned char width;
 		unsigned char height;
@@ -231,6 +250,7 @@ class Map
 		double jukebox_protect;
 		std::string jukebox_player;
 		bool evacuate_lock;
+		bool has_timed_spikes;
 
 		Arena *arena;
 
@@ -245,7 +265,7 @@ class Map
 
 		void Msg(Character *from, std::string message, bool echo = true);
 		void Msg(NPC *from, std::string message);
-		bool Walk(Character *from, Direction direction, bool admin = false);
+		WalkResult Walk(Character *from, Direction direction, bool admin = false);
 		void Attack(Character *from, Direction direction);
 		bool AttackPK(Character *from, Direction direction);
 		void Face(Character *from, Direction direction);
@@ -260,7 +280,7 @@ class Map
 		void SpellAttackPK(Character *from, Character *victim, unsigned short spell_id);
 		void SpellGroup(Character *from, unsigned short spell_id);
 
-		bool Walk(NPC *from, Direction direction);
+		WalkResult Walk(NPC *from, Direction direction);
 
 		std::shared_ptr<Map_Item> AddItem(short id, int amount, unsigned char x, unsigned char y, Character *from = 0);
 
@@ -287,6 +307,10 @@ class Map
 		bool Evacuate();
 
 		bool Reload();
+
+		void TimedSpikes();
+		void TimedDrains();
+		void TimedQuakes();
 
 		Character *GetCharacter(std::string name);
 		Character *GetCharacterPID(unsigned int id);

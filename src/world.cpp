@@ -234,6 +234,36 @@ void world_timed_save(void *world_void)
 	world->BeginDB();
 }
 
+void world_spikes(void *world_void)
+{
+	World *world = static_cast<World *>(world_void);
+	
+	for (Map* map : world->maps)
+	{
+		map->TimedSpikes();
+	}
+}
+
+void world_drains(void *world_void)
+{
+	World *world = static_cast<World *>(world_void);
+	
+	for (Map* map : world->maps)
+	{
+		map->TimedDrains();
+	}
+}
+
+void world_quakes(void *world_void)
+{
+	World *world = static_cast<World *>(world_void);
+	
+	for (Map* map : world->maps)
+	{
+		map->TimedQuakes();
+	}
+}
+
 void World::UpdateConfig()
 {
 	this->timer.SetMaxDelta(this->config["ClockMaxDelta"]);
@@ -422,6 +452,24 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	if (this->config["TimedSave"])
 	{
 		event = new TimeEvent(world_timed_save, this, static_cast<double>(this->config["TimedSave"]), Timer::FOREVER);
+		this->timer.Register(event);
+	}
+
+	if (this->config["SpikeTime"])
+	{
+		event = new TimeEvent(world_spikes, this, static_cast<double>(this->config["SpikeTime"]), Timer::FOREVER);
+		this->timer.Register(event);
+	}
+
+	if (this->config["DrainTime"])
+	{
+		event = new TimeEvent(world_drains, this, static_cast<double>(this->config["DrainTime"]), Timer::FOREVER);
+		this->timer.Register(event);
+	}
+
+	if (this->config["QuakeRate"])
+	{
+		event = new TimeEvent(world_quakes, this, static_cast<double>(this->config["QuakeRate"]), Timer::FOREVER);
 		this->timer.Register(event);
 	}
 
