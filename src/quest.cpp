@@ -138,7 +138,7 @@ static void validate_state(const EOPlus::Quest& quest, const std::string& name, 
 
 		{"citizenof", 1},
 
-		{"rolled", 1},
+		{"rolled", {1, 2}},
 
 		// Only needed until expression support is added
 		{"statis", 2},
@@ -839,7 +839,17 @@ bool Quest_Context::CheckRule(const EOPlus::Expression& expr)
 	}
 	else if (function_name == "rolled")
 	{
-		return this->progress["r"] == int(expr.args[0]);
+		int roll = this->progress["r"];
+
+		if (expr.args.size() < 2)
+		{
+			return roll == int(expr.args[0]);
+		}
+		else
+		{
+			return roll >= int(expr.args[0])
+			    && roll <= int(expr.args[1]);
+		}
 	}
 	else if (function_name == "statis")
 	{
