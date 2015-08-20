@@ -323,7 +323,7 @@ class Map
 			NPCOnly,
 			PlayerAndNPC
 		};
-		bool Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target) const;
+		bool Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target, bool adminghost = false) const;
 
 		~Map();
 };

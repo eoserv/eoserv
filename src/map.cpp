@@ -1251,7 +1251,9 @@ Map::WalkResult Map::Walk(NPC *from, Direction direction)
 			break;
 	}
 
-	if (!this->Walkable(target_x, target_y, true) || this->Occupied(target_x, target_y, Map::PlayerAndNPC))
+	bool adminghost = (from->Data().type == ENF::Aggressive || from->parent);
+
+	if (!this->Walkable(target_x, target_y, true) || this->Occupied(target_x, target_y, Map::PlayerAndNPC, adminghost))
 	{
 		return WalkFail;
 	}
@@ -1726,7 +1728,7 @@ void Map::Emote(Character *from, enum Emote emote, bool echo)
 	}
 }
 
-bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target) const
+bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target, bool adminghost) const
 {
 	if (!InBounds(x, y))
 	{
@@ -1737,7 +1739,9 @@ bool Map::Occupied(unsigned char x, unsigned char y, Map::OccupiedTarget target)
 	{
 		UTIL_FOREACH(this->characters, character)
 		{
-			if (character->x == x && character->y == y && character->CanInteractCombat())
+			bool ghost = adminghost && (!character->CanInteractCombat() || character->IsHideNpc());
+
+			if (character->x == x && character->y == y && !ghost)
 			{
 				return true;
 			}
