@@ -908,32 +908,19 @@ void World::ReloadPub(bool quiet)
 
 void World::ReloadQuests()
 {
-	struct backup_t
-	{
-		short quest_id;
-		std::string quest_state;
-		std::string quest_progress;
-	};
-
-	std::map<std::string, std::deque<backup_t>> backup;
-
 	// Back up character quest states
 	UTIL_FOREACH(this->characters, c)
 	{
-		auto result = backup.insert(std::pair<std::string, std::deque<backup_t>>(c->real_name, std::deque<backup_t>()));
-
-		if (!result.second)
-			throw std::runtime_error("Failed to back up quest contexts");
-
-		auto it = result.first;
-
 		UTIL_FOREACH(c->quests, q)
 		{
 			if (!q.second)
 				continue;
 
-			backup_t b{q.first, q.second->StateName(), q.second->SerializeProgress()};
-			it->second.push_back(b);
+			short quest_id = q.first;
+			std::string quest_name = q.second->StateName();
+			std::string progress = q.second->SerializeProgress();
+
+			c->quests_inactive.insert({quest_id, quest_name, progress});
 		}
 	}
 
@@ -957,7 +944,7 @@ void World::ReloadQuests()
 		try
 		{
 			std::shared_ptr<Quest> q = std::make_shared<Quest>(i, this);
-			this->quests.insert(std::make_pair(i, std::move(q)));
+			this->quests[i] = std::move(q);
 		}
 		catch (...)
 		{
@@ -987,31 +974,43 @@ void World::ReloadQuests()
 	{
 		c->quests.clear();
 
-		auto it = backup.find(c->real_name);
-
-		if (it == backup.end())
-			throw std::runtime_error("Failed to restore quest context");
-
-		UTIL_FOREACH(it->second, q)
+		UTIL_FOREACH(c->quests_inactive, state)
 		{
-			auto quest_it = this->quests.find(q.quest_id);
+			auto quest_it = this->quests.find(state.quest_id);
 
 			if (quest_it == this->quests.end())
 			{
-				Console::Wrn("Quest not found: %i", q.quest_id);
+				Console::Wrn("Quest not found: %i. Marking as inactive.", state.quest_id);
 				continue;
 			}
 
 			// WARNING: holds a non-tracked reference to shared_ptr
 			Quest* quest = quest_it->second.get();
+			auto quest_context(std::make_shared<Quest_Context>(c, quest));
 
-			auto result = c->quests.insert(std::make_pair(q.quest_id, std::make_shared<Quest_Context>(c, quest)));
+			try
+			{
+				quest_context->SetState(state.quest_state, false);
+				quest_context->UnserializeProgress(UTIL_CRANGE(state.quest_progress));
+			}
+			catch (EOPlus::Runtime_Error& ex)
+			{
+				Console::Wrn(ex.what());
+				Console::Wrn("Could not resume quest: %i. Marking as inactive.", state.quest_id);
+
+				if (!c->quests_inactive.insert(std::move(state)).second)
+					Console::Wrn("Duplicate inactive quest record dropped for quest: %i", state.quest_id);
+
+				continue;
+			}
+
+			auto result = c->quests.insert(std::make_pair(state.quest_id, std::move(quest_context)));
 
 			if (!result.second)
-				throw std::runtime_error("Failed to restore quest context");
-
-			result.first->second->SetState(q.quest_state, false);
-			result.first->second->UnserializeProgress(UTIL_CRANGE(q.quest_progress));
+			{
+				Console::Wrn("Duplicate quest record dropped for quest: %i", state.quest_id);
+				continue;
+			}
 		}
 	}
 
