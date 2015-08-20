@@ -69,6 +69,8 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "SkillsFile"         , "./data/skills.ini");
 	eoserv_config_default(config, "MapDir"             , "./data/maps/");
 	eoserv_config_default(config, "Maps"               , 278);
+	eoserv_config_default(config, "QuestDir"           , "./data/quests/");
+	eoserv_config_default(config, "Quests"             , 0);
 	eoserv_config_default(config, "SLN"                , true);
 	eoserv_config_default(config, "SLNURL"             , "http://eoserv.net/SLN/");
 	eoserv_config_default(config, "SLNSite"            , "");

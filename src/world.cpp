@@ -395,7 +395,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	Console::Out("%i/%i maps loaded.", loaded, this->maps.size());
 	Console::Out("%i NPCs loaded.", npcs);
 
-	short max_quest = 0;
+	short max_quest = static_cast<int>(this->config["Quests"]);;
 
 	UTIL_FOREACH(this->enf->data, npc)
 	{
@@ -931,7 +931,7 @@ void World::ReloadQuests()
 	}
 
 	// Reload all quests
-	short max_quest = 0;
+	short max_quest = static_cast<int>(this->config["Quests"]);
 
 	UTIL_FOREACH(this->enf->data, npc)
 	{
