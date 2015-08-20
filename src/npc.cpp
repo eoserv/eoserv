@@ -482,10 +482,16 @@ void NPC::Act()
 		}
 	}
 
-	if (this->Data().type == ENF::Aggressive && !attacker)
+	if (this->Data().type == ENF::Aggressive || (this->parent && attacker))
 	{
 		Character *closest = 0;
 		unsigned char closest_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
+
+		if (attacker)
+		{
+			closest = attacker;
+			closest_distance = std::min(closest_distance, attacker_distance);
+		}
 
 		UTIL_FOREACH(this->map->characters, character)
 		{
@@ -506,7 +512,7 @@ void NPC::Act()
 			attacker = closest;
 		}
 	}
-
+	
 	if (attacker)
 	{
 		int xdiff = this->x - attacker->x;
@@ -544,7 +550,22 @@ void NPC::Act()
 
 		if (this->Walk(this->direction) == Map::WalkFail)
 		{
-			this->Walk(static_cast<Direction>(util::rand(0,3)));
+			if (this->direction == DIRECTION_UP || this->direction == DIRECTION_DOWN)
+			{
+				if (xdiff < 0)
+				{
+					this->direction = DIRECTION_RIGHT;
+				}
+				else
+				{
+					this->direction = DIRECTION_LEFT;
+				}
+			}
+
+			if (this->Walk(static_cast<Direction>(this->direction)) == Map::WalkFail)
+			{
+				this->Walk(static_cast<Direction>(util::rand(0,3)));
+			}
 		}
 	}
 	else
