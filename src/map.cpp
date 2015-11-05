@@ -135,7 +135,6 @@ void map_evacuate(void *map_evacuate_void)
 	{
 		std::vector<Character*> evac_chars;
 
-		restart_loop:
 		UTIL_FOREACH(evac->map->characters, character)
 		{
 			if (character->SourceAccess() < ADMIN_GUIDE)

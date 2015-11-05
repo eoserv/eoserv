@@ -23,6 +23,7 @@
 #include "config.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
+#include "eoplus.hpp"
 #include "eoserver.hpp"
 #include "guild.hpp"
 #include "map.hpp"

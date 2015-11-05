@@ -100,6 +100,8 @@ void SpawnNPC(const std::vector<std::string>& arguments, Character* from)
 
 void DespawnNPC(const std::vector<std::string>& arguments, Character* from)
 {
+	(void)arguments;
+
 	std::vector<NPC*> despawn_npcs;
 
 	for (NPC* npc : from->map->npcs)

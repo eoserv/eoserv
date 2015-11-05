@@ -81,9 +81,18 @@ std::list<Character_Item> ItemUnserialize(const std::string& serialized)
 			continue;
 		}
 
+		int id = util::to_int(part.substr(0, pp));
+		int amount = util::to_int(part.substr(pp + 1));
+
+		if (id < 1 || id > 65535 || amount < 1)
+		{
+			Console::Wrn("Discarding invalid inventory data: id: %d, amount: %d", id, amount);
+			continue;
+		}
+
 		Character_Item newitem;
-		newitem.id = util::to_int(part.substr(0, pp));
-		newitem.amount = util::to_int(part.substr(pp + 1));
+		newitem.id = id;
+		newitem.amount = amount;
 
 		list.emplace_back(std::move(newitem));
 	}
@@ -113,6 +122,15 @@ std::array<int, 15> DollUnserialize(const std::string& serialized)
 
 	UTIL_FOREACH(parts, part)
 	{
+		int id = util::to_int(part);
+
+		if (id < 0 || id > 65535)
+		{
+			Console::Wrn("Discarding invalid paperdoll data: id: %d", id);
+			++i;
+			continue;
+		}
+
 		list[i++] = util::to_int(part);
 
 		if (i == list.size())
@@ -151,9 +169,18 @@ std::list<Character_Spell> SpellUnserialize(const std::string& serialized)
 		if (pp == std::string::npos)
 			continue;
 
+		int id = util::to_int(part.substr(0, pp));
+		int level = util::to_int(part.substr(pp+1));
+
+		if (id < 1 || id > 65535 || level < 0)
+		{
+			Console::Wrn("Discarding invalid spell data: id: %d, level: %d", id, level);
+			continue;
+		}
+
 		Character_Spell newspell;
-		newspell.id = util::to_int(part.substr(0, pp));
-		newspell.level = util::to_int(part.substr(pp+1));
+		newspell.id = id;
+		newspell.level = level;
 
 		list.emplace_back(std::move(newspell));
 	}

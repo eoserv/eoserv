@@ -26,7 +26,9 @@
 
 #include "console.hpp"
 
+#ifdef WIN32
 static int rres = 0;
+#endif // WIN32
 
 static unsigned int clock_ticks()
 {

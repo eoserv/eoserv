@@ -83,7 +83,7 @@ template <class EIF> struct EIF_Data_Base
 
 	typename EIF::Size size;
 
-	EIF_Data_Base() : id(0), graphic(0), type(EIF::Static), subtype(EIF::None), special(EIF::Normal),
+	EIF_Data_Base() : id(0), graphic(0), type(EIF::Static), subtype(EIF::None), special(EIF::Lore),
 	hp(0), tp(0), mindam(0), maxdam(0), accuracy(0), evade(0), armor(0), str(0), intl(0), wis(0),
 	agi(0), con(0), cha(0), light(0), dark(0), earth(0), air(0), water(0), fire(0), scrollmap(0),
 	gender(0), scrolly(0), levelreq(0), classreq(0), strreq(0), intreq(0), wisreq(0), agireq(0),

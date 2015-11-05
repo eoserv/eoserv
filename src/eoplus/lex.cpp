@@ -7,6 +7,7 @@
 #include "lex.hpp"
 
 #include <cctype>
+#include <istream>
 #include <limits>
 #include <stdexcept>
 

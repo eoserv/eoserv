@@ -81,6 +81,7 @@ void Unjail(const std::vector<std::string>& arguments, Command_Source* from)
 
 	do_punishment(from, victim, [](World* world, Command_Source* from, Character* victim, bool announce)
 		{
+			(void)announce;
 			world->Unjail(from, victim);
 		}, false);
 }
