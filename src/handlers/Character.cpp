@@ -6,14 +6,19 @@
 
 #include "handlers.hpp"
 
-#include <vector>
-
-#include "../console.hpp"
-
 #include "../character.hpp"
+#include "../config.hpp"
 #include "../eodata.hpp"
+#include "../packet.hpp"
 #include "../player.hpp"
 #include "../world.hpp"
+
+#include "../console.hpp"
+#include "../util.hpp"
+
+#include <algorithm>
+#include <cstddef>
+#include <string>
 
 namespace Handlers
 {

@@ -7,12 +7,18 @@
 #include "handlers.hpp"
 
 #include "../character.hpp"
+#include "../config.hpp"
 #include "../eodata.hpp"
 #include "../map.hpp"
 #include "../party.hpp"
-#include "../player.hpp"
 #include "../quest.hpp"
 #include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <algorithm>
+#include <cstddef>
+#include <memory>
 
 namespace Handlers
 {
@@ -120,7 +126,7 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddShort(character->tp);
 
 				PacketBuilder builder(PACKET_RECOVER, PACKET_AGREE, 7);
-				builder.AddShort(character->player->id);
+				builder.AddShort(character->PlayerID());
 				builder.AddInt(hpgain);
 				builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
 
@@ -160,7 +166,7 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddChar(item.haircolor);
 
 				PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 5);
-				builder.AddShort(character->player->id);
+				builder.AddShort(character->PlayerID());
 				builder.AddChar(SLOT_HAIRCOLOR);
 				builder.AddChar(0); // subloc
 				builder.AddChar(item.haircolor);
@@ -254,7 +260,7 @@ void Item_Use(Character *character, PacketReader &reader)
 				reply.AddShort(character->armor);
 
 				PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
-				builder.AddShort(character->player->id);
+				builder.AddShort(character->PlayerID());
 				builder.AddChar(SLOT_CLOTHES);
 				builder.AddChar(0); // sound
 				character->AddPaperdollData(builder, "BAHWS");
@@ -321,7 +327,7 @@ void Item_Use(Character *character, PacketReader &reader)
 						if (character != check && character->InRange(check))
 						{
 							PacketBuilder builder(PACKET_ITEM, PACKET_ACCEPT, 2);
-							builder.AddShort(character->player->id);
+							builder.AddShort(character->PlayerID());
 							character->Send(builder);
 						}
 					}
@@ -400,7 +406,7 @@ void Item_Drop(Character *character, PacketReader &reader)
 
 		if (item)
 		{
-			item->owner = character->player->id;
+			item->owner = character->PlayerID();
 			item->unprotecttime = Timer::GetTime() + static_cast<double>(character->world->config["ProtectPlayerDrop"]);
 			character->DelItem(id, amount);
 
@@ -459,7 +465,7 @@ void Item_Get(Character *character, PacketReader &reader)
 			return;
 		}
 
-		if (item->owner != character->player->id && item->unprotecttime > Timer::GetTime())
+		if (item->owner != character->PlayerID() && item->unprotecttime > Timer::GetTime())
 		{
 			return;
 		}

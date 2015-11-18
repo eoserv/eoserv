@@ -9,13 +9,13 @@
 
 #include "fwd/context.hpp"
 
-#include <deque>
-#include <memory>
-#include <string>
+#include "../fwd/eoplus.hpp"
 
 #include "../util/variant.hpp"
 
-#include "../fwd/eoplus.hpp"
+#include <deque>
+#include <functional>
+#include <string>
 
 namespace EOPlus
 {

@@ -9,15 +9,15 @@
 
 #include "fwd/npc.hpp"
 
-#include <list>
-#include <string>
-#include <array>
-#include <unordered_map>
-#include <vector>
-
 #include "fwd/character.hpp"
 #include "fwd/eodata.hpp"
 #include "fwd/map.hpp"
+
+#include <array>
+#include <list>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 /**
  * Used by the NPC class to store information about an attacker

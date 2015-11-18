@@ -14,7 +14,8 @@ namespace Handlers
 // User enabled whispers
 void Global_Remove(Character *character, PacketReader &reader)
 {
-	/*char n = */reader.GetChar(); // 'n'
+	//char n = reader.GetChar(); // 'n'
+	(void)reader;
 
 	character->whispers = true;
 }
@@ -22,7 +23,8 @@ void Global_Remove(Character *character, PacketReader &reader)
 // User disabled whispers
 void Global_Player(Character *character, PacketReader &reader)
 {
-	/*char y = */reader.GetChar(); // 'y'
+	//char y = reader.GetChar(); // 'y'
+	(void)reader;
 
 	character->whispers = false;
 }
@@ -30,7 +32,8 @@ void Global_Player(Character *character, PacketReader &reader)
 // User has opened/closed the global tab
 void Global_Open(Character *character, PacketReader &reader)
 {
-	/*char y = */reader.GetChar(); // 'y'
+	//char y = reader.GetChar(); // 'y'
+	(void)reader;
 
 	(void)character;
 }
@@ -38,7 +41,8 @@ void Global_Open(Character *character, PacketReader &reader)
 // User has closed the global tab
 void Global_Close(Character *character, PacketReader &reader)
 {
-	/*char n = */reader.GetChar(); // 'n'
+	//char n = reader.GetChar(); // 'n'
+	(void)reader;
 
 	(void)character;
 }

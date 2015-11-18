@@ -6,13 +6,19 @@
 
 #include "commands.hpp"
 
-#include "../util.hpp"
-
+#include "../character.hpp"
+#include "../config.hpp"
 #include "../eoplus.hpp"
+#include "../i18n.hpp"
 #include "../packet.hpp"
-#include "../player.hpp"
 #include "../quest.hpp"
 #include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <cstddef>
+#include <string>
+#include <vector>
 
 namespace Commands
 {
@@ -82,8 +88,8 @@ void Paperdoll(const std::vector<std::string>& arguments, Character* from)
 	}
 	else
 	{
-		std::string home_str = victim->world->GetHome(victim)->name;
-		std::string guild_str = victim->guild ? victim->guild->name : "";
+		std::string home_str = victim->HomeString();
+		std::string guild_str = victim->GuildNameString();
 		std::string rank_str = victim->GuildRankString();
 
 		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REPLY,
@@ -96,7 +102,7 @@ void Paperdoll(const std::vector<std::string>& arguments, Character* from)
 		reply.AddBreakString(victim->title);
 		reply.AddBreakString(guild_str);
 		reply.AddBreakString(rank_str);
-		reply.AddShort(victim->player->id);
+		reply.AddShort(victim->PlayerID());
 		reply.AddChar(victim->clas);
 		reply.AddChar(victim->gender);
 		reply.AddChar(0);
@@ -154,8 +160,8 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 	}
 	else
 	{
-		std::string home_str = victim->world->GetHome(victim)->name;
-		std::string guild_str = victim->guild ? victim->guild->name : "";
+		std::string home_str = victim->HomeString();
+		std::string guild_str = victim->GuildNameString();
 		std::string rank_str = victim->GuildRankString();
 
 		PacketBuilder reply(PACKET_BOOK, PACKET_REPLY,
@@ -168,7 +174,7 @@ void Book(const std::vector<std::string>& arguments, Character* from)
 		reply.AddBreakString(victim->title);
 		reply.AddBreakString(guild_str);
 		reply.AddBreakString(rank_str);
-		reply.AddShort(victim->player->id);
+		reply.AddShort(victim->PlayerID());
 		reply.AddChar(victim->clas);
 		reply.AddChar(victim->gender);
 		reply.AddChar(0);

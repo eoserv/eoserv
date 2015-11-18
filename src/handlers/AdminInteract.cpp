@@ -6,11 +6,12 @@
 
 #include "handlers.hpp"
 
-#include <string>
-
 #include "../character.hpp"
-#include "../player.hpp"
+#include "../config.hpp"
+#include "../i18n.hpp"
 #include "../world.hpp"
+
+#include <string>
 
 namespace Handlers
 {

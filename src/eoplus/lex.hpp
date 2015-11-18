@@ -9,11 +9,11 @@
 
 #include "fwd/lex.hpp"
 
+#include "../eoplus.hpp"
+
 #include <functional>
 #include <iosfwd>
 #include <queue>
-
-#include "../eoplus.hpp"
 
 namespace EOPlus
 {

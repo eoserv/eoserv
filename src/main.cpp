@@ -4,22 +4,24 @@
  * See LICENSE.txt for more info.
  */
 
-#include <csignal>
-#include <cerrno>
-#include <limits>
-#include <stdexcept>
-#include <vector>
-
-#include "character.hpp"
 #include "config.hpp"
-#include "console.hpp"
-#include "eoclient.hpp"
+#include "database.hpp"
 #include "eoserv_config.hpp"
 #include "eoserver.hpp"
-#include "packet.hpp"
-#include "player.hpp"
-#include "socket.hpp"
 #include "world.hpp"
+
+#include "console.hpp"
+#include "socket.hpp"
+
+#include <array>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <exception>
+#include <limits>
+#include <stdexcept>
+#include <string>
 
 #include "platform.h"
 #include "version.h"

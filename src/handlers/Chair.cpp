@@ -6,11 +6,11 @@
 
 #include "handlers.hpp"
 
-#include "../util.hpp"
-
 #include "../character.hpp"
 #include "../map.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
+
+#include "../util.hpp"
 
 namespace Handlers
 {
@@ -145,7 +145,7 @@ void Chair_Request(Character *character, PacketReader &reader)
 		character->y = y;
 
 		PacketBuilder reply(PACKET_CHAIR, PACKET_PLAYER, 6);
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddChar(character->x);
 		reply.AddChar(character->y);
 		reply.AddChar(character->direction);
@@ -172,7 +172,7 @@ void Chair_Request(Character *character, PacketReader &reader)
 		}
 
 		PacketBuilder reply(PACKET_CHAIR, PACKET_CLOSE, 4);
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddChar(character->x);
 		reply.AddChar(character->y);
 		character->Send(reply);

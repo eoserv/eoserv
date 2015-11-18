@@ -7,11 +7,11 @@
 #ifndef UTIL_RPN_HPP_INCLUDED
 #define UTIL_RPN_HPP_INCLUDED
 
+#include "../util/variant.hpp"
+
 #include <stack>
 #include <string>
 #include <unordered_map>
-
-#include "variant.hpp"
 
 namespace util
 {

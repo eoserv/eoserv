@@ -4,14 +4,25 @@
  * See LICENSE.txt for more info.
  */
 
-#include "database.hpp"
+#ifdef CLANG_MODULES_WORKAROUND
+#include <ctime>
+#include <csignal>
+#endif // CLANG_MODULES_WORKAROUND
 
-#include <cstdarg>
-#include <cstring>
-#include <list>
+#include "database.hpp"
 
 #include "console.hpp"
 #include "util.hpp"
+#include "util/variant.hpp"
+
+#include <algorithm>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <exception>
+#include <list>
+#include <string>
+#include <unordered_map>
 
 #include "database_impl.hpp"
 

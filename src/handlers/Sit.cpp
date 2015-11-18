@@ -7,7 +7,7 @@
 #include "handlers.hpp"
 
 #include "../character.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
 
 namespace Handlers
 {
@@ -19,7 +19,7 @@ void Sit_Request(Character *character, PacketReader &reader)
 	if (action == SIT_ACT_SIT && character->sitting == SIT_STAND)
 	{
 		PacketBuilder reply(PACKET_SIT, PACKET_PLAYER, 6);
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddChar(character->x);
 		reply.AddChar(character->y);
 		reply.AddChar(character->direction);
@@ -30,7 +30,7 @@ void Sit_Request(Character *character, PacketReader &reader)
 	else if (character->sitting == SIT_FLOOR)
 	{
 		PacketBuilder reply(PACKET_SIT, PACKET_CLOSE, 4);
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddChar(character->x);
 		reply.AddChar(character->y);
 		character->Send(reply);

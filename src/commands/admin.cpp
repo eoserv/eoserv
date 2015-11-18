@@ -6,16 +6,22 @@
 
 #include "commands.hpp"
 
-#include "../util.hpp"
-
 #include "../character.hpp"
-#include "../console.hpp"
+#include "../config.hpp"
 #include "../eoclient.hpp"
+#include "../eodata.hpp"
+#include "../i18n.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
 #include "../packet.hpp"
 #include "../player.hpp"
 #include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace Commands
 {
@@ -72,7 +78,7 @@ void Duty(const std::vector<std::string>& arguments, Character* from)
 	swap->CalculateStats();
 
 	{
-		std::string guild_str = swap->guild ? swap->guild->name : "";
+		std::string guild_str = swap->GuildNameString();
 		std::string guild_rank = swap->GuildRankString();
 
 		PacketBuilder reply(PACKET_WELCOME, PACKET_REPLY,
@@ -80,7 +86,7 @@ void Duty(const std::vector<std::string>& arguments, Character* from)
 			+ guild_str.length() + guild_rank.length());
 
 		reply.AddShort(1); // REPLY_WELCOME sub-id
-		reply.AddShort(player->id);
+		reply.AddShort(swap->PlayerID());
 		reply.AddInt(swap->id);
 		reply.AddShort(swap->mapid); // Map ID
 
@@ -262,7 +268,7 @@ void Duty(const std::vector<std::string>& arguments, Character* from)
 		reply.AddByte(255);
 
 		reply.AddBreakString(swap->SourceName());
-		reply.AddShort(swap->player->id);
+		reply.AddShort(swap->PlayerID());
 		reply.AddShort(swap->mapid);
 		reply.AddShort(swap->x);
 		reply.AddShort(swap->y);

@@ -4,13 +4,22 @@
  * See LICENSE.txt for more info.
  */
 
+#ifdef CLANG_MODULES_WORKAROUND
+#include "platform.h"
+#include "socket_impl.hpp"
+#endif // CLANG_MODULES_WORKAROUND
+
 #include "socket.hpp"
+#include "util.hpp"
 
 #include <algorithm>
 #include <cerrno>
-#include <cstddef>
+#include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "platform.h"
 
@@ -19,8 +28,6 @@
 #ifdef WIN32
 static WSADATA socket_wsadata;
 #endif // WIN32
-
-#include "util.hpp"
 
 static char ErrorBuf[1024];
 

@@ -8,8 +8,12 @@
 
 #include "../character.hpp"
 #include "../eoplus.hpp"
-#include "../guild.hpp"
 #include "../quest.hpp"
+
+#include "../util.hpp"
+
+#include <cstddef>
+#include <string>
 
 namespace Handlers
 {
@@ -26,8 +30,8 @@ void Book_Request(Character *character, PacketReader &reader)
 		target = character;
 	}
 
-	std::string home_str = target->world->GetHome(target)->name;
-	std::string guild_str = target->guild ? target->guild->name : "";
+	std::string home_str = target->HomeString();
+	std::string guild_str = target->GuildNameString();
 	std::string rank_str = target->GuildRankString();
 
 	PacketBuilder reply(PACKET_BOOK, PACKET_REPLY,

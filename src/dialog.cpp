@@ -6,9 +6,13 @@
 
 #include "dialog.hpp"
 
+#include "packet.hpp"
+
 #include "util.hpp"
 
-#include "packet.hpp"
+#include <cstddef>
+#include <string>
+#include <utility>
 
 Dialog::Dialog()
 {

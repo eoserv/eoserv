@@ -6,25 +6,32 @@
 
 #include "quest.hpp"
 
-#include <algorithm>
-#include <cstdio>
-#include <ctime>
-#include <functional>
-#include <fstream>
-#include <iterator>
-
-#include "util.hpp"
-#include "util/rpn.hpp"
-
 #include "character.hpp"
 #include "config.hpp"
-#include "console.hpp"
 #include "dialog.hpp"
 #include "eoplus.hpp"
 #include "map.hpp"
 #include "packet.hpp"
-#include "player.hpp"
 #include "world.hpp"
+
+#include "console.hpp"
+#include "util.hpp"
+#include "util/rpn.hpp"
+
+#include <algorithm>
+#include <cstdio>
+#include <ctime>
+#include <deque>
+#include <fstream>
+#include <functional>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <stack>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 static int quest_day()
 {
@@ -589,7 +596,7 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 				if (character != this->character && this->character->InRange(character))
 				{
 					PacketBuilder builder(PACKET_ITEM, PACKET_ACCEPT, 2);
-					builder.AddShort(character->player->id);
+					builder.AddShort(character->PlayerID());
 					character->Send(builder);
 				}
 			}

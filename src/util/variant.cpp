@@ -8,6 +8,11 @@
 
 #include "../util.hpp"
 
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <string>
+
 namespace util
 {
 

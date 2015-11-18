@@ -6,11 +6,17 @@
 
 #include "commands.hpp"
 
-#include <functional>
+#include "../character.hpp"
+#include "../command_source.hpp"
+#include "../config.hpp"
+#include "../i18n.hpp"
+#include "../world.hpp"
 
 #include "../util.hpp"
 
-#include "../world.hpp"
+#include <functional>
+#include <string>
+#include <vector>
 
 namespace Commands
 {

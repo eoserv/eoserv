@@ -4,22 +4,28 @@
  * See LICENSE.txt for more info.
  */
 
+#ifdef CLANG_MODULES_WORKAROUND
+#include <pthread.h>
+#endif // CLANG_MODULES_WORKAROUND
+
 #include "sln.hpp"
+
+#include "character.hpp"
+#include "eoserver.hpp"
+#include "timer.hpp"
+#include "world.hpp"
+
+#include "console.hpp"
+#include "nanohttp.hpp"
 
 #include <cmath>
 #include <stdexcept>
 #include <string>
-
-#include <pthread.h>
-
-#include "console.hpp"
-#include "eoserver.hpp"
-#include "nanohttp.hpp"
-#include "timer.hpp"
-#include "world.hpp"
-#include "character.hpp"
+#include <vector>
 
 #include "version.h"
+
+#include <pthread.h>
 
 struct SLN_Request
 {

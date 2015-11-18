@@ -9,12 +9,11 @@
 
 #include "fwd/arena.hpp"
 
-#include <vector>
-
-#include "fwd/timer.hpp"
-
 #include "fwd/character.hpp"
 #include "fwd/map.hpp"
+#include "fwd/timer.hpp"
+
+#include <vector>
 
 struct Arena_Spawn
 {

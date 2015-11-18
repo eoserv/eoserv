@@ -6,11 +6,12 @@
 
 #include "eodata.hpp"
 
-#include <cstdio>
-#include <cstdlib>
-
 #include "console.hpp"
 #include "packet.hpp"
+
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 
 static const char *eodata_safe_fail_filename;
 

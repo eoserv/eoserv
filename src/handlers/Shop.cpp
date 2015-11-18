@@ -6,13 +6,18 @@
 
 #include "handlers.hpp"
 
-#include <cstdint>
+#include "../character.hpp"
+#include "../config.hpp"
+#include "../eodata.hpp"
+#include "../map.hpp"
+#include "../npc.hpp"
+#include "../packet.hpp"
+#include "../world.hpp"
 
 #include "../util.hpp"
 
-#include "../character.hpp"
-#include "../map.hpp"
-#include "../npc.hpp"
+#include <cstddef>
+#include <cstdint>
 
 namespace Handlers
 {

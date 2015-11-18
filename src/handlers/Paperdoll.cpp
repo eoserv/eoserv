@@ -9,7 +9,12 @@
 #include "../character.hpp"
 #include "../eodata.hpp"
 #include "../map.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
+#include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <string>
 
 namespace Handlers
 {
@@ -26,8 +31,8 @@ void Paperdoll_Request(Character *character, PacketReader &reader)
 		target = character;
 	}
 
-	std::string home_str = target->world->GetHome(target)->name;
-	std::string guild_str = target->guild ? target->guild->name : "";
+	std::string home_str = target->HomeString();
+	std::string guild_str = target->GuildNameString();
 	std::string rank_str = target->GuildRankString();
 
 	PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REPLY,
@@ -40,7 +45,7 @@ void Paperdoll_Request(Character *character, PacketReader &reader)
 	reply.AddBreakString(target->title);
 	reply.AddBreakString(guild_str);
 	reply.AddBreakString(rank_str);
-	reply.AddShort(target->player->id);
+	reply.AddShort(target->PlayerID());
 	reply.AddChar(target->clas);
 	reply.AddChar(target->gender);
 	reply.AddChar(0);
@@ -101,7 +106,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	if (character->Unequip(itemid, subloc))
 	{
 		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_REMOVE, 43);
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddChar(SLOT_CLOTHES);
 		reply.AddChar(0); // sound
 		character->AddPaperdollData(reply, "BAHWS");
@@ -126,7 +131,7 @@ void Paperdoll_Remove(Character *character, PacketReader &reader)
 	// TODO: Only send this if they change a viewable item
 
 	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
-	builder.AddShort(character->player->id);
+	builder.AddShort(character->PlayerID());
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(0); // sound
 	character->AddPaperdollData(builder, "BAHWS");
@@ -153,7 +158,7 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 	if (character->Equip(itemid, subloc))
 	{
 		PacketBuilder reply(PACKET_PAPERDOLL, PACKET_AGREE, 46);
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddChar(SLOT_CLOTHES);
 		reply.AddChar(0); // sound
 		character->AddPaperdollData(reply, "BAHWS");
@@ -180,7 +185,7 @@ void Paperdoll_Add(Character *character, PacketReader &reader)
 	// TODO: Only send this if they change a viewable item
 
 	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
-	builder.AddShort(character->player->id);
+	builder.AddShort(character->PlayerID());
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(0); // sound
 	character->AddPaperdollData(builder, "BAHWS");

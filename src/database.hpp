@@ -7,23 +7,16 @@
 #ifndef DATABASE_HPP_INCLUDED
 #define DATABASE_HPP_INCLUDED
 
-#ifndef DATABASE_MYSQL
-#ifndef DATABASE_SQLITE
-#error At least one database driver must be selected
-#endif // DATABASE_SQLITE
-#endif // DATABASE_MYSQL
+#include "util/variant.hpp"
 
 #include <algorithm>
 #include <exception>
 #include <functional>
 #include <list>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include "util/variant.hpp"
 
 #include "platform.h"
 

@@ -6,11 +6,12 @@
 
 #include "handlers.hpp"
 
-#include <functional>
-
 #include "../character.hpp"
+#include "../config.hpp"
+#include "../eodata.hpp"
 #include "../npc.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
+#include "../world.hpp"
 
 namespace Handlers
 {
@@ -21,7 +22,7 @@ static void walk_common(Character *character, PacketReader &reader, Map::WalkRes
 	Timestamp timestamp = reader.GetThree();
 	unsigned char x = reader.GetChar();
 	unsigned char y = reader.GetChar();
-	Map::WalkResult walk_result;
+	Map::WalkResult walk_result = Map::WalkFail;
 
 	if (character->world->config["EnforceTimestamps"])
 	{
@@ -48,7 +49,7 @@ static void walk_common(Character *character, PacketReader &reader, Map::WalkRes
 		if (character->trading)
 		{
 			PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
-			builder.AddShort(character->player->id);
+			builder.AddShort(character->PlayerID());
 			character->trade_partner->Send(builder);
 
 			character->trading = false;

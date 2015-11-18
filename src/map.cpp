@@ -6,26 +6,35 @@
 
 #include "map.hpp"
 
-#include <algorithm>
-#include <functional>
-#include <set>
-
-#include "console.hpp"
-#include "timer.hpp"
-#include "util.hpp"
-#include "util/rpn.hpp"
-
 #include "arena.hpp"
 #include "character.hpp"
+#include "config.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
-#include "eoserver.hpp"
 #include "npc.hpp"
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
 #include "quest.hpp"
+#include "timer.hpp"
 #include "world.hpp"
+
+#include "console.hpp"
+#include "util.hpp"
+#include "util/rpn.hpp"
+
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+#include <iterator>
+#include <list>
+#include <memory>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 static const char *map_safe_fail_filename;
 
@@ -728,7 +737,7 @@ void Map::Enter(Character *character, WarpAnimation animation)
 
 	builder.AddByte(255);
 	builder.AddBreakString(character->SourceName());
-	builder.AddShort(character->player->id);
+	builder.AddShort(character->PlayerID());
 	builder.AddShort(character->mapid);
 	builder.AddShort(character->x);
 	builder.AddShort(character->y);
@@ -771,7 +780,7 @@ void Map::Leave(Character *character, WarpAnimation animation, bool silent)
 	if (!silent)
 	{
 		PacketBuilder builder(PACKET_AVATAR, PACKET_REMOVE, 3);
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 
 		if (animation != WARP_ANIMATION_NONE)
 		{
@@ -802,7 +811,7 @@ void Map::Msg(Character *from, std::string message, bool echo)
 	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->SourceName()) + "  "));
 
 	PacketBuilder builder(PACKET_TALK, PACKET_PLAYER, 2 + message.length());
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddString(message);
 
 	UTIL_FOREACH(this->characters, character)
@@ -1053,15 +1062,15 @@ Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 	}
 
 	PacketBuilder builder(PACKET_AVATAR, PACKET_REMOVE, 2);
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 
 	UTIL_FOREACH(oldchars, character)
 	{
 		PacketBuilder rbuilder(PACKET_AVATAR, PACKET_REMOVE, 2);
-		rbuilder.AddShort(character->player->id);
+		rbuilder.AddShort(character->PlayerID());
 
 		character->Send(builder);
-		from->player->Send(rbuilder);
+		from->Send(rbuilder);
 	}
 
 	builder.Reset(62);
@@ -1069,7 +1078,7 @@ Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 
 	builder.AddByte(255);
 	builder.AddBreakString(from->SourceName());
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddShort(from->mapid);
 	builder.AddShort(from->x);
 	builder.AddShort(from->y);
@@ -1097,7 +1106,7 @@ Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 		PacketBuilder rbuilder(PACKET_PLAYERS, PACKET_AGREE, 62);
 		rbuilder.AddByte(255);
 		rbuilder.AddBreakString(character->SourceName());
-		rbuilder.AddShort(character->player->id);
+		rbuilder.AddShort(character->PlayerID());
 		rbuilder.AddShort(character->mapid);
 		rbuilder.AddShort(character->x);
 		rbuilder.AddShort(character->y);
@@ -1122,13 +1131,13 @@ Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 		rbuilder.AddChar(1); // 0 = NPC, 1 = player
 
 		character->Send(builder);
-		from->player->Send(rbuilder);
+		from->Send(rbuilder);
 	}
 
 	builder.Reset(5);
 	builder.SetID(PACKET_WALK, PACKET_PLAYER);
 
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddChar(direction);
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
@@ -1156,7 +1165,7 @@ Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 		builder.AddChar(item->y);
 		builder.AddThree(item->amount);
 	}
-	from->player->Send(builder);
+	from->Send(builder);
 
 	builder.SetID(PACKET_APPEAR, PACKET_REPLY);
 	UTIL_FOREACH(newnpcs, npc)
@@ -1170,7 +1179,7 @@ Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 		builder.AddChar(npc->y);
 		builder.AddChar(npc->direction);
 
-		from->player->Send(builder);
+		from->Send(builder);
 	}
 
 	UTIL_FOREACH(oldnpcs, npc)
@@ -1411,7 +1420,7 @@ void Map::Attack(Character *from, Direction direction)
 	}
 
 	PacketBuilder builder(PACKET_ATTACK, PACKET_PLAYER, 3);
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddChar(direction);
 
 	UTIL_FOREACH(this->characters, character)
@@ -1586,15 +1595,15 @@ bool Map::AttackPK(Character *from, Direction direction)
 
 				PacketBuilder from_builder(PACKET_AVATAR, PACKET_REPLY, 10);
 				from_builder.AddShort(0);
-				from_builder.AddShort(character->player->id);
+				from_builder.AddShort(character->PlayerID());
 				from_builder.AddThree(amount);
 				from_builder.AddChar(from->direction);
 				from_builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
 				from_builder.AddChar(character->hp == 0);
 
 				PacketBuilder builder(PACKET_AVATAR, PACKET_REPLY, 10);
-				builder.AddShort(from->player->id);
-				builder.AddShort(character->player->id);
+				builder.AddShort(from->PlayerID());
+				builder.AddShort(character->PlayerID());
 				builder.AddThree(amount);
 				builder.AddChar(from->direction);
 				builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
@@ -1650,7 +1659,7 @@ void Map::Face(Character *from, Direction direction)
 	from->CancelSpell();
 
 	PacketBuilder builder(PACKET_FACE, PACKET_PLAYER, 3);
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddChar(direction);
 
 	UTIL_FOREACH(this->characters, character)
@@ -1671,7 +1680,7 @@ void Map::Sit(Character *from, SitState sit_type)
 	from->CancelSpell();
 
 	PacketBuilder builder((sit_type == SIT_CHAIR) ? PACKET_CHAIR : PACKET_SIT, PACKET_PLAYER, 6);
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
 	builder.AddChar(from->direction);
@@ -1695,7 +1704,7 @@ void Map::Stand(Character *from)
 	from->CancelSpell();
 
 	PacketBuilder builder(PACKET_SIT, PACKET_REMOVE, 4);
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddChar(from->x);
 	builder.AddChar(from->y);
 
@@ -1713,7 +1722,7 @@ void Map::Stand(Character *from)
 void Map::Emote(Character *from, enum Emote emote, bool echo)
 {
 	PacketBuilder builder(PACKET_EMOTE, PACKET_PLAYER, 3);
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddChar(emote);
 
 	UTIL_FOREACH(this->characters, character)
@@ -1857,7 +1866,7 @@ void Map::SpellSelf(Character *from, unsigned short spell_id)
 	from->hp = std::min(from->hp, from->maxhp);
 
 	PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_SELF, 15);
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddShort(spell_id);
 	builder.AddInt(spell.hp);
 	builder.AddChar(util::clamp<int>(double(from->hp) / double(from->maxhp) * 100.0, 0, 100));
@@ -1971,8 +1980,8 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 		victim->hp -= limitamount;
 
 		PacketBuilder builder(PACKET_AVATAR, PACKET_ADMIN, 12);
-		builder.AddShort(from->player->id);
-		builder.AddShort(victim->player->id);
+		builder.AddShort(from->PlayerID());
+		builder.AddShort(victim->PlayerID());
 		builder.AddThree(amount);
 		builder.AddChar(from->direction);
 		builder.AddChar(util::clamp<int>(double(victim->hp) / double(victim->maxhp) * 100.0, 0, 100));
@@ -2027,8 +2036,8 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 			victim->hp = std::min(victim->hp, victim->maxhp);
 
 		PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_OTHER, 18);
-		builder.AddShort(victim->player->id);
-		builder.AddShort(from->player->id);
+		builder.AddShort(victim->PlayerID());
+		builder.AddShort(from->PlayerID());
 		builder.AddChar(from->direction);
 		builder.AddShort(spell_id);
 		builder.AddInt(spell.hp);
@@ -2083,7 +2092,7 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 
 	PacketBuilder builder(PACKET_SPELL, PACKET_TARGET_GROUP, 8 + from->party->members.size() * 10);
 	builder.AddShort(spell_id);
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddShort(from->tp);
 	builder.AddShort(spell.hp);
 
@@ -2111,7 +2120,7 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 		builder.AddByte(255);
 		builder.AddByte(255);
 
-		builder.AddShort(member->player->id);
+		builder.AddShort(member->PlayerID());
 		builder.AddChar(util::clamp<int>(double(member->hp) / double(member->maxhp) * 100.0, 0, 100));
 		builder.AddShort(member->hp);
 
@@ -2535,7 +2544,7 @@ void Map::TimedDrains()
 					if (!character->InRange(other) || other == character)
 						continue;
 
-					builder.AddShort(other->player->id);
+					builder.AddShort(other->PlayerID());
 					builder.AddChar(util::clamp<int>(double(other->hp) / double(other->maxhp) * 100.0, 0, 100));
 					builder.AddShort(damage);
 				}
@@ -2598,7 +2607,7 @@ Character *Map::GetCharacterPID(unsigned int id)
 {
 	UTIL_FOREACH(this->characters, character)
 	{
-		if (character->player->id == id)
+		if (character->PlayerID() == id)
 		{
 			return character;
 		}

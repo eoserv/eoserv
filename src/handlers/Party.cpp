@@ -8,8 +8,9 @@
 
 #include "../character.hpp"
 #include "../map.hpp"
+#include "../packet.hpp"
 #include "../party.hpp"
-#include "../player.hpp"
+#include "../world.hpp"
 
 namespace Handlers
 {
@@ -32,7 +33,7 @@ void Party_Request(Character *character, PacketReader &reader)
 
 	PacketBuilder builder(PACKET_PARTY, PACKET_REQUEST, 3 + character->SourceName().length());
 	builder.AddChar(type);
-	builder.AddShort(character->player->id);
+	builder.AddShort(character->PlayerID());
 	builder.AddString(character->SourceName());
 
 	invitee->Send(builder);
@@ -103,7 +104,7 @@ void Packet_Remove(Character *character, PacketReader &reader)
 
 	unsigned short id = reader.GetShort();
 
-	if (id == character->player->id || character == character->party->leader)
+	if (id == character->PlayerID() || character == character->party->leader)
 	{
 		Character *leaver = character->world->GetCharacterPID(id);
 

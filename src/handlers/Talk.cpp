@@ -6,20 +6,23 @@
 
 #include "handlers.hpp"
 
-#include <csignal>
-#include <ctime>
-
-#include "../arena.hpp"
 #include "../character.hpp"
-#include "../console.hpp"
-#include "../eoclient.hpp"
-#include "../eodata.hpp"
+#include "../config.hpp"
+#include "../guild.hpp"
+#include "../i18n.hpp"
 #include "../map.hpp"
-#include "../npc.hpp"
+#include "../packet.hpp"
 #include "../party.hpp"
-#include "../player.hpp"
 #include "../world.hpp"
 #include "../commands/commands.hpp"
+
+#include "../console.hpp"
+#include "../util.hpp"
+
+#include <csignal>
+#include <ctime>
+#include <string>
+#include <vector>
 
 extern volatile std::sig_atomic_t eoserv_sig_abort;
 

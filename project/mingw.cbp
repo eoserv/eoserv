@@ -116,11 +116,8 @@
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-std=gnu++0x" />
+			<Add option="-std=c++14" />
 			<Add option="-include stdafx.h" />
-			<Add option="-DEOSERV_PROJECT" />
-			<Add option="-DEOSERV_PROJECT_CBP" />
-			<Add option="-DEOSERV_MINGW" />
 			<Add directory="..\src\" />
 		</Compiler>
 		<Linker>

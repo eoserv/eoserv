@@ -6,13 +6,16 @@
 
 #include "eoplus.hpp"
 
-#include <deque>
-#include <iostream>
-
 #include "eoplus/lex.hpp"
 #include "eoplus/parse.hpp"
 
 #include "util.hpp"
+
+#include <cstddef>
+#include <deque>
+#include <iostream>
+#include <iterator>
+#include <stdexcept>
 
 namespace EOPlus
 {

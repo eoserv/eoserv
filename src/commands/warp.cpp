@@ -6,11 +6,16 @@
 
 #include "commands.hpp"
 
+#include "../character.hpp"
+#include "../config.hpp"
+#include "../i18n.hpp"
+#include "../map.hpp"
+#include "../world.hpp"
+
 #include "../util.hpp"
 
-#include "../map.hpp"
-#include "../packet.hpp"
-#include "../world.hpp"
+#include <string>
+#include <vector>
 
 namespace Commands
 {
@@ -75,6 +80,7 @@ COMMAND_HANDLER_REGISTER(warp)
 	RegisterCharacter({"warp", {"map", "x", "y"}}, Warp, CMD_FLAG_DUTY_RESTRICT);
 	RegisterCharacter({"warpmeto", {"victim"}}, WarpMeTo, CMD_FLAG_DUTY_RESTRICT);
 	RegisterCharacter({"warptome", {"victim"}}, WarpToMe, CMD_FLAG_DUTY_RESTRICT);
+
 	RegisterAlias("w", "warp");
 COMMAND_HANDLER_REGISTER_END(warp)
 

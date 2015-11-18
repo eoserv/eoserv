@@ -6,6 +6,10 @@
 
 #include "seose_compat.hpp"
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
 std::string seose_to_base62(std::uint16_t input)
 {
 	static char dict[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

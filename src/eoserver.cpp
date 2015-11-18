@@ -6,15 +6,27 @@
 
 #include "eoserver.hpp"
 
-#include "console.hpp"
+#include "config.hpp"
 #include "eoclient.hpp"
-#include "nanohttp.hpp"
 #include "packet.hpp"
 #include "sln.hpp"
-#include "socket.hpp"
 #include "timer.hpp"
 #include "world.hpp"
 #include "handlers/handlers.hpp"
+
+#include "console.hpp"
+#include "socket.hpp"
+#include "util.hpp"
+
+#include <array>
+#include <cerrno>
+#include <cstddef>
+#include <exception>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 void server_ping_all(void *server_void)
 {

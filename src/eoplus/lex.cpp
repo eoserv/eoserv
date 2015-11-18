@@ -6,12 +6,13 @@
 
 #include "lex.hpp"
 
+#include "../util.hpp"
+
 #include <cctype>
+#include <functional>
 #include <istream>
 #include <limits>
-#include <stdexcept>
-
-#include "../util.hpp"
+#include <string>
 
 namespace EOPlus
 {

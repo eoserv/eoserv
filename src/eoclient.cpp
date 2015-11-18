@@ -6,22 +6,28 @@
 
 #include "eoclient.hpp"
 
-#include <algorithm>
-#include <cstdint>
-#include <cstdio>
-#include <stdexcept>
-
 #include "character.hpp"
-#include "console.hpp"
+#include "config.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
 #include "eoserver.hpp"
-#include "nanohttp.hpp"
 #include "packet.hpp"
 #include "player.hpp"
 #include "timer.hpp"
-#include "socket.hpp"
 #include "world.hpp"
+
+#include "console.hpp"
+#include "socket.hpp"
+#include "util.hpp"
+
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 void ActionQueue::AddAction(const PacketReader& reader, double time, bool auto_queue)
 {

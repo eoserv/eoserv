@@ -7,15 +7,16 @@
 #ifndef QUEST_HPP_INCLUDED
 #define QUEST_HPP_INCLUDED
 
-#include <map>
-#include <memory>
-#include <string>
+#include "fwd/quest.hpp"
 
 #include "fwd/character.hpp"
 #include "fwd/dialog.hpp"
 #include "fwd/world.hpp"
-
 #include "eoplus/context.hpp"
+
+#include <map>
+#include <memory>
+#include <string>
 
 class Quest
 {

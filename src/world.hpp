@@ -9,20 +9,6 @@
 
 #include "fwd/world.hpp"
 
-#include <algorithm>
-#include <list>
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-
-#include "config.hpp"
-#include "database.hpp"
-#include "i18n.hpp"
-#include "map.hpp"
-#include "timer.hpp"
-#include "util/secure_string.hpp"
-
 #include "fwd/character.hpp"
 #include "fwd/command_source.hpp"
 #include "fwd/eodata.hpp"
@@ -32,7 +18,21 @@
 #include "fwd/party.hpp"
 #include "fwd/player.hpp"
 #include "fwd/quest.hpp"
+#include "config.hpp"
+#include "database.hpp"
+#include "i18n.hpp"
+#include "map.hpp"
+#include "timer.hpp"
+
 #include "fwd/socket.hpp"
+#include "util/secure_string.hpp"
+
+#include <array>
+#include <list>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 struct Board_Post
 {
@@ -161,7 +161,7 @@ class World
 		Character *GetCharacterCID(unsigned int id);
 
 		Map *GetMap(short id);
-		Home *GetHome(Character *);
+		Home *GetHome(const Character *) const;
 		Home *GetHome(std::string);
 
 		bool CharacterExists(std::string name);

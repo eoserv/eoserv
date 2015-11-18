@@ -8,6 +8,8 @@
 
 #include "console.hpp"
 
+#include <string>
+
 System_Command_Source::System_Command_Source(World* world)
 	: world(world)
 { }

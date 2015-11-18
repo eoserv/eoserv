@@ -6,11 +6,15 @@
 
 #include "context.hpp"
 
-#include <stdexcept>
+#include "../eoplus.hpp"
 
 #include "../util.hpp"
+#include "../util/variant.hpp"
 
-#include "../eoplus.hpp"
+#include <deque>
+#include <functional>
+#include <stdexcept>
+#include <string>
 
 namespace EOPlus
 {

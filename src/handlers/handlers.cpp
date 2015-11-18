@@ -6,9 +6,12 @@
 
 #include "handlers.hpp"
 
-#include "../console.hpp"
 #include "../eoclient.hpp"
 #include "../player.hpp"
+
+#include "../console.hpp"
+
+#include <stdexcept>
 
 namespace Handlers
 {

@@ -6,18 +6,23 @@
 
 #include "handlers.hpp"
 
-#include <algorithm>
-#include <stdexcept>
-
-#include "../util.hpp"
-
-#include "../console.hpp"
+#include "../config.hpp"
 #include "../eoclient.hpp"
 #include "../eoserver.hpp"
+#include "../packet.hpp"
 #include "../player.hpp"
 #include "../world.hpp"
-
 #include "../extra/seose_compat.hpp"
+
+#include "../console.hpp"
+#include "../util.hpp"
+#include "../util/secure_string.hpp"
+
+#include <cstddef>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 namespace Handlers
 {

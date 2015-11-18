@@ -6,18 +6,24 @@
 
 #include "handlers.hpp"
 
-#include <cstdio>
-#include <stdexcept>
-#include <vector>
-
 #include "../character.hpp"
-#include "../console.hpp"
-#include "../eodata.hpp"
+#include "../config.hpp"
 #include "../eoclient.hpp"
-#include "../guild.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
+#include "../packet.hpp"
 #include "../player.hpp"
+#include "../world.hpp"
+
+#include "../console.hpp"
+#include "../util.hpp"
+
+#include <algorithm>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace Handlers
 {
@@ -41,7 +47,7 @@ void Welcome_Request(Player *player, PacketReader &reader)
 	player->character = *it;
 	player->character->CalculateStats();
 
-	std::string guild_str = player->character->guild ? player->character->guild->name : "";
+	std::string guild_str = player->character->GuildNameString();
 	std::string guild_rank = player->character->GuildRankString();
 
 	PacketBuilder reply(PACKET_WELCOME, PACKET_REPLY,
@@ -323,7 +329,7 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 	UTIL_FOREACH(updatecharacters, character)
 	{
 		reply.AddBreakString(character->SourceName());
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddShort(character->mapid);
 		reply.AddShort(character->x);
 		reply.AddShort(character->y);

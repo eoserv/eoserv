@@ -6,15 +6,16 @@
 
 #include "party.hpp"
 
-#include <cmath>
+#include "character.hpp"
+#include "config.hpp"
+#include "packet.hpp"
+#include "world.hpp"
 
 #include "util.hpp"
 
-#include "character.hpp"
-#include "eoclient.hpp"
-#include "packet.hpp"
-#include "player.hpp"
-#include "world.hpp"
+#include <algorithm>
+#include <cmath>
+#include <string>
 
 Party::Party(World *world, Character *leader, Character *other)
 {
@@ -41,7 +42,7 @@ void Party::Msg(Character *from, std::string message, bool echo)
 
 	PacketBuilder builder(PACKET_TALK, PACKET_OPEN, 2 + message.length());
 
-	builder.AddShort(from->player->id);
+	builder.AddShort(from->PlayerID());
 	builder.AddString(message);
 
 	UTIL_FOREACH(this->members, member)
@@ -62,7 +63,7 @@ void Party::Join(Character *character)
 	this->members.push_back(character);
 
 	PacketBuilder builder(PACKET_PARTY, PACKET_ADD, 5 + character->SourceName().length());
-	builder.AddShort(character->player->id);
+	builder.AddShort(character->PlayerID());
 	builder.AddChar(character == this->leader);
 	builder.AddChar(character->level);
 	builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
@@ -95,7 +96,7 @@ void Party::Leave(Character *character)
 		character->party = 0;
 
 		PacketBuilder builder(PACKET_PARTY, PACKET_REMOVE, 2);
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		UTIL_FOREACH(this->members, checkcharacter)
 		{
 			if (character != checkcharacter)
@@ -123,7 +124,7 @@ void Party::RefreshMembers(Character *character, bool create)
 
 	UTIL_FOREACH(this->members, member)
 	{
-		builder.AddShort(member->player->id);
+		builder.AddShort(member->PlayerID());
 		builder.AddChar(member == this->leader);
 		builder.AddChar(member->level);
 		builder.AddChar(util::clamp<int>(double(member->hp) / double(member->maxhp) * 100.0, 0, 100));
@@ -136,7 +137,7 @@ void Party::RefreshMembers(Character *character, bool create)
 void Party::UpdateHP(Character *character)
 {
 	PacketBuilder builder(PACKET_PARTY, PACKET_AGREE, 3);
-	builder.AddShort(character->player->id);
+	builder.AddShort(character->PlayerID());
 	builder.AddChar(util::clamp<int>(double(character->hp) / double(character->maxhp) * 100.0, 0, 100));
 
 	UTIL_FOREACH(this->members, member)
@@ -200,7 +201,7 @@ void Party::ShareEXP(int exp, int sharemode, Map *map)
 		bool level_up = (member->level < static_cast<int>(this->world->config["MaxLevel"]) && member->exp >= this->world->exp_table[member->level+1]);
 
 		PacketBuilder builder(PACKET_PARTY, PACKET_TARGET_GROUP, 7);
-		builder.AddShort(member->player->id);
+		builder.AddShort(member->PlayerID());
 		builder.AddInt(reward);
 		builder.AddChar(level_up);
 

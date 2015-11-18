@@ -9,14 +9,14 @@
 
 #include "fwd/eoplus.hpp"
 
+#include "util/variant.hpp"
+
+#include <cstddef>
 #include <deque>
 #include <iosfwd>
 #include <map>
-#include <memory>
 #include <stdexcept>
 #include <string>
-
-#include "util/variant.hpp"
 
 namespace EOPlus
 {

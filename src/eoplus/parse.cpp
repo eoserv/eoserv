@@ -6,9 +6,11 @@
 
 #include "parse.hpp"
 
-#include <algorithm>
-
-#include "../util.hpp"
+#include <deque>
+#include <functional>
+#include <map>
+#include <string>
+#include <utility>
 
 namespace EOPlus
 {

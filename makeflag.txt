@@ -1,8 +1,0 @@
-
-make eoserv <flags>
-
-flags:
-  DEBUG=1    (Do not optimize, enable debugging symbols and extra output)
-  MYSQL=1    (Enable MySQL support)
-  SQLITE=1   (Enable SQLite support)
-  POLL=1     (Use poll() instead of select()) - No effect on Windows

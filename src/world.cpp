@@ -6,34 +6,43 @@
 
 #include "world.hpp"
 
-#include <algorithm>
-#include <cmath>
-#include <deque>
-#include <limits>
-#include <map>
-#include <stdexcept>
-
-#include "console.hpp"
-#include "database.hpp"
-#include "hash.hpp"
-#include "util.hpp"
-
 #include "character.hpp"
 #include "command_source.hpp"
 #include "config.hpp"
+#include "database.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
 #include "eoplus.hpp"
 #include "eoserver.hpp"
 #include "guild.hpp"
+#include "i18n.hpp"
 #include "map.hpp"
 #include "npc.hpp"
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
 #include "quest.hpp"
+#include "timer.hpp"
 #include "commands/commands.hpp"
 #include "handlers/handlers.hpp"
+
+#include "console.hpp"
+#include "hash.hpp"
+#include "util.hpp"
+#include "util/secure_string.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <ctime>
+#include <limits>
+#include <list>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 void world_spawn_npcs(void *world_void)
 {
@@ -1059,7 +1068,7 @@ Character *World::GetCharacterPID(unsigned int id)
 {
 	UTIL_FOREACH(this->characters, character)
 	{
-		if (character->player->id == id)
+		if (character->PlayerID() == id)
 		{
 			return character;
 		}
@@ -1100,7 +1109,7 @@ Map *World::GetMap(short id)
 	}
 }
 
-Home *World::GetHome(Character *character)
+Home *World::GetHome(const Character *character) const
 {
 	Home *home = 0;
 	static Home *null_home = new Home;

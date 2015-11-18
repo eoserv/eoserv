@@ -6,17 +6,21 @@
 
 #include "handlers.hpp"
 
-#include <algorithm>
-#include <functional>
-#include <list>
-#include <memory>
-
 #include "../character.hpp"
+#include "../config.hpp"
 #include "../eodata.hpp"
 #include "../guild.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
-#include "../player.hpp"
+#include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <algorithm>
+#include <cstddef>
+#include <list>
+#include <memory>
+#include <string>
 
 namespace Handlers
 {
@@ -61,7 +65,7 @@ void Guild_Request(Character *character, PacketReader &reader)
 							character->Send(reply);
 
 							PacketBuilder builder(PACKET_GUILD, PACKET_REQUEST, 8 + name.length());
-							builder.AddShort(create->leader->player->id);
+							builder.AddShort(create->leader->PlayerID());
 							builder.AddString(util::ucfirst(util::lowercase(name)) + " (" + util::uppercase(tag) + ")");
 
 							UTIL_FOREACH(character->map->characters, updatecharacter)
@@ -246,7 +250,7 @@ void Guild_Create(Character *character, PacketReader &reader)
 				std::string rank_str = character->GuildRankString();
 
 				PacketBuilder reply(PACKET_GUILD, PACKET_CREATE, 13 + guild->name.length() + rank_str.length());
-				reply.AddShort(create->leader->player->id);
+				reply.AddShort(create->leader->PlayerID());
 				reply.AddByte(255);
 				reply.AddBreakString(guild->tag);
 				reply.AddBreakString(guild->name);
@@ -291,7 +295,7 @@ void Guild_Player(Character *character, PacketReader &reader)
 
 							PacketBuilder builder(PACKET_GUILD, PACKET_REPLY, 4 + character->real_name.length());
 							builder.AddShort(GUILD_JOIN_REQUEST);
-							builder.AddShort(character->player->id);
+							builder.AddShort(character->PlayerID());
 							builder.AddString(util::ucfirst(character->real_name));
 							recruiter->Send(builder);
 						}

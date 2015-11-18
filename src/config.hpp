@@ -9,11 +9,11 @@
 
 #include "fwd/config.hpp"
 
+#include "util/variant.hpp"
+
 #include <cstddef>
 #include <string>
 #include <unordered_map>
-
-#include "util/variant.hpp"
 
 /**
  * Reads configuration data from a file.

@@ -9,20 +9,20 @@
 
 #include "fwd/eoclient.hpp"
 
-#include <array>
-#include <cstddef>
-#include <cstdio>
-#include <queue>
-#include <string>
-#include <utility>
+#include "fwd/character.hpp"
+#include "fwd/eodata.hpp"
+#include "fwd/player.hpp"
+#include "eoserver.hpp"
+#include "packet.hpp"
 
 #include "socket.hpp"
 
-#include "fwd/character.hpp"
-#include "fwd/player.hpp"
-#include "fwd/eodata.hpp"
-#include "eoserver.hpp"
-#include "packet.hpp"
+#include <cstddef>
+#include <cstdio>
+#include <memory>
+#include <queue>
+#include <string>
+#include <utility>
 
 /**
  * An action the server will execute for the client

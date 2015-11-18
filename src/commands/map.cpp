@@ -6,12 +6,19 @@
 
 #include "commands.hpp"
 
-#include "../util.hpp"
-
 #include "../arena.hpp"
+#include "../character.hpp"
 #include "../config.hpp"
+#include "../i18n.hpp"
 #include "../map.hpp"
 #include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <algorithm>
+#include <cstddef>
+#include <string>
+#include <vector>
 
 namespace Commands
 {

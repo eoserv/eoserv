@@ -7,9 +7,14 @@
 #include "handlers.hpp"
 
 #include "../character.hpp"
+#include "../config.hpp"
+#include "../eodata.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
+#include "../world.hpp"
+
+#include "../util.hpp"
 
 namespace Handlers
 {

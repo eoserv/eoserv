@@ -6,12 +6,14 @@
 
 #include "config.hpp"
 
+#include "console.hpp"
+#include "util.hpp"
+#include "util/variant.hpp"
+
+#include <cstddef>
 #include <cstdio>
 #include <stdexcept>
-
-#include "util.hpp"
-
-#include "console.hpp"
+#include <string>
 
 void Config::Read(const std::string& filename)
 {

@@ -6,17 +6,21 @@
 
 #include "handlers.hpp"
 
-#include <deque>
-#include <memory>
-
 #include "../character.hpp"
 #include "../dialog.hpp"
+#include "../eodata.hpp"
 #include "../eoplus.hpp"
 #include "../npc.hpp"
 #include "../packet.hpp"
 #include "../quest.hpp"
+#include "../world.hpp"
 
-#include "../console.hpp"
+#include "../util.hpp"
+
+#include <cstddef>
+#include <deque>
+#include <memory>
+#include <utility>
 
 namespace Handlers
 {

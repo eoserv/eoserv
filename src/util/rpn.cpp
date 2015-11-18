@@ -6,10 +6,17 @@
 
 #include "rpn.hpp"
 
-#include <cstddef>
-#include <stdexcept>
-
 #include "../util.hpp"
+#include "../util/variant.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <stack>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace util
 {

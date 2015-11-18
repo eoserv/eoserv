@@ -7,13 +7,18 @@
 #ifndef GUILD_HPP_INCLUDED
 #define GUILD_HPP_INCLUDED
 
-#include <string>
+#include "fwd/guild.hpp"
+
+#include "fwd/character.hpp"
+#include "fwd/world.hpp"
+
+#include <algorithm>
 #include <array>
 #include <ctime>
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
-
-#include "world.hpp"
 
 /**
  * Serialize an array of 9 ranks in to a string that can be restored with RankUnserialize

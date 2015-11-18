@@ -9,6 +9,9 @@
 
 #include "../util.hpp"
 
+#include <algorithm>
+#include <string>
+
 namespace util
 {
 

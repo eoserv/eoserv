@@ -6,15 +6,25 @@
 
 #include "commands.hpp"
 
-#include "../util.hpp"
-
+#include "../character.hpp"
+#include "../config.hpp"
 #include "../eoplus.hpp"
+#include "../i18n.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
 #include "../packet.hpp"
-#include "../player.hpp"
 #include "../quest.hpp"
+#include "../timer.hpp"
 #include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace Commands
 {
@@ -51,7 +61,7 @@ void DropItem(const std::vector<std::string>& arguments, Character* from)
 
 		if (item)
 		{
-			item->owner = from->player->id;
+			item->owner = from->PlayerID();
 			item->unprotecttime = Timer::GetTime() + double(from->world->config["ProtectPlayerDrop"]);
 			from->DelItem(id, amount);
 

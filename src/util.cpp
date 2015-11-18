@@ -7,20 +7,23 @@
 #include "util.hpp"
 
 #include <algorithm>
-#include <clocale>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <ctime>
-#include <limits>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "util/variant.hpp"
 
 #include "platform.h"
 
 #ifdef WIN32
 #include "eoserv_windows.h"
 #endif // WIN32
-
-#include "util/variant.hpp"
 
 namespace util
 {

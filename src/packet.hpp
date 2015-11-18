@@ -9,8 +9,9 @@
 
 #include "fwd/packet.hpp"
 
-#include <string>
 #include <array>
+#include <cstddef>
+#include <string>
 
 /**
  * Encodes and Decodes packets for a Client.

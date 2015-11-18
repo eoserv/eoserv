@@ -11,14 +11,11 @@
 
 #include <string>
 
-#include "platform.h"
-
 namespace Console
 {
 
 extern bool Styled[2];
 
-#ifdef WIN32
 enum Color
 {
 	COLOR_BLUE = 1,
@@ -30,19 +27,6 @@ enum Color
 	COLOR_GREY = 7,
 	COLOR_BLACK = 8
 };
-#else // WIN32
-enum Color
-{
-	COLOR_BLUE = 34,
-	COLOR_GREEN = 32,
-	COLOR_CYAN = 36,
-	COLOR_RED = 31,
-	COLOR_MAGENTA = 35,
-	COLOR_YELLOW = 33,
-	COLOR_GREY = 37,
-	COLOR_BLACK = 30
-};
-#endif // WIN32
 
 enum Stream
 {

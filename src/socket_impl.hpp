@@ -45,7 +45,7 @@ typedef int socklen_t;
 
 /**
  * Type for storing a socket handle.
- * Defined here because it does not exist in linux headers.
+ * Defined here because it does not exist in non-Windows headers.
  */
 typedef int SOCKET;
 

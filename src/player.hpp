@@ -9,15 +9,15 @@
 
 #include "fwd/player.hpp"
 
-#include <string>
-#include <vector>
-
-#include "util/secure_string.hpp"
-
 #include "fwd/character.hpp"
 #include "fwd/eoclient.hpp"
 #include "fwd/packet.hpp"
 #include "fwd/world.hpp"
+
+#include "util/secure_string.hpp"
+
+#include <string>
+#include <vector>
 
 /**
  * Object representing a player, but not a character

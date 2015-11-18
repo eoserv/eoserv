@@ -6,30 +6,38 @@
 
 #include "character.hpp"
 
-#include <algorithm>
-#include <ctime>
-#include <functional>
-#include <limits>
-#include <list>
-#include <map>
-#include <unordered_map>
-
-#include "util.hpp"
-#include "util/rpn.hpp"
-
 #include "arena.hpp"
-#include "console.hpp"
+#include "config.hpp"
 #include "database.hpp"
 #include "eoclient.hpp"
 #include "eodata.hpp"
 #include "eoplus.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "guild.hpp"
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
 #include "quest.hpp"
+#include "timer.hpp"
 #include "world.hpp"
+
+#include "console.hpp"
+#include "util.hpp"
+#include "util/rpn.hpp"
+#include "util/variant.hpp"
+
+#include <algorithm>
+#include <array>
+#include <ctime>
+#include <list>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 void character_cast_spell(void *character_void)
 {
@@ -490,6 +498,11 @@ Character::Character(std::string name, World *world)
 	}
 }
 
+int Character::PlayerID() const
+{
+	return this->player->id;
+}
+
 void Character::Login()
 {
 	this->CalculateStats(false);
@@ -557,7 +570,7 @@ void Character::Msg(Character *from, std::string message)
 	PacketBuilder builder(PACKET_TALK, PACKET_TELL, 2 + from->SourceName().length() + message.length());
 	builder.AddBreakString(from->SourceName());
 	builder.AddBreakString(message);
-	this->player->Send(builder);
+	this->Send(builder);
 }
 
 void Character::ServerMsg(std::string message)
@@ -566,7 +579,7 @@ void Character::ServerMsg(std::string message)
 
 	PacketBuilder builder(PACKET_TALK, PACKET_SERVER, message.length());
 	builder.AddString(message);
-	this->player->Send(builder);
+	this->Send(builder);
 }
 
 void Character::StatusMsg(std::string message)
@@ -575,7 +588,7 @@ void Character::StatusMsg(std::string message)
 
 	PacketBuilder builder(PACKET_MESSAGE, PACKET_OPEN, message.length());
 	builder.AddString(message);
-	this->player->Send(builder);
+	this->Send(builder);
 }
 
 Map::WalkResult Character::Walk(Direction direction)
@@ -612,7 +625,7 @@ void Character::Effect(int effect, bool echo)
 {
 	PacketBuilder builder(PACKET_EFFECT, PACKET_PLAYER, 5);
 
-	builder.AddShort(this->player->id);
+	builder.AddShort(this->PlayerID());
 	builder.AddThree(effect);
 
 	UTIL_FOREACH(this->map->characters, character)
@@ -630,7 +643,7 @@ void Character::PlayBard(unsigned char instrument, unsigned char note, bool echo
 {
 	PacketBuilder builder(PACKET_JUKEBOX, PACKET_MSG, 5);
 
-	builder.AddShort(this->player->id);
+	builder.AddShort(this->PlayerID());
 	builder.AddChar(this->direction);
 	builder.AddChar(instrument);
 	builder.AddChar(note);
@@ -1227,7 +1240,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 	if (this->trading)
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
-		builder.AddShort(this->player->id);
+		builder.AddShort(this->PlayerID());
 		this->trade_partner->Send(builder);
 
 		this->trading = false;
@@ -1250,7 +1263,7 @@ void Character::Warp(short map, unsigned char x, unsigned char y, WarpAnimation 
 
 	this->map->Enter(this, animation);
 
-	this->player->Send(builder);
+	this->Send(builder);
 
 	if (this->arena)
 	{
@@ -1303,7 +1316,7 @@ void Character::Refresh()
 	UTIL_FOREACH(updatecharacters, character)
 	{
 		builder.AddBreakString(character->SourceName());
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		builder.AddShort(character->mapid);
 		builder.AddShort(character->x);
 		builder.AddShort(character->y);
@@ -1347,7 +1360,7 @@ void Character::Refresh()
 		builder.AddThree(item->amount);
 	}
 
-	this->player->Send(builder);
+	this->Send(builder);
 }
 
 void Character::ShowBoard(Board *board)
@@ -1405,7 +1418,7 @@ void Character::ShowBoard(Board *board)
 		builder.AddBreakString(post->subject + subject_extra);
 	}
 
-	this->player->Send(builder);
+	this->Send(builder);
 }
 
 std::string Character::PaddedGuildTag()
@@ -1433,6 +1446,11 @@ std::string Character::PaddedGuildTag()
 	return tag;
 }
 
+std::string Character::GuildNameString() const
+{
+	return this->guild ? this->guild->name : "";
+}
+
 std::string Character::GuildRankString()
 {
 	if (!this->guild)
@@ -1446,6 +1464,11 @@ std::string Character::GuildRankString()
 	{
 		return this->guild->GetRank(this->guild_rank);
 	}
+}
+
+std::string Character::HomeString() const
+{
+	return this->world->GetHome(this)->name;
 }
 
 int Character::Usage()
@@ -1625,12 +1648,12 @@ void Character::DropAll(Character *killer)
 		{
 			if (killer)
 			{
-				map_item->owner = killer->player->id;
+				map_item->owner = killer->PlayerID();
 				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectPKDrop"]);
 			}
 			else
 			{
-				map_item->owner = this->player->id;
+				map_item->owner = this->PlayerID();
 				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectDeathDrop"]);
 			}
 
@@ -1643,7 +1666,7 @@ void Character::DropAll(Character *killer)
 			builder.AddChar(this->y);
 			builder.AddChar(this->weight);
 			builder.AddChar(this->maxweight);
-			this->player->Send(builder);
+			this->Send(builder);
 		}
 
 		it = this->inventory.erase(it);
@@ -1666,12 +1689,12 @@ void Character::DropAll(Character *killer)
 		{
 			if (killer)
 			{
-				map_item->owner = killer->player->id;
+				map_item->owner = killer->PlayerID();
 				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectPKDrop"]);
 			}
 			else
 			{
-				map_item->owner = this->player->id;
+				map_item->owner = this->PlayerID();
 				map_item->unprotecttime = Timer::GetTime() + static_cast<double>(this->world->config["ProtectDeathDrop"]);
 			}
 
@@ -1685,7 +1708,7 @@ void Character::DropAll(Character *killer)
 			if (this->player->character->Unequip(id, subloc))
 			{
 				PacketBuilder builder(PACKET_PAPERDOLL, PACKET_REMOVE, 43);
-				builder.AddShort(this->player->id);
+				builder.AddShort(this->PlayerID());
 				builder.AddChar(SLOT_CLOTHES);
 				builder.AddChar(0); // sound
 				this->AddPaperdollData(builder, "BAHWS");
@@ -1704,7 +1727,7 @@ void Character::DropAll(Character *killer)
 				builder.AddShort(this->accuracy);
 				builder.AddShort(this->evade);
 				builder.AddShort(this->armor);
-				this->player->Send(builder);
+				this->Send(builder);
 			}
 
 			this->player->character->DelItem(id, 1);
@@ -1718,7 +1741,7 @@ void Character::DropAll(Character *killer)
 			builder.AddChar(this->y);
 			builder.AddChar(this->weight);
 			builder.AddChar(this->maxweight);
-			this->player->Send(builder);
+			this->Send(builder);
 		}
 
 		++i;
@@ -1733,7 +1756,7 @@ void Character::Hide(int setflags)
 	if (!washidden && (setflags & HideInvisible))
 	{
 		PacketBuilder builder(PACKET_ADMININTERACT, PACKET_REMOVE, 2);
-		builder.AddShort(this->player->id);
+		builder.AddShort(this->PlayerID());
 
 		UTIL_FOREACH(this->map->characters, character)
 		{
@@ -1750,7 +1773,7 @@ void Character::Unhide(int unsetflags)
 	if (washidden && (unsetflags & HideInvisible))
 	{
 		PacketBuilder builder(PACKET_ADMININTERACT, PACKET_AGREE, 2);
-		builder.AddShort(this->player->id);
+		builder.AddShort(this->PlayerID());
 
 		UTIL_FOREACH(this->map->characters, character)
 		{
@@ -1811,7 +1834,7 @@ void Character::SpikeDamage(int amount)
 	builder2.AddShort(this->maxhp);
 
 	PacketBuilder builder3(PACKET_EFFECT, PACKET_ADMIN, 7);
-	builder3.AddShort(this->player->id);
+	builder3.AddShort(this->PlayerID());
 	builder3.AddChar(util::clamp<int>(double(this->hp) / double(this->maxhp) * 100.0, 0, 100));
 	builder3.AddChar(this->hp == 0);
 	builder3.AddThree(amount);
@@ -1895,7 +1918,7 @@ void Character::Dress(EquipLocation loc, unsigned short gfx_id)
 	this->cosmetic_paperdoll[loc] = gfx_id;
 
 	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
-	builder.AddShort(this->player->id);
+	builder.AddShort(this->PlayerID());
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(0); // sound
 	this->AddPaperdollData(builder, "BAHWS");
@@ -1915,7 +1938,7 @@ void Character::Undress()
 		this->cosmetic_paperdoll[i] = 0;
 
 	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
-	builder.AddShort(this->player->id);
+	builder.AddShort(this->PlayerID());
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(0); // sound
 	this->AddPaperdollData(builder, "BAHWS");
@@ -1934,7 +1957,7 @@ void Character::Undress(EquipLocation loc)
 	this->cosmetic_paperdoll[loc] = 0;
 
 	PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
-	builder.AddShort(this->player->id);
+	builder.AddShort(this->PlayerID());
 	builder.AddChar(SLOT_CLOTHES);
 	builder.AddChar(0); // sound
 	this->AddPaperdollData(builder, "BAHWS");
@@ -2025,7 +2048,7 @@ void Character::Logout()
 	if (this->trading)
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
-		builder.AddShort(this->player->id);
+		builder.AddShort(this->PlayerID());
 		this->trade_partner->Send(builder);
 
 		this->player->client->state = EOClient::Playing;

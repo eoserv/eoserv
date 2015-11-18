@@ -7,13 +7,16 @@
 #ifndef I18N_HPP_INCLUDED
 #define I18N_HPP_INCLUDED
 
-#include <memory>
-#include <utility>
-#include <vector>
+#include "fwd/i18n.hpp"
 
 #include "fwd/config.hpp"
 
 #include "util/variant.hpp"
+
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 class I18N
 {

@@ -9,10 +9,10 @@
 
 #include "fwd/command_source.hpp"
 
-#include <string>
-
 #include "fwd/character.hpp"
 #include "fwd/world.hpp"
+
+#include <string>
 
 class Command_Source
 {

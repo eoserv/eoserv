@@ -4,16 +4,24 @@
  * See LICENSE.txt for more info.
  */
 
-#include "database.hpp"
-#include "timer.hpp"
-#include "socket.hpp"
+#ifdef CLANG_MODULES_WORKAROUND
+#include <pthread.h>
+#endif // CLANG_MODULES_WORKAROUND
 
+#include "timer.hpp"
+
+#include "database.hpp"
+
+#include "console.hpp"
+#include "socket.hpp"
 #include "util.hpp"
 
-#include "platform.h"
-
 #include <ctime>
+#include <exception>
+#include <memory>
 #include <stdexcept>
+
+#include "platform.h"
 
 #ifdef WIN32
 #include "eoserv_windows.h"
@@ -23,8 +31,6 @@
 #endif // WIN32
 
 #include <pthread.h>
-
-#include "console.hpp"
 
 #ifdef WIN32
 static int rres = 0;

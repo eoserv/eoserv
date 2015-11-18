@@ -6,28 +6,31 @@
 
 #include "npc.hpp"
 
-#include <algorithm>
-#include <cmath>
-#include <cstdio>
-#include <set>
-#include <string>
-#include <vector>
-
-#include "util.hpp"
-#include "util/rpn.hpp"
-
 #include "character.hpp"
 #include "config.hpp"
-#include "console.hpp"
-#include "eoclient.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
 #include "packet.hpp"
 #include "party.hpp"
-#include "player.hpp"
-#include "timer.hpp"
 #include "quest.hpp"
+#include "timer.hpp"
 #include "world.hpp"
+
+#include "console.hpp"
+#include "util.hpp"
+#include "util/rpn.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstdio>
+#include <list>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 static double speed_table[8] = {0.9, 0.6, 1.3, 1.9, 3.7, 7.5, 15.0, 0.0};
 
@@ -659,7 +662,7 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		if (spell_id != -1)
 			builder.AddShort(spell_id);
 
-		builder.AddShort(from->player->id);
+		builder.AddShort(from->PlayerID());
 		builder.AddChar(from->direction);
 		builder.AddShort(this->index);
 		builder.AddThree(amount);
@@ -773,7 +776,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 		dropuid = this->map->GenerateItemID();
 		dropid = drop->id;
 		dropamount = util::rand(drop->min, drop->max);
-		std::shared_ptr<Map_Item> newitem(std::make_shared<Map_Item>(dropuid, dropid, dropamount, this->x, this->y, from->player->id, Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])));
+		std::shared_ptr<Map_Item> newitem(std::make_shared<Map_Item>(dropuid, dropid, dropamount, this->x, this->y, from->PlayerID(), Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])));
 		this->map->items.push_back(newitem);
 
 		// Selects a random number between 0 and maxhp, and decides the winner based on that
@@ -828,7 +831,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 	}
 
 	if (drop_winner)
-		this->map->items.back()->owner = drop_winner->player->id;
+		this->map->items.back()->owner = drop_winner->PlayerID();
 
 	UTIL_FOREACH(this->map->characters, character)
 	{
@@ -970,7 +973,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 			if (spell_id != -1)
 				builder.AddShort(spell_id);
 
-			builder.AddShort(drop_winner ? drop_winner->player->id : from->player->id);
+			builder.AddShort(drop_winner ? drop_winner->PlayerID() : from->PlayerID());
 			builder.AddChar(drop_winner ? drop_winner->direction : from->direction);
 			builder.AddShort(this->index);
 			builder.AddShort(dropuid);
@@ -1203,7 +1206,7 @@ void NPC::Attack(Character *target)
 	builder.AddChar(this->index);
 	builder.AddChar(1 + (target->hp == 0));
 	builder.AddChar(this->direction);
-	builder.AddShort(target->player->id);
+	builder.AddShort(target->PlayerID());
 	builder.AddThree(amount);
 	builder.AddThree(util::clamp<int>(double(target->hp) / double(target->maxhp) * 100.0, 0, 100));
 	builder.AddByte(255);

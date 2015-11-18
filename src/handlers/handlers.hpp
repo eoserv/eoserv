@@ -7,14 +7,12 @@
 #ifndef HANDLERS_HPP_INCLUDED
 #define HANDLERS_HPP_INCLUDED
 
-#include <array>
-#include <stdexcept>
-
-#include "../packet.hpp"
-
 #include "../fwd/character.hpp"
 #include "../fwd/eoclient.hpp"
 #include "../fwd/player.hpp"
+#include "../packet.hpp"
+
+#include <array>
 
 #define PACKET_HANDLER_PASTE_AUX2(base, id) base##id
 #define PACKET_HANDLER_PASTE_AUX(base, id) PACKET_HANDLER_PASTE_AUX2(base, id)

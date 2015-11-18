@@ -4,15 +4,20 @@
  * See LICENSE.txt for more info.
  */
 
-#include <algorithm>
-
 #include "commands.hpp"
 
+#include "../command_source.hpp"
 #include "../config.hpp"
-#include "../console.hpp"
-#include "../eoclient.hpp"
-#include "../player.hpp"
+#include "../i18n.hpp"
 #include "../world.hpp"
+
+#include "../console.hpp"
+#include "../util.hpp"
+
+#include <algorithm>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace Commands
 {

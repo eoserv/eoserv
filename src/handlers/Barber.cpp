@@ -6,13 +6,16 @@
 
 #include "handlers.hpp"
 
-#include "../util.hpp"
-
 #include "../character.hpp"
 #include "../eodata.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
+#include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <algorithm>
 
 namespace Handlers
 {
@@ -70,14 +73,14 @@ void Barber_Buy(Character *character, PacketReader &reader)
 
 		PacketBuilder reply(PACKET_BARBER, PACKET_AGREE, 10);
 		reply.AddInt(character->HasItem(1));
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddChar(SLOT_HAIR);
 		reply.AddChar(0); // subloc
 		reply.AddChar(style);
 		reply.AddChar(color);
 
 		PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 6);
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		builder.AddChar(SLOT_HAIR);
 		builder.AddChar(0); // subloc
 		builder.AddChar(style);

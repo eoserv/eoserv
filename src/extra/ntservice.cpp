@@ -6,11 +6,13 @@
 
 #include "ntservice.hpp"
 
-#include <cstdlib>
-#include "../eoserv_windows.h"
-
 #include "../fwd/socket.hpp" // OSErrorString
 #include "../console.hpp"
+
+#include <cstdlib>
+#include <string>
+
+#include "../eoserv_windows.h"
 
 SERVICE_STATUS_HANDLE service_handle;
 HANDLE service_event;

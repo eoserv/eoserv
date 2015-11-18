@@ -7,6 +7,7 @@
 #include "handlers.hpp"
 
 #include "../character.hpp"
+#include "../packet.hpp"
 
 namespace Handlers
 {

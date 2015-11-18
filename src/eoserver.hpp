@@ -9,15 +9,16 @@
 
 #include "fwd/eoserver.hpp"
 
-#include <array>
-#include <string>
-
-#include "socket.hpp"
-
 #include "fwd/config.hpp"
 #include "fwd/eoclient.hpp"
 #include "fwd/sln.hpp"
 #include "fwd/world.hpp"
+
+#include "socket.hpp"
+
+#include <array>
+#include <string>
+#include <unordered_map>
 
 void server_ping_all(void *server_void);
 void server_pump_queue(void *server_void);

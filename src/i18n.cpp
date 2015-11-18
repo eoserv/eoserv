@@ -6,9 +6,13 @@
 
 #include "i18n.hpp"
 
+#include "config.hpp"
+
 #include "util.hpp"
 
-#include "config.hpp"
+#include <cstddef>
+#include <string>
+#include <vector>
 
 I18N::I18N()
 { }

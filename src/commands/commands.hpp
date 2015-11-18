@@ -7,15 +7,17 @@
 #ifndef COMMANDS_HPP_INCLUDED
 #define COMMANDS_HPP_INCLUDED
 
-#include <initializer_list>
-#include <map>
-#include <set>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
 #include "../character.hpp"
 #include "../command_source.hpp"
+
+#include <cstddef>
+#include <functional>
+#include <initializer_list>
+#include <map>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #define COMMAND_HANDLER_PASTE_AUX2(base, id) base##id
 #define COMMAND_HANDLER_PASTE_AUX(base, id) COMMAND_HANDLER_PASTE_AUX2(base, id)

@@ -6,12 +6,21 @@
 
 #include "handlers.hpp"
 
-#include <cmath>
-#include <stdexcept>
+#include "../config.hpp"
+#include "../eoclient.hpp"
+#include "../eoserver.hpp"
+#include "../packet.hpp"
+#include "../timer.hpp"
+#include "../world.hpp"
 
 #include "../console.hpp"
-#include "../eoclient.hpp"
-#include "../world.hpp"
+#include "../util.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <ctime>
+#include <stdexcept>
+#include <string>
 
 static inline unsigned int stupid_hash(unsigned int i)
 {

@@ -6,13 +6,26 @@
 
 #include "guild.hpp"
 
-#include <limits>
-
 #include "character.hpp"
+#include "config.hpp"
 #include "eoclient.hpp"
+#include "eoserver.hpp"
 #include "packet.hpp"
-#include "world.hpp"
 #include "player.hpp"
+#include "world.hpp"
+
+#include "util.hpp"
+#include "util/variant.hpp"
+
+#include <algorithm>
+#include <array>
+#include <ctime>
+#include <limits>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 std::string RankSerialize(std::array<std::string, 9> list)
 {
@@ -340,7 +353,7 @@ void Guild::AddMember(Character *joined, Character *recruiter, bool alert, int r
 	if (recruiter != joined) // Leader of new guild
 	{
 		PacketBuilder builder(PACKET_GUILD, PACKET_AGREE, 9 + this->name.length() + joined->guild_rank_string.length());
-		builder.AddShort(recruiter->player->id);
+		builder.AddShort(recruiter->PlayerID());
 		builder.AddByte(255);
 		builder.AddBreakString(this->tag);
 		builder.AddBreakString(this->name);

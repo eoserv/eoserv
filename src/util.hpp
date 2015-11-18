@@ -8,7 +8,7 @@
 #define UTIL_HPP_INCLUDED
 
 #include <algorithm>
-#include <array>
+#include <cstdlib>
 #include <iterator>
 #include <string>
 #include <vector>
@@ -19,13 +19,10 @@
 namespace util
 {
 
-template <class T> inline auto begin(T &c) -> decltype(c.begin()) { return c.begin(); }
-template <class T> inline auto begin(const T &c) -> decltype(c.begin()) { return c.begin(); }
-template <class T, size_t N> inline const T* begin(T(&a)[N]) { return a; }
-template <class T> inline auto end(T &c) -> decltype(c.begin()) { return c.end(); }
-template <class T> inline auto end(const T &c) -> decltype(c.begin()) { return c.end(); }
-template <class T, size_t N> inline const T* end(T(&a)[N]) { return a + N; }
+using std::begin;
+using std::end;
 
+// GCC 4.9 doesn't include these
 template <class T> inline auto cbegin(T &c) -> decltype(c.cbegin()) { return c.cbegin(); }
 template <class T> inline auto cbegin(const T &c) -> decltype(c.cbegin()) { return c.cbegin(); }
 template <class T, size_t N> inline const T* cbegin(T(&a)[N]) { return a; }

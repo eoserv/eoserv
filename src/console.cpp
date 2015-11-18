@@ -6,8 +6,9 @@
 
 #include "console.hpp"
 
-#include <cstdio>
 #include <cstdarg>
+#include <cstdio>
+#include <string>
 
 #include "platform.h"
 
@@ -21,6 +22,7 @@ namespace Console
 bool Styled[2] = {true, true};
 
 #ifdef WIN32
+
 static HANDLE Handles[2];
 
 inline void Init(Stream i)
@@ -42,21 +44,25 @@ void ResetTextColor(Stream stream)
 	Init(stream);
 	SetConsoleTextAttribute(Handles[stream], COLOR_GREY);
 }
+
 #else // WIN32
+
+static const int ansi_color_map[] = {0, 4, 2, 6, 1, 5, 3, 7, 0};
+
 void SetTextColor(Stream stream, Color color, bool bold)
 {
 	char command[8] = {27, '[', '1', ';', '3', '0', 'm', 0};
 
 	if (bold)
 	{
-		command[5] += (color - 30);
+		command[5] += ansi_color_map[static_cast<int>(color)];
 	}
 	else
 	{
 		for (int i = 2; i < 6; ++i)
 			command[i] = command[i + 2];
 
-		command[3] += (color - 30);
+		command[3] += ansi_color_map[static_cast<int>(color)];
 	}
 
 	std::fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
@@ -67,6 +73,7 @@ void ResetTextColor(Stream stream)
 	char command[5] = {27, '[', '0', 'm', 0};
 	std::fputs(command, (stream == STREAM_OUT) ? stdout : stderr);
 }
+
 #endif // WIN32
 
 #define CONSOLE_GENERIC_OUT(prefix, stream, color, bold) \

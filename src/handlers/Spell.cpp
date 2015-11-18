@@ -6,13 +6,18 @@
 
 #include "handlers.hpp"
 
-#include <algorithm>
-#include <functional>
-
 #include "../character.hpp"
+#include "../config.hpp"
 #include "../eodata.hpp"
 #include "../map.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
+#include "../timer.hpp"
+#include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <algorithm>
+#include <functional>
 
 namespace Handlers
 {
@@ -39,7 +44,7 @@ void Spell_Request(Character *character, PacketReader &reader)
 		character->world->timer.Register(character->spell_event);
 
 		PacketBuilder builder(PACKET_SPELL, PACKET_REQUEST, 4);
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		builder.AddShort(spell_id);
 
 		UTIL_FOREACH(character->map->characters, updatecharacter)

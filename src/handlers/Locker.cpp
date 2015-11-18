@@ -7,10 +7,17 @@
 #include "handlers.hpp"
 
 #include "../character.hpp"
+#include "../config.hpp"
+#include "../eodata.hpp"
 #include "../eoserver.hpp"
 #include "../map.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
 #include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <algorithm>
+#include <cstddef>
 
 namespace Handlers
 {

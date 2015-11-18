@@ -9,7 +9,10 @@
 #include "../character.hpp"
 #include "../eodata.hpp"
 #include "../map.hpp"
-#include "../player.hpp"
+#include "../packet.hpp"
+#include "../world.hpp"
+
+#include "../util.hpp"
 
 namespace Handlers
 {
@@ -34,7 +37,7 @@ void Trade_Request(Character *character, PacketReader &reader)
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_REQUEST, 3 + character->SourceName().length());
 		builder.AddChar(something);
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		builder.AddString(character->SourceName());
 		victim->Send(builder);
 
@@ -57,16 +60,16 @@ void Trade_Accept(Character *character, PacketReader &reader)
 	 && !victim->trading && victim->CanInteractItems())
 	{
 		PacketBuilder builder(PACKET_TRADE, PACKET_OPEN, 30);
-		builder.AddShort(victim->player->id);
+		builder.AddShort(victim->PlayerID());
 		builder.AddBreakString(victim->SourceName());
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		builder.AddBreakString(character->SourceName());
 		character->Send(builder);
 
 		builder.Reset(30);
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		builder.AddBreakString(character->SourceName());
-		builder.AddShort(victim->player->id);
+		builder.AddShort(victim->PlayerID());
 		builder.AddBreakString(victim->SourceName());
 		victim->Send(builder);
 
@@ -98,7 +101,7 @@ void Trade_Remove(Character *character, PacketReader &reader)
 		PacketBuilder builder(PACKET_TRADE, PACKET_REPLY,
 			6 + character->trade_inventory.size() * 6 + character->trade_partner->trade_inventory.size() * 6);
 
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		UTIL_FOREACH(character->trade_inventory, item)
 		{
 			builder.AddShort(item.id);
@@ -106,7 +109,7 @@ void Trade_Remove(Character *character, PacketReader &reader)
 		}
 		builder.AddByte(255);
 
-		builder.AddShort(character->trade_partner->player->id);
+		builder.AddShort(character->trade_partner->PlayerID());
 		UTIL_FOREACH(character->trade_partner->trade_inventory, item)
 		{
 			builder.AddShort(item.id);
@@ -141,7 +144,7 @@ void Trade_Agree(Character *character, PacketReader &reader)
 			PacketBuilder builder(PACKET_TRADE, PACKET_USE,
 				6 + character->trade_partner->trade_inventory.size() * 6 + character->trade_inventory.size() * 6);
 
-			builder.AddShort(character->trade_partner->player->id);
+			builder.AddShort(character->trade_partner->PlayerID());
 			UTIL_FOREACH(character->trade_partner->trade_inventory, item)
 			{
 				builder.AddShort(item.id);
@@ -150,7 +153,7 @@ void Trade_Agree(Character *character, PacketReader &reader)
 				character->AddItem(item.id, item.amount);
 			}
 			builder.AddByte(255);
-			builder.AddShort(character->player->id);
+			builder.AddShort(character->PlayerID());
 			UTIL_FOREACH(character->trade_inventory, item)
 			{
 				builder.AddShort(item.id);
@@ -186,7 +189,7 @@ void Trade_Agree(Character *character, PacketReader &reader)
 			character->Send(reply);
 
 			PacketBuilder builder(PACKET_TRADE, PACKET_AGREE, 3);
-			builder.AddShort(character->trade_partner->player->id);
+			builder.AddShort(character->trade_partner->PlayerID());
 			builder.AddChar(agree);
 			character->trade_partner->Send(builder);
 		}
@@ -198,7 +201,7 @@ void Trade_Agree(Character *character, PacketReader &reader)
 		character->Send(reply);
 
 		PacketBuilder builder(PACKET_TRADE, PACKET_AGREE, 3);
-		builder.AddShort(character->trade_partner->player->id);
+		builder.AddShort(character->trade_partner->PlayerID());
 		builder.AddChar(agree);
 		character->trade_partner->Send(builder);
 	}
@@ -240,7 +243,7 @@ void Trade_Add(Character *character, PacketReader &reader)
 		PacketBuilder builder(PACKET_TRADE, PACKET_REPLY,
 			6 + character->trade_inventory.size() * 6 + character->trade_partner->trade_inventory.size() * 6);
 
-		builder.AddShort(character->player->id);
+		builder.AddShort(character->PlayerID());
 		UTIL_FOREACH(character->trade_inventory, item)
 		{
 			builder.AddShort(item.id);
@@ -248,7 +251,7 @@ void Trade_Add(Character *character, PacketReader &reader)
 		}
 		builder.AddByte(255);
 
-		builder.AddShort(character->trade_partner->player->id);
+		builder.AddShort(character->trade_partner->PlayerID());
 		UTIL_FOREACH(character->trade_partner->trade_inventory, item)
 		{
 			builder.AddShort(item.id);
@@ -270,7 +273,7 @@ void Trade_Close(Character *character, PacketReader &reader)
 
 	PacketBuilder builder(PACKET_TRADE, PACKET_CLOSE, 2);
 
-	builder.AddShort(character->player->id);
+	builder.AddShort(character->PlayerID());
 	character->trade_partner->Send(builder);
 
 	character->trading = false;

@@ -6,10 +6,11 @@
 
 #include "eoserv_config.hpp"
 
-#include <string>
-
 #include "config.hpp"
+ 
 #include "console.hpp"
+
+#include <string>
 
 template <typename T> static void eoserv_config_default(Config& config, const char* key, T value)
 {

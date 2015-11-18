@@ -6,16 +6,23 @@
 
 #include "player.hpp"
 
-#include <stdexcept>
-
-#include "util.hpp"
-
 #include "character.hpp"
-#include "console.hpp"
+#include "config.hpp"
 #include "database.hpp"
 #include "eoclient.hpp"
-#include "hash.hpp"
 #include "world.hpp"
+
+#include "console.hpp"
+#include "hash.hpp"
+#include "util.hpp"
+#include "util/secure_string.hpp"
+
+#include <algorithm>
+#include <ctime>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 Player::Player(std::string username, World *world)
 {

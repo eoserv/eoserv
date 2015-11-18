@@ -8,6 +8,7 @@
 
 #include "../character.hpp"
 #include "../map.hpp"
+#include "../packet.hpp"
 
 namespace Handlers
 {

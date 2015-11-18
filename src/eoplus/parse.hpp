@@ -9,6 +9,8 @@
 
 #include "fwd/parse.hpp"
 
+#include "../eoplus.hpp"
+
 #include <algorithm>
 #include <deque>
 #include <functional>
@@ -16,8 +18,6 @@
 #include <stack>
 #include <string>
 #include <utility>
-
-#include "../eoplus.hpp"
 
 namespace EOPlus
 {

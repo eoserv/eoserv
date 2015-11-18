@@ -6,13 +6,16 @@
 
 #include "packet.hpp"
 
-#include <algorithm>
-
 #ifdef DEBUG
 #include "console.hpp"
 #endif
 
 #include "util.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <string>
 
 PacketProcessor::PacketProcessor()
 	: emulti_e(0)

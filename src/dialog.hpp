@@ -8,6 +8,7 @@
 #define DIALOG_HPP_INCLUDED
 
 #include "fwd/dialog.hpp"
+ 
 #include "fwd/packet.hpp"
 
 #include <deque>

@@ -7,12 +7,14 @@
 #ifndef PARTY_HPP_INCLUDED
 #define PARTY_HPP_INCLUDED
 
-#include <string>
-#include <vector>
+#include "fwd/party.hpp"
 
 #include "fwd/character.hpp"
 #include "fwd/map.hpp"
 #include "fwd/world.hpp"
+
+#include <string>
+#include <vector>
 
 /**
  * A temporary group of Characters

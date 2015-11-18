@@ -6,16 +6,20 @@
 
 #include "commands.hpp"
 
-#include <functional>
-
-#include "../arena.hpp"
 #include "../character.hpp"
+#include "../command_source.hpp"
 #include "../config.hpp"
+#include "../eodata.hpp"
+#include "../i18n.hpp"
 #include "../map.hpp"
 #include "../packet.hpp"
-#include "../player.hpp"
-#include "../quest.hpp"
 #include "../world.hpp"
+
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <string>
+#include <vector>
 
 namespace Commands
 {
@@ -185,7 +189,7 @@ void Strip(const std::vector<std::string>& arguments, Command_Source* from)
 					if (victim->Unequip(victim->paperdoll[i], subloc))
 					{
 						PacketBuilder builder(PACKET_PAPERDOLL, PACKET_REMOVE, 43);
-						builder.AddShort(victim->player->id);
+						builder.AddShort(victim->PlayerID());
 						builder.AddChar(SLOT_CLOTHES);
 						builder.AddChar(0); // ?
 						victim->AddPaperdollData(builder, "BAHWS");
@@ -210,7 +214,7 @@ void Strip(const std::vector<std::string>& arguments, Command_Source* from)
 			}
 
 			PacketBuilder builder(PACKET_AVATAR, PACKET_AGREE, 14);
-			builder.AddShort(victim->player->id);
+			builder.AddShort(victim->PlayerID());
 			builder.AddChar(SLOT_CLOTHES);
 			builder.AddChar(0);
 			builder.AddShort(0);

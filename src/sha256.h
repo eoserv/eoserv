@@ -28,7 +28,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <stddef.h>
 #include <stdint.h>
 
 #define SHA256_BLOCK_SIZE 64

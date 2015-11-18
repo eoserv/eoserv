@@ -9,26 +9,27 @@
 
 #include "fwd/character.hpp"
 
+#include "fwd/arena.hpp"
+#include "fwd/guild.hpp"
+#include "fwd/npc.hpp"
+#include "fwd/packet.hpp"
+#include "fwd/party.hpp"
+#include "fwd/player.hpp"
+#include "fwd/quest.hpp"
+#include "fwd/timer.hpp"
+#include "fwd/world.hpp"
+#include "command_source.hpp"
+#include "eodata.hpp"
+#include "map.hpp"
+
 #include <array>
 #include <deque>
 #include <list>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
-
-#include "fwd/arena.hpp"
-#include "fwd/guild.hpp"
-#include "fwd/npc.hpp"
-#include "fwd/map.hpp"
-#include "fwd/packet.hpp"
-#include "fwd/party.hpp"
-#include "fwd/player.hpp"
-#include "fwd/quest.hpp"
-#include "fwd/world.hpp"
-
-#include "command_source.hpp"
-#include "eodata.hpp"
-#include "guild.hpp"
+#include <unordered_map>
 
 struct Timestamp
 {
@@ -288,6 +289,8 @@ class Character : public Command_Source
 		bool CanInteractDoors() const { return !(nointeract & NoInteractDoors); }
 		bool CanInteractCharMod() const { return !(nointeract & NoInteractCharMod); }
 
+		int PlayerID() const;
+
 		void Login();
 
 		static bool ValidName(std::string name);
@@ -326,7 +329,9 @@ class Character : public Command_Source
 		void Refresh();
 		void ShowBoard(Board *board = 0);
 		std::string PaddedGuildTag();
+		std::string GuildNameString() const;
 		std::string GuildRankString();
+		std::string HomeString() const;
 		int Usage();
 		short SpawnMap();
 		unsigned char SpawnX();

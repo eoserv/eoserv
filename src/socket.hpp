@@ -9,7 +9,7 @@
 
 #include "fwd/socket.hpp"
 
-#include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -17,8 +17,6 @@
 #include <list>
 #include <memory>
 #include <string>
-#include <cstdint>
-#include <unordered_map>
 #include <vector>
 
 #include "platform.h"

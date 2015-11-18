@@ -6,10 +6,9 @@
 
 #include "hash.hpp"
 
-extern "C"
-{
 #include "sha256.h"
-}
+
+#include <string>
 
 std::string sha256(const std::string& str)
 {

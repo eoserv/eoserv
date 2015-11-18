@@ -6,17 +6,20 @@
 
 #include "commands.hpp"
 
-#include <csignal>
-
-#include "../util.hpp"
-
-#include "../console.hpp"
-#include "../eoclient.hpp"
+#include "../character.hpp"
+#include "../command_source.hpp"
+#include "../config.hpp"
 #include "../eoserver.hpp"
 #include "../map.hpp"
-#include "../player.hpp"
 #include "../timer.hpp"
 #include "../world.hpp"
+
+#include "../console.hpp"
+#include "../util.hpp"
+
+#include <csignal>
+#include <string>
+#include <vector>
 
 extern volatile std::sig_atomic_t eoserv_sig_abort;
 
@@ -106,8 +109,7 @@ void Uptime(const std::vector<std::string>& arguments, Command_Source* from)
 }
 
 COMMAND_HANDLER_REGISTER(server)
-	using namespace std::placeholders;
-	RegisterCharacter({"remap", {}, {}, 3}, ReloadMap);
+	RegisterCharacter({"remap", {}, {"mapid"}, 3}, ReloadMap);
 	Register({"repub", {}, {"announce"}, 3}, ReloadPub);
 	Register({"rehash"}, ReloadConfig);
 	Register({"request", {}, {}, 3}, ReloadQuest);

@@ -6,16 +6,17 @@
 
 #include "handlers.hpp"
 
-#include <stdexcept>
-#include <vector>
-
 #include "../character.hpp"
-#include "../console.hpp"
 #include "../eoclient.hpp"
-#include "../eodata.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
 #include "../player.hpp"
+
+#include "../util.hpp"
+
+#include <memory>
+#include <stdexcept>
+#include <vector>
 
 namespace Handlers
 {
@@ -23,7 +24,8 @@ namespace Handlers
 // Player accepting a warp request from the server
 void Warp_Accept(Character *character, PacketReader &reader)
 {
-	/*int map = */reader.GetShort();
+	//int map = reader.GetShort();
+	(void)reader;
 
 	int anim = character->warp_anim;
 
@@ -77,7 +79,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 	UTIL_FOREACH(updatecharacters, character)
 	{
 		reply.AddBreakString(character->SourceName());
-		reply.AddShort(character->player->id);
+		reply.AddShort(character->PlayerID());
 		reply.AddShort(character->mapid);
 		reply.AddShort(character->x);
 		reply.AddShort(character->y);

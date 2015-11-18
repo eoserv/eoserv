@@ -6,12 +6,17 @@
 
 #include "handlers.hpp"
 
-#include <string>
-
 #include "../character.hpp"
+#include "../config.hpp"
 #include "../eoclient.hpp"
+#include "../eoserver.hpp"
+#include "../packet.hpp"
 #include "../player.hpp"
 #include "../world.hpp"
+
+#include "../util.hpp"
+
+#include <string>
 
 namespace Handlers
 {

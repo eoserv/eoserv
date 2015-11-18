@@ -20,6 +20,7 @@ typedef unsigned int uint;
 #include <mysql.h>
 #include <errmsg.h>
 #endif // DATABASE_MYSQL
+
 #ifdef DATABASE_SQLITE
 #include <sqlite3.h>
 #endif // DATABASE_SQLITE

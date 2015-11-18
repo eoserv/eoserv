@@ -9,15 +9,15 @@
 
 #include "fwd/map.hpp"
 
-#include <list>
-#include <memory>
-#include <string>
-#include <vector>
-
 #include "fwd/arena.hpp"
 #include "fwd/character.hpp"
 #include "fwd/npc.hpp"
 #include "fwd/world.hpp"
+
+#include <list>
+#include <memory>
+#include <string>
+#include <vector>
 
 /**
  * Object representing an item on the floor of a map
