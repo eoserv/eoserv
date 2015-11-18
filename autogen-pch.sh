@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# autogen-pch.sh
+# $Id$
 # Copyright 2015 the EOSERV development team (http://eoserv.net/devs)
 #
 # This software is provided 'as-is', without any express or implied
