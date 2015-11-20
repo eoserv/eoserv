@@ -38,6 +38,7 @@ struct NPC_Drop
 	int min;
 	int max;
 	double chance;
+	double chance_offset;
 };
 
 /**
@@ -105,6 +106,7 @@ class NPC
 		short spawn_time;
 		unsigned char spawn_x, spawn_y;
 		std::vector<NPC_Drop *> drops;
+		double drops_chance_total;
 		std::string shop_name;
 		std::string skill_name;
 		std::vector<NPC_Shop_Trade_Item *> shop_trade;

@@ -88,6 +88,8 @@ void NPC::LoadShopDrop()
 	this->shop_craft.clear();
 	this->skill_learn.clear();
 
+	this->drops_chance_total = 0.0;
+
 	Config::iterator drops = map->world->drops_config.find(util::to_string(this->id));
 	if (drops != map->world->drops_config.end())
 	{
@@ -101,6 +103,8 @@ void NPC::LoadShopDrop()
 				return;
 			}
 
+			double chance_offset = 0.0;
+
 			this->drops.resize(parts.size() / 4);
 
 			for (std::size_t i = 0; i < parts.size(); i += 4)
@@ -111,8 +115,21 @@ void NPC::LoadShopDrop()
 				drop->min = util::to_int(parts[i+1]);
 				drop->max = util::to_int(parts[i+2]);
 				drop->chance = util::to_float(parts[i+3]);
+				drop->chance_offset = chance_offset;
+
+				chance_offset += drop->chance;
 
 				this->drops[i/4] = drop;
+			}
+
+			if (chance_offset > 100.001)
+			{
+				this->drops_chance_total = chance_offset;
+				Console::Wrn("Drop rates for NPC #%i add up to %g%%. They have been scaled down proportionally.", this->id, this->drops_chance_total);
+			}
+			else
+			{
+				this->drops_chance_total = 100.0;
 			}
 		}
 	}
@@ -764,6 +781,19 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 		UTIL_FOREACH(this->drops, checkdrop)
 		{
 			if (util::rand(0.0, 100.0) <= checkdrop->chance * droprate)
+			{
+				drop = checkdrop;
+				break;
+			}
+		}
+	}
+	else if (dropratemode == 3)
+	{
+		double roll = util::rand(0.0, this->drops_chance_total);
+
+		UTIL_FOREACH(this->drops, checkdrop)
+		{
+			if (roll >= checkdrop->chance_offset && roll < checkdrop->chance_offset+checkdrop->chance)
 			{
 				drop = checkdrop;
 				break;
