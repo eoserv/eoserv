@@ -731,27 +731,44 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 	double exprate = this->map->world->config["ExpRate"];
 	int sharemode = this->map->world->config["ShareMode"];
 	int partysharemode = this->map->world->config["PartyShareMode"];
+	int dropratemode = this->map->world->config["DropRateMode"];
 	std::set<Party *> parties;
 
 	int most_damage_counter = 0;
-	Character *most_damage = 0;
+	Character *most_damage = nullptr;
+	NPC_Drop *drop = nullptr;
+
 	this->alive = false;
 
 	this->dead_since = int(Timer::GetTime());
 
-	std::vector<NPC_Drop *> drops;
-	NPC_Drop *drop = 0;
-	UTIL_FOREACH(this->drops, checkdrop)
+	if (dropratemode == 1)
 	{
-		if (util::rand(0.0, 100.0) <= checkdrop->chance * droprate)
+		std::vector<NPC_Drop *> drops;
+
+		UTIL_FOREACH(this->drops, checkdrop)
 		{
-			drops.push_back(checkdrop);
+			if (util::rand(0.0, 100.0) <= checkdrop->chance * droprate)
+			{
+				drops.push_back(checkdrop);
+			}
+		}
+
+		if (drops.size() > 0)
+		{
+			drop = drops[util::rand(0, drops.size()-1)];
 		}
 	}
-
-	if (drops.size() > 0)
+	else if (dropratemode == 2)
 	{
-		drop = drops[util::rand(0, drops.size()-1)];
+		UTIL_FOREACH(this->drops, checkdrop)
+		{
+			if (util::rand(0.0, 100.0) <= checkdrop->chance * droprate)
+			{
+				drop = checkdrop;
+				break;
+			}
+		}
 	}
 
 	if (sharemode == 1)
@@ -769,7 +786,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 	int dropuid = 0;
 	int dropid = 0;
 	int dropamount = 0;
-	Character* drop_winner = 0;
+	Character* drop_winner = nullptr;
 
 	if (drop)
 	{

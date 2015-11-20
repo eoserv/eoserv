@@ -168,6 +168,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "ChatLength"         , 128);
 	eoserv_config_default(config, "ShareMode"          , 2);
 	eoserv_config_default(config, "PartyShareMode"     , 2);
+	eoserv_config_default(config, "DropRateMode"       , 2);
 	eoserv_config_default(config, "GhostNPC"           , false);
 	eoserv_config_default(config, "GhostArena"         , false);
 	eoserv_config_default(config, "AllowStats"         , true);
