@@ -3,7 +3,7 @@
 # See LICENSE.txt for more info.
 
 cmake_minimum_required(VERSION 2.6)
-project(eoserv LANGUAGES C CXX)
+project(eoserv C CXX)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
