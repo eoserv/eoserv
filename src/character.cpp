@@ -1896,7 +1896,7 @@ void Character::PlaySound(unsigned char id)
 
 void Character::FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix)
 {
-	v(level) v(exp) v(hp) v(maxhp) v(tp) v(maxtp) v(maxsp)
+	v(level) vv(exp, "experience") v(hp) v(maxhp) v(tp) v(maxtp) v(maxsp)
 	v(weight) v(maxweight) v(karma) v(mindam) v(maxdam)
 	vv(adj_str, "str") vv(adj_intl, "int") vv(adj_wis, "wis") vv(adj_agi, "agi") vv(adj_con, "con") vv(adj_cha, "cha")
 	vv(str, "base_str") vv(intl, "base_int") vv(wis, "base_wis") vv(agi, "base_agi") vv(con, "base_con") vv(cha, "base_cha")

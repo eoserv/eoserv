@@ -78,6 +78,8 @@ static double rpn_eval_xor(std::vector<double> args)   { return int(std::floor(a
 static double rpn_eval_not(std::vector<double> args)   { return ~int(std::floor(args[0] + 0.5)); }
 static double rpn_eval_pow(std::vector<double> args)   { return std::pow(args[0], args[1]); }
 static double rpn_eval_log(std::vector<double> args)   { return std::log10(args[0]); }
+static double rpn_eval_exp(std::vector<double> args)   { return std::exp(args[0]); }
+static double rpn_eval_ln(std::vector<double> args)    { return std::log(args[0]); }
 static double rpn_eval_sqrt(std::vector<double> args)  { return std::sqrt(args[0]); }
 static double rpn_eval_sin(std::vector<double> args)   { return std::sin(args[0]); }
 static double rpn_eval_cos(std::vector<double> args)   { return std::cos(args[0]); }
@@ -121,6 +123,8 @@ double rpn_eval(std::stack<util::variant> stack, std::unordered_map<std::string,
 		rpn_eval_func(' ', "pow",   2, rpn_eval_pow),
 		rpn_eval_func(' ', "sqrt",  1, rpn_eval_sqrt),
 		rpn_eval_func(' ', "log",   1, rpn_eval_log),
+		rpn_eval_func(' ', "exp",   1, rpn_eval_exp),
+		rpn_eval_func(' ', "ln",    1, rpn_eval_ln),
 		rpn_eval_func(' ', "sin",   1, rpn_eval_sin),
 		rpn_eval_func(' ', "cos",   1, rpn_eval_cos),
 		rpn_eval_func(' ', "tan",   1, rpn_eval_tan),
