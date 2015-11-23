@@ -125,7 +125,9 @@ void NPC::LoadShopDrop()
 			if (chance_offset > 100.001)
 			{
 				this->drops_chance_total = chance_offset;
-				Console::Wrn("Drop rates for NPC #%i add up to %g%%. They have been scaled down proportionally.", this->id, this->drops_chance_total);
+
+				if (static_cast<int>(this->map->world->config["DropRateMode"]) == 3)
+					Console::Wrn("Drop rates for NPC #%i add up to %g%%. They have been scaled down proportionally.", this->id, this->drops_chance_total);
 			}
 			else
 			{
