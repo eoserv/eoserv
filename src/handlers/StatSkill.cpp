@@ -11,6 +11,7 @@
 #include "../eodata.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
+#include "../npc_data.hpp"
 #include "../packet.hpp"
 #include "../world.hpp"
 
@@ -26,16 +27,16 @@ void StatSkill_Open(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == id && npc->skill_learn.size() > 0)
+		if (npc->index == id && npc->Data().skill_learn.size() > 0)
 		{
 			character->npc = npc;
 			character->npc_type = ENF::Skills;
 
-			PacketBuilder reply(PACKET_STATSKILL, PACKET_OPEN, 2 + npc->skill_name.length() + npc->skill_name.size() * 28);
+			PacketBuilder reply(PACKET_STATSKILL, PACKET_OPEN, 2 + npc->Data().skill_name.length() + npc->Data().skill_learn.size() * 28);
 			reply.AddShort(npc->id);
-			reply.AddBreakString(npc->skill_name.c_str());
+			reply.AddBreakString(npc->Data().skill_name.c_str());
 
-			UTIL_FOREACH(npc->skill_learn, skill)
+			UTIL_FOREACH_CREF(npc->Data().skill_learn, skill)
 			{
 				reply.AddShort(skill->id);
 				reply.AddChar(skill->levelreq);
@@ -71,7 +72,7 @@ void StatSkill_Take(Character *character, PacketReader &reader)
 
 	if (character->npc_type == ENF::Skills)
 	{
-		UTIL_FOREACH(character->npc->skill_learn, spell)
+		UTIL_FOREACH_CREF(character->npc->Data().skill_learn, spell)
 		{
 			if (spell->id == spell_id)
 			{

@@ -900,9 +900,21 @@ void Server::BuryTheDead()
 
 Server::~Server()
 {
+	UTIL_FOREACH(this->clients, client)
+	{
+#ifdef WIN32
+		closesocket(client->impl->sock);
+#else // WIN32
+		close(client->impl->sock);
+#endif // WIN32
+		delete client;
+	}
+
 #ifdef WIN32
 	closesocket(this->impl->sock);
 #else // WIN32
 	close(this->impl->sock);
 #endif // WIN32
+
+	delete this->impl;
 }

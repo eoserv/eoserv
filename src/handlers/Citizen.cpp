@@ -11,6 +11,7 @@
 #include "../eodata.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
+#include "../npc_data.hpp"
 #include "../packet.hpp"
 #include "../world.hpp"
 
@@ -48,7 +49,7 @@ void Citizen_Reply(Character *character, PacketReader &reader)
 
 		for (int i = 0; i < 3; ++i)
 		{
-			if (util::lowercase(answers[i]) != util::lowercase(character->npc->citizenship->answers[i]))
+			if (util::lowercase(answers[i]) != util::lowercase(character->npc->Data().citizenship->answers[i]))
 			{
 				++questions_wrong;
 			}
@@ -56,7 +57,7 @@ void Citizen_Reply(Character *character, PacketReader &reader)
 
 		if (questions_wrong == 0)
 		{
-			character->home = character->npc->citizenship->home;
+			character->home = character->npc->Data().citizenship->home;
 		}
 
 		PacketBuilder reply(PACKET_CITIZEN, PACKET_REPLY, 1);
@@ -76,7 +77,7 @@ void Citizen_Remove(Character *character, PacketReader &reader)
 	{
 		PacketBuilder reply(PACKET_CITIZEN, PACKET_REMOVE, 1);
 
-		if (character->home == character->npc->citizenship->home || character->world->config["CitizenUnsubscribeAnywhere"])
+		if (character->home == character->npc->Data().citizenship->home || character->world->config["CitizenUnsubscribeAnywhere"])
 		{
 			character->home = "";
 			reply.AddChar(UNSUBSCRIBE_UNSUBSCRIBED);
@@ -97,13 +98,13 @@ void Citizen_Open(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == id && npc->Data().type == ENF::Inn && npc->citizenship)
+		if (npc->index == id && npc->ENF().type == ENF::Inn && npc->Data().citizenship)
 		{
 			character->npc = npc;
 			character->npc_type = ENF::Inn;
 
 			PacketBuilder reply(PACKET_CITIZEN, PACKET_OPEN,
-				9 + npc->citizenship->questions[0].length() + npc->citizenship->questions[1].length() + npc->citizenship->questions[2].length());
+				9 + npc->Data().citizenship->questions[0].length() + npc->Data().citizenship->questions[1].length() + npc->Data().citizenship->questions[2].length());
 
 			Home* home = character->world->GetHome(character);
 			int innkeeper_vend = 0;
@@ -111,18 +112,18 @@ void Citizen_Open(Character *character, PacketReader &reader)
 			if (home)
 				innkeeper_vend = home->innkeeper_vend;
 
-			reply.AddThree(npc->Data().vendor_id);
+			reply.AddThree(npc->ENF().vendor_id);
 
-			if (character->world->config["CitizenSubscribeAnytime"] && innkeeper_vend != npc->Data().vendor_id)
+			if (character->world->config["CitizenSubscribeAnytime"] && innkeeper_vend != npc->ENF().vendor_id)
 				reply.AddChar(0);
 			else
 				reply.AddChar(innkeeper_vend);
 
 			reply.AddShort(0); // session (should match global warp ID)
 			reply.AddByte(255);
-			reply.AddBreakString(npc->citizenship->questions[0]);
-			reply.AddBreakString(npc->citizenship->questions[1]);
-			reply.AddString(npc->citizenship->questions[2]);
+			reply.AddBreakString(npc->Data().citizenship->questions[0]);
+			reply.AddBreakString(npc->Data().citizenship->questions[1]);
+			reply.AddString(npc->Data().citizenship->questions[2]);
 
 			character->Send(reply);
 

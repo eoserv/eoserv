@@ -357,7 +357,7 @@ void Welcome_Msg(Player *player, PacketReader &reader)
 		if (npc->alive)
 		{
 			reply.AddChar(npc->index);
-			reply.AddShort(npc->Data().id);
+			reply.AddShort(npc->id);
 			reply.AddChar(npc->x);
 			reply.AddChar(npc->y);
 			reply.AddChar(npc->direction);

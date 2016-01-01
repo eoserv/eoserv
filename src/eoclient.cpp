@@ -390,6 +390,6 @@ EOClient::~EOClient()
 
 	if (this->player)
 	{
-		this->player->Logout();
+		delete this->player;
 	}
 }

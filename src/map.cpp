@@ -12,6 +12,7 @@
 #include "eoclient.hpp"
 #include "eodata.hpp"
 #include "npc.hpp"
+#include "npc_data.hpp"
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
@@ -112,6 +113,8 @@ void map_close_door(void *map_close_void)
 	map_close_door_struct *close(static_cast<map_close_door_struct *>(map_close_void));
 
 	close->map->CloseDoor(close->x, close->y);
+
+	delete close;
 }
 
 struct map_evacuate_struct
@@ -158,6 +161,7 @@ void map_evacuate(void *map_evacuate_void)
 		}
 
 		evac->map->evacuate_lock = false;
+		delete evac;
 	}
 }
 
@@ -678,18 +682,26 @@ void Map::Unload()
 
 	UTIL_FOREACH(this->npcs, npc)
 	{
-		UTIL_FOREACH(npc->damagelist, opponent)
+		UTIL_FOREACH_CREF(npc->damagelist, opponent)
 		{
 			opponent->attacker->unregister_npc.erase(
 				std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), npc),
 				opponent->attacker->unregister_npc.end()
 			);
 		}
-
-		delete npc;
 	}
 
 	this->npcs.clear();
+
+	if (this->arena)
+	{
+		UTIL_FOREACH(this->arena->spawns, spawn)
+			delete spawn;
+
+		delete this->arena;
+	}
+
+	this->arena = nullptr;
 
 	this->chests.clear();
 	this->tiles.clear();
@@ -830,7 +842,7 @@ void Map::Msg(Character *from, std::string message, bool echo)
 
 void Map::Msg(NPC *from, std::string message)
 {
-	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->Data().name) + "  "));
+	message = util::text_cap(message, static_cast<int>(this->world->config["ChatMaxWidth"]) - util::text_width(util::ucfirst(from->ENF().name) + "  "));
 
 	PacketBuilder builder(PACKET_NPC, PACKET_PLAYER, 4 + message.length());
 	builder.AddByte(255);
@@ -1259,7 +1271,7 @@ Map::WalkResult Map::Walk(NPC *from, Direction direction)
 			break;
 	}
 
-	bool adminghost = (from->Data().type == ENF::Aggressive || from->parent);
+	bool adminghost = (from->ENF().type == ENF::Aggressive || from->parent);
 
 	if (!this->Walkable(target_x, target_y, true) || this->Occupied(target_x, target_y, Map::PlayerAndNPC, adminghost))
 	{
@@ -1472,7 +1484,7 @@ void Map::Attack(Character *from, Direction direction)
 
 		UTIL_FOREACH(this->npcs, npc)
 		{
-			if ((npc->Data().type == ENF::Passive || npc->Data().type == ENF::Aggressive || from->SourceDutyAccess() >= static_cast<int>(this->world->admin_config["killnpc"]))
+			if ((npc->ENF().type == ENF::Passive || npc->ENF().type == ENF::Aggressive || from->SourceDutyAccess() >= static_cast<int>(this->world->admin_config["killnpc"]))
 			 && npc->alive && npc->x == target_x && npc->y == target_y)
 			{
 				int amount = util::rand(from->mindam, from->maxdam);
@@ -1894,7 +1906,7 @@ void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 	if (!spell || spell.type != ESF::Damage || from->tp < spell.tp)
 		return;
 
-	if ((npc->Data().type == ENF::Passive || npc->Data().type == ENF::Aggressive) && npc->alive)
+	if ((npc->ENF().type == ENF::Passive || npc->ENF().type == ENF::Aggressive) && npc->alive)
 	{
 		from->tp -= spell.tp;
 

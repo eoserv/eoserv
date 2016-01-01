@@ -27,7 +27,7 @@ void Barber_Open(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == id && npc->Data().type == ENF::Barber)
+		if (npc->index == id && npc->ENF().type == ENF::Barber)
 		{
 			character->npc = npc;
 			character->npc_type = ENF::Barber;

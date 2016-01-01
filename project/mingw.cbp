@@ -267,6 +267,7 @@
 		<Unit filename="../src/fwd/map.hpp" />
 		<Unit filename="../src/fwd/nanohttp.hpp" />
 		<Unit filename="../src/fwd/npc.hpp" />
+		<Unit filename="../src/fwd/npc_data.hpp" />
 		<Unit filename="../src/fwd/packet.hpp" />
 		<Unit filename="../src/fwd/party.hpp" />
 		<Unit filename="../src/fwd/player.hpp" />
@@ -466,6 +467,11 @@
 			<Option link="0" />
 		</Unit>
 		<Unit filename="../src/npc.hpp" />
+		<Unit filename="../src/npc_data.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="../src/npc_data.hpp" />
 		<Unit filename="../src/packet.cpp">
 			<Option compile="0" />
 			<Option link="0" />

@@ -15,6 +15,7 @@
 #include "fwd/eoserver.hpp"
 #include "fwd/guild.hpp"
 #include "fwd/map.hpp"
+#include "fwd/npc_data.hpp"
 #include "fwd/party.hpp"
 #include "fwd/player.hpp"
 #include "fwd/quest.hpp"
@@ -90,6 +91,8 @@ class World
 		ESF *esf;
 		ECF *ecf;
 
+		std::vector<std::unique_ptr<NPC_Data>> npc_data;
+
 		Config config;
 		Config admin_config;
 		Config drops_config;
@@ -161,6 +164,7 @@ class World
 		Character *GetCharacterCID(unsigned int id);
 
 		Map *GetMap(short id);
+		const NPC_Data* GetNpcData(short id) const;
 		Home *GetHome(const Character *) const;
 		Home *GetHome(std::string);
 

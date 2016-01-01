@@ -11,6 +11,7 @@
 #include "../eodata.hpp"
 #include "../map.hpp"
 #include "../npc.hpp"
+#include "../npc_data.hpp"
 #include "../packet.hpp"
 #include "../world.hpp"
 
@@ -32,7 +33,7 @@ void Shop_Create(Character *character, PacketReader &reader)
 
 	if (character->npc_type == ENF::Shop)
 	{
-		UTIL_FOREACH(character->npc->shop_craft, checkitem)
+		UTIL_FOREACH_CREF(character->npc->Data().shop_craft, checkitem)
 		{
 			if (checkitem->id == item)
 			{
@@ -40,7 +41,7 @@ void Shop_Create(Character *character, PacketReader &reader)
 
 				UTIL_FOREACH(checkitem->ingredients, ingredient)
 				{
-					if (character->HasItem(ingredient->id) < ingredient->amount)
+					if (character->HasItem(ingredient.id) < ingredient.amount)
 					{
 						hasitems = false;
 					}
@@ -54,9 +55,9 @@ void Shop_Create(Character *character, PacketReader &reader)
 					reply.AddChar(character->maxweight);
 					UTIL_FOREACH(checkitem->ingredients, ingredient)
 					{
-						character->DelItem(ingredient->id, ingredient->amount);
-						reply.AddShort(ingredient->id);
-						reply.AddInt(character->HasItem(ingredient->id));
+						character->DelItem(ingredient.id, ingredient.amount);
+						reply.AddShort(ingredient.id);
+						reply.AddInt(character->HasItem(ingredient.id));
 					}
 					character->AddItem(checkitem->id, 1);
 					character->Send(reply);
@@ -82,7 +83,7 @@ void Shop_Buy(Character *character, PacketReader &reader)
 
 	if (character->npc_type == ENF::Shop)
 	{
-		UTIL_FOREACH(character->npc->shop_trade, checkitem)
+		UTIL_FOREACH_CREF(character->npc->Data().shop_trade, checkitem)
 		{
 			if (checkitem->id == item && checkitem->buy != 0)
 			{
@@ -126,7 +127,7 @@ void Shop_Sell(Character *character, PacketReader &reader)
 
 	if (character->npc_type == ENF::Shop)
 	{
-		UTIL_FOREACH(character->npc->shop_trade, checkitem)
+		UTIL_FOREACH_CREF(character->npc->Data().shop_trade, checkitem)
 		{
 			if (checkitem->id == item && checkitem->sell != 0)
 			{
@@ -165,17 +166,17 @@ void Shop_Open(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == id && (npc->shop_trade.size() > 0 || npc->shop_craft.size() > 0))
+		if (npc->index == id && (npc->Data().shop_trade.size() > 0 || npc->Data().shop_craft.size() > 0))
 		{
 			character->npc = npc;
 			character->npc_type = ENF::Shop;
 
 			PacketBuilder reply(PACKET_SHOP, PACKET_OPEN,
-				5 + npc->shop_name.length() + npc->shop_trade.size() * 9 + npc->shop_craft.size() * 14);
+				5 + npc->Data().shop_name.length() + npc->Data().shop_trade.size() * 9 + npc->Data().shop_craft.size() * 14);
 			reply.AddShort(npc->id);
-			reply.AddBreakString(npc->shop_name.c_str());
+			reply.AddBreakString(npc->Data().shop_name.c_str());
 
-			UTIL_FOREACH(npc->shop_trade, item)
+			UTIL_FOREACH_CREF(npc->Data().shop_trade, item)
 			{
 				reply.AddShort(item->id);
 				reply.AddThree(item->buy);
@@ -184,7 +185,7 @@ void Shop_Open(Character *character, PacketReader &reader)
 			}
 			reply.AddByte(255);
 
-			UTIL_FOREACH(npc->shop_craft, item)
+			UTIL_FOREACH_CREF(npc->Data().shop_craft, item)
 			{
 				std::size_t i = 0;
 
@@ -192,8 +193,8 @@ void Shop_Open(Character *character, PacketReader &reader)
 
 				for (; i < item->ingredients.size(); ++i)
 				{
-					reply.AddShort(item->ingredients[i]->id);
-					reply.AddChar(item->ingredients[i]->amount);
+					reply.AddShort(item->ingredients[i].id);
+					reply.AddChar(item->ingredients[i].amount);
 				}
 
 				for (; i < 4; ++i)

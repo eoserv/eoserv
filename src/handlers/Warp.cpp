@@ -105,7 +105,7 @@ void Warp_Accept(Character *character, PacketReader &reader)
 	UTIL_FOREACH(updatenpcs, npc)
 	{
 		reply.AddChar(npc->index);
-		reply.AddShort(npc->Data().id);
+		reply.AddShort(npc->id);
 		reply.AddChar(npc->x);
 		reply.AddChar(npc->y);
 		reply.AddChar(npc->direction);

@@ -10,6 +10,7 @@
 #include "config.hpp"
 #include "eodata.hpp"
 #include "map.hpp"
+#include "npc_data.hpp"
 #include "packet.hpp"
 #include "party.hpp"
 #include "quest.hpp"
@@ -45,10 +46,10 @@ void NPC::SetSpeedTable(std::array<double, 7> speeds)
 
 NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spawn_type, short spawn_time, unsigned char index, bool temporary)
 {
+	this->id = id;
 	this->map = map;
 	this->temporary = temporary;
 	this->index = index;
-	this->id = id;
 	this->spawn_x = this->x = x;
 	this->spawn_y = this->y = y;
 	this->alive = false;
@@ -75,276 +76,16 @@ NPC::NPC(Map *map, short id, unsigned char x, unsigned char y, unsigned char spa
 	}
 
 	this->parent = 0;
-
-	this->citizenship = 0;
-
-	this->LoadShopDrop();
 }
 
-void NPC::LoadShopDrop()
+const NPC_Data& NPC::Data() const
 {
-	this->drops.clear();
-	this->shop_trade.clear();
-	this->shop_craft.clear();
-	this->skill_learn.clear();
-
-	this->drops_chance_total = 0.0;
-
-	Config::iterator drops = map->world->drops_config.find(util::to_string(this->id));
-	if (drops != map->world->drops_config.end())
-	{
-		std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*drops).second));
-
-		if (parts.size() > 1)
-		{
-			if (parts.size() % 4 != 0)
-			{
-				Console::Wrn("skipping invalid drop data for NPC #%i", id);
-				return;
-			}
-
-			double chance_offset = 0.0;
-
-			this->drops.resize(parts.size() / 4);
-
-			for (std::size_t i = 0; i < parts.size(); i += 4)
-			{
-				NPC_Drop *drop(new NPC_Drop);
-
-				drop->id = util::to_int(parts[i]);
-				drop->min = util::to_int(parts[i+1]);
-				drop->max = util::to_int(parts[i+2]);
-				drop->chance = util::to_float(parts[i+3]);
-				drop->chance_offset = chance_offset;
-
-				chance_offset += drop->chance;
-
-				this->drops[i/4] = drop;
-			}
-
-			if (chance_offset > 100.001)
-			{
-				this->drops_chance_total = chance_offset;
-
-				if (static_cast<int>(this->map->world->config["DropRateMode"]) == 3)
-					Console::Wrn("Drop rates for NPC #%i add up to %g%%. They have been scaled down proportionally.", this->id, this->drops_chance_total);
-			}
-			else
-			{
-				this->drops_chance_total = 100.0;
-			}
-		}
-	}
-
-	short shop_vend_id;
-
-	if (int(map->world->shops_config["Version"]) < 2)
-	{
-		shop_vend_id = this->id;
-	}
-	else
-	{
-		shop_vend_id = this->Data().vendor_id;
-	}
-
-	if (this->Data().type == ENF::Type::Shop && shop_vend_id > 0)
-	{
-		this->shop_name = static_cast<std::string>(map->world->shops_config[util::to_string(shop_vend_id) + ".name"]);
-		Config::iterator shops = map->world->shops_config.find(util::to_string(shop_vend_id) + ".trade");
-		if (shops != map->world->shops_config.end())
-		{
-			std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
-
-			if (parts.size() > 1)
-			{
-				if (parts.size() % 3 != 0)
-				{
-					Console::Wrn("skipping invalid trade shop data for vendor #%i", shop_vend_id);
-					return;
-				}
-
-				this->shop_trade.resize(parts.size() / 3);
-
-				for (std::size_t i = 0; i < parts.size(); i += 3)
-				{
-					NPC_Shop_Trade_Item *item(new NPC_Shop_Trade_Item);
-					item->id = util::to_int(parts[i]);
-					item->buy = util::to_int(parts[i+1]);
-					item->sell = util::to_int(parts[i+2]);
-
-					if (item->buy != 0 && item->sell != 0 && item->sell > item->buy)
-					{
-						Console::Wrn("item #%i (vendor #%i) has a higher sell price than buy price.", item->id, shop_vend_id);
-					}
-
-					this->shop_trade[i/3] = item;
-				}
-			}
-		}
-
-		shops = this->map->world->shops_config.find(util::to_string(shop_vend_id) + ".craft");
-		if (shops != this->map->world->shops_config.end())
-		{
-			std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*shops).second));
-
-			if (parts.size() > 1)
-			{
-				if (parts.size() % 9 != 0)
-				{
-					Console::Wrn("skipping invalid craft shop data for vendor #%i", shop_vend_id);
-					return;
-				}
-
-				this->shop_craft.resize(parts.size() / 9);
-
-				for (std::size_t i = 0; i < parts.size(); i += 9)
-				{
-					NPC_Shop_Craft_Item *item = new NPC_Shop_Craft_Item;
-					std::vector<NPC_Shop_Craft_Ingredient *> ingredients;
-					ingredients.resize(4);
-
-					item->id = util::to_int(parts[i]);
-
-					for (int ii = 0; ii < 4; ++ii)
-					{
-						NPC_Shop_Craft_Ingredient *ingredient = new NPC_Shop_Craft_Ingredient;
-						ingredient->id = util::to_int(parts[i+1+ii*2]);
-						ingredient->amount = util::to_int(parts[i+2+ii*2]);
-						ingredients[ii] = ingredient;
-					}
-
-					item->ingredients = ingredients;
-
-					this->shop_craft[i/9] = item;
-				}
-			}
-		}
-	}
-
-	short skills_vend_id;
-
-	if (int(map->world->skills_config["Version"]) < 2)
-	{
-		skills_vend_id = this->id;
-	}
-	else
-	{
-		skills_vend_id = this->Data().vendor_id;
-	}
-
-	if (this->Data().type == ENF::Type::Skills && skills_vend_id > 0)
-	{
-		this->skill_name = static_cast<std::string>(map->world->skills_config[util::to_string(skills_vend_id) + ".name"]);
-		Config::iterator skills = this->map->world->skills_config.find(util::to_string(skills_vend_id) + ".learn");
-		if (skills != this->map->world->skills_config.end())
-		{
-			std::vector<std::string> parts = util::explode(',', static_cast<std::string>((*skills).second));
-
-			if (parts.size() > 1)
-			{
-				if (parts.size() % 14 != 0)
-				{
-					Console::Err("WARNING: skipping invalid skill learn data for vendor #%i", skills_vend_id);
-					return;
-				}
-
-				this->skill_learn.resize(parts.size() / 14);
-
-				for (std::size_t i = 0; i < parts.size(); i += 14)
-				{
-					NPC_Learn_Skill *skill = new NPC_Learn_Skill;
-
-					skill->id = util::to_int(parts[i]);
-					skill->cost = util::to_int(parts[i+1]);
-					skill->levelreq = util::to_int(parts[i+2]);
-					skill->classreq = util::to_int(parts[i+3]);
-
-					skill->skillreq[0] = util::to_int(parts[i+4]);
-					skill->skillreq[1] = util::to_int(parts[i+5]);
-					skill->skillreq[2] = util::to_int(parts[i+6]);
-					skill->skillreq[3] = util::to_int(parts[i+7]);
-
-					skill->strreq = util::to_int(parts[i+8]);
-					skill->intreq = util::to_int(parts[i+9]);
-					skill->wisreq = util::to_int(parts[i+10]);
-					skill->agireq = util::to_int(parts[i+11]);
-					skill->conreq = util::to_int(parts[i+12]);
-					skill->chareq = util::to_int(parts[i+13]);
-
-					this->skill_learn[i/14] = skill;
-				}
-			}
-		}
-	}
-
-	short home_vend_id;
-
-	if (int(map->world->home_config["Version"]) < 2)
-	{
-		home_vend_id = this->id;
-	}
-	else
-	{
-		home_vend_id = this->Data().vendor_id;
-	}
-
-	this->citizenship = 0;
-
-	if (this->Data().type == ENF::Type::Inn && home_vend_id > 0)
-	{
-		restart_loop:
-		UTIL_FOREACH(this->map->world->home_config, hc)
-		{
-			std::vector<std::string> parts = util::explode('.', hc.first);
-
-			if (parts.size() < 2)
-			{
-				continue;
-			}
-
-			if (!this->citizenship && parts[1] == "innkeeper" && util::to_int(hc.second) == home_vend_id)
-			{
-				this->citizenship = new NPC_Citizenship;
-				this->citizenship->home = parts[0];
-				Home* home = this->map->world->GetHome(this->citizenship->home);
-
-				if (home)
-					home->innkeeper_vend = this->Data().vendor_id;
-				else
-					Console::Wrn("Vendor #%i's innkeeper set on non-existent home: %s", home_vend_id, this->citizenship->home.c_str());
-
-				// Restart the loop so questions/answers specified before the innkeeper option will load
-				goto restart_loop;
-			}
-			else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "question")
-			{
-				int index = parts[1][parts[1].length() - 1] - '1';
-
-				if (index < 0 || index >= 3)
-				{
-					Console::Wrn("Exactly 3 questions must be specified for %s innkeeper vendor #%i", std::string(hc.second).c_str(), home_vend_id);
-				}
-
-				this->citizenship->questions[index] = static_cast<std::string>(hc.second);
-			}
-			else if (this->citizenship && this->citizenship->home == parts[0] && parts[1].substr(0, parts[1].length() - 1) == "answer")
-			{
-				int index = parts[1][parts[1].length() - 1] - '1';
-
-				if (index < 0 || index >= 3)
-				{
-					Console::Wrn("Exactly 3 answers must be specified for %s innkeeper vendor #%i", std::string(hc.second).c_str(), home_vend_id);
-				}
-
-				this->citizenship->answers[index] = static_cast<std::string>(hc.second);
-			}
-		}
-	}
+	return *this->map->world->GetNpcData(this->id);
 }
 
-const ENF_Data& NPC::Data() const
+const ENF_Data& NPC::ENF() const
 {
-	return this->map->world->enf->Get(id);
+	return this->Data().ENF();
 }
 
 void NPC::Spawn(NPC *parent)
@@ -352,11 +93,11 @@ void NPC::Spawn(NPC *parent)
 	if (this->alive)
 		return;
 
-	if (this->Data().boss && !parent)
+	if (this->ENF().boss && !parent)
 	{
 		UTIL_FOREACH(this->map->npcs, npc)
 		{
-			if (npc->Data().child)
+			if (npc->ENF().child)
 			{
 				npc->Spawn(this);
 			}
@@ -417,7 +158,7 @@ void NPC::Spawn(NPC *parent)
 	}
 
 	this->alive = true;
-	this->hp = this->Data().hp;
+	this->hp = this->ENF().hp;
 	this->last_act = Timer::GetTime();
 	this->act_speed = speed_table[this->spawn_type];
 
@@ -442,11 +183,11 @@ void NPC::Spawn(NPC *parent)
 void NPC::Act()
 {
 	// Needed for the server startup spawn to work properly
-	if (this->Data().child && !this->parent)
+	if (this->ENF().child && !this->parent)
 	{
 		UTIL_FOREACH(this->map->npcs, npc)
 		{
-			if (npc->Data().boss)
+			if (npc->ENF().boss)
 			{
 				this->parent = npc;
 				break;
@@ -465,9 +206,9 @@ void NPC::Act()
 	unsigned char attacker_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
 	unsigned short attacker_damage = 0;
 
-	if (this->Data().type == ENF::Passive || this->Data().type == ENF::Aggressive)
+	if (this->ENF().type == ENF::Passive || this->ENF().type == ENF::Aggressive)
 	{
-		UTIL_FOREACH(this->damagelist, opponent)
+		UTIL_FOREACH_CREF(this->damagelist, opponent)
 		{
 			if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
 			{
@@ -486,7 +227,7 @@ void NPC::Act()
 
 		if (this->parent)
 		{
-			UTIL_FOREACH(this->parent->damagelist, opponent)
+			UTIL_FOREACH_CREF(this->parent->damagelist, opponent)
 			{
 				if (opponent->attacker->map != this->map || opponent->attacker->nowhere || opponent->last_hit < Timer::GetTime() - static_cast<double>(this->map->world->config["NPCBoredTimer"]))
 				{
@@ -504,7 +245,7 @@ void NPC::Act()
 		}
 	}
 
-	if (this->Data().type == ENF::Aggressive || (this->parent && attacker))
+	if (this->ENF().type == ENF::Aggressive || (this->parent && attacker))
 	{
 		Character *closest = 0;
 		unsigned char closest_distance = static_cast<int>(this->map->world->config["NPCChaseDistance"]);
@@ -636,7 +377,7 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		amount = limitamount;
 	}
 
-	if (this->Data().type == ENF::Passive || this->Data().type == ENF::Aggressive)
+	if (this->ENF().type == ENF::Passive || this->ENF().type == ENF::Aggressive)
 	{
 		this->hp -= amount;
 	}
@@ -649,10 +390,10 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 	if (this->totaldamage + limitamount > this->totaldamage)
 		this->totaldamage += limitamount;
 
-	NPC_Opponent *opponent(new NPC_Opponent);
+	std::unique_ptr<NPC_Opponent> opponent(new NPC_Opponent);
 	bool found = false;
 
-	UTIL_FOREACH(this->damagelist, checkopp)
+	UTIL_FOREACH_CREF(this->damagelist, checkopp)
 	{
 		if (checkopp->attacker == from)
 		{
@@ -670,8 +411,8 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		opponent->attacker = from;
 		opponent->damage = limitamount;
 		opponent->last_hit = Timer::GetTime();
-		this->damagelist.push_back(opponent);
 		opponent->attacker->unregister_npc.push_back(this);
+		this->damagelist.emplace_back(std::move(opponent));
 	}
 
 	if (this->hp > 0)
@@ -685,7 +426,7 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 		builder.AddChar(from->direction);
 		builder.AddShort(this->index);
 		builder.AddThree(amount);
-		builder.AddShort(util::clamp<int>(double(this->hp) / double(this->Data().hp) * 100.0, 0, 100));
+		builder.AddShort(util::clamp<int>(double(this->hp) / double(this->ENF().hp) * 100.0, 0, 100));
 
 		if (spell_id != -1)
 			builder.AddShort(from->tp);
@@ -765,11 +506,11 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 	{
 		std::vector<NPC_Drop *> drops;
 
-		UTIL_FOREACH(this->drops, checkdrop)
+		UTIL_FOREACH_CREF(this->Data().drops, checkdrop)
 		{
 			if (util::rand(0.0, 100.0) <= checkdrop->chance * droprate)
 			{
-				drops.push_back(checkdrop);
+				drops.push_back(checkdrop.get());
 			}
 		}
 
@@ -780,24 +521,24 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 	}
 	else if (dropratemode == 2)
 	{
-		UTIL_FOREACH(this->drops, checkdrop)
+		UTIL_FOREACH_CREF(this->Data().drops, checkdrop)
 		{
 			if (util::rand(0.0, 100.0) <= checkdrop->chance * droprate)
 			{
-				drop = checkdrop;
+				drop = checkdrop.get();
 				break;
 			}
 		}
 	}
 	else if (dropratemode == 3)
 	{
-		double roll = util::rand(0.0, this->drops_chance_total);
+		double roll = util::rand(0.0, this->Data().drops_chance_total);
 
-		UTIL_FOREACH(this->drops, checkdrop)
+		UTIL_FOREACH_CREF(this->Data().drops, checkdrop)
 		{
 			if (roll >= checkdrop->chance_offset && roll < checkdrop->chance_offset+checkdrop->chance)
 			{
-				drop = checkdrop;
+				drop = checkdrop.get();
 				break;
 			}
 		}
@@ -805,7 +546,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 	if (sharemode == 1)
 	{
-		UTIL_FOREACH(this->damagelist, opponent)
+		UTIL_FOREACH_CREF(this->damagelist, opponent)
 		{
 			if (opponent->damage > most_damage_counter)
 			{
@@ -843,7 +584,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 			{
 				int rewarded_hp = util::rand(0, this->totaldamage - 1);
 				int count_hp = 0;
-				UTIL_FOREACH(this->damagelist, opponent)
+				UTIL_FOREACH_CREF(this->damagelist, opponent)
 				{
 					if (opponent->attacker->InRange(this))
 					{
@@ -863,7 +604,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 			{
 				int rand = util::rand(0, this->damagelist.size() - 1);
 				int i = 0;
-				UTIL_FOREACH(this->damagelist, opponent)
+				UTIL_FOREACH_CREF(this->damagelist, opponent)
 				{
 					if (opponent->attacker->InRange(this))
 					{
@@ -884,7 +625,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 	UTIL_FOREACH(this->map->characters, character)
 	{
-		std::list<NPC_Opponent *>::iterator findopp = this->damagelist.begin();
+		std::list<std::unique_ptr<NPC_Opponent>>::iterator findopp = this->damagelist.begin();
 		for (; findopp != this->damagelist.end() && (*findopp)->attacker != character; ++findopp); // no loop body
 
 		if (findopp != this->damagelist.end() || character->InRange(this))
@@ -893,7 +634,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 			PacketBuilder builder(spell_id == -1 ? PACKET_NPC : PACKET_CAST, PACKET_SPEC, 26);
 
-			if (this->Data().exp != 0)
+			if (this->ENF().exp != 0)
 			{
 				if (findopp != this->damagelist.end())
 				{
@@ -903,7 +644,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 						case 0:
 							if (character == from)
 							{
-								reward = int(std::ceil(double(this->Data().exp) * exprate));
+								reward = int(std::ceil(double(this->ENF().exp) * exprate));
 
 								if (reward > 0)
 								{
@@ -929,7 +670,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 						case 1:
 							if (character == most_damage)
 							{
-								reward = int(std::ceil(double(this->Data().exp) * exprate));
+								reward = int(std::ceil(double(this->ENF().exp) * exprate));
 
 								if (reward > 0)
 								{
@@ -953,7 +694,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 							break;
 
 						case 2:
-							reward = int(std::ceil(double(this->Data().exp) * exprate * (double((*findopp)->damage) / double(this->totaldamage))));
+							reward = int(std::ceil(double(this->ENF().exp) * exprate * (double((*findopp)->damage) / double(this->totaldamage))));
 
 							if (reward > 0)
 							{
@@ -977,7 +718,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 							break;
 
 						case 3:
-							reward = int(std::ceil(double(this->Data().exp) * exprate * (double(this->damagelist.size()) / 1.0)));
+							reward = int(std::ceil(double(this->ENF().exp) * exprate * (double(this->damagelist.size()) / 1.0)));
 
 							if (reward > 0)
 							{
@@ -1060,7 +801,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 		party->temp_expsum = 0;
 	}
 
-	UTIL_FOREACH(this->damagelist, opponent)
+	UTIL_FOREACH_CREF(this->damagelist, opponent)
 	{
 		opponent->attacker->unregister_npc.erase(
 			std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), this),
@@ -1073,13 +814,13 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 	short childid = -1;
 
-	if (this->Data().boss)
+	if (this->ENF().boss)
 	{
 		std::vector<NPC*> child_npcs;
 
 		UTIL_FOREACH(this->map->npcs, npc)
 		{
-			if (npc->Data().child && !npc->Data().boss && npc->alive)
+			if (npc->ENF().child && !npc->ENF().boss && npc->alive)
 			{
 				child_npcs.push_back(npc);
 			}
@@ -1087,10 +828,10 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 		UTIL_FOREACH(child_npcs, npc)
 		{
-			if (!npc->temporary && (childid == -1 || childid == npc->Data().id))
+			if (!npc->temporary && (childid == -1 || childid == npc->id))
 			{
 				npc->Die(false);
-				childid = npc->Data().id;
+				childid = npc->id;
 			}
 			else
 			{
@@ -1123,7 +864,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 		if (!q.second || q.second->GetQuest()->Disabled())
 			continue;
 
-		q.second->KilledNPC(this->Data().id);
+		q.second->KilledNPC(this->ENF().id);
 	}
 
 	if (this->temporary)
@@ -1142,7 +883,7 @@ void NPC::Die(bool show)
 	this->parent = 0;
 	this->dead_since = int(Timer::GetTime());
 
-	UTIL_FOREACH(this->damagelist, opponent)
+	UTIL_FOREACH_CREF(this->damagelist, opponent)
 	{
 		opponent->attacker->unregister_npc.erase(
 			std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), this),
@@ -1188,7 +929,7 @@ void NPC::Die(bool show)
 
 void NPC::Attack(Character *target)
 {
-	int amount = util::rand(this->Data().mindam, this->Data().maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
+	int amount = util::rand(this->ENF().mindam, this->ENF().maxdam + static_cast<int>(this->map->world->config["NPCAdjustMaxDam"]));
 	double rand = util::rand(0.0, 1.0);
 	// Checks if target is facing you
 	bool critical = std::abs(int(target->direction) - this->direction) != 2 || rand < static_cast<double>(this->map->world->config["CriticalRate"]);
@@ -1288,7 +1029,7 @@ void NPC::Attack(Character *target)
 
 void NPC::FormulaVars(std::unordered_map<std::string, double> &vars, std::string prefix)
 {
-	const ENF_Data& data = this->Data();
+	const ENF_Data& data = this->ENF();
 	vv(1, "npc") v(hp) vv(data.hp, "maxhp")
 	vd(mindam) vd(maxdam)
 	vd(accuracy) vd(evade) vd(armor)
@@ -1308,5 +1049,13 @@ NPC::~NPC()
 			character->npc = 0;
 			character->npc_type = ENF::NPC;
 		}
+	}
+
+	UTIL_FOREACH_CREF(this->damagelist, opponent)
+	{
+		opponent->attacker->unregister_npc.erase(
+			std::remove(UTIL_RANGE(opponent->attacker->unregister_npc), this),
+			opponent->attacker->unregister_npc.end()
+		);
 	}
 }

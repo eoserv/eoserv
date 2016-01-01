@@ -18,6 +18,7 @@
 #include "i18n.hpp"
 #include "map.hpp"
 #include "npc.hpp"
+#include "npc_data.hpp"
 #include "packet.hpp"
 #include "party.hpp"
 #include "player.hpp"
@@ -55,7 +56,7 @@ void world_spawn_npcs(void *world_void)
 		UTIL_FOREACH(map->npcs, npc)
 		{
 			if ((!npc->alive && npc->dead_since + (double(npc->spawn_time) * spawnrate) < current_time)
-			 && (!npc->Data().child || (npc->parent && npc->parent->alive && world->config["RespawnBossChildren"])))
+			 && (!npc->ENF().child || (npc->parent && npc->parent->alive && world->config["RespawnBossChildren"])))
 			{
 #ifdef DEBUG
 				Console::Dbg("Spawning NPC %i on map %i", npc->id, map->id);
@@ -133,11 +134,11 @@ void world_npc_recover(void *world_void)
 	{
 		UTIL_FOREACH(map->npcs, npc)
 		{
-			if (npc->alive && npc->hp < npc->Data().hp)
+			if (npc->alive && npc->hp < npc->ENF().hp)
 			{
-				npc->hp += npc->Data().hp * double(world->config["NPCRecoverRate"]);
+				npc->hp += npc->ENF().hp * double(world->config["NPCRecoverRate"]);
 
-				npc->hp = std::min(npc->hp, npc->Data().hp);
+				npc->hp = std::min(npc->hp, npc->ENF().hp);
 			}
 		}
 	}
@@ -250,7 +251,8 @@ void world_spikes(void *world_void)
 	
 	for (Map* map : world->maps)
 	{
-		map->TimedSpikes();
+		if (map->exists)
+			map->TimedSpikes();
 	}
 }
 
@@ -260,7 +262,8 @@ void world_drains(void *world_void)
 	
 	for (Map* map : world->maps)
 	{
-		map->TimedDrains();
+		if (map->exists)
+			map->TimedDrains();
 	}
 }
 
@@ -270,7 +273,8 @@ void world_quakes(void *world_void)
 	
 	for (Map* map : world->maps)
 	{
-		map->TimedQuakes();
+		if (map->exists)
+			map->TimedQuakes();
 	}
 }
 
@@ -390,20 +394,25 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	this->esf = new ESF(this->config["ESF"]);
 	this->ecf = new ECF(this->config["ECF"]);
 
+	std::size_t num_npcs = this->enf->data.size();
+	this->npc_data.resize(num_npcs);
+	for (std::size_t i = 0; i < num_npcs; ++i)
+	{
+		auto& npc = this->npc_data[i];
+		npc.reset(new NPC_Data(this, i));
+		if (npc->id != 0)
+			npc->LoadShopDrop();
+	}
+
 	this->maps.resize(static_cast<int>(this->config["Maps"]));
 	int loaded = 0;
-	int npcs = 0;
 	for (int i = 0; i < static_cast<int>(this->config["Maps"]); ++i)
 	{
 		this->maps[i] = new Map(i + 1, this);
 		if (this->maps[i]->exists)
-		{
-			npcs += this->maps[i]->npcs.size();
 			++loaded;
-		}
 	}
-	Console::Out("%i/%i maps loaded.", loaded, this->maps.size());
-	Console::Out("%i NPCs loaded.", npcs);
+	Console::Out("%i/%i maps loaded.", loaded, static_cast<int>(this->maps.size()));
 
 	short max_quest = static_cast<int>(this->config["Quests"]);
 
@@ -425,7 +434,7 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 
 		}
 	}
-	Console::Out("%i/%i quests loaded.", this->quests.size(), max_quest);
+	Console::Out("%i/%i quests loaded.", static_cast<int>(this->quests.size()), max_quest);
 
 	this->last_character_id = 0;
 
@@ -883,11 +892,12 @@ void World::Rehash()
 	UTIL_FOREACH(this->maps, map)
 	{
 		map->LoadArena();
+	}
 
-		UTIL_FOREACH(map->npcs, npc)
-		{
+	UTIL_FOREACH_CREF(this->npc_data, npc)
+	{
+		if (npc->id != 0)
 			npc->LoadShopDrop();
-		}
 	}
 }
 
@@ -913,6 +923,16 @@ void World::ReloadPub(bool quiet)
 				character->ServerMsg("The server has been reloaded, please log out and in again.");
 			}
 		}
+	}
+
+	std::size_t current_npcs = this->npc_data.size();
+	std::size_t new_npcs = this->enf->data.size();
+
+	this->npc_data.resize(new_npcs);
+
+	for (std::size_t i = current_npcs; i < new_npcs; ++i)
+	{
+		npc_data[i]->LoadShopDrop();
 	}
 }
 
@@ -1107,6 +1127,14 @@ Map *World::GetMap(short id)
 			throw std::runtime_error("Map #" + util::to_string(id) + " and fallback map #1 are unavailable");
 		}
 	}
+}
+
+const NPC_Data* World::GetNpcData(short id) const
+{
+	if (id >= 0 && id < npc_data.size())
+		return npc_data[id].get();
+	else
+		return npc_data[0].get();
 }
 
 Home *World::GetHome(const Character *character) const
@@ -1433,18 +1461,25 @@ bool World::IsInstrument(int graphic_id)
 
 World::~World()
 {
-	std::list<Character *> todelete;
-
-	UTIL_FOREACH(this->characters, character)
+	UTIL_FOREACH(this->maps, map)
 	{
-		todelete.push_back(character);
+		delete map;
 	}
 
-	UTIL_FOREACH(todelete, character)
+	UTIL_FOREACH(this->homes, home)
 	{
-		character->player->client->Close(true);
-		delete character;
+		delete home;
 	}
+
+	UTIL_FOREACH(this->boards, board)
+	{
+		delete board;
+	}
+
+	delete this->eif;
+	delete this->enf;
+	delete this->esf;
+	delete this->ecf;
 
 	delete this->guildmanager;
 

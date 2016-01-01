@@ -43,6 +43,7 @@ void Board_Remove(Character *character, PacketReader &reader)
 				if ((*post)->author_admin < character->admin
 				 || (*post)->author == character->SourceName())
 				{
+					delete *post;
 					character->board->posts.erase(post);
 				}
 				break;

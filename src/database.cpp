@@ -380,7 +380,7 @@ Database_Result Database::RawQuery(const char* query, bool tx_control)
 								if (mresult)
 								{
 									mysql_free_result(mresult);
-									mresult = 0;
+									mresult = nullptr;
 								}
 							}
 						}

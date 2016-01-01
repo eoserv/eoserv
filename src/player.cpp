@@ -38,7 +38,7 @@ Player::Player(std::string username, World *world)
 	this->login_time = std::time(0);
 
 	this->online = true;
-	this->character = 0;
+	this->character = nullptr;
 
 	this->username = static_cast<std::string>(row["username"]);
 
@@ -51,7 +51,7 @@ Player::Player(std::string username, World *world)
 		this->characters.push_back(newchar);
 	}
 
-	this->client = 0;
+	this->client = nullptr;
 }
 
 bool Player::ValidName(std::string username)
@@ -139,8 +139,8 @@ void Player::Logout()
 
 		// Disconnect the client to make sure this null pointer is never dereferenced
 		this->client->Close();
-		this->client->player = 0;
-		this->client = 0; // Not reference counted!
+		this->client->player = nullptr;
+		this->client = nullptr; // Not reference counted!
 	}
 }
 

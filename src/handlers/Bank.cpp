@@ -30,7 +30,7 @@ void Bank_Open(Character *character, PacketReader &reader)
 
 	UTIL_FOREACH(character->map->npcs, npc)
 	{
-		if (npc->index == id && npc->Data().type == ENF::Bank)
+		if (npc->index == id && npc->ENF().type == ENF::Bank)
 		{
 			character->npc = npc;
 			character->npc_type = ENF::Bank;

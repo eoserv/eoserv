@@ -1343,7 +1343,7 @@ void Character::Refresh()
 	UTIL_FOREACH(updatenpcs, npc)
 	{
 		builder.AddChar(npc->index);
-		builder.AddShort(npc->Data().id);
+		builder.AddShort(npc->id);
 		builder.AddChar(npc->x);
 		builder.AddChar(npc->y);
 		builder.AddChar(npc->direction);

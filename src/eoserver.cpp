@@ -244,6 +244,31 @@ void EOServer::Tick()
 
 EOServer::~EOServer()
 {
+	// All clients must be fully closed before the world ends
+	UTIL_FOREACH(this->clients, client)
+	{
+		client->Close();
+	}
+
+	// Spend up to 2 seconds shutting down
+	while (this->clients.size() > 0)
+	{
+		std::vector<Client *> *active_clients = this->Select(0.1);
+
+		if (active_clients)
+		{
+			UTIL_FOREACH(*active_clients, client)
+			{
+				EOClient *eoclient = static_cast<EOClient *>(client);
+				eoclient->Tick();
+			}
+
+			active_clients->clear();
+		}
+
+		this->BuryTheDead();
+	}
+
 	delete this->sln;
 	delete this->world;
 }
