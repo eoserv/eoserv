@@ -20,26 +20,15 @@ set(eoserv_ALL_SOURCE_FILES
 	src/character.cpp
 	src/character.hpp
 	src/commands/admin.cpp
-	src/commands/admin.cpp
-	src/commands/char_mod.cpp
 	src/commands/char_mod.cpp
 	src/commands/commands.cpp
-	src/commands/commands.cpp
-	src/commands/commands.hpp
 	src/commands/commands.hpp
 	src/commands/debug.cpp
-	src/commands/debug.cpp
-	src/commands/info.cpp
 	src/commands/info.cpp
 	src/commands/map.cpp
-	src/commands/map.cpp
 	src/commands/moderation.cpp
-	src/commands/moderation.cpp
-	src/command_source.cpp
 	src/command_source.hpp
 	src/commands/server.cpp
-	src/commands/server.cpp
-	src/commands/warp.cpp
 	src/commands/warp.cpp
 	src/config.cpp
 	src/config.hpp
@@ -55,167 +44,88 @@ set(eoserv_ALL_SOURCE_FILES
 	src/eodata.cpp
 	src/eodata.hpp
 	src/eoplus/context.cpp
-	src/eoplus/context.cpp
-	src/eoplus/context.hpp
 	src/eoplus/context.hpp
 	src/eoplus.cpp
 	src/eoplus/fwd/context.hpp
-	src/eoplus/fwd/context.hpp
-	src/eoplus/fwd/context.hpp
 	src/eoplus/fwd/lex.hpp
-	src/eoplus/fwd/lex.hpp
-	src/eoplus/fwd/lex.hpp
-	src/eoplus/fwd/parse.hpp
-	src/eoplus/fwd/parse.hpp
 	src/eoplus/fwd/parse.hpp
 	src/eoplus.hpp
 	src/eoplus/lex.cpp
-	src/eoplus/lex.cpp
-	src/eoplus/lex.hpp
 	src/eoplus/lex.hpp
 	src/eoplus/parse.cpp
-	src/eoplus/parse.cpp
-	src/eoplus/parse.hpp
 	src/eoplus/parse.hpp
 	src/eoserv_config.cpp
 	src/eoserv_config.hpp
 	src/eoserver.cpp
 	src/eoserver.hpp
 	src/extra/seose_compat.cpp
-	src/extra/seose_compat.cpp
-	src/extra/seose_compat.hpp
 	src/extra/seose_compat.hpp
 	src/fwd/arena.hpp
-	src/fwd/arena.hpp
-	src/fwd/character.hpp
 	src/fwd/character.hpp
 	src/fwd/command_source.hpp
-	src/fwd/command_source.hpp
-	src/fwd/config.hpp
 	src/fwd/config.hpp
 	src/fwd/console.hpp
-	src/fwd/console.hpp
-	src/fwd/database.hpp
 	src/fwd/database.hpp
 	src/fwd/dialog.hpp
-	src/fwd/dialog.hpp
-	src/fwd/eoclient.hpp
 	src/fwd/eoclient.hpp
 	src/fwd/eodata.hpp
-	src/fwd/eodata.hpp
-	src/fwd/eoplus.hpp
 	src/fwd/eoplus.hpp
 	src/fwd/eoserver.hpp
-	src/fwd/eoserver.hpp
-	src/fwd/guild.hpp
 	src/fwd/guild.hpp
 	src/fwd/hook.hpp
-	src/fwd/hook.hpp
-	src/fwd/i18n.hpp
 	src/fwd/i18n.hpp
 	src/fwd/map.hpp
-	src/fwd/map.hpp
-	src/fwd/nanohttp.hpp
 	src/fwd/nanohttp.hpp
 	src/fwd/npc.hpp
-	src/fwd/npc.hpp
-	src/fwd/packet.hpp
 	src/fwd/packet.hpp
 	src/fwd/party.hpp
-	src/fwd/party.hpp
-	src/fwd/player.hpp
 	src/fwd/player.hpp
 	src/fwd/quest.hpp
-	src/fwd/quest.hpp
-	src/fwd/sln.hpp
 	src/fwd/sln.hpp
 	src/fwd/socket.hpp
-	src/fwd/socket.hpp
 	src/fwd/timer.hpp
-	src/fwd/timer.hpp
-	src/fwd/world.hpp
 	src/fwd/world.hpp
 	src/guild.cpp
 	src/guild.hpp
 	src/handlers/Account.cpp
-	src/handlers/Account.cpp
-	src/handlers/AdminInteract.cpp
 	src/handlers/AdminInteract.cpp
 	src/handlers/Attack.cpp
-	src/handlers/Attack.cpp
-	src/handlers/Bank.cpp
 	src/handlers/Bank.cpp
 	src/handlers/Barber.cpp
-	src/handlers/Barber.cpp
-	src/handlers/Board.cpp
 	src/handlers/Board.cpp
 	src/handlers/Book.cpp
-	src/handlers/Book.cpp
-	src/handlers/Chair.cpp
 	src/handlers/Chair.cpp
 	src/handlers/Character.cpp
-	src/handlers/Character.cpp
-	src/handlers/Chest.cpp
 	src/handlers/Chest.cpp
 	src/handlers/Citizen.cpp
-	src/handlers/Citizen.cpp
-	src/handlers/Connection.cpp
 	src/handlers/Connection.cpp
 	src/handlers/Door.cpp
-	src/handlers/Door.cpp
-	src/handlers/Emote.cpp
 	src/handlers/Emote.cpp
 	src/handlers/Face.cpp
-	src/handlers/Face.cpp
-	src/handlers/Global.cpp
 	src/handlers/Global.cpp
 	src/handlers/Guild.cpp
-	src/handlers/Guild.cpp
-	src/handlers/handlers.cpp
 	src/handlers/handlers.cpp
 	src/handlers/handlers.hpp
-	src/handlers/handlers.hpp
-	src/handlers/Init.cpp
 	src/handlers/Init.cpp
 	src/handlers/Internal.cpp
-	src/handlers/Internal.cpp
-	src/handlers/Item.cpp
 	src/handlers/Item.cpp
 	src/handlers/Jukebox.cpp
-	src/handlers/Jukebox.cpp
-	src/handlers/Locker.cpp
 	src/handlers/Locker.cpp
 	src/handlers/Login.cpp
-	src/handlers/Login.cpp
-	src/handlers/Message.cpp
 	src/handlers/Message.cpp
 	src/handlers/Paperdoll.cpp
-	src/handlers/Paperdoll.cpp
-	src/handlers/Party.cpp
 	src/handlers/Party.cpp
 	src/handlers/Players.cpp
-	src/handlers/Players.cpp
-	src/handlers/Quest.cpp
 	src/handlers/Quest.cpp
 	src/handlers/Refresh.cpp
-	src/handlers/Refresh.cpp
-	src/handlers/Shop.cpp
 	src/handlers/Shop.cpp
 	src/handlers/Sit.cpp
-	src/handlers/Sit.cpp
-	src/handlers/Spell.cpp
 	src/handlers/Spell.cpp
 	src/handlers/StatSkill.cpp
-	src/handlers/StatSkill.cpp
-	src/handlers/Talk.cpp
 	src/handlers/Talk.cpp
 	src/handlers/Trade.cpp
-	src/handlers/Trade.cpp
-	src/handlers/Walk.cpp
 	src/handlers/Walk.cpp
 	src/handlers/Warp.cpp
-	src/handlers/Warp.cpp
-	src/handlers/Welcome.cpp
 	src/handlers/Welcome.cpp
 	src/hash.cpp
 	src/hash.hpp
@@ -249,14 +159,9 @@ set(eoserv_ALL_SOURCE_FILES
 	src/util.cpp
 	src/util.hpp
 	src/util/rpn.cpp
-	src/util/rpn.cpp
-	src/util/rpn.hpp
 	src/util/rpn.hpp
 	src/util/secure_string.hpp
-	src/util/secure_string.hpp
 	src/util/variant.cpp
-	src/util/variant.cpp
-	src/util/variant.hpp
 	src/util/variant.hpp
 	src/version.h
 	src/world.cpp
@@ -266,8 +171,6 @@ set(eoserv_ALL_SOURCE_FILES
 set(eoserv_WIN32_SOURCE_FILES
 	src/eoserv_windows.h
 	src/extra/ntservice.cpp
-	src/extra/ntservice.cpp
-	src/extra/ntservice.hpp
 	src/extra/ntservice.hpp
 )
 
