@@ -1112,6 +1112,7 @@ void Quest_Context::KilledPlayer()
 bool Quest_Context::IsHidden() const
 {
 	return this->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::Hidden
+		|| (this->GetQuest()->GetQuest()->info.hidden == EOPlus::Info::HiddenEnd && this->StateName() == "end")
 	    || this->StateName() == "done";
 }
 
