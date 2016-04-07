@@ -153,6 +153,7 @@ void sha256_update(sha256_context *ctx, const char *input, uint64_t length)
 			if (pos == BLOCK_SIZE)
 			{
 				sha256_process(ctx, ctx->buf);
+				pos = 0;
 			}
 		}
 	}
