@@ -1,6 +1,6 @@
 
 /* sha256.h
- * Copyright 2009 the EOSERV development team (http://eoserv.net/devs)
+ * Copyright (c) Julian Smythe, All rights reserved.
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages

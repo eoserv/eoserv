@@ -258,7 +258,7 @@ int eoserv_main(int argc, char *argv[])
                           ___ ___  ___ ___ _____   __\n\
    EOSERV Version " EOSERV_VERSION_STRING "  | __/ _ \\/ __| __| _ \\ \\ / /    http://eoserv.net/\n\
 =========================| _| (_) \\__ \\ _||   /\\ ` /===========================\n\
-                         |___\\___/|___/___|_|_\\ \\_/    sausage@tehsausage.com\n\
+                         |___\\___/|___/___|_|_\\ \\_/ Copyright (c) Julian Smythe\n\
 \n");
 #ifdef DEBUG
 		Console::Wrn("This is a debug build and shouldn't be used for live servers.");
