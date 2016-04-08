@@ -419,6 +419,9 @@ void Guild_Use(Character *character, PacketReader &reader)
 // Deposit gold to the guild bank
 void Guild_Buy(Character *character, PacketReader &reader)
 {
+	if (character->trading) return;
+	if (!character->CanInteractItems()) return;
+
 	/*int session = */reader.GetInt();
 	int gold = reader.GetInt();
 
