@@ -9,7 +9,7 @@
 
 // Expected to be exactly 5 characters long
 #ifndef EOSERV_VERSION_STRING
-#define EOSERV_VERSION_STRING "0.6.2"
+#define EOSERV_VERSION_STRING "0.7.0"
 #endif // EOSERV_VERSION_STRING
 
 #endif // VERSION_H_INCLUDED
