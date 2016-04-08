@@ -26,6 +26,10 @@
 
 #include "database_impl.hpp"
 
+#ifndef ER_LOCK_WAIT_TIMEOUT
+#define ER_LOCK_WAIT_TIMEOUT 1205
+#endif
+
 #ifndef DATABASE_MYSQL
 #ifndef DATABASE_SQLITE
 #error At least one database driver must be selected
@@ -300,7 +304,7 @@ Database_Result Database::RawQuery(const char* query, bool tx_control)
 				int myerr = mysql_errno(this->impl->mysql_handle);
 				int recovery_attempt = 0;
 
-				if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
+				if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST || myerr == ER_LOCK_WAIT_TIMEOUT)
 				{
 					server_gone:
 
@@ -338,7 +342,7 @@ Database_Result Database::RawQuery(const char* query, bool tx_control)
 						{
 							int myerr = mysql_errno(this->impl->mysql_handle);
 
-							if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
+							if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST || myerr == ER_LOCK_WAIT_TIMEOUT)
 							{
 								goto server_gone;
 							}
@@ -365,7 +369,7 @@ Database_Result Database::RawQuery(const char* query, bool tx_control)
 
 							myerr = mysql_errno(this->impl->mysql_handle);
 
-							if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST)
+							if (myerr == CR_SERVER_GONE_ERROR || myerr == CR_SERVER_LOST || myerr == ER_LOCK_WAIT_TIMEOUT)
 							{
 								goto server_gone;
 							}

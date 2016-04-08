@@ -234,6 +234,9 @@ void world_timed_save(void *world_void)
 {
 	World *world = static_cast<World *>(world_void);
 
+	if (!world->config["TimedSave"])
+		return;
+
 	UTIL_FOREACH(world->characters, character)
 	{
 		character->Save();
@@ -241,7 +244,16 @@ void world_timed_save(void *world_void)
 
 	world->guildmanager->SaveAll();
 
-	world->CommitDB();
+	try
+	{
+		world->CommitDB();
+	}
+	catch (Database_Exception& e)
+	{
+		Console::Wrn("Database commit failed - no data was saved!");
+		world->db.Rollback();
+	}
+
 	world->BeginDB();
 }
 
@@ -326,7 +338,17 @@ void World::UpdateConfig()
 
 
 	if (this->db.Pending() && !this->config["TimedSave"])
-		this->CommitDB();
+	{
+		try
+		{
+			this->CommitDB();
+		}
+		catch (Database_Exception& e)
+		{
+			Console::Wrn("Database commit failed - no data was saved!");
+			this->db.Rollback();
+		}
+	}
 }
 
 World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
