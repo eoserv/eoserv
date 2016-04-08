@@ -74,10 +74,27 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 		else if (set == "skillpoints") (skillpoints = true, victim->skillpoints) = std::min(std::max(util::to_int(arguments[1]), 0), int(from->SourceWorld()->config["MaxLevel"]) * int(from->SourceWorld()->config["SkillPerLevel"]));
 		else if (set == "admin")
 		{
+			int no_interact_default_admin = victim->world->config["NoInteractDefaultAdmin"];
+			int no_interact_default = victim->world->config["NoInteractDefault"];
+			int hide_level = victim->world->admin_config["hide"];
+
 			AdminLevel level = std::min(std::max(AdminLevel(util::to_int(arguments[1])), ADMIN_PLAYER), ADMIN_HGM);
 
-			if (level < from->SourceAccess() && victim != from->SourceCharacter())
+			// Avoid granting a player more privilege by lowering their admin level
+			bool would_privilege = (no_interact_default != 0) && (victim->admin >= no_interact_default_admin)
+			                    && (level < no_interact_default_admin) && !(victim->nointeract & Character::NoInteractCustom);
+
+			if (level < from->SourceAccess() && victim != from->SourceCharacter() && !would_privilege)
 			{
+				if (victim->admin < no_interact_default_admin && level >= no_interact_default_admin
+				 && !(victim->nointeract & Character::NoInteractCustom))
+				{
+					victim->nointeract = no_interact_default;
+				}
+
+				if (victim->admin >= hide_level && level < hide_level)
+					victim->Unhide(Character::HideAll);
+
 				if (level == ADMIN_PLAYER && victim->admin != ADMIN_PLAYER)
 					victim->world->DecAdminCount();
 				else if (level != ADMIN_PLAYER && victim->admin == ADMIN_PLAYER)
