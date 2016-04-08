@@ -157,7 +157,7 @@ void Quest_Accept(Character *character, PacketReader &reader)
 
 		auto it = character->quests.find(quest_id);
 
-		if (it != character->quests.end())
+		if (it != character->quests.end() && it->second)
 		{
 			// WARNING: holds a non-tracked reference to shared_ptr
 			const Dialog* dialog = it->second->GetDialog(vendor_id);
