@@ -19,6 +19,8 @@ set(eoserv_ALL_SOURCE_FILES
 	src/arena.hpp
 	src/character.cpp
 	src/character.hpp
+	src/command_source.cpp
+	src/command_source.hpp
 	src/commands/admin.cpp
 	src/commands/char_mod.cpp
 	src/commands/commands.cpp
@@ -27,7 +29,6 @@ set(eoserv_ALL_SOURCE_FILES
 	src/commands/info.cpp
 	src/commands/map.cpp
 	src/commands/moderation.cpp
-	src/command_source.hpp
 	src/commands/server.cpp
 	src/commands/warp.cpp
 	src/config.cpp
