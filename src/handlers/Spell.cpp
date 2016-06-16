@@ -40,7 +40,7 @@ void Spell_Request(Character *character, PacketReader &reader)
 			return;
 
 		character->spell_id = spell_id;
-		character->spell_event = new TimeEvent(character_cast_spell, character, 0.47 * spell.cast_time, 1);
+		character->spell_event = new TimeEvent(character_cast_spell, character, 0.47 * spell.cast_time + character->SpellCooldownTime(), 1);
 		character->world->timer.Register(character->spell_event);
 
 		PacketBuilder builder(PACKET_SPELL, PACKET_REQUEST, 4);
@@ -75,7 +75,7 @@ void Spell_Target_Self(Character *character, PacketReader &reader)
 		const ESF_Data& spell = character->world->esf->Get(character->spell_id);
 
 		if (timestamp - character->timestamp < (spell.cast_time - 1) * 47 + 35
-		 || timestamp - character->timestamp > spell.cast_time * 50)
+		 || timestamp - character->timestamp > std::max<int>(spell.cast_time, 1) * 50)
 		{
 			character->CancelSpell();
 			return;
@@ -123,7 +123,7 @@ void Spell_Target_Other(Character *character, PacketReader &reader)
 		const ESF_Data& spell = character->world->esf->Get(character->spell_id);
 
 		if (timestamp - character->timestamp < (spell.cast_time - 1) * 47 + 35
-		 || timestamp - character->timestamp > spell.cast_time * 50)
+		 || timestamp - character->timestamp > std::max<int>(spell.cast_time, 1) * 50)
 		{
 			character->CancelSpell();
 			return;
@@ -153,7 +153,7 @@ void Spell_Target_Group(Character *character, PacketReader &reader)
 		const ESF_Data& spell = character->world->esf->Get(character->spell_id);
 
 		if (timestamp - character->timestamp < (spell.cast_time - 1) * 47 + 35
-		 || timestamp - character->timestamp > spell.cast_time * 50)
+		 || timestamp - character->timestamp > std::max<int>(spell.cast_time, 1) * 50)
 		{
 			character->CancelSpell();
 			return;

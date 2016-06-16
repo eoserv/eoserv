@@ -241,6 +241,7 @@ class Character : public Command_Source
 		TimeEvent *spell_event;
 		SpellTarget spell_target;
 		unsigned short spell_target_id;
+		double spell_fired_time;
 
 		double last_walk;
 		int attacks;
@@ -319,6 +320,7 @@ class Character : public Command_Source
 		bool DelSpell(short spell);
 		void CancelSpell();
 		void SpellAct();
+		double SpellCooldownTime() const;
 		bool Unequip(short item, unsigned char subloc);
 		bool Equip(short item, unsigned char subloc);
 		bool InRange(unsigned char x, unsigned char y) const;

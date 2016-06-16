@@ -136,6 +136,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "MaxCharacters"      , 3);
 	eoserv_config_default(config, "MaxShopBuy"         , 4);
 	eoserv_config_default(config, "GhostTimer"         , 4);
+	eoserv_config_default(config, "SpellCastCooldown"  , 0.6);
 	eoserv_config_default(config, "DropTimer"          , 120);
 	eoserv_config_default(config, "DropAmount"         , 15);
 	eoserv_config_default(config, "ProtectPlayerDrop"  , 5);
