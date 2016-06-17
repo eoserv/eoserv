@@ -53,7 +53,7 @@ void Guild_Request(Character *character, PacketReader &reader)
 
 				if (!guild)
 				{
-					if (Guild::ValidTag(tag) && Guild::ValidName(name))
+					if (character->world->guildmanager->ValidTag(tag) && character->world->guildmanager->ValidName(name))
 					{
 						if (character->HasItem(1) >= static_cast<int>(character->world->config["GuildPrice"]))
 						{
@@ -169,10 +169,8 @@ void Guild_Agree(Character *character, PacketReader &reader)
 					{
 						std::string description = reader.GetEndString();
 
-						if (description.length() > std::size_t(int(character->world->config["GuildMaxDescLength"])))
-						{
+						if (!character->world->guildmanager->ValidDescription(description))
 							return;
-						}
 
 						character->guild->SetDescription(description);
 
@@ -193,7 +191,7 @@ void Guild_Agree(Character *character, PacketReader &reader)
 						{
 							new_ranks[i] = reader.GetBreakString();
 
-							if (!character->guild->ValidRank(new_ranks[i]))
+							if (!character->world->guildmanager->ValidRank(new_ranks[i]))
 								return;
 						}
 
@@ -228,7 +226,7 @@ void Guild_Create(Character *character, PacketReader &reader)
 
 	if (tag.length() > 3
 	 || name.length() > std::size_t(int(character->world->config["GuildMaxNameLength"]))
-	 || description.length() > std::size_t(int(character->world->config["GuildMaxDescLength"])))
+	 || !character->world->guildmanager->ValidDescription(description))
 	{
 		return;
 	}
@@ -400,7 +398,7 @@ void Guild_Use(Character *character, PacketReader &reader)
 
 		if (character->guild->bank >= static_cast<int>(character->world->config["RecruitCost"]))
 		{
-			if (character->guild->members.size() < static_cast<std::size_t>(static_cast<int>(character->world->config["RecruitCost"])))
+			if (character->guild->members.size() < static_cast<std::size_t>(static_cast<int>(character->world->config["GuildMaxMembers"])))
 			{
 				character->guild->AddMember(joiner, character, true);
 				character->guild->DelBank(character->world->config["RecruitCost"]);

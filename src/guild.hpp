@@ -89,6 +89,11 @@ class GuildManager
 		std::shared_ptr<Guild> CreateGuild(std::shared_ptr<Guild_Create>, std::string description);
 
 		void SaveAll();
+
+		bool ValidName(std::string name);
+		bool ValidTag(std::string tag);
+		bool ValidRank(std::string rank);
+		bool ValidDescription(std::string description);
 };
 
 /**
@@ -110,11 +115,6 @@ class Guild : public std::enable_shared_from_this<Guild>
 
 		Guild(GuildManager *manager_) : manager(manager_), created(0), bank(0), needs_save(false) { }
 		Guild(const Guild&) = delete;
-
-		static bool ValidName(std::string name);
-		static bool ValidTag(std::string tag);
-		static bool ValidRank(std::string rank);
-		static bool ValidDescription(std::string description);
 
 		void AddMember(Character *joined, Character *recruiter, bool alert = false, int rank = 9);
 		void DelMember(std::string kicked, Character *kicker = 0, bool alert = false);

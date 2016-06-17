@@ -256,12 +256,11 @@ void GuildManager::SaveAll()
 	}
 }
 
-bool Guild::ValidName(std::string name)
+bool GuildManager::ValidName(std::string name)
 {
 	name = util::lowercase(name);
 
-	//if (name.length() < 4 || name.length() > std::size_t(int(this->world->config["GuildMaxNameLength"])))
-	if (name.length() < 4 || name.length() > 24)
+	if (name.length() < 4 || name.length() > std::size_t(int(this->world->config["GuildMaxNameLength"])))
 	{
 		return false;
 	}
@@ -277,7 +276,7 @@ bool Guild::ValidName(std::string name)
 	return true;
 }
 
-bool Guild::ValidTag(std::string tag)
+bool GuildManager::ValidTag(std::string tag)
 {
 	tag = util::uppercase(tag);
 
@@ -297,12 +296,11 @@ bool Guild::ValidTag(std::string tag)
 	return true;
 }
 
-bool Guild::ValidRank(std::string rank)
+bool GuildManager::ValidRank(std::string rank)
 {
 	rank = util::lowercase(rank);
 
-	//if (rank.length() > std::size_t(int(this->world->config["GuildMaxRankLength"])))
-	if (rank.length() > 16)
+	if (rank.length() > std::size_t(int(this->world->config["GuildMaxRankLength"])))
 	{
 		return false;
 	}
@@ -318,12 +316,11 @@ bool Guild::ValidRank(std::string rank)
 	return true;
 }
 
-bool Guild::ValidDescription(std::string description)
+bool GuildManager::ValidDescription(std::string description)
 {
 	description = util::lowercase(description);
 
-	//if (description.length() > std::size_t(int(this->world->config["GuildMaxDescLength"])))
-	if (description.length() > 200)
+	if (description.length() > std::size_t(int(this->world->config["GuildMaxDescLength"])))
 	{
 		return false;
 	}
