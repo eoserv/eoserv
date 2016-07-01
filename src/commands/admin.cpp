@@ -70,6 +70,8 @@ void Duty(const std::vector<std::string>& arguments, Character* from)
 		swap->mapid = from->mapid;
 		swap->x = from->x;
 		swap->y = from->y;
+		swap->direction = from->direction;
+		swap->sitting = from->sitting;
 	}
 
 	swap->faux_name = from->SourceName();

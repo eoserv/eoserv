@@ -114,6 +114,7 @@ COMMAND_HANDLER_REGISTER(moderation)
 	RegisterAlias("b", "ban");
 	RegisterAlias("j", "jail");
 	RegisterAlias("u", "unjail");
+	RegisterAlias("uj", "unjail");
 	RegisterAlias("m", "mute");
 COMMAND_HANDLER_REGISTER_END(moderation)
 

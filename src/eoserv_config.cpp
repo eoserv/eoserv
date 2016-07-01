@@ -202,7 +202,8 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "DropRate"           , 1.0);
 	eoserv_config_default(config, "MobRate"            , 1.0);
 	eoserv_config_default(config, "PKRate"             , 0.75);
-	eoserv_config_default(config, "CriticalRate"       , 0.08);
+	eoserv_config_default(config, "CriticalRate"       , 0.00);
+	eoserv_config_default(config, "CriticalFirstHit"   , false);
 	eoserv_config_default(config, "SpawnRate"          , 1.0);
 	eoserv_config_default(config, "BarberBase"         , 0);
 	eoserv_config_default(config, "BarberStep"         , 200);

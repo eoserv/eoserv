@@ -1410,6 +1410,19 @@ Map::WalkResult Map::Walk(NPC *from, Direction direction)
 
 void Map::Attack(Character *from, Direction direction)
 {
+	const EIF_Data& wepdata = this->world->eif->Get(from->paperdoll[Character::Weapon]);
+	const EIF_Data& shielddata = this->world->eif->Get(from->paperdoll[Character::Shield]);
+
+	if (wepdata.subtype == EIF::Ranged && shielddata.subtype != EIF::Arrows)
+	{
+		// Ranged gun hack
+		if (wepdata.id != 365 || wepdata.name != "Gun")
+		{
+			return;
+		}
+		// / Ranged gun hack
+	}
+
 	from->direction = direction;
 	from->attacks += 1;
 
@@ -1420,7 +1433,7 @@ void Map::Attack(Character *from, Direction direction)
 		from->arena->Attack(from, direction);
 	}
 
-	int wep_graphic = this->world->eif->Get(from->paperdoll[Character::Weapon]).dollgraphic;
+	int wep_graphic = wepdata.dollgraphic;
 	bool is_instrument = (wep_graphic != 0 && this->world->IsInstrument(wep_graphic));
 
 	if (!is_instrument && (this->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id))))
@@ -1456,7 +1469,7 @@ void Map::Attack(Character *from, Direction direction)
 
 	int range = 1;
 
-	if (this->world->eif->Get(from->paperdoll[Character::Weapon]).subtype == EIF::Ranged)
+	if (wepdata.subtype == EIF::Ranged)
 	{
 		range = static_cast<int>(this->world->config["RangedDistance"]);
 	}
@@ -1491,6 +1504,9 @@ void Map::Attack(Character *from, Direction direction)
 				double rand = util::rand(0.0, 1.0);
 				// Checks if target is facing you
 				bool critical = std::abs(int(npc->direction) - from->direction) != 2 || rand < static_cast<double>(this->world->config["CriticalRate"]);
+
+				if (this->world->config["CriticalFirstHit"] && npc->hp == npc->ENF().hp)
+					critical = true;
 
 				std::unordered_map<std::string, double> formula_vars;
 
@@ -1533,7 +1549,7 @@ void Map::Attack(Character *from, Direction direction)
 
 bool Map::AttackPK(Character *from, Direction direction)
 {
-	if (!from->CanInteractCombat())
+	if (!from->CanInteractPKCombat())
 		return false;
 
 	(void)direction;
@@ -1856,9 +1872,6 @@ void Map::CloseDoor(unsigned char x, unsigned char y)
 
 void Map::SpellSelf(Character *from, unsigned short spell_id)
 {
-	if (!from->CanInteractCombat())
-		return;
-
 	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
 	if (!spell || spell.type != ESF::Heal || from->tp < spell.tp)
@@ -1947,9 +1960,6 @@ void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 
 void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell_id)
 {
-	if (!from->CanInteractCombat())
-		return;
-
 	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
 	if (!spell || (spell.type != ESF::Heal && spell.type != ESF::Damage) || from->tp < spell.tp)
@@ -1957,6 +1967,9 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 
 	if (spell.type == ESF::Damage && (from->map->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id))))
 	{
+		if (!from->CanInteractPKCombat())
+			return;
+
 		from->tp -= spell.tp;
 
 		int amount = util::rand(from->mindam + spell.mindam, from->maxdam + spell.maxdam);
@@ -2035,12 +2048,18 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 	{
 		from->tp -= spell.tp;
 
+		int displayhp = spell.hp;
 		int hpgain = spell.hp;
 
 		if (this->world->config["LimitDamage"])
 			hpgain = std::min(hpgain, victim->maxhp - victim->hp);
 
 		hpgain = std::max(hpgain, 0);
+
+		if (!from->CanInteractCombat() && from != victim && !(from->CanInteractPKCombat() && (from->map->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id)))))
+		{
+			displayhp = hpgain = std::min(hpgain, 1);
+		}
 
 		victim->hp += hpgain;
 
@@ -2052,7 +2071,7 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 		builder.AddShort(from->PlayerID());
 		builder.AddChar(from->direction);
 		builder.AddShort(spell_id);
-		builder.AddInt(spell.hp);
+		builder.AddInt(displayhp);
 		builder.AddChar(util::clamp<int>(double(victim->hp) / double(victim->maxhp) * 100.0, 0, 100));
 
 		UTIL_FOREACH(this->characters, character)
@@ -2079,9 +2098,6 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 
 void Map::SpellGroup(Character *from, unsigned short spell_id)
 {
-	if (!from->CanInteractCombat())
-		return;
-
 	const ESF_Data& spell = from->world->esf->Get(spell_id);
 
 	if (!spell || spell.type != ESF::Heal || !from->party || from->tp < spell.tp)
@@ -2089,16 +2105,12 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 
 	from->tp -= spell.tp;
 
-	int hpgain = spell.hp;
+	int displayhp = spell.hp;
 
-	if (this->world->config["LimitDamage"])
-		hpgain = std::min(hpgain, from->maxhp - from->hp);
-
-	hpgain = std::max(hpgain, 0);
-
-	from->hp += hpgain;
-
-	from->hp = std::min(from->hp, from->maxhp);
+	if (!from->CanInteractCombat() && !(from->CanInteractPKCombat() && (from->map->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id)))))
+	{
+		displayhp = std::min(displayhp, 1);
+	}
 
 	std::set<Character *> in_range;
 
@@ -2106,13 +2118,14 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 	builder.AddShort(spell_id);
 	builder.AddShort(from->PlayerID());
 	builder.AddShort(from->tp);
-	builder.AddShort(spell.hp);
+	builder.AddShort(displayhp);
 
 	UTIL_FOREACH(from->party->members, member)
 	{
 		if (member->map != from->map)
 			continue;
 
+		int displayhp = spell.hp;
 		int hpgain = spell.hp;
 
 		if (this->world->config["LimitDamage"])
@@ -2120,9 +2133,12 @@ void Map::SpellGroup(Character *from, unsigned short spell_id)
 
 		hpgain = std::max(hpgain, 0);
 
+		if (!from->CanInteractCombat() && !(from->CanInteractPKCombat() && (from->map->pk || (this->world->config["GlobalPK"] && !this->world->PKExcept(this->id)))))
+			hpgain = std::min(hpgain, 1);
+
 		member->hp += hpgain;
 
-		if (this->world->config["LimitDamage"])
+		if (!this->world->config["LimitDamage"])
 			member->hp = std::min(member->hp, member->maxhp);
 
 		// wat?

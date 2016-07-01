@@ -217,6 +217,9 @@ void NPC::Act()
 
 			int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
 
+			if (distance == 0)
+				distance = 1;
+
 			if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
 			{
 				attacker = opponent->attacker;
@@ -233,7 +236,11 @@ void NPC::Act()
 				{
 					continue;
 				}
+
 				int distance = util::path_length(opponent->attacker->x, opponent->attacker->y, this->x, this->y);
+
+				if (distance == 0)
+					distance = 1;
 
 				if ((distance < attacker_distance) || (distance == attacker_distance && opponent->damage > attacker_damage))
 				{
@@ -262,6 +269,9 @@ void NPC::Act()
 				continue;
 
 			int distance = util::path_length(character->x, character->y, this->x, this->y);
+
+			if (distance == 0)
+				distance = 1;
 
 			if (distance < closest_distance)
 			{
@@ -563,9 +573,14 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 
 	if (drop)
 	{
-		dropuid = this->map->GenerateItemID();
 		dropid = drop->id;
-		dropamount = util::rand(drop->min, drop->max);
+		dropamount = std::min<int>(util::rand(drop->min, drop->max), this->map->world->config["MaxItem"]);
+
+		if (dropid <= 0 || static_cast<std::size_t>(dropid) >= this->map->world->eif->data.size() || dropamount <= 0)
+			goto abort_drop;
+
+		dropuid = this->map->GenerateItemID();
+
 		std::shared_ptr<Map_Item> newitem(std::make_shared<Map_Item>(dropuid, dropid, dropamount, this->x, this->y, from->PlayerID(), Timer::GetTime() + static_cast<int>(this->map->world->config["ProtectNPCDrop"])));
 		this->map->items.push_back(newitem);
 
@@ -619,6 +634,7 @@ void NPC::Killed(Character *from, int amount, int spell_id)
 				break;
 		}
 	}
+	abort_drop:
 
 	if (drop_winner)
 		this->map->items.back()->owner = drop_winner->PlayerID();

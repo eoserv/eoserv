@@ -336,11 +336,15 @@ int eoserv_main(int argc, char *argv[])
 				Database_Result character_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `characters`");
 				Database_Result admin_character_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `characters` WHERE `admin` > 0");
 				Database_Result guild_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `guilds`");
+				Database_Result ban_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `bans`");
+				Database_Result ban_active_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `bans` WHERE `expires` <= # AND `expires` <> 0", int(std::time(0)));
+				Database_Result ban_perm_count = server.world->db.Query("SELECT COUNT(1) AS `count` FROM `bans` WHERE `expires` = 0");
 
 				Console::Out("Database info:");
 				Console::Out("  Accounts:   %i", int(acc_count.front()["count"]));
 				Console::Out("  Characters: %i (%i staff)", int(character_count.front()["count"]), int(admin_character_count.front()["count"]));
 				Console::Out("  Guilds:     %i", int(guild_count.front()["count"]));
+				Console::Out("  Bans:       %i (%i expired, %i permanent)", int(ban_count.front()["count"]), int(ban_active_count.front()["count"]), int(ban_perm_count.front()["count"]));
 
 				server.world->UpdateAdminCount(int(admin_character_count.front()["count"]));
 
@@ -394,8 +398,66 @@ int eoserv_main(int argc, char *argv[])
 			if (eoserv_sig_rehash)
 			{
 				Console::Out("Reloading config");
+
+				std::string old_logerr = config["LogErr"];
+				std::string old_logout = config["LogOut"];
+
 				eoserv_sig_rehash = false;
 				server.world->Rehash();
+
+				// Does not support changing from file logging back to '-'
+				{
+					std::time_t rawtime;
+					char timestr[256];
+					std::time(&rawtime);
+					std::strftime(timestr, 256, "%c", std::localtime(&rawtime));
+
+					std::string logerr = config["LogErr"];
+					if (!logerr.empty() && logerr.compare("-") != 0)
+					{
+						if (logerr != old_logerr)
+							Console::Out("Redirecting errors to '%s'...", logerr.c_str());
+
+						if (!std::freopen(logerr.c_str(), "a", stderr))
+						{
+							Console::Err("Failed to redirect errors.");
+						}
+						else
+						{
+							Console::Styled[Console::STREAM_ERR] = false;
+							std::fprintf(stderr, "\n\n--- %s ---\n\n", timestr);
+						}
+
+						if (std::setvbuf(stderr, 0, _IONBF, 0) != 0)
+						{
+							Console::Wrn("Failed to change stderr buffer settings");
+						}
+					}
+
+					std::string logout = config["LogOut"];
+					if (!logout.empty() && logout.compare("-") != 0)
+					{
+						if (logout != old_logout)
+							Console::Out("Redirecting output to '%s'...", logout.c_str());
+
+						if (!std::freopen(logout.c_str(), "a", stdout))
+						{
+							Console::Err("Failed to redirect output.");
+						}
+						else
+						{
+							Console::Styled[Console::STREAM_OUT] = false;
+							std::printf("\n\n--- %s ---\n\n", timestr);
+						}
+
+						if (std::setvbuf(stdout, 0, _IONBF, 0) != 0)
+						{
+							Console::Wrn("Failed to change stdout buffer settings");
+						}
+					}
+				}
+
+				Console::Out("Config reloaded");
 			}
 
 			server.Tick();
