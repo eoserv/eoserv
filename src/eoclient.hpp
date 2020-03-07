@@ -131,6 +131,8 @@ class EOClient : public Client
 		void InitNewSequence();
 		void PingNewSequence();
 		void PongNewSequence();
+		void AccountReplyNewSequence();
+		int GetSeqStart();
 		std::pair<unsigned char, unsigned char> GetSeqInitBytes();
 		std::pair<unsigned short, unsigned char> GetSeqUpdateBytes();
 		int GenSequence();

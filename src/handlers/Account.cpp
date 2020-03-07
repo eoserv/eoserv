@@ -48,7 +48,11 @@ void Account_Request(EOClient *client, PacketReader &reader)
 	}
 	else
 	{
+		if (client->GetSeqStart() > 240)
+			client->AccountReplyNewSequence();
+
 		reply.AddShort(ACCOUNT_CONTINUE);
+		reply.AddChar(client->GetSeqStart());
 		reply.AddString("OK");
 	}
 

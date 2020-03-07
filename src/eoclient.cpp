@@ -192,6 +192,16 @@ void EOClient::PongNewSequence()
 	this->seq_start = this->upcoming_seq_start;
 }
 
+void EOClient::AccountReplyNewSequence()
+{
+	this->seq_start = util::rand(0, 240);
+}
+
+int EOClient::GetSeqStart()
+{
+	return this->seq_start;
+}
+
 std::pair<unsigned char, unsigned char> EOClient::GetSeqInitBytes()
 {
 	int s1_max = (this->seq_start + 13) / 7;
