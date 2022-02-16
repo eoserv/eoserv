@@ -7,7 +7,7 @@
 #include "eoserv_config.hpp"
 
 #include "config.hpp"
- 
+
 #include "console.hpp"
 
 #include <string>
@@ -61,6 +61,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "ENF"                , "./data/pub/dtn001.enf");
 	eoserv_config_default(config, "ESF"                , "./data/pub/dsl001.esf");
 	eoserv_config_default(config, "ECF"                , "./data/pub/dat001.ecf");
+	eoserv_config_default(config, "AutoSplitPubFiles"  , true);
 	eoserv_config_default(config, "NewsFile"           , "./data/news.txt");
 	eoserv_config_default(config, "DropsFile"          , "./data/drops.ini");
 	eoserv_config_default(config, "ShopsFile"          , "./data/shops.ini");

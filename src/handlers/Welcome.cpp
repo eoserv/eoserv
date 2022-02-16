@@ -384,10 +384,10 @@ void Welcome_Agree(Player *player, PacketReader &reader)
 	switch (file)
 	{
 		case FILE_MAP: result = player->client->Upload(FILE_MAP, player->character->mapid, INIT_FILE_MAP); break;
-		case FILE_ITEM: result = player->client->Upload(FILE_ITEM, 1, INIT_FILE_EIF); break;
-		case FILE_NPC: result = player->client->Upload(FILE_NPC, 1, INIT_FILE_ENF); break;
-		case FILE_SPELL: result = player->client->Upload(FILE_SPELL, 1, INIT_FILE_ESF); break;
-		case FILE_CLASS: result = player->client->Upload(FILE_CLASS, 1, INIT_FILE_ECF); break;
+		case FILE_ITEM: result = player->client->Upload(FILE_ITEM, player->client->next_eif_id++, INIT_FILE_EIF); break;
+		case FILE_NPC: result = player->client->Upload(FILE_NPC, player->client->next_enf_id++, INIT_FILE_ENF); break;
+		case FILE_SPELL: result = player->client->Upload(FILE_SPELL, player->client->next_esf_id++, INIT_FILE_ESF); break;
+		case FILE_CLASS: result = player->client->Upload(FILE_CLASS, player->client->next_ecf_id++, INIT_FILE_ECF); break;
 		default: return;
 	}
 

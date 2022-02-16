@@ -76,19 +76,19 @@ void EOClient::Tick()
 
 		if (upload_available != 0)
 		{
-			upload_available = std::fread(&this->send_buffer[this->send_buffer_ppos + 1], 1, upload_available, this->upload_fh);
+			upload_available = std::fread(&this->send_buffer[this->send_buffer_ppos], 1, upload_available, this->upload_fh);
 
 			// Dynamically rewrite the bytes of the map to enable PK
 			if (this->upload_type == FILE_MAP && this->server()->world->config["GlobalPK"] && !this->server()->world->PKExcept(player->character->mapid))
 			{
 				if (this->upload_pos <= 0x03 && this->upload_pos + upload_available > 0x03)
-					this->send_buffer[this->send_buffer_ppos + 1 + 0x03 - this->upload_pos] = 0xFF;
+					this->send_buffer[this->send_buffer_ppos + 0x03 - this->upload_pos] = 0xFF;
 
 				if (this->upload_pos <= 0x03 && this->upload_pos + upload_available > 0x04)
-					this->send_buffer[this->send_buffer_ppos + 1 + 0x04 - this->upload_pos] = 0x01;
+					this->send_buffer[this->send_buffer_ppos + 0x04 - this->upload_pos] = 0x01;
 
 				if (this->upload_pos <= 0x1F && this->upload_pos + upload_available > 0x1F)
-					this->send_buffer[this->send_buffer_ppos + 1 + 0x1F - this->upload_pos] = 0x04;
+					this->send_buffer[this->send_buffer_ppos + 0x1F - this->upload_pos] = 0x04;
 			}
 
 			this->upload_pos += upload_available;
@@ -294,21 +294,59 @@ void EOClient::Execute(const std::string &data)
 
 bool EOClient::Upload(FileType type, int id, InitReply init_reply)
 {
-	char mapbuf[7];
-	std::sprintf(mapbuf, "%05i", int(std::abs(id)));
+	bool auto_split = server()->world->config["AutoSplitPubFiles"];
 
-	switch (type)
+	if (type != FILE_MAP && id != 1 && !auto_split)
+		return false;
+
+	this->upload_file_id = id;
+
+	std::string filename;
+	std::size_t file_start = 0;
+	std::size_t file_length = 0;
+
+	std::vector<std::size_t>* file_splits = nullptr;
+
+	if (type == FILE_MAP)
 	{
-		case FILE_MAP: return EOClient::Upload(type, std::string(server()->world->config["MapDir"]) + mapbuf + ".emf", init_reply);
-		case FILE_ITEM: return EOClient::Upload(type, std::string(this->server()->world->config["EIF"]), init_reply);
-		case FILE_NPC: return EOClient::Upload(type, std::string(this->server()->world->config["ENF"]),init_reply);
-		case FILE_SPELL: return EOClient::Upload(type, std::string(this->server()->world->config["ESF"]), init_reply);
-		case FILE_CLASS: return EOClient::Upload(type, std::string(this->server()->world->config["ECF"]), init_reply);
-		default: return false;
+		char mapbuf[7];
+		std::sprintf(mapbuf, "%05i", int(std::abs(id)));
+		filename = std::string(server()->world->config["MapDir"]) + mapbuf + ".emf";
 	}
+	else if (type == FILE_ITEM)
+	{
+		file_splits = &this->server()->world->eif->file_splits;
+		filename = this->server()->world->config["EIF"].GetString();
+	}
+	else if (type == FILE_NPC)
+	{
+		file_splits = &this->server()->world->enf->file_splits;
+		filename = this->server()->world->config["ENF"].GetString();
+	}
+	else if (type == FILE_SPELL)
+	{
+		file_splits = &this->server()->world->esf->file_splits;
+		filename = this->server()->world->config["ESF"].GetString();
+	}
+	else if (type == FILE_CLASS)
+	{
+		file_splits = &this->server()->world->ecf->file_splits;
+		filename = this->server()->world->config["ECF"].GetString();
+	}
+
+	if (auto_split)
+	{
+		if (id < 1 || id >= file_splits->size())
+			return false;
+
+		file_start = (*file_splits)[id - 1];
+		file_length = (*file_splits)[id] - file_start;
+	}
+
+	return EOClient::Upload(type, filename, file_start, file_length, init_reply);
 }
 
-bool EOClient::Upload(FileType type, const std::string &filename, InitReply init_reply)
+bool EOClient::Upload(FileType type, const std::string &filename, std::size_t file_start, std::size_t file_length, InitReply init_reply)
 {
 	using std::swap;
 
@@ -320,17 +358,27 @@ bool EOClient::Upload(FileType type, const std::string &filename, InitReply init
 	if (!this->upload_fh)
 		return false;
 
-	if (std::fseek(this->upload_fh, 0, SEEK_END) != 0)
+	// The size of all pub file headers is 10 bytes
+	std::array<char, 10> pub_header_bytes;
+
+	if (file_length == 0)
 	{
-		std::fclose(this->upload_fh);
-		return false;
+		if (std::fseek(this->upload_fh, 0, SEEK_END) != 0)
+		{
+			std::fclose(this->upload_fh);
+			return false;
+		}
+
+		std::fseek(this->upload_fh, 0, SEEK_SET);
+	}
+	else
+	{
+		file_length += pub_header_bytes.size();
 	}
 
 	this->upload_type = type;
 	this->upload_pos = 0;
-	this->upload_size = std::ftell(this->upload_fh);
-
-	std::fseek(this->upload_fh, 0, SEEK_SET);
+	this->upload_size = file_length;
 
 	std::size_t temp_buffer_size = this->send_buffer.size();
 
@@ -353,11 +401,29 @@ bool EOClient::Upload(FileType type, const std::string &filename, InitReply init
 	builder.AddChar(init_reply);
 
 	if (type != FILE_MAP)
-		builder.AddChar(1);
+		builder.AddChar(this->upload_file_id);
 
 	builder.AddSize(this->upload_size);
 
 	Client::Send(builder);
+
+	// Copy the header from dat001 in to higher numbered files
+	if (file_start != 0)
+	{
+		int bytes_read = std::fread(&pub_header_bytes[0], 1, pub_header_bytes.size(), this->upload_fh);
+
+		if (bytes_read < sizeof pub_header_bytes)
+			return false;
+
+		std::copy(pub_header_bytes.begin(), pub_header_bytes.end(), this->send_buffer.begin() + this->send_buffer_ppos);
+
+		this->upload_pos += bytes_read;
+		this->send_buffer_ppos += bytes_read;
+		this->send_buffer_used += bytes_read;
+
+		if (file_start != pub_header_bytes.size())
+			std::fseek(this->upload_fh, file_start, SEEK_SET);
+	}
 
 	return true;
 }
@@ -379,8 +445,8 @@ void EOClient::Send(const PacketBuilder &builder)
 
 		for (std::size_t i = 0; i < data.length(); ++i)
 		{
-			this->send_buffer2_ppos = (this->send_buffer2_ppos + 1) & mask;
 			this->send_buffer2[this->send_buffer2_ppos] = data[i];
+			this->send_buffer2_ppos = (this->send_buffer2_ppos + 1) & mask;
 		}
 
 		this->send_buffer2_used += data.length();

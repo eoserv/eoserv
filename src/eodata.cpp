@@ -43,6 +43,8 @@ void EIF::Read(const std::string& filename)
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	SAFE_SEEK(fh, 1, SEEK_CUR);
 
+	this->file_splits.reserve(1 + (numobj / EIF::FILE_MAX_ENTRIES));
+
 	unsigned char namesize;
 	std::string name;
 	char buf[EIF::DATA_SIZE] = {0};
@@ -53,6 +55,9 @@ void EIF::Read(const std::string& filename)
 	for (int i = 1; i <= numobj; ++i)
 	{
 		EIF_Data& newdata = this->data[i];
+
+		if ((i - 1) % EIF::FILE_MAX_ENTRIES == 0)
+			this->file_splits.push_back(std::size_t(std::ftell(fh)) - 1);
 
 		namesize = PacketProcessor::Number(namesize);
 		name.resize(namesize);
@@ -112,7 +117,7 @@ void EIF::Read(const std::string& filename)
 
 		newdata.size = static_cast<EIF::Size>(PacketProcessor::Number(buf[57]));
 
-		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
+		if (i < numobj && std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
 		{
 			break;
 		}
@@ -122,6 +127,8 @@ void EIF::Read(const std::string& filename)
 	{
 		this->data.pop_back();
 	}
+
+	this->file_splits.push_back(std::size_t(std::ftell(fh)));
 
 	Console::Out("%i items loaded.", this->data.size()-1);
 
@@ -174,6 +181,8 @@ void ENF::Read(const std::string& filename)
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	SAFE_SEEK(fh, 1, SEEK_CUR);
 
+	this->file_splits.reserve(1 + (numobj / ENF::FILE_MAX_ENTRIES));
+
 	unsigned char namesize;
 	std::string name;
 	char buf[ENF::DATA_SIZE] = {0};
@@ -184,6 +193,9 @@ void ENF::Read(const std::string& filename)
 	for (int i = 1; i <= numobj; ++i)
 	{
 		ENF_Data& newdata = this->data[i];
+
+		if ((i - 1) % ENF::FILE_MAX_ENTRIES == 0)
+			this->file_splits.push_back(std::size_t(std::ftell(fh)) - 1);
 
 		namesize = PacketProcessor::Number(namesize);
 		name.resize(namesize);
@@ -210,7 +222,7 @@ void ENF::Read(const std::string& filename)
 
 		newdata.exp = PacketProcessor::Number(buf[36], buf[37]);
 
-		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
+		if (i < numobj && std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
 		{
 			break;
 		}
@@ -220,6 +232,8 @@ void ENF::Read(const std::string& filename)
 	{
 		this->data.pop_back();
 	}
+
+	this->file_splits.push_back(std::size_t(std::ftell(fh)));
 
 	Console::Out("%i npc types loaded.", this->data.size()-1);
 
@@ -261,6 +275,8 @@ void ESF::Read(const std::string& filename)
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	SAFE_SEEK(fh, 1, SEEK_CUR);
 
+	this->file_splits.reserve(1 + (numobj / ESF::FILE_MAX_ENTRIES));
+
 	unsigned char namesize, shoutsize;
 	std::string name, shout;
 	char buf[ESF::DATA_SIZE] = {0};
@@ -272,6 +288,9 @@ void ESF::Read(const std::string& filename)
 	for (int i = 1; i <= numobj; ++i)
 	{
 		ESF_Data& newdata = this->data[i];
+
+		if ((i - 1) % ESF::FILE_MAX_ENTRIES == 0)
+			this->file_splits.push_back(std::size_t(std::ftell(fh)) - 2);
 
 		namesize = PacketProcessor::Number(namesize);
 		name.resize(namesize);
@@ -308,12 +327,12 @@ void ESF::Read(const std::string& filename)
 		newdata.accuracy = PacketProcessor::Number(buf[27], buf[28]);
 		newdata.hp = PacketProcessor::Number(buf[34], buf[35]);
 
-		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
+		if (i < numobj && std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
 		{
 			break;
 		}
 
-		if (std::fread(static_cast<void *>(&shoutsize), sizeof(char), 1, fh) != 1)
+		if (i < numobj && std::fread(static_cast<void *>(&shoutsize), sizeof(char), 1, fh) != 1)
 		{
 			break;
 		}
@@ -323,6 +342,8 @@ void ESF::Read(const std::string& filename)
 	{
 		this->data.pop_back();
 	}
+
+	this->file_splits.push_back(std::size_t(std::ftell(fh)));
 
 	Console::Out("%i spells loaded.", this->data.size()-1);
 
@@ -364,6 +385,8 @@ void ECF::Read(const std::string& filename)
 	int numobj = PacketProcessor::Number(this->len[0], this->len[1]);
 	SAFE_SEEK(fh, 1, SEEK_CUR);
 
+	this->file_splits.reserve(1 + (numobj / ECF::FILE_MAX_ENTRIES));
+
 	unsigned char namesize;
 	std::string name;
 	char buf[ECF::DATA_SIZE] = {0};
@@ -374,6 +397,9 @@ void ECF::Read(const std::string& filename)
 	for (int i = 1; i <= numobj; ++i)
 	{
 		ECF_Data& newdata = this->data[i];
+
+		if ((i - 1) % ECF::FILE_MAX_ENTRIES == 0)
+			this->file_splits.push_back(std::size_t(std::ftell(fh)) - 1);
 
 		namesize = PacketProcessor::Number(namesize);
 		name.resize(namesize);
@@ -394,7 +420,7 @@ void ECF::Read(const std::string& filename)
 		newdata.con = PacketProcessor::Number(buf[10], buf[11]);
 		newdata.cha = PacketProcessor::Number(buf[12], buf[13]);
 
-		if (std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
+		if (i < numobj && std::fread(static_cast<void *>(&namesize), sizeof(char), 1, fh) != 1)
 		{
 			break;
 		}
@@ -404,6 +430,8 @@ void ECF::Read(const std::string& filename)
 	{
 		this->data.pop_back();
 	}
+
+	this->file_splits.push_back(std::size_t(std::ftell(fh)));
 
 	Console::Out("%i classes loaded.", this->data.size()-1);
 

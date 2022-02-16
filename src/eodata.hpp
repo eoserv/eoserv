@@ -179,9 +179,11 @@ class EIF
 		}
 
 		static const int DATA_SIZE = 58;
+		static const int FILE_MAX_ENTRIES = 900;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
 		std::vector<EIF_Data> data;
+		std::vector<std::size_t> file_splits;
 
 		EIF(const std::string& filename) { Read(filename.c_str()); }
 
@@ -253,9 +255,11 @@ class ENF
 		};
 
 		static const int DATA_SIZE = 39;
+		static const int FILE_MAX_ENTRIES = 900;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
 		std::vector<ENF_Data> data;
+		std::vector<std::size_t> file_splits;
 
 		ENF(const std::string& filename) { Read(filename.c_str()); }
 
@@ -329,9 +333,11 @@ class ESF
 		};
 
 		static const int DATA_SIZE = 51;
+		static const int FILE_MAX_ENTRIES = 900;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
 		std::vector<ESF_Data> data;
+		std::vector<std::size_t> file_splits;
 
 		ESF(const std::string& filename) { Read(filename.c_str()); }
 
@@ -374,9 +380,11 @@ class ECF
 {
 	public:
 		static const int DATA_SIZE = 14;
+		static const int FILE_MAX_ENTRIES = 250;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
 		std::vector<ECF_Data> data;
+		std::vector<std::size_t> file_splits;
 
 		ECF(const std::string& filename) { Read(filename.c_str()); }
 

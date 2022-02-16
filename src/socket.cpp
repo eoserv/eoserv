@@ -367,8 +367,8 @@ void Client::Send(const std::string &data)
 
 	for (std::size_t i = 0; i < data.length(); ++i)
 	{
-		this->send_buffer_ppos = (this->send_buffer_ppos + 1) & mask;
 		this->send_buffer[this->send_buffer_ppos] = data[i];
+		this->send_buffer_ppos = (this->send_buffer_ppos + 1) & mask;
 	}
 
 	this->send_buffer_used += data.length();
@@ -415,8 +415,8 @@ bool Client::DoSend()
 	std::size_t to_send;
 	for (to_send = 0; to_send < std::min(this->send_buffer_used, sizeof(buf)); ++to_send)
 	{
-		this->send_buffer_gpos = (this->send_buffer_gpos + 1) & mask;
 		buf[to_send] = this->send_buffer[this->send_buffer_gpos];
+		this->send_buffer_gpos = (this->send_buffer_gpos + 1) & mask;
 	}
 
 	const int written = send(this->impl->sock, buf, to_send, 0);

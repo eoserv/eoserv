@@ -82,6 +82,7 @@ class EOClient : public Client
 		EOClient();
 
 		FileType upload_type;
+		int upload_file_id;
 		std::FILE *upload_fh;
 		std::size_t upload_pos;
 		std::size_t upload_size;
@@ -104,6 +105,11 @@ class EOClient : public Client
 		int hdid;
 		ClientState state;
 		int login_attempts;
+
+		int next_eif_id = 1;
+		int next_enf_id = 1;
+		int next_esf_id = 1;
+		int next_ecf_id = 1;
 
 		ActionQueue queue;
 
@@ -141,7 +147,7 @@ class EOClient : public Client
 		void Execute(const std::string &data);
 
 		bool Upload(FileType type, int id, InitReply init_reply);
-		bool Upload(FileType type, const std::string &filename, InitReply init_reply);
+		bool Upload(FileType type, const std::string &filename, std::size_t file_start, std::size_t file_length, InitReply init_reply);
 		void Send(const PacketBuilder &packet);
 
 		~EOClient();
