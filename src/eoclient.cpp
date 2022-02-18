@@ -334,7 +334,7 @@ bool EOClient::Upload(FileType type, int id, InitReply init_reply)
 		filename = this->server()->world->config["ECF"].GetString();
 	}
 
-	if (auto_split)
+	if (auto_split && file_splits)
 	{
 		if (id < 1 || id >= file_splits->size())
 			return false;
@@ -369,6 +369,7 @@ bool EOClient::Upload(FileType type, const std::string &filename, std::size_t fi
 			return false;
 		}
 
+		file_length = std::ftell(this->upload_fh);
 		std::fseek(this->upload_fh, 0, SEEK_SET);
 	}
 	else
