@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `bans`
 	`username` VARCHAR(16)          DEFAULT NULL,
 	`setter`   VARCHAR(16)          DEFAULT NULL,
 	`expires`  INTEGER     NOT NULL DEFAULT 0,
-	
+
 	PRIMARY KEY (`ip`, `hdid`, `username`, `expires`)
 );
 
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `reports`
 	`reason`   TEXT,
 	`time`     INTEGER     NOT NULL,
 	`chat_log` TEXT        NOT NULL,
-	
+
 	PRIMARY KEY (`reporter`, `reported`, `time`)
 );
 

@@ -1,5 +1,4 @@
-
-/* $Id$
+/* console.cpp
  * EOSERV is released under the zlib license.
  * See LICENSE.txt for more info.
  */
@@ -112,4 +111,3 @@ void Dbg(const char* f, ...)
 }
 
 }
-

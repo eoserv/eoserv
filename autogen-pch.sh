@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id$
+# autogen-pch.sh
 # Copyright (c) Julian Smythe, All rights reserved.
 #
 # This software is provided 'as-is', without any express or implied

@@ -5,7 +5,7 @@ CREATE TABLE `reports`
 	`reason`   TEXT,
 	`time`     INTEGER     NOT NULL,
 	`chat_log` TEXT        NOT NULL,
-	
+
 	PRIMARY KEY (`reporter`, `reported`, `time`)
 );
 ALTER TABLE `characters`

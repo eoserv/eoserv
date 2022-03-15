@@ -1,5 +1,4 @@
-
-/* $Id$
+/* extra/seose_compat.cpp
  * EOSERV is released under the zlib license.
  * See LICENSE.txt for more info.
  */
@@ -57,7 +56,7 @@ std::string seose_str_hash(const std::string& input, const std::string& key)
 
 		// Remind me to strangle Sordie for using pound symbols in the default key
 		if (kc == '#')
-			kc = char(0xA3); // '£'
+			kc = char(0xA3); // pound character
 
 		result += seose_to_base62(seose_hash(input.data(), input.length(), (i + 1) * kc));
 	}

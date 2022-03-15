@@ -1,4 +1,4 @@
-# $Id$
+# FindMariaDB.cmake
 # Copyright (c) Julian Smythe, All rights reserved.
 #
 # This software is provided 'as-is', without any express or implied
@@ -45,4 +45,3 @@ mark_as_advanced(
 	MARIADB_INCLUDE_DIR
 	MARIADB_LIBRARY
 )
-

@@ -1,4 +1,4 @@
-# $Id$
+# FindSQLite3.cmake
 # Copyright (c) Julian Smythe, All rights reserved.
 #
 # This software is provided 'as-is', without any express or implied
@@ -39,4 +39,3 @@ mark_as_advanced(
 	SQLITE3_INCLUE_DIR
 	SQLITE3_LIBRARY
 )
-

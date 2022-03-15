@@ -1,4 +1,3 @@
-
 /* sha256.h
  * Copyright (c) Julian Smythe, All rights reserved.
  *

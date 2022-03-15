@@ -1,5 +1,4 @@
-
-/* $Id$
+/* handlers/Guild.cpp
  * EOSERV is released under the zlib license.
  * See LICENSE.txt for more info.
  */
@@ -802,4 +801,3 @@ PACKET_HANDLER_REGISTER(PACKET_GUILD)
 PACKET_HANDLER_REGISTER_END(PACKET_GUILD)
 
 }
-
