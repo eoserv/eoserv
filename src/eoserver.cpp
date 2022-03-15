@@ -9,7 +9,6 @@
 #include "config.hpp"
 #include "eoclient.hpp"
 #include "packet.hpp"
-#include "sln.hpp"
 #include "timer.hpp"
 #include "world.hpp"
 #include "handlers/handlers.hpp"
@@ -142,15 +141,6 @@ void EOServer::Initialize(std::array<std::string, 6> dbinfo, const Config &eoser
 
 	this->world->server = this;
 
-	if (this->world->config["SLN"])
-	{
-		this->sln = new SLN(this);
-	}
-	else
-	{
-		this->sln = 0;
-	}
-
 	this->start = Timer::GetTime();
 }
 
@@ -269,6 +259,5 @@ EOServer::~EOServer()
 		this->BuryTheDead();
 	}
 
-	delete this->sln;
 	delete this->world;
 }

@@ -4,10 +4,6 @@
  * See LICENSE.txt for more info.
  */
 
-#ifdef CLANG_MODULES_WORKAROUND
-#include <pthread.h>
-#endif // CLANG_MODULES_WORKAROUND
-
 #include "timer.hpp"
 
 #include "database.hpp"
@@ -29,8 +25,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #endif // WIN32
-
-#include <pthread.h>
 
 #ifdef WIN32
 static int rres = 0;
@@ -114,29 +108,8 @@ std::unique_ptr<Clock> Timer::clock;
 
 struct Timer::impl_t
 {
-	pthread_mutex_t m;
-
 	impl_t()
-		: m(PTHREAD_MUTEX_INITIALIZER)
-	{
-		if (pthread_mutex_init(&m, 0) != 0)
-			throw std::runtime_error("Timer mutex init failed");
-	}
-
-	void lock()
-	{
-		pthread_mutex_lock(&m);
-	}
-
-	void unlock()
-	{
-		pthread_mutex_unlock(&m);
-	}
-
-	~impl_t()
-	{
-		pthread_mutex_destroy(&m);
-	}
+	{ }
 };
 
 Timer::Timer()
@@ -196,7 +169,6 @@ void Timer::Tick()
 {
 	double currenttime = Timer::GetTime();
 
-	impl->lock();
 	if (this->changed)
 	{
 		this->execlist = this->timers;
@@ -210,7 +182,6 @@ void Timer::Tick()
 
 		if (timer->lasttime + timer->speed < currenttime)
 		{
-			impl->unlock();
 			timer->lasttime += timer->speed;
 
 			if (timer->lifetime != Timer::FOREVER)
@@ -263,12 +234,8 @@ void Timer::Tick()
 
 			if (timer->manager == 0)
 				delete timer;
-
-			impl->lock();
 		}
 	}
-
-	impl->unlock();
 }
 
 void Timer::Register(TimeEvent *timer)
@@ -281,31 +248,25 @@ void Timer::Register(TimeEvent *timer)
 	timer->lasttime = Timer::GetTime();
 	timer->manager = this;
 
-	impl->lock();
 	this->changed = true;
 	this->timers.insert(timer);
-	impl->unlock();
 }
 
 void Timer::Unregister(TimeEvent *timer)
 {
-	impl->lock();
 	this->changed = true;
 	this->timers.erase(timer);
-	impl->unlock();
 	timer->manager = 0;
 }
 
 Timer::~Timer()
 {
-	impl->lock();
 	UTIL_FOREACH(this->timers, timer)
 	{
 		timer->manager = 0;
 		delete timer;
 	}
 	this->timers.clear();
-	impl->unlock();
 
 #ifdef WIN32
 	if (rres != 0)

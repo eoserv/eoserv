@@ -21,14 +21,8 @@ namespace util
 
 using std::begin;
 using std::end;
-
-// GCC 4.9 doesn't include these
-template <class T> inline auto cbegin(T &c) -> decltype(c.cbegin()) { return c.cbegin(); }
-template <class T> inline auto cbegin(const T &c) -> decltype(c.cbegin()) { return c.cbegin(); }
-template <class T, size_t N> inline const T* cbegin(T(&a)[N]) { return a; }
-template <class T> inline auto cend(T &c) -> decltype(c.cbegin()) { return c.cend(); }
-template <class T> inline auto cend(const T &c) -> decltype(c.cbegin()) { return c.cend(); }
-template <class T, size_t N> inline const T* cend(T(&a)[N]) { return a + N; }
+using std::cbegin;
+using std::cend;
 
 #define UTIL_RANGE(c) (util::begin((c))), (util::end((c)))
 #define UTIL_CRANGE(c) (util::cbegin((c))), (util::cend((c)))

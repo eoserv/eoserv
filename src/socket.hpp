@@ -196,7 +196,7 @@ class IPAddress
 
 namespace std
 {
-	template <> struct hash<IPAddress> : public unary_function<IPAddress, std::size_t>
+	template <> struct hash<IPAddress>
 	{
 		std::size_t operator()(const IPAddress &ipaddress) const
 		{

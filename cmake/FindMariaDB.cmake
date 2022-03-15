@@ -29,6 +29,9 @@ find_path(MARIADB_INCLUDE_DIR
 
 find_library(MARIADB_LIBRARY
 	NAMES mariadbclient mariadb mysqlclient mysql
+	PATH_SUFFIXES
+		mariadb
+		mysql
 )
 
 include(FindPackageHandleStandardArgs)
@@ -39,6 +42,7 @@ find_package_handle_standard_args(
 )
 
 mark_as_advanced(
-	MARIADB_INCLUE_DIR
+	MARIADB_INCLUDE_DIR
 	MARIADB_LIBRARY
 )
+

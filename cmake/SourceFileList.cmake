@@ -83,7 +83,6 @@ set(eoserv_ALL_SOURCE_FILES
 	src/fwd/party.hpp
 	src/fwd/player.hpp
 	src/fwd/quest.hpp
-	src/fwd/sln.hpp
 	src/fwd/socket.hpp
 	src/fwd/timer.hpp
 	src/fwd/world.hpp
@@ -153,8 +152,6 @@ set(eoserv_ALL_SOURCE_FILES
 	src/quest.hpp
 	src/sha256.c
 	src/sha256.h
-	src/sln.cpp
-	src/sln.hpp
 	src/socket.cpp
 	src/socket.hpp
 	src/socket_impl.hpp
@@ -196,7 +193,6 @@ set(ConfigFiles
 	config/pk.ini
 	config/rates.ini
 	config/server.ini
-	config/sln.ini
 	
 	config/database/mysql.ini
 	config/database/sqlite.ini

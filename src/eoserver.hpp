@@ -11,7 +11,6 @@
 
 #include "fwd/config.hpp"
 #include "fwd/eoclient.hpp"
-#include "fwd/sln.hpp"
 #include "fwd/world.hpp"
 
 #include "socket.hpp"
@@ -38,7 +37,6 @@ class EOServer : public Server
 	public:
 		World *world;
 		double start;
-		SLN *sln;
 
 		EOServer(IPAddress addr, unsigned short port, std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config) : Server(addr, port)
 		{

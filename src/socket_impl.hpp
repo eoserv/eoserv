@@ -11,15 +11,11 @@
 
 #ifdef WIN32
 #include "eoserv_windows.h"
-#if defined(NTDDI_WIN2K) && !defined(__MINGW32__)
-#include <Wspiapi.h>
-#else // NTDDI_WIN2K
-#ifdef __MINGW32__
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
-#endif //  __MINGW32__
+#ifdef WSPIAPI_AVAILABLE
+#include <wspiapi.h>
+#else // WSPIAPI_AVAILABLE
 #include <ws2tcpip.h>
-#endif // NTDDI_WIN2K
+#endif // WSPIAPI_AVAILABLE
 
 /**
  * Type for storing the size of a POSIX sockaddr_in struct.
