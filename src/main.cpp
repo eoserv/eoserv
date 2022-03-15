@@ -270,45 +270,31 @@ int eoserv_main(int argc, char *argv[])
 			std::time(&rawtime);
 			std::strftime(timestr, 256, "%c", std::localtime(&rawtime));
 
-			std::string logerr = config["LogErr"];
-			if (!logerr.empty() && logerr.compare("-") != 0)
+			auto redirect_stream = [&](const char* name, FILE* fh, Console::Stream stream_id, const char* cfgkey)
 			{
-				Console::Out("Redirecting errors to '%s'...", logerr.c_str());
-				if (!std::freopen(logerr.c_str(), "a", stderr))
+				std::string log = config[cfgkey];
+
+				if (!log.empty() && log.compare("-") != 0)
 				{
-					Console::Err("Failed to redirect errors.");
-				}
-				else
-				{
-					Console::Styled[Console::STREAM_ERR] = false;
-					std::fprintf(stderr, "\n\n--- %s ---\n\n", timestr);
+					Console::Out("Redirecting %s to '%s'...", name, log.c_str());
+
+					if (!std::freopen(log.c_str(), "a", fh))
+					{
+						Console::Err("Failed to redirect %s.", name);
+					}
+					else
+					{
+						Console::Styled[stream_id] = false;
+						std::fprintf(fh, "\n\n--- %s ---\n\n", timestr);
+					}
 				}
 
-				if (std::setvbuf(stderr, 0, _IONBF, 0) != 0)
-				{
-					Console::Wrn("Failed to change stderr buffer settings");
-				}
-			}
+				if (std::setvbuf(fh, 0, _IOLBF, 0) != 0)
+					Console::Wrn("Failed to change %s buffer settings", name);
+			};
 
-			std::string logout = config["LogOut"];
-			if (!logout.empty() && logout.compare("-") != 0)
-			{
-				Console::Out("Redirecting output to '%s'...", logout.c_str());
-				if (!std::freopen(logout.c_str(), "a", stdout))
-				{
-					Console::Err("Failed to redirect output.");
-				}
-				else
-				{
-					Console::Styled[Console::STREAM_OUT] = false;
-					std::printf("\n\n--- %s ---\n\n", timestr);
-				}
-
-				if (std::setvbuf(stdout, 0, _IONBF, 0) != 0)
-				{
-					Console::Wrn("Failed to change stdout buffer settings");
-				}
-			}
+			redirect_stream("errors", stderr, Console::STREAM_ERR, "LogErr");
+			redirect_stream("output", stdout, Console::STREAM_OUT, "LogOut");
 		}
 
 		std::array<std::string, 6> dbinfo;
