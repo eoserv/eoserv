@@ -221,6 +221,7 @@ class Client
 	protected:
 		Server *server;
 		bool connected;
+		bool finished_writing = false;
 		std::time_t closed_time;
 		std::time_t connect_time;
 
@@ -263,6 +264,7 @@ class Client
 		IPAddress GetRemoteAddr() const;
 
 		void Close(bool force = false);
+		void FinishWriting();
 
 		std::time_t ConnectTime() const;
 

@@ -233,6 +233,25 @@ void EOServer::Tick()
 
 EOServer::~EOServer()
 {
+	double shutdown_start_time = Timer::GetTime();
+
+	PacketBuilder builder(PACKET_MESSAGE, PACKET_CLOSE);
+	builder.AddByte('r');
+
+	// Send server reboot message
+	for (Client* client : this->clients)
+	{
+		EOClient* eoclient = static_cast<EOClient*>(client);
+		eoclient->Send(builder);
+		eoclient->FinishWriting();
+	}
+
+	// Spend up to 1 second pumping the clients' send buffers dry
+	while (shutdown_start_time + 1.0 < Timer::GetTime())
+	{
+		this->Select(0.1);
+	}
+
 	// All clients must be fully closed before the world ends
 	UTIL_FOREACH(this->clients, client)
 	{
@@ -242,19 +261,7 @@ EOServer::~EOServer()
 	// Spend up to 2 seconds shutting down
 	while (this->clients.size() > 0)
 	{
-		std::vector<Client *> *active_clients = this->Select(0.1);
-
-		if (active_clients)
-		{
-			UTIL_FOREACH(*active_clients, client)
-			{
-				EOClient *eoclient = static_cast<EOClient *>(client);
-				eoclient->Tick();
-			}
-
-			active_clients->clear();
-		}
-
+		this->Select(0.1);
 		this->BuryTheDead();
 	}
 

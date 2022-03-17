@@ -574,6 +574,11 @@ void Client::Close(bool force)
 	}
 }
 
+void Client::FinishWriting()
+{
+	finished_writing = true;
+}
+
 IPAddress Client::GetRemoteAddr() const
 {
 	return IPAddress(ntohl(this->impl->sin.sin_addr.s_addr));
@@ -871,6 +876,15 @@ std::vector<Client *> *Server::Select(double timeout)
 		if (client->recv_buffer_used > 0 || client->NeedTick())
 		{
 			selected.push_back(client);
+		}
+
+		if (client->send_buffer_used == 0 && client->finished_writing)
+		{
+#ifdef WIN32
+			shutdown(client->impl->sock, SD_SEND);
+#else
+			shutdown(client->impl->sock, SHUT_WR);
+#endif
 		}
 	}
 
