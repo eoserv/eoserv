@@ -7,6 +7,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <ctime>
 #include <string>
 
 #include "platform.h"
@@ -19,6 +20,8 @@ namespace Console
 {
 
 bool Styled[2] = {true, true};
+
+static int day = -1;
 
 #ifdef WIN32
 
@@ -75,12 +78,37 @@ void ResetTextColor(Stream stream)
 
 #endif // WIN32
 
+static void print_timestamp(FILE* fh)
+{
+	std::time_t rawtime;
+	char timestr[256];
+	std::time(&rawtime);
+	struct std::tm* tm = std::localtime(&rawtime);
+
+	int new_day = tm->tm_year * 1000 + tm->tm_yday;
+
+	if (new_day != day)
+	{
+		day = new_day;
+		std::strftime(timestr, 256, "%a %b %e %Y", tm);
+		std::fprintf(fh, "\n\n--- %s ---\n\n", timestr);
+	}
+
+	std::strftime(timestr, 256, "%H:%M:%S ", tm);
+	std::fputs(timestr, fh);
+}
+
 #define CONSOLE_GENERIC_OUT(prefix, stream, color, bold) \
 do { \
-	if (Styled[stream]) SetTextColor(stream, color, bold); \
+	FILE* fh = (stream == STREAM_OUT) ? stdout : stderr; \
+	if (Styled[stream]) SetTextColor(stream, COLOR_GREY, false); \
+	print_timestamp(fh); \
+	if (Styled[stream] && color != COLOR_GREY) SetTextColor(stream, color, bold); \
 	va_list args; \
 	va_start(args, f); \
-	std::vfprintf((stream == STREAM_OUT) ? stdout : stderr, (std::string("[" prefix "] ") + f + "\n").c_str(), args); \
+	std::fputs("[" prefix "] ", fh); \
+	std::vfprintf(fh, f, args); \
+	std::fputs("\n", fh); \
 	va_end(args); \
 	if (Styled[stream]) ResetTextColor(stream); \
 } while (false)
