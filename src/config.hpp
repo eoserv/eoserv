@@ -47,8 +47,10 @@ class Config : public std::unordered_map<std::string, util::variant>
 		/**
 		 * Reads all configuration data from the file to memory.
 		 * @param filename File to read from.
+		 * @param nowarn Disables warning message if the file is not found.
+		 * @return Returns true if file was loaded successfully, otherwise false
 		 */
-		void Read(const std::string& filename);
+		bool Read(const std::string& filename, bool nowarn = false);
 };
 
 #endif // CONFIG_HPP_INCLUDED

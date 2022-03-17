@@ -393,19 +393,12 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	this->db.Connect(engine, dbinfo[1], util::to_int(dbinfo[5]), dbinfo[2], dbinfo[3], dbinfo[4]);
 	this->BeginDB();
 
-	try
-	{
-		this->drops_config.Read(this->config["DropsFile"]);
-		this->shops_config.Read(this->config["ShopsFile"]);
-		this->arenas_config.Read(this->config["ArenasFile"]);
-		this->formulas_config.Read(this->config["FormulasFile"]);
-		this->home_config.Read(this->config["HomeFile"]);
-		this->skills_config.Read(this->config["SkillsFile"]);
-	}
-	catch (std::runtime_error &e)
-	{
-		Console::Wrn(e.what());
-	}
+	this->drops_config.Read(this->config["DropsFile"]);
+	this->shops_config.Read(this->config["ShopsFile"]);
+	this->arenas_config.Read(this->config["ArenasFile"]);
+	this->formulas_config.Read(this->config["FormulasFile"]);
+	this->home_config.Read(this->config["HomeFile"]);
+	this->skills_config.Read(this->config["SkillsFile"]);
 
 	this->UpdateConfig();
 	this->LoadHome();
@@ -891,21 +884,14 @@ void World::AdminRequest(Character *from, std::string message)
 
 void World::Rehash()
 {
-	try
-	{
-		this->config.Read("config.ini");
-		this->admin_config.Read("admin.ini");
-		this->drops_config.Read(this->config["DropsFile"]);
-		this->shops_config.Read(this->config["ShopsFile"]);
-		this->arenas_config.Read(this->config["ArenasFile"]);
-		this->formulas_config.Read(this->config["FormulasFile"]);
-		this->home_config.Read(this->config["HomeFile"]);
-		this->skills_config.Read(this->config["SkillsFile"]);
-	}
-	catch (std::runtime_error &e)
-	{
-		Console::Err(e.what());
-	}
+	this->config.Read("config.ini");
+	this->admin_config.Read("admin.ini");
+	this->drops_config.Read(this->config["DropsFile"]);
+	this->shops_config.Read(this->config["ShopsFile"]);
+	this->arenas_config.Read(this->config["ArenasFile"]);
+	this->formulas_config.Read(this->config["FormulasFile"]);
+	this->home_config.Read(this->config["HomeFile"]);
+	this->skills_config.Read(this->config["SkillsFile"]);
 
 	this->UpdateConfig();
 	this->LoadHome();

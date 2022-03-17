@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <string>
 
-void Config::Read(const std::string& filename)
+bool Config::Read(const std::string& filename, bool nowarn)
 {
 	std::FILE *fh;
 	char buf[Config::MaxLineLength];
@@ -28,8 +28,9 @@ void Config::Read(const std::string& filename)
 	fh = std::fopen(filename.c_str(), "rt");
 	if (!fh)
 	{
-		std::string err = "Configuration file not found: " + filename;
-		throw std::runtime_error(err);
+		if (!nowarn)
+			Console::Wrn("Configuration file not found: %s", filename.c_str());
+		return false;
 	}
 
 	while (!std::feof(fh))
@@ -73,28 +74,13 @@ void Config::Read(const std::string& filename)
 
 		if (key == "REQUIRE")
 		{
-			this->Read(val);
+			if (!this->Read(val))
+				return false;
 		}
 		else if (key == "INCLUDE" || key == "INCLUDE_NOWARN")
 		{
-			try
-			{
-				this->Read(val);
-			}
-			catch (std::runtime_error &e)
-			{
-#ifndef DEBUG
-				if (key != "INCLUDE_NOWARN")
-				{
-#endif
-					if (key == "INCLUDE_NOWARN")
-						Console::Dbg("%s'd configuration file not found: %s", key.c_str(), val.c_str());
-					else
-						Console::Wrn("%s'd configuration file not found: %s", key.c_str(), val.c_str());
-#ifndef DEBUG
-				}
-#endif
-			}
+			bool nowarn = (key == "INCLUDE_NOWARN");
+			this->Read(val, nowarn);
 		}
 		else
 		{
@@ -126,4 +112,5 @@ void Config::Read(const std::string& filename)
 	}
 
 	std::fclose(fh);
+	return true;
 }
