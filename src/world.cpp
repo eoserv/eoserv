@@ -403,10 +403,12 @@ World::World(std::array<std::string, 6> dbinfo, const Config &eoserv_config, con
 	this->UpdateConfig();
 	this->LoadHome();
 
-	this->eif = new EIF(this->config["EIF"]);
-	this->enf = new ENF(this->config["ENF"]);
-	this->esf = new ESF(this->config["ESF"]);
-	this->ecf = new ECF(this->config["ECF"]);
+	bool auto_split = this->config["AutoSplitPubFiles"];
+
+	this->eif = new EIF(this->config["EIF"], auto_split);
+	this->enf = new ENF(this->config["ENF"], auto_split);
+	this->esf = new ESF(this->config["ESF"], auto_split);
+	this->ecf = new ECF(this->config["ECF"], auto_split);
 
 	std::size_t num_npcs = this->enf->data.size();
 	this->npc_data.resize(num_npcs);
@@ -915,10 +917,12 @@ void World::ReloadPub(bool quiet)
 	auto esf_id = this->esf->rid;
 	auto ecf_id = this->ecf->rid;
 
-	this->eif->Read(this->config["EIF"]);
-	this->enf->Read(this->config["ENF"]);
-	this->esf->Read(this->config["ESF"]);
-	this->ecf->Read(this->config["ECF"]);
+	bool auto_split = this->config["AutoSplitPubFiles"];
+
+	this->eif->Read(this->config["EIF"], auto_split);
+	this->enf->Read(this->config["ENF"], auto_split);
+	this->esf->Read(this->config["ESF"], auto_split);
+	this->ecf->Read(this->config["ECF"], auto_split);
 
 	if (eif_id != this->eif->rid || enf_id != this->enf->rid
 	 || esf_id != this->esf->rid || ecf_id != this->ecf->rid)

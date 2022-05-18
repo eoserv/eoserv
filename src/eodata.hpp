@@ -12,6 +12,12 @@
 #include <string>
 #include <vector>
 
+struct Pub_File
+{
+	std::string filename;
+	std::vector<std::size_t> splits;
+};
+
 /**
  * One item record in an EIF object
  */
@@ -177,16 +183,17 @@ class EIF
 			}
 		}
 
+		using data_t = EIF_Data;
 		static const int DATA_SIZE = 58;
 		static const int FILE_MAX_ENTRIES = 900;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
 		std::vector<EIF_Data> data;
-		std::vector<std::size_t> file_splits;
+		std::vector<Pub_File> files;
 
-		EIF(const std::string& filename) { Read(filename.c_str()); }
+		EIF(const std::string& filename, bool auto_split) { Read(filename.c_str(), auto_split); }
 
-		void Read(const std::string& filename);
+		void Read(const std::string& filename, bool auto_split);
 
 		EIF_Data& Get(unsigned int id);
 		const EIF_Data& Get(unsigned int id) const;
@@ -253,16 +260,17 @@ class ENF
 			Quest
 		};
 
+		using data_t = ENF_Data;
 		static const int DATA_SIZE = 39;
 		static const int FILE_MAX_ENTRIES = 900;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
 		std::vector<ENF_Data> data;
-		std::vector<std::size_t> file_splits;
+		std::vector<Pub_File> files;
 
-		ENF(const std::string& filename) { Read(filename.c_str()); }
+		ENF(const std::string& filename, bool auto_split) { Read(filename.c_str(), auto_split); }
 
-		void Read(const std::string& filename);
+		void Read(const std::string& filename, bool auto_split);
 
 		ENF_Data& Get(unsigned int id);
 		const ENF_Data& Get(unsigned int id) const;
@@ -331,16 +339,17 @@ class ESF
 			Group
 		};
 
+		using data_t = ESF_Data;
 		static const int DATA_SIZE = 51;
 		static const int FILE_MAX_ENTRIES = 900;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
 		std::vector<ESF_Data> data;
-		std::vector<std::size_t> file_splits;
+		std::vector<Pub_File> files;
 
-		ESF(const std::string& filename) { Read(filename.c_str()); }
+		ESF(const std::string& filename, bool auto_split) { Read(filename.c_str(), auto_split); }
 
-		void Read(const std::string& filename);
+		void Read(const std::string& filename, bool auto_split);
 
 		ESF_Data& Get(unsigned int id);
 		const ESF_Data& Get(unsigned int id) const;
@@ -378,16 +387,18 @@ template <class ECF> struct ECF_Data_Base
 class ECF
 {
 	public:
+		using data_t = ECF_Data;
 		static const int DATA_SIZE = 14;
 		static const int FILE_MAX_ENTRIES = 250;
+		static const int FILE_MAX_ENTRIES_V2 = 900;
 		std::array<unsigned char, 4> rid;
 		std::array<unsigned char, 2> len;
 		std::vector<ECF_Data> data;
-		std::vector<std::size_t> file_splits;
+		std::vector<Pub_File> files;
 
-		ECF(const std::string& filename) { Read(filename.c_str()); }
+		ECF(const std::string& filename, bool auto_split) { Read(filename.c_str(), auto_split); }
 
-		void Read(const std::string& filename);
+		void Read(const std::string& filename, bool auto_split);
 
 		ECF_Data& Get(unsigned int id);
 		const ECF_Data& Get(unsigned int id) const;

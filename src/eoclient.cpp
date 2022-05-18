@@ -293,11 +293,6 @@ void EOClient::Execute(const std::string &data)
 
 bool EOClient::Upload(FileType type, int id, InitReply init_reply)
 {
-	bool auto_split = server()->world->config["AutoSplitPubFiles"];
-
-	if (type != FILE_MAP && id != 1 && !auto_split)
-		return false;
-
 	this->upload_file_id = id;
 
 	std::string filename;
@@ -305,6 +300,29 @@ bool EOClient::Upload(FileType type, int id, InitReply init_reply)
 	std::size_t file_length = 0;
 
 	std::vector<std::size_t>* file_splits = nullptr;
+
+	auto load_file_splits = [&](auto pub)
+	{
+		if (pub.files.empty())
+			return false;
+
+		Pub_File& first_file = pub.files[0];
+
+		if (pub.files.size() == 1 && first_file.splits.size() > 2)
+		{
+			filename = first_file.filename;
+			file_splits = &first_file.splits;
+		}
+		else
+		{
+			if (id - 1 < 0 || id - 1 > pub.files.size())
+				return false;
+
+			filename = pub.files[id - 1].filename;
+		}
+
+		return true;
+	};
 
 	if (type == FILE_MAP)
 	{
@@ -314,26 +332,26 @@ bool EOClient::Upload(FileType type, int id, InitReply init_reply)
 	}
 	else if (type == FILE_ITEM)
 	{
-		file_splits = &this->server()->world->eif->file_splits;
-		filename = this->server()->world->config["EIF"].GetString();
+		if (!load_file_splits(*this->server()->world->eif))
+			return false;
 	}
 	else if (type == FILE_NPC)
 	{
-		file_splits = &this->server()->world->enf->file_splits;
-		filename = this->server()->world->config["ENF"].GetString();
+		if (!load_file_splits(*this->server()->world->enf))
+			return false;
 	}
 	else if (type == FILE_SPELL)
 	{
-		file_splits = &this->server()->world->esf->file_splits;
-		filename = this->server()->world->config["ESF"].GetString();
+		if (!load_file_splits(*this->server()->world->esf))
+			return false;
 	}
 	else if (type == FILE_CLASS)
 	{
-		file_splits = &this->server()->world->ecf->file_splits;
-		filename = this->server()->world->config["ECF"].GetString();
+		if (!load_file_splits(*this->server()->world->ecf))
+			return false;
 	}
 
-	if (auto_split && file_splits)
+	if (file_splits)
 	{
 		if (id < 1 || id >= file_splits->size())
 			return false;
@@ -351,6 +369,9 @@ bool EOClient::Upload(FileType type, const std::string &filename, std::size_t fi
 
 	if (this->upload_fh)
 		throw std::runtime_error("Already uploading file");
+
+	if (file_length > 63992)
+		throw std::runtime_error("File is too large to send");
 
 	this->upload_fh = std::fopen(filename.c_str(), "rb");
 
