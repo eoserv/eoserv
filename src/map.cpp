@@ -1178,7 +1178,7 @@ Map::WalkResult Map::Walk(Character *from, Direction direction, bool admin)
 	}
 	from->Send(builder);
 
-	builder.SetID(PACKET_APPEAR, PACKET_REPLY);
+	builder.SetID(PACKET_RANGE, PACKET_REPLY);
 	UTIL_FOREACH(newnpcs, npc)
 	{
 		builder.Reset(8);
@@ -1364,7 +1364,7 @@ Map::WalkResult Map::Walk(NPC *from, Direction direction)
 		}
 	}
 
-	PacketBuilder builder(PACKET_APPEAR, PACKET_REPLY, 8);
+	PacketBuilder builder(PACKET_RANGE, PACKET_REPLY, 8);
 	builder.AddChar(0);
 	builder.AddByte(255);
 	builder.AddChar(from->index);

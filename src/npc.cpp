@@ -161,7 +161,7 @@ void NPC::Spawn(NPC *parent)
 	this->last_act = Timer::GetTime();
 	this->act_speed = speed_table[this->spawn_type];
 
-	PacketBuilder builder(PACKET_APPEAR, PACKET_REPLY, 8);
+	PacketBuilder builder(PACKET_RANGE, PACKET_REPLY, 8);
 	builder.AddChar(0);
 	builder.AddByte(255);
 	builder.AddChar(this->index);

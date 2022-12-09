@@ -51,9 +51,9 @@ std::string PacketProcessor::GetFamilyName(PacketFamily family)
 		case PACKET_PARTY: return "Party";
 		case PACKET_REFRESH: return "Refresh";
 		case PACKET_NPC: return "NPC";
-		case PACKET_PLAYER_AUTOREFRESH: return "Player_AutoRefresh";
-		case PACKET_NPC_AUTOREFRESH: return "NPC_AutoRefresh";
-		case PACKET_APPEAR: return "Appear";
+		case PACKET_PLAYER_RANGE: return "Player_Range";
+		case PACKET_NPC_RANGE: return "NPC_Range";
+		case PACKET_RANGE: return "Range";
 		case PACKET_PAPERDOLL: return "Paperdoll";
 		case PACKET_EFFECT: return "Effect";
 		case PACKET_TRADE: return "Trade";
