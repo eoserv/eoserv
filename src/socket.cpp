@@ -631,6 +631,14 @@ void Server::Bind(const IPAddress &addr, uint16_t port)
 	this->port = port;
 	this->portn = htons(port);
 
+#ifdef WIN32
+	BOOL yes = 1;
+	setsockopt(this->impl->sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&yes), sizeof(BOOL));
+#else
+	int yes = 1;
+	setsockopt(this->impl->sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+#endif
+
 	std::memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = htonl(this->address);
