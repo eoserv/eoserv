@@ -532,7 +532,7 @@ PacketBuilder &PacketBuilder::AddByte(unsigned char byte)
 	std::size_t capacity_before = this->Capacity();
 #endif
 
-	this->data += byte;
+	this->data += static_cast<char>(byte);
 
 #ifdef DEBUG
 	if (this->data.length() > capacity_before)
@@ -542,13 +542,13 @@ PacketBuilder &PacketBuilder::AddByte(unsigned char byte)
 	return *this;
 }
 
-PacketBuilder &PacketBuilder::AddChar(unsigned char num)
+PacketBuilder &PacketBuilder::AddChar(int num)
 {
 #ifdef DEBUG
 	std::size_t capacity_before = this->Capacity();
 #endif
 
-	this->data += PacketProcessor::ENumber(num)[0];
+	this->data += PacketProcessor::ENumber(static_cast<unsigned>(num))[0];
 
 #ifdef DEBUG
 	if (this->data.length() > capacity_before)
@@ -558,13 +558,13 @@ PacketBuilder &PacketBuilder::AddChar(unsigned char num)
 	return *this;
 }
 
-PacketBuilder &PacketBuilder::AddShort(unsigned short num)
+PacketBuilder &PacketBuilder::AddShort(int num)
 {
 #ifdef DEBUG
 	std::size_t capacity_before = this->Capacity();
 #endif
 
-	this->data.append((char *)PacketProcessor::ENumber(num).data(), 2);
+	this->data.append((char *)PacketProcessor::ENumber(static_cast<unsigned>(num)).data(), 2);
 
 #ifdef DEBUG
 	if (this->data.length() > capacity_before)
@@ -574,13 +574,13 @@ PacketBuilder &PacketBuilder::AddShort(unsigned short num)
 	return *this;
 }
 
-PacketBuilder &PacketBuilder::AddThree(unsigned int num)
+PacketBuilder &PacketBuilder::AddThree(int num)
 {
 #ifdef DEBUG
 	std::size_t capacity_before = this->Capacity();
 #endif
 
-	this->data.append((char *)PacketProcessor::ENumber(num).data(), 3);
+	this->data.append((char *)PacketProcessor::ENumber(static_cast<unsigned>(num)).data(), 3);
 
 #ifdef DEBUG
 	if (this->data.length() > capacity_before)
@@ -590,13 +590,13 @@ PacketBuilder &PacketBuilder::AddThree(unsigned int num)
 	return *this;
 }
 
-PacketBuilder &PacketBuilder::AddInt(unsigned int num)
+PacketBuilder &PacketBuilder::AddInt(int num)
 {
 #ifdef DEBUG
 	std::size_t capacity_before = this->Capacity();
 #endif
 
-	this->data.append((char *)PacketProcessor::ENumber(num).data(), 4);
+	this->data.append((char *)PacketProcessor::ENumber(static_cast<unsigned>(num)).data(), 4);
 
 #ifdef DEBUG
 	if (this->data.length() > capacity_before)
@@ -606,7 +606,7 @@ PacketBuilder &PacketBuilder::AddInt(unsigned int num)
 	return *this;
 }
 
-PacketBuilder &PacketBuilder::AddVar(int min, int max, unsigned int num)
+PacketBuilder &PacketBuilder::AddVar(int min, int max, int num)
 {
 	if (min <= 1 && (max <= 1 || num < PacketProcessor::MAX1))
 		this->AddChar(num);

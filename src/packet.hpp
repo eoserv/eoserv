@@ -124,11 +124,11 @@ class PacketBuilder
 		void ReserveMore(std::size_t size_guess);
 
 		PacketBuilder &AddByte(unsigned char);
-		PacketBuilder &AddChar(unsigned char);
-		PacketBuilder &AddShort(unsigned short);
-		PacketBuilder &AddThree(unsigned int);
-		PacketBuilder &AddInt(unsigned int);
-		PacketBuilder &AddVar(int min, int max, unsigned int);
+		PacketBuilder &AddChar(int);
+		PacketBuilder &AddShort(int);
+		PacketBuilder &AddThree(int);
+		PacketBuilder &AddInt(int);
+		PacketBuilder &AddVar(int min, int max, int);
 
 		PacketBuilder &AddString(const std::string &);
 		PacketBuilder &AddBreakString(const std::string &, unsigned char breakchar = 0xFF);
