@@ -118,7 +118,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "GlobalBuffer"       , 0);
 	eoserv_config_default(config, "AdminPrefix"        , "$");
 	eoserv_config_default(config, "StatPerLevel"       , 3);
-	eoserv_config_default(config, "SkillPerLevel"      , 3);
+	eoserv_config_default(config, "SkillPerLevel"      , 4);
 	eoserv_config_default(config, "EnforceWeight"      , 2);
 	eoserv_config_default(config, "MaxWeight"          , 250);
 	eoserv_config_default(config, "MaxLevel"           , 250);
