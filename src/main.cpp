@@ -288,7 +288,7 @@ int eoserv_main(int argc, char *argv[])
 					}
 				}
 
-				if (std::setvbuf(fh, 0, _IOLBF, 0) != 0)
+				if (std::setvbuf(fh, 0, _IOLBF, BUFSIZ) != 0)
 					Console::Wrn("Failed to change %s buffer settings", name);
 			};
 
@@ -413,7 +413,7 @@ int eoserv_main(int argc, char *argv[])
 							std::fprintf(stderr, "\n\n--- %s ---\n\n", timestr);
 						}
 
-						if (std::setvbuf(stderr, 0, _IONBF, 0) != 0)
+						if (std::setvbuf(stderr, 0, _IONBF, BUFSIZ) != 0)
 						{
 							Console::Wrn("Failed to change stderr buffer settings");
 						}
@@ -435,7 +435,7 @@ int eoserv_main(int argc, char *argv[])
 							std::printf("\n\n--- %s ---\n\n", timestr);
 						}
 
-						if (std::setvbuf(stdout, 0, _IONBF, 0) != 0)
+						if (std::setvbuf(stdout, 0, _IONBF, BUFSIZ) != 0)
 						{
 							Console::Wrn("Failed to change stdout buffer settings");
 						}
