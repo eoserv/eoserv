@@ -180,12 +180,12 @@ class Character : public Command_Source
 		Direction direction;
 		unsigned char level;
 		int exp;
-		short hp, tp;
-		short str, intl, wis, agi, con, cha;
-		short adj_str, adj_intl, adj_wis, adj_agi, adj_con, adj_cha;
-		short statpoints, skillpoints;
-		short weight, maxweight;
-		short karma;
+		int hp, tp;
+		int str, intl, wis, agi, con, cha;
+		int adj_str, adj_intl, adj_wis, adj_agi, adj_con, adj_cha;
+		int statpoints, skillpoints;
+		int weight, maxweight;
+		int karma;
 		SitState sitting;
 		int hidden;
 		int nointeract;
@@ -202,10 +202,10 @@ class Character : public Command_Source
 		Arena *arena;
 		char arena_kills;
 
-		short maxsp;
-		short maxhp, maxtp;
-		short accuracy, evade, armor;
-		short mindam, maxdam;
+		int maxsp;
+		int maxhp, maxtp;
+		int accuracy, evade, armor;
+		int mindam, maxdam;
 
 		bool trading;
 		Character *trade_partner;
@@ -386,7 +386,7 @@ class Character : public Command_Source
 		Party *party;
 		Map *map;
 
-		const short &display_str, &display_intl, &display_wis, &display_agi, &display_con, &display_cha;
+		const int &display_str, &display_intl, &display_wis, &display_agi, &display_con, &display_cha;
 };
 
 #endif // CHARACTER_HPP_INCLUDED

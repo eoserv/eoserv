@@ -388,7 +388,7 @@ void NPC::Damage(Character *from, int amount, int spell_id)
 
 	if (this->ENF().type == ENF::Passive || this->ENF().type == ENF::Aggressive)
 	{
-		this->hp -= amount;
+		this->hp -= limitamount;
 	}
 	else
 	{

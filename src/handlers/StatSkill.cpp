@@ -144,7 +144,7 @@ void StatSkill_Remove(Character *character, PacketReader &reader)
 // Spending a stat point on a skill
 void StatSkill_Add(Character *character, PacketReader &reader)
 {
-	short *stat;
+	int *stat;
 	TrainType action = TrainType(reader.GetChar());
 	int stat_id = reader.GetShort();
 
@@ -166,6 +166,9 @@ void StatSkill_Add(Character *character, PacketReader &reader)
 				case 6: stat = &character->cha; break;
 				default: return;
 			}
+
+			if (*stat >= int(character->world->config["MaxStat"]))
+				return;
 
 			++(*stat);
 			--character->statpoints;

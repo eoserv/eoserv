@@ -129,25 +129,23 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 			if (appearance)
 				victim->Warp(victim->map->id, victim->x, victim->y);
 
-			// TODO: Good way of updating skillpoints
-			(void)skillpoints;
+			if (statpoints || skillpoints)
+			{
+				PacketBuilder builder(PACKET_RECOVER, PACKET_TARGET_GROUP, 10);
+				builder.AddShort(victim->statpoints);
+				builder.AddShort(victim->skillpoints);
+				builder.AddShort(victim->maxhp);
+				builder.AddShort(victim->maxtp);
+				builder.AddShort(victim->maxsp);
+				victim->Send(builder);
+			}
 
-			if (stats || statpoints)
+			if (level || stats)
 			{
 				victim->CalculateStats();
 
 				PacketBuilder builder(PACKET_RECOVER, PACKET_LIST, 32);
-
-				if (statpoints)
-				{
-					builder.SetID(PACKET_STATSKILL, PACKET_PLAYER);
-					builder.AddShort(victim->statpoints);
-				}
-				else
-				{
-					builder.AddShort(victim->clas);
-				}
-
+				builder.AddShort(victim->clas);
 				builder.AddShort(victim->display_str);
 				builder.AddShort(victim->display_intl);
 				builder.AddShort(victim->display_wis);
@@ -168,17 +166,19 @@ void SetX(const std::vector<std::string>& arguments, Command_Source* from, std::
 
 			if (karma || level)
 			{
-				PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY, 7);
+				PacketBuilder builder(PACKET_RECOVER, PACKET_REPLY, 11);
 				builder.AddInt(victim->exp);
 				builder.AddShort(victim->karma);
 				builder.AddChar(level ? victim->level : 0);
+				if (level)
+				{
+					builder.AddShort(victim->statpoints);
+					builder.AddShort(victim->skillpoints);
+				}
 				victim->Send(builder);
 			}
 
-			if (!stats && !skillpoints && !appearance)
-			{
-				victim->CheckQuestRules();
-			}
+			victim->CheckQuestRules();
 		}
 	}
 }

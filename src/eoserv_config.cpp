@@ -124,6 +124,7 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "MaxLevel"           , 250);
 	eoserv_config_default(config, "MaxExp"             , 2000000000);
 	eoserv_config_default(config, "MaxStat"            , 10000);
+	eoserv_config_default(config, "MaxHPTP"            , 64000);
 	eoserv_config_default(config, "MaxSkillLevel"      , 100);
 	eoserv_config_default(config, "MaxSkills"          , 48);
 	eoserv_config_default(config, "MaxCharacters"      , 3);

@@ -1519,6 +1519,10 @@ void Character::CalculateStats(bool trigger_quests)
 {
 	const ECF_Data& ecf = world->ecf->Get(this->clas);
 
+	int max_weight = this->world->config["MaxWeight"];
+	int max_hptp = this->world->config["MaxHPTP"];
+	int max_stat = this->world->config["MaxStat"];
+
 	this->adj_str = this->str + ecf.str;
 	this->adj_intl = this->intl + ecf.intl;
 	this->adj_wis = this->wis + ecf.wis;
@@ -1541,7 +1545,7 @@ void Character::CalculateStats(bool trigger_quests)
 	{
 		this->weight += this->world->eif->Get(item.id).weight * item.amount;
 
-		if (this->weight >= 250)
+		if (this->weight >= max_weight)
 		{
 			break;
 		}
@@ -1569,9 +1573,16 @@ void Character::CalculateStats(bool trigger_quests)
 		}
 	}
 
-	if (this->weight < 0 || this->weight > 250)
+	this->adj_str = std::min(max_stat, this->adj_str);
+	this->adj_intl = std::min(max_stat, this->adj_intl);
+	this->adj_wis = std::min(max_stat, this->adj_wis);
+	this->adj_agi = std::min(max_stat, this->adj_agi);
+	this->adj_con = std::min(max_stat, this->adj_con);
+	this->adj_cha = std::min(max_stat, this->adj_cha);
+
+	if (this->weight < 0 || this->weight > max_weight)
 	{
-		this->weight = 250;
+		this->weight = max_weight;
 	}
 
 	std::unordered_map<std::string, double> formula_vars;
@@ -1581,6 +1592,11 @@ void Character::CalculateStats(bool trigger_quests)
 	this->maxtp += this->world->EvalFormula("tp", formula_vars);
 	this->maxsp += this->world->EvalFormula("sp", formula_vars);
 	this->maxweight = this->world->EvalFormula("weight", formula_vars);
+
+	this->maxhp = std::min(max_hptp, this->maxhp);
+	this->maxtp = std::min(max_hptp, this->maxtp);
+	this->maxsp = std::min(max_hptp, this->maxsp);
+	this->maxweight = std::min(max_weight, this->maxweight);
 
 	if (this->hp > this->maxhp || this->tp > this->maxtp)
 	{
@@ -1599,13 +1615,6 @@ void Character::CalculateStats(bool trigger_quests)
 		this->weight = 0;
 		this->maxweight = 251;
 	}
-	else
-	{
-		if (this->maxweight < 70 || this->maxweight > 250)
-		{
-			this->maxweight = 250;
-		}
-	}
 
 	auto dam = this->world->EvalFormula("class." + util::to_string(ecf.type) + ".damage", formula_vars);
 
@@ -1620,6 +1629,12 @@ void Character::CalculateStats(bool trigger_quests)
 
 	if (this->maxdam == 0 || !this->world->config["BaseDamageAtZero"])
 		this->maxdam += int(this->world->config["BaseMaxDamage"]);
+
+	this->mindam = std::min(max_hptp, this->mindam);
+	this->maxdam = std::min(max_hptp, this->maxdam);
+	this->armor = std::min(max_hptp, this->armor);
+	this->accuracy = std::min(max_hptp, this->accuracy);
+	this->evade = std::min(max_hptp, this->evade);
 
 	if (trigger_quests)
 		this->CheckQuestRules();
