@@ -1515,8 +1515,8 @@ void Map::Attack(Character *from, Direction direction)
 				formula_vars["damage"] = amount;
 				formula_vars["critical"] = critical;
 
-				amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
-				double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
+				amount = this->world->EvalFormula("damage", formula_vars);
+				double hit_rate = this->world->EvalFormula("hit_rate", formula_vars);
 
 				if (rand > hit_rate)
 				{
@@ -1601,8 +1601,8 @@ bool Map::AttackPK(Character *from, Direction direction)
 				formula_vars["damage"] = amount;
 				formula_vars["critical"] = critical;
 
-				amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
-				double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
+				amount = this->world->EvalFormula("damage", formula_vars);
+				double hit_rate = this->world->EvalFormula("hit_rate", formula_vars);
 
 				if (rand > hit_rate)
 				{
@@ -1935,8 +1935,8 @@ void Map::SpellAttack(Character *from, NPC *npc, unsigned short spell_id)
 		formula_vars["damage"] = amount;
 		formula_vars["critical"] = critical;
 
-		amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
-		double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
+		amount = this->world->EvalFormula("damage", formula_vars);
+		double hit_rate = this->world->EvalFormula("hit_rate", formula_vars);
 
 		if (rand > hit_rate)
 		{
@@ -1984,8 +1984,8 @@ void Map::SpellAttackPK(Character *from, Character *victim, unsigned short spell
 		formula_vars["damage"] = amount;
 		formula_vars["critical"] = critical;
 
-		amount = rpn_eval(rpn_parse(this->world->formulas_config["damage"]), formula_vars);
-		double hit_rate = rpn_eval(rpn_parse(this->world->formulas_config["hit_rate"]), formula_vars);
+		amount = this->world->EvalFormula("damage", formula_vars);
+		double hit_rate = this->world->EvalFormula("hit_rate", formula_vars);
 
 		if (rand > hit_rate)
 		{

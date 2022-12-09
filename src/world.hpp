@@ -31,6 +31,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -100,6 +101,8 @@ class World
 		Config formulas_config;
 		Config home_config;
 		Config skills_config;
+
+		std::unordered_map<std::string, std::stack<std::string>> formulas_cache;
 
 		I18N i18n;
 
@@ -186,6 +189,8 @@ class World
 		bool PKExcept(int mapid);
 
 		bool IsInstrument(int graphic_id);
+
+		double EvalFormula(const std::string& name, const std::unordered_map<std::string, double>& vars);
 
 		~World();
 };

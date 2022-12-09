@@ -161,6 +161,8 @@ set(eoserv_ALL_SOURCE_FILES
 	src/util.hpp
 	src/util/rpn.cpp
 	src/util/rpn.hpp
+	src/util/rpn_lex.cpp
+	src/util/rpn_lex.hpp
 	src/util/secure_string.hpp
 	src/util/variant.cpp
 	src/util/variant.hpp

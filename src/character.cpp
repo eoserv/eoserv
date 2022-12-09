@@ -1577,10 +1577,10 @@ void Character::CalculateStats(bool trigger_quests)
 	std::unordered_map<std::string, double> formula_vars;
 	this->FormulaVars(formula_vars);
 
-	this->maxhp += rpn_eval(rpn_parse(this->world->formulas_config["hp"]), formula_vars);
-	this->maxtp += rpn_eval(rpn_parse(this->world->formulas_config["tp"]), formula_vars);
-	this->maxsp += rpn_eval(rpn_parse(this->world->formulas_config["sp"]), formula_vars);
-	this->maxweight = rpn_eval(rpn_parse(this->world->formulas_config["weight"]), formula_vars);
+	this->maxhp += this->world->EvalFormula("hp", formula_vars);
+	this->maxtp += this->world->EvalFormula("tp", formula_vars);
+	this->maxsp += this->world->EvalFormula("sp", formula_vars);
+	this->maxweight = this->world->EvalFormula("weight", formula_vars);
 
 	if (this->hp > this->maxhp || this->tp > this->maxtp)
 	{
@@ -1607,24 +1607,13 @@ void Character::CalculateStats(bool trigger_quests)
 		}
 	}
 
-	if (this->world->config["UseClassFormulas"])
-	{
-		auto dam = rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf.type) + ".damage"]), formula_vars);
+	auto dam = this->world->EvalFormula("class." + util::to_string(ecf.type) + ".damage", formula_vars);
 
-		this->mindam += dam;
-		this->maxdam += dam;
-		this->armor += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf.type) + ".defence"]), formula_vars);
-		this->accuracy += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf.type) + ".accuracy"]), formula_vars);
-		this->evade += rpn_eval(rpn_parse(this->world->formulas_config["class." + util::to_string(ecf.type) + ".evade"]), formula_vars);
-	}
-	else
-	{
-		this->mindam += this->adj_str / 2;
-		this->maxdam += this->adj_str / 2;
-		this->accuracy += this->adj_agi / 2;
-		this->evade += this->adj_agi / 2;
-		this->armor += this->adj_con / 2;
-	}
+	this->mindam += dam;
+	this->maxdam += dam;
+	this->armor += this->world->EvalFormula("class." + util::to_string(ecf.type) + ".defence", formula_vars);
+	this->accuracy += this->world->EvalFormula("class." + util::to_string(ecf.type) + ".accuracy", formula_vars);
+	this->evade += this->world->EvalFormula("class." + util::to_string(ecf.type) + ".evade", formula_vars);
 
 	if (this->mindam == 0 || !this->world->config["BaseDamageAtZero"])
 		this->mindam += int(this->world->config["BaseMinDamage"]);

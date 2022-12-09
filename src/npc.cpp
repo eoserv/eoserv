@@ -957,8 +957,8 @@ void NPC::Attack(Character *target)
 	formula_vars["damage"] = amount;
 	formula_vars["critical"] = critical;
 
-	amount = rpn_eval(rpn_parse(this->map->world->formulas_config["damage"]), formula_vars);
-	double hit_rate = rpn_eval(rpn_parse(this->map->world->formulas_config["hit_rate"]), formula_vars);
+	amount = this->map->world->EvalFormula("damage", formula_vars);
+	double hit_rate = this->map->world->EvalFormula("hit_rate", formula_vars);
 
 	if (rand > hit_rate)
 	{

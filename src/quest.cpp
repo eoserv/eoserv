@@ -748,17 +748,17 @@ bool Quest_Context::DoAction(const EOPlus::Action& action)
 	return false;
 }
 
-static bool rpn_char_eval(std::stack<util::variant>&& s, Character* character)
+static bool rpn_char_eval(std::stack<std::string>&& s, Character* character)
 {
 	std::unordered_map<std::string, double> formula_vars;
 	character->FormulaVars(formula_vars);
-	return bool(rpn_eval(s, formula_vars));
+	return bool(util::rpn_eval(s, formula_vars));
 }
 
-static bool rpn_char_eval(std::deque<util::variant>&& dq, Character* character)
+static bool rpn_char_eval(std::deque<std::string>&& dq, Character* character)
 {
 	std::reverse(UTIL_RANGE(dq));
-	std::stack<util::variant> s(std::move(dq));
+	std::stack<std::string> s(std::move(dq));
 	return rpn_char_eval(std::move(s), character);
 }
 
@@ -875,11 +875,15 @@ bool Quest_Context::CheckRule(const EOPlus::Expression& expr)
 	}
 	else if (function_name == "statbetween")
 	{
-		return rpn_char_eval({expr.args[1], expr.args[0], "gte", expr.args[2], expr.args[0], "lte", "&"}, character);
+		return rpn_char_eval({expr.args[1], expr.args[0], "gte", expr.args[2], expr.args[0], "lte", "and"}, character);
 	}
 	else if (function_name == "statrpn")
 	{
-		return rpn_char_eval(rpn_parse(expr.args[0]), character);
+		return rpn_char_eval(util::rpn_parse(expr.args[0]), character);
+	}
+	else if (function_name == "stateval")
+	{
+		return rpn_char_eval(util::rpn_parse_v2(expr.args[0]), character);
 	}
 
 	return false;

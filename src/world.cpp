@@ -29,6 +29,7 @@
 #include "console.hpp"
 #include "hash.hpp"
 #include "util.hpp"
+#include "util/rpn.hpp"
 #include "util/secure_string.hpp"
 
 #include <algorithm>
@@ -895,6 +896,8 @@ void World::Rehash()
 	this->home_config.Read(this->config["HomeFile"]);
 	this->skills_config.Read(this->config["SkillsFile"]);
 
+	this->formulas_cache.clear();
+
 	this->UpdateConfig();
 	this->LoadHome();
 
@@ -1468,6 +1471,23 @@ bool World::PKExcept(int mapid)
 bool World::IsInstrument(int graphic_id)
 {
 	return std::find(UTIL_RANGE(this->instrument_ids), graphic_id) != this->instrument_ids.end();
+}
+
+double World::EvalFormula(const std::string& name, const std::unordered_map<std::string, double>& vars)
+{
+	auto cache_it = this->formulas_cache.find(name);
+
+	if (cache_it != this->formulas_cache.end())
+		return util::rpn_eval(cache_it->second, vars);
+
+	std::stack<std::string>(*parser)(std::string expr) = util::rpn_parse_v2;
+
+	if (int(this->formulas_config["Version"]) < 2)
+		parser = util::rpn_parse;
+
+	auto result = this->formulas_cache.insert({std::string(name), parser(this->formulas_config[name])});
+
+	return util::rpn_eval(result.first->second, vars);
 }
 
 World::~World()
