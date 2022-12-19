@@ -15,6 +15,8 @@ void Connection_Accept(EOClient *client, PacketReader &reader)
 {
 	(void)client;
 	(void)reader;
+
+	client->MarkAccepted();
 }
 
 // Ping reply

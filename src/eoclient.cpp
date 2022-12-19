@@ -55,6 +55,7 @@ void EOClient::Initialize()
 	this->version = 0;
 	this->needpong = false;
 	this->login_attempts = 0;
+	this->start = Timer::GetTime();
 }
 
 bool EOClient::NeedTick()

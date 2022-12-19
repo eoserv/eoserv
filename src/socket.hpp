@@ -222,6 +222,7 @@ class Client
 		Server *server;
 		bool connected;
 		bool finished_writing = false;
+		bool accepted = false;
 		std::time_t closed_time;
 		std::time_t connect_time;
 
@@ -259,6 +260,9 @@ class Client
 		bool DoSend();
 
 		bool Select(double timeout);
+
+		bool Accepted() const { return accepted; }
+		void MarkAccepted() { accepted = true; }
 
 		bool Connected() const;
 		IPAddress GetRemoteAddr() const;

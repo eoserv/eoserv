@@ -32,8 +32,10 @@ void eoserv_config_validate_config(Config& config)
 	eoserv_config_default(config, "ListenBacklog"      , 50);
 	eoserv_config_default(config, "MaxPlayers"         , 200);
 	eoserv_config_default(config, "MaxConnectionsPerIP", 3);
-	eoserv_config_default(config, "IPReconnectLimit"   , 10);
+	eoserv_config_default(config, "IPReconnectLimit"   , 10.0);
 	eoserv_config_default(config, "MaxConnectionsPerPC", 1);
+	eoserv_config_default(config, "HangupDelay"        , 10.0);
+	eoserv_config_default(config, "QuietConnectionErrors", false);
 	eoserv_config_default(config, "MaxLoginAttempts"   , 3);
 	eoserv_config_default(config, "CheckVersion"       , true);
 	eoserv_config_default(config, "MinVersion"         , 0);

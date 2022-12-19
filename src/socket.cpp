@@ -688,15 +688,6 @@ Client *Server::Poll()
 #endif // WIN32
 	if ((newsock = accept(this->impl->sock, reinterpret_cast<sockaddr *>(&sin), &addrsize)) == INVALID_SOCKET)
 	{
-		if (this->clients.size() >= this->maxconn)
-		{
-#ifdef WIN32
-			closesocket(newsock);
-#else // WIN32
-			close(newsock);
-#endif // WIN32
-		}
-
 		return 0;
 	}
 #ifdef WIN32
@@ -705,6 +696,41 @@ Client *Server::Poll()
 #else // WIN32
 	fcntl(this->impl->sock, F_SETFL, 0);
 #endif // WIN32
+
+	// Close uninitialized connections to make room for new ones
+	if (this->clients.size() >= this->maxconn)
+	{
+		for (auto it = this->clients.begin();
+		 it != this->clients.end() && this->clients.size() >= this->maxconn;
+		 ++it)
+		{
+			Client* client = *it;
+			if (!client->accepted)
+			{
+				client->Close(true);
+#ifdef WIN32
+				closesocket(client->impl->sock);
+#else // WIN32
+				close(client->impl->sock);
+#endif // WIN32
+				delete client;
+				it = this->clients.erase(it);
+				if (it == this->clients.end())
+					break;
+			}
+		}
+
+		// If the server truly is full, fail the connection
+		if (this->clients.size() >= this->maxconn)
+		{
+#ifdef WIN32
+			closesocket(newsock);
+#else // WIN32
+			close(newsock);
+#endif // WIN32
+			return 0;
+		}
+	}
 
 	newclient = this->ClientFactory(Socket(newsock, sin));
 	newclient->SetRecvBuffer(this->recv_buffer_max);
@@ -902,8 +928,6 @@ std::vector<Client *> *Server::Select(double timeout)
 
 void Server::BuryTheDead()
 {
-	// TODO: Optimize
-	restart_loop:
 	UTIL_IFOREACH(this->clients, it)
 	{
 		Client *client = *it;
@@ -916,8 +940,9 @@ void Server::BuryTheDead()
 			close(client->impl->sock);
 #endif // WIN32
 			delete client;
-			this->clients.erase(it);
-			goto restart_loop;
+			it = this->clients.erase(it);
+			if (it == this->clients.end())
+				break;
 		}
 	}
 }

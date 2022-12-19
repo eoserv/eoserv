@@ -53,6 +53,25 @@ void server_ping_all(void *server_void)
 	}
 }
 
+void server_check_hangup(void *server_void)
+{
+	EOServer *server = static_cast<EOServer *>(server_void);
+
+	double now = Timer::GetTime();
+	double delay = server->HangupDelay;
+
+	UTIL_FOREACH(server->clients, rawclient)
+	{
+		EOClient *client = static_cast<EOClient *>(rawclient);
+
+		if (client->Connected() && !client->Accepted() && client->start + delay < now)
+		{
+			server->RecordClientRejection(client->GetRemoteAddr(), "hanging up on idle client");
+			client->Close(true);
+		}
+	}
+}
+
 void server_pump_queue(void *server_void)
 {
 	EOServer *server = static_cast<EOServer *>(server_void);
@@ -128,11 +147,23 @@ void server_pump_queue(void *server_void)
 	}
 }
 
+void EOServer::UpdateConfig()
+{
+	delete ping_timer;
+	ping_timer = new TimeEvent(server_ping_all, this, double(this->world->config["PingRate"]), Timer::FOREVER);
+	this->world->timer.Register(ping_timer);
+
+	this->QuietConnectionErrors = bool(this->world->config["QuietConnectionErrors"]);
+	this->HangupDelay = double(this->world->config["HangupDelay"]);
+
+	this->maxconn = unsigned(int(this->world->config["MaxConnections"]));
+}
+
 void EOServer::Initialize(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)
 {
 	this->world = new World(dbinfo, eoserv_config, admin_config);
 
-	TimeEvent *event = new TimeEvent(server_ping_all, this, double(this->world->config["PingRate"]), Timer::FOREVER);
+	TimeEvent *event = new TimeEvent(server_check_hangup, this, 1.0, Timer::FOREVER);
 	this->world->timer.Register(event);
 
 	event = new TimeEvent(server_pump_queue, this, 0.001, Timer::FOREVER);
@@ -141,6 +172,8 @@ void EOServer::Initialize(std::array<std::string, 6> dbinfo, const Config &eoser
 	this->world->server = this;
 
 	this->start = Timer::GetTime();
+
+	this->UpdateConfig();
 }
 
 Client *EOServer::ClientFactory(const Socket &sock)
@@ -155,17 +188,29 @@ void EOServer::Tick()
 
 	if (newclient)
 	{
+		double now = Timer::GetTime();
 		int ip_connections = 0;
 		bool throttle = false;
 		IPAddress remote_addr = newclient->GetRemoteAddr();
 
-		const int reconnect_limit = int(this->world->config["IPReconnectLimit"]);
+		const double reconnect_limit = double(this->world->config["IPReconnectLimit"]);
 		const int max_per_ip = int(this->world->config["MaxConnectionsPerIP"]);
 
 		UTIL_IFOREACH(connection_log, connection)
 		{
-			if (connection->second + reconnect_limit < Timer::GetTime())
+			double last_connection_time = connection->second.last_connection_time;
+			double last_rejection_time = connection->second.last_rejection_time;
+
+			if (last_connection_time + reconnect_limit < now
+			 && last_rejection_time + 30.0 < now)
 			{
+				int rejections = connection->second.rejections;
+
+				if (rejections > 1)
+					Console::Wrn("Connections from %s were rejected (%dx)", std::string(connection->first).c_str(), rejections);
+				else if (rejections == 1)
+					Console::Wrn("Connection from %s was rejected (1x)", std::string(connection->first).c_str());
+
 				connection = connection_log.erase(connection);
 
 				if (connection == connection_log.end())
@@ -174,7 +219,8 @@ void EOServer::Tick()
 				continue;
 			}
 
-			if (connection->first == remote_addr)
+			if (connection->first == remote_addr
+			 && last_connection_time + reconnect_limit >= now)
 			{
 				throttle = true;
 			}
@@ -190,17 +236,17 @@ void EOServer::Tick()
 
 		if (throttle)
 		{
-			Console::Wrn("Connection from %s was rejected (reconnecting too fast)", std::string(newclient->GetRemoteAddr()).c_str());
+			this->RecordClientRejection(newclient->GetRemoteAddr(), "reconnecting too fast");
 			newclient->Close(true);
 		}
 		else if (max_per_ip != 0 && ip_connections > max_per_ip)
 		{
-			Console::Wrn("Connection from %s was rejected (too many connections from this address)", std::string(remote_addr).c_str());
+			this->RecordClientRejection(newclient->GetRemoteAddr(), "too many connections from this address");
 			newclient->Close(true);
 		}
 		else
 		{
-			connection_log[remote_addr] = Timer::GetTime();
+			connection_log[remote_addr].last_connection_time = Timer::GetTime();
 			Console::Out("New connection from %s (%i/%i connections)", std::string(newclient->GetRemoteAddr()).c_str(), this->Connections(), this->MaxConnections());
 		}
 	}
@@ -229,6 +275,20 @@ void EOServer::Tick()
 	this->BuryTheDead();
 
 	this->world->timer.Tick();
+}
+
+void EOServer::RecordClientRejection(const IPAddress& ip, const char* reason)
+{
+	if (QuietConnectionErrors)
+	{
+		// Buffer up to 100 rejections + 30 seconds in delayed error mode
+		if (++this->connection_log[ip].rejections < 100)
+			this->connection_log[ip].last_rejection_time = Timer::GetTime();
+	}
+	else
+	{
+		Console::Wrn("Connection from %s was rejected (%s)", std::string(ip).c_str(), reason);
+	}
 }
 
 EOServer::~EOServer()

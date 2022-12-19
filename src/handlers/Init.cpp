@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <ctime>
 #include <stdexcept>
 #include <string>
@@ -76,7 +77,9 @@ void Init_Init(EOClient *client, PacketReader &reader)
 
 		if (max_per_pc != 0 && pc_connections > max_per_pc)
 		{
-			Console::Wrn("Connection from %s was rejected (too many connections from this PC: %08x)", static_cast<std::string>(client->GetRemoteAddr()).c_str(), client->hdid);
+			char errbuf[64];
+			std::snprintf(errbuf, sizeof errbuf, "too many connections from this PC: %08x", client->hdid);
+			client->server()->RecordClientRejection(client->GetRemoteAddr(), errbuf);
 			client->Close(true);
 		}
 	}
