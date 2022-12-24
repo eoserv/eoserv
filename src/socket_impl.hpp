@@ -9,6 +9,7 @@
 #include "platform.h"
 
 #ifdef WIN32
+#define FD_SETSIZE 1024
 #include "eoserv_windows.h"
 #ifdef WSPIAPI_AVAILABLE
 #include <wspiapi.h>

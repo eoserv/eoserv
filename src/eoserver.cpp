@@ -157,6 +157,14 @@ void EOServer::UpdateConfig()
 	this->HangupDelay = double(this->world->config["HangupDelay"]);
 
 	this->maxconn = unsigned(int(this->world->config["MaxConnections"]));
+
+#if !defined(SOCKET_POLL) || defined(WIN32)
+	if (this->maxconn >= 1000)
+	{
+		this->maxconn = 1000;
+		this->world->config["MaxConnections"] = 1000;
+	}
+#endif // !defined(SOCKET_POLL) || defined(WIN32)
 }
 
 void EOServer::Initialize(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config)

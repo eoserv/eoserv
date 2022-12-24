@@ -9,6 +9,7 @@
 #endif // CLANG_MODULES_WORKAROUND
 
 #include "socket.hpp"
+#include "console.hpp"
 #include "util.hpp"
 
 #include <algorithm>
@@ -731,6 +732,20 @@ Client *Server::Poll()
 			return 0;
 		}
 	}
+
+#if !defined(SOCKET_POLL) && !defined(WIN32)
+	if (newsock >= FD_SETSIZE)
+	{
+		Console::Wrn("Client rejected due to file descriptor limits (%d / %d)", int(newsock), int(FD_SETSIZE) - 1);
+		this->maxconn = std::min<unsigned>(this->maxconn, this->clients.size() - 1);
+#ifdef WIN32
+		closesocket(newsock);
+#else // WIN32
+		close(newsock);
+#endif // WIN32
+		return nullptr;
+	}
+#endif // !defined(SOCKET_POLL) && !defined(WIN32)
 
 	newclient = this->ClientFactory(Socket(newsock, sin));
 	newclient->SetRecvBuffer(this->recv_buffer_max);
