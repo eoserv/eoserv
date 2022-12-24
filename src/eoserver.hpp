@@ -36,6 +36,7 @@ class EOServer : public Server
 {
 	private:
 		std::unordered_map<IPAddress, ConnectionLogEntry> connection_log;
+		typedef decltype(connection_log)::iterator connection_log_iterator;
 		void Initialize(std::array<std::string, 6> dbinfo, const Config &eoserv_config, const Config &admin_config);
 
 		TimeEvent* ping_timer = nullptr;
@@ -60,7 +61,8 @@ class EOServer : public Server
 		void Tick();
 
 		void RecordClientRejection(const IPAddress& ip, const char* reason);
-		void CleanupConnectionLog();
+		void ClearClientRejections(const IPAddress& ip);
+		void ClearClientRejections(connection_log_iterator);
 
 		~EOServer();
 };

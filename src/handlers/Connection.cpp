@@ -28,6 +28,8 @@ void Connection_Accept(EOClient *client, PacketReader &reader)
 		return;
 	}
 
+	client->server()->ClearClientRejections(client->GetRemoteAddr());
+
 	client->MarkAccepted();
 	Console::Out("Accepted connection from %s / %08X (%i/%i connections)", std::string(client->GetRemoteAddr()).c_str(), client->hdid, client->server()->Connections(), client->server()->MaxConnections());
 }

@@ -212,13 +212,7 @@ void EOServer::Tick()
 			if (last_connection_time + reconnect_limit < now
 			 && last_rejection_time + 30.0 < now)
 			{
-				int rejections = connection->second.rejections;
-
-				if (rejections > 1)
-					Console::Wrn("Connections from %s were rejected (%dx)", std::string(connection->first).c_str(), rejections);
-				else if (rejections == 1)
-					Console::Wrn("Connection from %s was rejected (1x)", std::string(connection->first).c_str());
-
+				this->ClearClientRejections(connection);
 				connection = connection_log.erase(connection);
 
 				if (connection == connection_log.end())
@@ -288,13 +282,48 @@ void EOServer::RecordClientRejection(const IPAddress& ip, const char* reason)
 {
 	if (QuietConnectionErrors)
 	{
+		auto it = this->connection_log.find(ip);
+
+		if (it == this->connection_log.end() || it->second.rejections == 0)
+		{
+			Console::Wrn("Connection from %s was rejected (%s)", std::string(ip).c_str(), reason);
+			if (it == this->connection_log.end())
+			{
+				auto result = this->connection_log.insert({ip, ConnectionLogEntry{}});
+				it = result.first;
+			}
+		}
+
+		if (it == this->connection_log.end())
+			return;
+
+		auto& log = it->second;
+
 		// Buffer up to 100 rejections + 30 seconds in delayed error mode
-		if (++this->connection_log[ip].rejections < 100)
-			this->connection_log[ip].last_rejection_time = Timer::GetTime();
+		if (++log.rejections < 100)
+			log.last_rejection_time = Timer::GetTime();
 	}
 	else
 	{
 		Console::Wrn("Connection from %s was rejected (%s)", std::string(ip).c_str(), reason);
+	}
+}
+
+void EOServer::ClearClientRejections(const IPAddress& ip)
+{
+	auto it = this->connection_log.find(ip);
+	if (it != this->connection_log.end())
+		ClearClientRejections(it);
+}
+
+void EOServer::ClearClientRejections(EOServer::connection_log_iterator it)
+{
+	int& rejections = it->second.rejections;
+
+	if (rejections > 1)
+	{
+		Console::Wrn("Connections from %s were rejected (%dx)", std::string(it->first).c_str(), rejections);
+		rejections = 0;
 	}
 }
 
