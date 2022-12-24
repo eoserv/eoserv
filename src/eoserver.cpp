@@ -255,7 +255,6 @@ void EOServer::Tick()
 		else
 		{
 			connection_log[remote_addr].last_connection_time = Timer::GetTime();
-			Console::Out("New connection from %s (%i/%i connections)", std::string(newclient->GetRemoteAddr()).c_str(), this->Connections(), this->MaxConnections());
 		}
 	}
 

@@ -44,16 +44,25 @@ void Init_Init(EOClient *client, PacketReader &reader)
 	reader.GetChar(); // ?
 	reader.GetChar(); // ?
 	client->version = reader.GetChar();
-	reader.GetChar(); // ?
-	reader.GetChar(); // ?
+	unsigned prot = reader.GetChar();
+	unsigned hdid_len = reader.GetChar();
+	std::string hdid_str = reader.GetEndString();
 
 	try
 	{
-		client->hdid = int(util::to_uint_raw(reader.GetEndString()));
+		client->hdid = int(util::to_uint_raw(hdid_str));
 	}
-	catch (std::invalid_argument)
+	catch (std::invalid_argument&)
 	{
-		client->Close();
+		client->server()->RecordClientRejection(client->GetRemoteAddr(), "bad hdid");
+		client->Close(true);
+		return;
+	}
+
+	if (hdid_str.length() != hdid_len)
+	{
+		client->server()->RecordClientRejection(client->GetRemoteAddr(), "bad hdid");
+		client->Close(true);
 		return;
 	}
 
@@ -81,6 +90,7 @@ void Init_Init(EOClient *client, PacketReader &reader)
 			std::snprintf(errbuf, sizeof errbuf, "too many connections from this PC: %08x", client->hdid);
 			client->server()->RecordClientRejection(client->GetRemoteAddr(), errbuf);
 			client->Close(true);
+			return;
 		}
 	}
 
@@ -91,10 +101,12 @@ void Init_Init(EOClient *client, PacketReader &reader)
 		reply.AddByte(INIT_BANNED);
 		if (ban_expires == 0)
 		{
+			client->server()->RecordClientRejection(client->GetRemoteAddr(), "perm ban");
 			reply.AddByte(INIT_BAN_PERM);
 		}
 		else
 		{
+			client->server()->RecordClientRejection(client->GetRemoteAddr(), "temp ban");
 			int mins_remaining = int(std::min(255.0, std::ceil(double(ban_expires - std::time(0)) / 60.0)));
 			reply.AddByte(INIT_BAN_TEMP);
 			reply.AddByte(mins_remaining);
@@ -118,8 +130,12 @@ void Init_Init(EOClient *client, PacketReader &reader)
 
 	bool accepted_version = client->version >= minversion && (maxversion < 0 || client->version <= maxversion);
 
+	if (prot != 112)
+		accepted_version = false;
+
 	if (client->server()->world->config["CheckVersion"] && !accepted_version)
 	{
+		client->server()->RecordClientRejection(client->GetRemoteAddr(), "out of date");
 		reply.AddByte(INIT_OUT_OF_DATE);
 		reply.AddChar(0);
 		reply.AddChar(0);

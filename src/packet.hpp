@@ -11,6 +11,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <utility>
 
 /**
  * Encodes and Decodes packets for a Client.
@@ -64,6 +65,10 @@ class PacketProcessor
 		std::string DickWinderD(const std::string &);
 
 		void SetEMulti(unsigned char, unsigned char);
+		std::pair<unsigned char, unsigned char> GetEMulti() const
+		{
+			return {this->emulti_e, this->emulti_d};
+		}
 
 		static unsigned int Number(unsigned char, unsigned char = 254, unsigned char = 254, unsigned char = 254);
 		static std::array<unsigned char, 4> ENumber(unsigned int);

@@ -252,6 +252,19 @@ void EOClient::Execute(const std::string &data)
 
 	PacketReader reader(processor.Decode(data));
 
+	if (!this->accepted)
+	{
+		PacketFamily family = reader.Family();
+
+		if (family != PACKET_F_INIT && family != PACKET_CONNECTION
+		 && !(family == PACKET_PLAYERS && reader.Action() == PACKET_LIST && this->server()->world->config["AllowStats"]))
+		{
+			this->server()->RecordClientRejection(this->GetRemoteAddr(), "bad packet");
+			this->Close(true);
+			return;
+		}
+	}
+
 	if (reader.Family() == PACKET_INTERNAL)
 	{
 		Console::Wrn("Closing client connection sending a reserved packet ID: %s", static_cast<std::string>(this->GetRemoteAddr()).c_str());
@@ -278,9 +291,18 @@ void EOClient::Execute(const std::string &data)
 		{
 			if (client_seq != server_seq)
 			{
-				Console::Wrn("Closing client connection sending invalid sequence: %s, Got %i, expected %i.", static_cast<std::string>(this->GetRemoteAddr()).c_str(), client_seq, server_seq);
-				this->Close();
-				return;
+				if (this->accepted)
+				{
+					Console::Wrn("Closing client connection sending invalid sequence: %s, Got %i, expected %i.", static_cast<std::string>(this->GetRemoteAddr()).c_str(), client_seq, server_seq);
+					this->Close();
+					return;
+				}
+				else
+				{
+					this->server()->RecordClientRejection(this->GetRemoteAddr(), "bad sequence");
+					this->Close(true);
+					return;
+				}
 			}
 		}
 	}
